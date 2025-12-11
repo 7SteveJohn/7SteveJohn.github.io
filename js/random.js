@@ -1,1 +1,0 @@
-var posts=["2025/12/11/fiction/","2025/12/11/hello-world/"];function toRandomPost(){window.open('/'+posts[Math.floor(Math.random() * posts.length)],"_self");};
