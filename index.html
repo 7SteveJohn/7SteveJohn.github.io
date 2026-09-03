@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SevenJohn 的个人主页与作品集 | 7SteveJohn.github.io</title>
+  <meta name="description" content="SevenJohn 的个人技术博客与项目作品展示空间，记录开发历程与探索心得。" />
+  <meta property="og:title" content="SevenJohn 的个人主页与作品集" />
+  <meta property="og:url" content="https://7stevejohn.github.io/" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Marked.js (Markdown 解析器) -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <!-- Highlight.js (代码语法高亮) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+  <!-- 自定义样式 -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-[#0b1120] dark:text-slate-100 min-h-screen transition-colors duration-300 antialiased selection:bg-blue-500 selection:text-white relative overflow-x-hidden">
+
+  <!-- 背景装饰光晕光效 -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-blue-400/20 dark:bg-blue-600/15 rounded-full blur-3xl animate-glow"></div>
+    <div class="absolute top-1/3 -right-40 w-[30rem] h-[30rem] bg-indigo-400/20 dark:bg-indigo-600/15 rounded-full blur-3xl animate-glow" style="animation-delay: -3s;"></div>
+    <div class="absolute -bottom-40 left-1/3 w-96 h-96 bg-purple-400/20 dark:bg-purple-600/10 rounded-full blur-3xl animate-glow" style="animation-delay: -5s;"></div>
+  </div>
+
+  <!-- 顶部导航栏 (Navbar) -->
+  <header class="sticky top-0 z-40 w-full backdrop-blur-md bg-white/75 dark:bg-[#0b1120]/75 border-b border-slate-200/80 dark:border-slate-800/80 transition-colors">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- 个人 Logo / 标题 -->
+      <a href="#home" class="flex items-center gap-2.5 group">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white font-bold shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
+          S
+        </div>
+        <span class="font-bold text-lg tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+          SevenJohn<span class="text-blue-600">.io</span>
+        </span>
+      </a>
+
+      <!-- 桌面端菜单导航 -->
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600 dark:text-slate-300">
+        <a href="#home" class="hover:text-blue-600 dark:hover:text-blue-400 transition">首页</a>
+        <a href="#projects" class="hover:text-blue-600 dark:hover:text-blue-400 transition">作品展示</a>
+        <a href="#blog" class="hover:text-blue-600 dark:hover:text-blue-400 transition">技术文章</a>
+        <a href="#about" class="hover:text-blue-600 dark:hover:text-blue-400 transition">关于我</a>
+      </nav>
+
+      <!-- 快捷操作栏（上传生成器 + 主题切换 + 移动端折叠） -->
+      <div class="flex items-center gap-3">
+        <!-- 快捷新增项目按钮 -->
+        <button 
+          id="btn-open-generator"
+          class="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-xs font-semibold transition border border-blue-200/50 dark:border-blue-800/50 cursor-pointer"
+          title="生成新项目配置代码"
+        >
+          <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          <span>新增项目助手</span>
+        </button>
+
+        <!-- 暗色/明亮模式切换 -->
+        <button 
+          id="theme-toggle" 
+          aria-label="切换明暗主题"
+          class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+        >
+          <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+          <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+        </button>
+
+        <!-- 移动端汉堡菜单按钮 -->
+        <button 
+          id="mobile-menu-btn"
+          aria-label="打开移动菜单"
+          class="md:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+        >
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- 移动端下拉菜单 -->
+    <div id="mobile-menu" class="hidden md:hidden border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-[#0b1120]/95 backdrop-blur-md px-4 py-4 space-y-3">
+      <a href="#home" class="block text-sm font-medium py-1.5 text-slate-700 dark:text-slate-200">首页</a>
+      <a href="#projects" class="block text-sm font-medium py-1.5 text-slate-700 dark:text-slate-200">作品展示</a>
+      <a href="#blog" class="block text-sm font-medium py-1.5 text-slate-700 dark:text-slate-200">技术文章</a>
+      <a href="#about" class="block text-sm font-medium py-1.5 text-slate-700 dark:text-slate-200">关于我</a>
+      <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+        <button id="mobile-theme-toggle" class="text-xs font-medium text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+          <i data-lucide="sun-medium" class="w-4 h-4"></i> 切换浅色/深色
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主体内容 -->
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-24">
+
+    <!-- 1. Hero 个人介绍区块 -->
+    <section id="home" class="pt-8 sm:pt-14 pb-8 flex flex-col-reverse lg:flex-row items-center justify-between gap-12">
+      <!-- 文字介绍 -->
+      <div class="space-y-6 text-center lg:text-left max-w-2xl">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-100/80 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-semibold tracking-wide">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+          <span>积极探索新技术的开发者</span>
+        </div>
+
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.15]">
+          你好，我是 <span class="bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 bg-clip-text text-transparent">SevenJohn</span> 👋
+        </h1>
+
+        <p class="text-lg sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+          这里是我的数字花园与个人试验田。我在这里展示亲手打造的<strong>各类独立项目</strong>，并记录技术踩坑、代码实践与思考随笔。
+        </p>
+
+        <!-- CTA 按钮组 -->
+        <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
+          <a href="#projects" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition">
+            <i data-lucide="layers" class="w-4 h-4"></i>
+            <span>浏览我的作品</span>
+          </a>
+          <a href="#blog" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-semibold text-sm shadow-sm transition">
+            <i data-lucide="book-open" class="w-4 h-4"></i>
+            <span>阅读技术博客</span>
+          </a>
+        </div>
+
+        <!-- 社交 / 代码主页链接 -->
+        <div class="flex items-center justify-center lg:justify-start gap-5 pt-2 text-slate-500 dark:text-slate-400">
+          <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="hover:text-slate-900 dark:hover:text-white transition flex items-center gap-1.5" title="GitHub 主页">
+            <i data-lucide="github" class="w-5 h-5"></i>
+            <span class="text-xs font-medium">@7SteveJohn</span>
+          </a>
+          <span class="text-xs text-slate-400 border-l border-slate-300 dark:border-slate-700 pl-4">
+            GitHub Pages 专属主页
+          </span>
+        </div>
+      </div>
+
+      <!-- 右侧头像素描/立体卡片 -->
+      <div class="relative group">
+        <div class="w-48 h-48 sm:w-60 sm:h-60 rounded-3xl p-1 bg-gradient-to-tr from-blue-500 via-indigo-500 to-purple-500 shadow-2xl shadow-indigo-500/20">
+          <img 
+            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80" 
+            alt="Avatar" 
+            class="w-full h-full object-cover rounded-[22px] bg-slate-900"
+          />
+        </div>
+        <div class="absolute -bottom-4 -right-4 px-4 py-2 rounded-2xl bg-white dark:bg-slate-800 shadow-xl border border-slate-200/80 dark:border-slate-700/80 flex items-center gap-2.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+          <span class="text-xs font-semibold text-slate-700 dark:text-slate-200">Open to Projects</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. 项目作品集展示区块 (Projects Section) -->
+    <section id="projects" class="space-y-8 scroll-mt-20">
+      <!-- 标题栏与控制区 -->
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <div class="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2">
+            <i data-lucide="folder-git-2" class="w-4 h-4"></i>
+            <span>Portfolio</span>
+          </div>
+          <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            精选项目作品展示
+          </h2>
+          <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">
+            点击卡片可查看项目架构与详细描述，支持在线演示与查看代码仓库。
+          </p>
+        </div>
+
+        <!-- 搜索框与配置生成入口 -->
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="relative">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+            <input 
+              id="project-search-input"
+              type="text" 
+              placeholder="搜索项目或标签..." 
+              class="w-48 sm:w-60 pl-9 pr-4 py-2 rounded-xl text-sm bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition text-slate-800 dark:text-slate-200 placeholder:text-slate-400"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- 分类过滤筛选药丸 (Filter Pills) -->
+      <div class="flex flex-wrap gap-2 pb-2">
+        <button data-category="all" class="filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 text-white shadow transition cursor-pointer">
+          全部项目
+        </button>
+        <button data-category="frontend" class="filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer">
+          前端开发
+        </button>
+        <button data-category="fullstack" class="filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer">
+          全栈开发
+        </button>
+        <button data-category="tools" class="filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer">
+          实用小工具
+        </button>
+      </div>
+
+      <!-- 项目卡片网格列表 (动态渲染) -->
+      <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- 由 app.js 从 projects.js 动态渲染生成 -->
+      </div>
+
+      <!-- 检索为空提示 -->
+      <div id="projects-empty" class="hidden text-center py-16 space-y-3 bg-white/50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+        <i data-lucide="package-open" class="w-10 h-10 text-slate-400 mx-auto"></i>
+        <p class="text-slate-500 dark:text-slate-400 font-medium">没有找到符合条件的项目</p>
+      </div>
+    </section>
+
+    <!-- 3. 博客文章区块 (Blog Section) -->
+    <section id="blog" class="space-y-8 scroll-mt-20">
+      <div>
+        <div class="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2">
+          <i data-lucide="feather" class="w-4 h-4"></i>
+          <span>Articles & Notes</span>
+        </div>
+        <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          最新技术博客与思考
+        </h2>
+        <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">
+          记录日常遇到的难题、架构方案剖析以及技术探索心得，正文支持 Markdown 排版与代码高亮。
+        </p>
+      </div>
+
+      <!-- 文章列表 (动态渲染) -->
+      <div id="articles-list" class="space-y-4">
+        <!-- 由 app.js 从 articles.js 动态渲染生成 -->
+      </div>
+    </section>
+
+    <!-- 4. 关于我与技能栈 (About & Skills Bento Section) -->
+    <section id="about" class="space-y-8 scroll-mt-20">
+      <div>
+        <div class="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2">
+          <i data-lucide="user" class="w-4 h-4"></i>
+          <span>About Me</span>
+        </div>
+        <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          关于我与核心技能
+        </h2>
+      </div>
+
+      <!-- Bento 风格卡片排版 -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- 卡片 1: 个人简介 -->
+        <div class="p-6 md:p-8 rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 shadow-sm backdrop-blur-sm space-y-4 md:col-span-2">
+          <h3 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <i data-lucide="code-2" class="w-5 h-5 text-blue-600"></i>
+            <span>你好，很高兴遇见你！</span>
+          </h3>
+          <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+            我是一名专注于现代 Web 体验的前端/全栈开发者。喜欢从零搭建精致、易用、高效的数字化产品，并热衷于探索新兴开源技术。
+          </p>
+          <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+            这个网站也是我的个人试验田，所有的项目与技术沉淀都会第一时间同步到这里。欢迎随时通过 GitHub 或邮件与我交流合作！
+          </p>
+
+          <!-- 技能标签群 -->
+          <div class="pt-4 border-t border-slate-100 dark:border-slate-700">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">技能专长</h4>
+            <div class="flex flex-wrap gap-2">
+              <span class="px-3 py-1 text-xs font-semibold rounded-lg bg-orange-50 text-orange-600 dark:bg-orange-950/40 dark:text-orange-300 border border-orange-200/50 dark:border-orange-800/40">HTML5 / CSS3</span>
+              <span class="px-3 py-1 text-xs font-semibold rounded-lg bg-yellow-50 text-yellow-600 dark:bg-yellow-950/40 dark:text-yellow-300 border border-yellow-200/50 dark:border-yellow-800/40">JavaScript (ES6+)</span>
+              <span class="px-3 py-1 text-xs font-semibold rounded-lg bg-sky-50 text-sky-600 dark:bg-sky-950/40 dark:text-sky-300 border border-sky-200/50 dark:border-sky-800/40">Tailwind CSS</span>
+              <span class="px-3 py-1 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/40">Vue.js / React</span>
+              <span class="px-3 py-1 text-xs font-semibold rounded-lg bg-green-50 text-green-600 dark:bg-green-950/40 dark:text-green-300 border border-green-200/50 dark:border-green-800/40">Node.js</span>
+              <span class="px-3 py-1 text-xs font-semibold rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950/40 dark:text-purple-300 border border-purple-200/50 dark:border-purple-800/40">Git / 自动化部署</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 卡片 2: 如何上传我的新项目指南 -->
+        <div class="p-6 md:p-8 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-lg space-y-4 flex flex-col justify-between">
+          <div class="space-y-3">
+            <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+              <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
+            </div>
+            <h3 class="text-xl font-bold">如何上传新项目？</h3>
+            <p class="text-blue-100 text-xs leading-relaxed">
+              无需重新编译代码，只需两步即可将你的新项目加入作品集：
+            </p>
+            <ol class="text-xs text-blue-100 space-y-2 list-decimal list-inside">
+              <li>点击顶部的“<strong>新增项目助手</strong>”；</li>
+              <li>填写项目名称、链接与截图并一键生成配置代码；</li>
+              <li>复制粘贴至 <code class="bg-white/20 px-1 py-0.5 rounded">js/projects.js</code> 即可！</li>
+            </ol>
+          </div>
+
+          <button 
+            onclick="document.getElementById('btn-open-generator').click()"
+            class="w-full py-2.5 rounded-xl bg-white text-blue-700 font-bold text-xs hover:bg-blue-50 transition shadow cursor-pointer text-center"
+          >
+            立即使用配置助手 ✨
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 底部页脚 (Footer) -->
+  <footer class="border-t border-slate-200/80 dark:border-slate-800/80 mt-20 py-10 bg-white/50 dark:bg-slate-900/50 text-sm text-slate-500 dark:text-slate-400">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-slate-800 dark:text-slate-200">SevenJohn</span>
+        <span>© 2026. 保留所有权利。</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="#home" class="hover:text-blue-600 transition">回到顶部 ↑</a>
+        <a href="https://github.com/7SteveJohn/7SteveJohn.github.io" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600 transition">GitHub 仓库</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ======================== 弹窗层集合 ======================== -->
+
+  <!-- 1. 项目详情弹窗 (Project Modal) -->
+  <div id="project-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+    <div class="relative w-full max-w-3xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 my-8">
+      <!-- 关闭按钮 -->
+      <button 
+        onclick="closeProjectModal()" 
+        aria-label="关闭"
+        class="absolute top-4 right-4 z-10 p-2 rounded-full bg-slate-900/50 text-white hover:bg-slate-900 transition cursor-pointer"
+      >
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <!-- 动态注入的内容 -->
+      <div id="project-modal-content"></div>
+    </div>
+  </div>
+
+  <!-- 2. 博客文章详情弹窗 (Article Modal) -->
+  <div id="article-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+    <div class="relative w-full max-w-3xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 my-8">
+      <!-- 关闭按钮 -->
+      <button 
+        onclick="closeArticleModal()" 
+        aria-label="关闭"
+        class="absolute top-6 right-6 z-10 p-2 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition cursor-pointer"
+      >
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <!-- 动态注入的文章内容 -->
+      <div id="article-modal-content" class="max-h-[85vh] overflow-y-auto"></div>
+    </div>
+  </div>
+
+  <!-- 3. 快捷项目配置代码生成器 (Generator Modal) -->
+  <div id="generator-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+    <div class="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 my-8 space-y-6">
+      <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
+        <div>
+          <h3 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <i data-lucide="sparkles" class="w-5 h-5 text-blue-600"></i>
+            <span>上传新项目：配置代码生成助手</span>
+          </h3>
+          <p class="text-xs text-slate-500 mt-1">填写表单后自动生成标准配置代码，直接粘贴进 js/projects.js 即可上线！</p>
+        </div>
+        <button id="btn-close-generator" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- 表单输入项 -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">项目标题 *</label>
+          <input id="gen-title" type="text" placeholder="例如：AI 智能记事本" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-200" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">分类类型</label>
+          <select id="gen-category" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-200">
+            <option value="frontend">前端开发 (frontend)</option>
+            <option value="fullstack">全栈开发 (fullstack)</option>
+            <option value="tools">实用工具 (tools)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">分类显示名称</label>
+          <input id="gen-cat-name" type="text" placeholder="例如：前端开发" value="前端开发" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-200" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">技术栈标签 (英文逗号分隔)</label>
+          <input id="gen-tags" type="text" placeholder="Vue3, Vite, Tailwind" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-200" />
+        </div>
+
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">封面图片地址 (网络URL或 assets/images/ 路径)</label>
+          <input id="gen-image" type="text" placeholder="https://... 或 assets/images/my-project.png" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-200" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">在线演示链接 Demo (没有填 #)</label>
+          <input id="gen-demo" type="text" placeholder="https://..." value="#" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-200" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">GitHub / 源码仓库链接 (没有填 #)</label>
+          <input id="gen-github" type="text" placeholder="https://github.com/..." value="#" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-200" />
+        </div>
+
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">简要描述</label>
+          <textarea id="gen-desc" rows="2" placeholder="用一两句话概括这个项目的最大亮点与核心功能..." class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-200"></textarea>
+        </div>
+
+        <div class="sm:col-span-2 flex items-center gap-2">
+          <input id="gen-featured" type="checkbox" class="rounded text-blue-600 focus:ring-blue-500" />
+          <label for="gen-featured" class="text-xs text-slate-700 dark:text-slate-300 cursor-pointer">设为精选项目（带推荐徽标）</label>
+        </div>
+      </div>
+
+      <!-- 操作与生成代码展示 -->
+      <div class="space-y-3 pt-2">
+        <button id="btn-generate-code" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition shadow cursor-pointer">
+          生成配置代码
+        </button>
+
+        <div class="relative">
+          <textarea id="generator-output" readonly rows="6" placeholder="点击上方按钮后，在此处生成对应的 JavaScript 数据代码..." class="w-full p-3 font-mono text-xs rounded-xl bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-emerald-400 border border-slate-200 dark:border-slate-800 focus:outline-none"></textarea>
+          <button id="btn-copy-code" class="hidden absolute top-3 right-3 px-3 py-1 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition cursor-pointer shadow">
+            一键复制
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 引入项目数据与交互脚本 -->
+  <script src="js/projects.js"></script>
+  <script src="js/articles.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
