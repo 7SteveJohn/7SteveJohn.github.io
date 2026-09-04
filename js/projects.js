@@ -100,26 +100,5 @@ GameBoost 是一款 Windows 竞技游戏一键自动优化工具，面向 CS2 / 
 ### 🛠️ 技术细节
 C# 源码（GameBoost.cs）+ compile.ps1 自动编译打包；曾修复单实例锁被 .NET GC 回收导致失效的经典坑（局部 Mutex）。
     `
-  },
-  {
-    id: "project-1",
-    title: "个人现代化博客与作品集",
-    category: "frontend",
-    categoryName: "前端开发",
-    description: "基于轻量现代化前端技术栈打造的极简个人主页与技术博客，支持暗黑模式、Markdown渲染与零门槛项目管理。",
-    tags: ["HTML5", "TailwindCSS", "JavaScript", "Markdown"],
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80",
-    demoUrl: "https://7stevejohn.github.io/",
-    githubUrl: "https://github.com/7SteveJohn/7SteveJohn.github.io",
-    featured: true,
-    details: `
-### 💡 项目背景与愿景
-为了能便捷、优雅地向面试官或技术同行展示自己的前端作品与学习心得，独立设计并开发了该套响应式个人主页与博客系统。
-
-### ✨ 核心特色
-1. **纯静态零构建依赖**：双击即可本地运行，亦可一键部署至 GitHub Pages、Vercel。
-2. **数据界面解耦**：项目与文章完全通过独立的数据配置文件驱动，新增项目只需复制粘贴配置。
-3. **沉浸式阅读与暗色模式**：内置舒适的深色/浅色配色切换，集成 Marked 引擎实现文章排版与高亮。
-    `
   }
 ];
