@@ -49,9 +49,10 @@ h1, h2, h3 {
   background: #94a3b8;
 }
 
-/* 按压微反馈 */
+/* 按压微反馈 (impeccable 触觉规范) */
 button:active, a:active {
-  transform: scale(0.985);
+  transform: scale(0.98);
+  transition: transform 0.1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* 跳转正文链接 */
@@ -72,18 +73,30 @@ button:active, a:active {
   top: 1rem;
 }
 
-/* 卡片质感：干净利落的边框高亮与轻微悬停反馈 */
+/* 卡片质感：双层柔光环境投影 + 暗色内沿高光 (impeccable 规范) + 物理缓动 (motion-craft) */
 .project-card {
   position: relative;
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 6px 16px -4px rgba(0, 0, 0, 0.06);
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.18s ease,
+              box-shadow 0.18s ease;
+}
+.dark .project-card {
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05),
+              0 6px 20px -4px rgba(0, 0, 0, 0.4);
 }
 .project-card:hover {
   transform: translateY(-2px);
+  box-shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.04), 0 12px 28px -6px rgba(0, 0, 0, 0.09);
+}
+.dark .project-card:hover {
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
+              0 12px 32px -6px rgba(0, 0, 0, 0.6);
 }
 
 /* 箭头小动效 */
 .arrow-slide {
-  transition: transform 0.2s ease;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .project-card:hover .arrow-slide {
   transform: translateX(3px);
