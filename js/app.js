@@ -12,10 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 3. 渲染博客文章列表与阅读弹窗
   initArticles();
 
-  // 4. 初始化快捷“添加项目配置生成器”
-  initProjectConfigGenerator();
-
-  // 5. 初始化移动端抽屉菜单与滚动交互
+  // 4. 初始化移动端抽屉菜单与滚动交互
   initNavigation();
 
   // 6. 渲染图标
@@ -276,7 +273,10 @@ function initArticles() {
 
   const articles = window.ARTICLES_DATA || [];
   if (articles.length === 0) {
-    listContainer.innerHTML = `<p class="text-slate-500 text-center py-8">暂无博客文章。</p>`;
+    // 没有文章时：隐藏整个博客区块与所有指向它的导航入口
+    const blogSection = document.getElementById('blog');
+    if (blogSection) blogSection.classList.add('hidden');
+    document.querySelectorAll('a[href="#blog"]').forEach(a => a.classList.add('hidden'));
     return;
   }
 
@@ -378,83 +378,7 @@ window.closeArticleModal = function() {
 };
 
 /* ============================================================
-   4. 快捷新增项目配置生成器 (Project Config Generator)
-   ============================================================ */
-function initProjectConfigGenerator() {
-  const openBtn = document.getElementById('btn-open-generator');
-  const modal = document.getElementById('generator-modal');
-  const closeBtn = document.getElementById('btn-close-generator');
-  const generateBtn = document.getElementById('btn-generate-code');
-  const copyBtn = document.getElementById('btn-copy-code');
-  const outputArea = document.getElementById('generator-output');
-
-  if (openBtn && modal) {
-    openBtn.addEventListener('click', () => {
-      modal.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-      if (window.lucide) window.lucide.createIcons();
-    });
-  }
-
-  if (closeBtn && modal) {
-    closeBtn.addEventListener('click', () => {
-      modal.classList.add('hidden');
-      document.body.style.overflow = '';
-    });
-  }
-
-  if (generateBtn) {
-    generateBtn.addEventListener('click', () => {
-      const title = document.getElementById('gen-title').value.trim() || '未命名新项目';
-      const category = document.getElementById('gen-category').value.trim() || 'frontend';
-      const categoryName = document.getElementById('gen-cat-name').value.trim() || '前端开发';
-      const desc = document.getElementById('gen-desc').value.trim() || '项目简短亮点介绍。';
-      const tagsStr = document.getElementById('gen-tags').value.trim();
-      const tags = tagsStr ? tagsStr.split(',').map(s => s.trim()).filter(Boolean) : ["Web", "JavaScript"];
-      const image = document.getElementById('gen-image').value.trim() || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80';
-      const demo = document.getElementById('gen-demo').value.trim() || '#';
-      const github = document.getElementById('gen-github').value.trim() || '#';
-      const featured = document.getElementById('gen-featured').checked;
-
-      const objCode = `  {
-    id: "project-${Date.now()}",
-    title: "${escapeString(title)}",
-    category: "${category}",
-    categoryName: "${escapeString(categoryName)}",
-    description: "${escapeString(desc)}",
-    tags: ${JSON.stringify(tags)},
-    image: "${escapeString(image)}",
-    demoUrl: "${escapeString(demo)}",
-    githubUrl: "${escapeString(github)}",
-    featured: ${featured},
-    details: \`
-### 💡 项目介绍
-${escapeString(desc)}
-    \`
-  },`;
-
-      if (outputArea) {
-        outputArea.value = objCode;
-        if (copyBtn) copyBtn.classList.remove('hidden');
-      }
-    });
-  }
-
-  if (copyBtn && outputArea) {
-    copyBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(outputArea.value).then(() => {
-        const originalText = copyBtn.innerText;
-        copyBtn.innerText = '✅ 已复制到剪贴板！';
-        setTimeout(() => {
-          copyBtn.innerText = originalText;
-        }, 2000);
-      });
-    });
-  }
-}
-
-/* ============================================================
-   5. 响应式导航与平滑交互
+   4. 响应式导航与平滑交互
    ============================================================ */
 function initNavigation() {
   const menuBtn = document.getElementById('mobile-menu-btn');
@@ -473,7 +397,7 @@ function initNavigation() {
   }
 
   // 点击弹窗背景遮罩关闭
-  const modals = ['project-modal', 'article-modal', 'generator-modal'];
+  const modals = ['project-modal', 'article-modal'];
   modals.forEach(modalId => {
     const el = document.getElementById(modalId);
     if (el) {
@@ -509,9 +433,4 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
-}
-
-function escapeString(str) {
-  if (!str) return '';
-  return str.replace(/"/g, '\\"');
 }

@@ -121,54 +121,5 @@ C# 源码（GameBoost.cs）+ compile.ps1 自动编译打包；曾修复单实例
 2. **数据界面解耦**：项目与文章完全通过独立的数据配置文件驱动，新增项目只需复制粘贴配置。
 3. **沉浸式阅读与暗色模式**：内置舒适的深色/浅色配色切换，集成 Marked 引擎实现文章排版与高亮。
     `
-  },
-  {
-    id: "project-2",
-    title: "响应式电商商城原型系统",
-    category: "frontend",
-    categoryName: "前端开发",
-    description: "移动端与桌面端自适应的在线商城前端界面，包含商品列表检索、购物车飞入动效与结算流程模拟。",
-    tags: ["JavaScript", "CSS3 Flex/Grid", "LocalStorage", "响应式"],
-    image: "https://images.unsplash.com/photo-1557821552-17105176677c?auto=format&fit=crop&w=800&q=80",
-    demoUrl: "#",
-    githubUrl: "https://github.com/7SteveJohn",
-    featured: true,
-    details: `
-### 🛒 项目介绍
-模拟真实电商平台的购物闭环，强化了对前端状态管理（本地存储 LocalStorage 模拟购物车数据持久化）与动效细节的把控。
-    `
-  },
-  {
-    id: "project-3",
-    title: "全栈即时任务看板 (Kanban)",
-    category: "fullstack",
-    categoryName: "全栈开发",
-    description: "支持卡片拖拽流转（Drag & Drop）、阶段分类与实时持久化的敏捷看板，专为个人日程与敏捷开发打造。",
-    tags: ["Node.js", "Express", "SQLite", "Drag&Drop API"],
-    image: "https://images.unsplash.com/photo-1507925921958-8a62f3d1a50d?auto=format&fit=crop&w=800&q=80",
-    demoUrl: "#",
-    githubUrl: "https://github.com/7SteveJohn",
-    featured: false,
-    details: `
-### 📋 功能清单
-- 支持任务多泳道（待办、进行中、已完成）自由拖拽流转。
-- 任务可设定截止时间与优先级标签，支持按关键字极速检索。
-    `
-  },
-  {
-    id: "project-4",
-    title: "代码轻量格式化与转码小工具",
-    category: "tools",
-    categoryName: "实用工具",
-    description: "纯前端离线运行的开发者多功能工具箱：支持 JSON 美化/压缩、Base64 编解码、颜色格式互转等。",
-    tags: ["HTML5", "原生JS", "Web API", "效率工具"],
-    image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80",
-    demoUrl: "#",
-    githubUrl: "https://github.com/7SteveJohn",
-    featured: false,
-    details: `
-### 🛠️ 纯前端安全免上传
-所有数据转换与格式化均在本地浏览器内存中完成，无服务器隐私泄露风险。
-    `
   }
 ];
