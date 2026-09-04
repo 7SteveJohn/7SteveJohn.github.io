@@ -90,9 +90,11 @@ function initProjects() {
             <img 
               src="${escapeHtml(item.image)}" 
               alt="${escapeHtml(item.title)}" 
-              loading="lazy"
+              loading="eager"
+              fetchpriority="high"
+              decoding="async"
               class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-              onerror="this.parentElement.style.display='none'"
+              onerror="if(!this.dataset.retry){this.dataset.retry='1';this.src=this.src.replace('.webp','.jpg');}else{this.parentElement.style.display='none';}"
             />
             <span class="absolute top-3 left-3 px-2 py-0.5 text-xs font-medium rounded-md bg-slate-900/80 text-slate-200 backdrop-blur-sm">
               ${escapeHtml(item.categoryName || item.category)}
