@@ -209,54 +209,54 @@ window.openProjectModal = function(id) {
 
   const detailsHtml = project.details 
     ? (window.marked ? window.marked.parse(project.details) : `<p>${project.details}</p>`)
-    : `<p class="text-slate-500">暂无更多详细说明。</p>`;
+    : `<p class="text-[#86868b]">暂无更多详细说明。</p>`;
 
   modalContent.innerHTML = `
     <div class="p-6 sm:p-8 space-y-6">
       <!-- 头部 -->
-      <div class="space-y-2 border-b border-slate-100 dark:border-slate-800 pb-5">
+      <div class="space-y-2 border-b border-black/10 dark:border-white/10 pb-5">
         <div class="flex items-center gap-2">
-          <span class="px-2 py-0.5 text-xs font-mono font-medium rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+          <span class="px-2.5 py-1 text-xs font-mono font-medium rounded-full bg-[#0071e3]/10 text-[#0071e3] border border-[#0071e3]/20">
             ${escapeHtml(project.categoryName || project.category)}
           </span>
         </div>
-        <h2 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">${escapeHtml(project.title)}</h2>
-        <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">${escapeHtml(project.description)}</p>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-[#1d1d1f] dark:text-white tracking-tight">${escapeHtml(project.title)}</h2>
+        <p class="text-[#86868b] text-sm sm:text-base leading-relaxed">${escapeHtml(project.description)}</p>
       </div>
 
       <!-- 标签 -->
       <div class="flex flex-wrap gap-1.5">
         ${(project.tags || []).map(tag => `
-          <span class="text-xs px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono">
+          <span class="text-xs px-2.5 py-1 rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">
             ${escapeHtml(tag)}
           </span>
         `).join('')}
       </div>
 
       <!-- Markdown 正文内容 -->
-      <div class="markdown-body text-slate-800 dark:text-slate-200">
+      <div class="markdown-body text-[#1d1d1f] dark:text-[#f5f5f7]">
         ${detailsHtml}
       </div>
 
       <!-- 操作链接栏 -->
-      <div class="pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-wrap gap-3 items-center justify-end">
+      <div class="pt-6 border-t border-black/10 dark:border-white/10 flex flex-wrap gap-3 items-center justify-end">
         ${project.downloadUrl ? `
           <a href="${project.downloadUrl}" target="_blank" rel="noopener noreferrer"
-             class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs transition">
-            <i data-lucide="download" class="w-4 h-4"></i>
+             class="apple-btn-primary px-5 py-2 text-xs flex items-center gap-1.5">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
             <span>网盘下载${project.downloadPwd ? ' (提取码: ' + project.downloadPwd + ')' : ''}</span>
           </a>
         ` : ''}
         ${project.githubUrl && project.githubUrl !== '#' ? `
           <a href="${project.githubUrl}" target="_blank" rel="noopener noreferrer"
-             class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-medium text-xs transition">
-            <i data-lucide="github" class="w-4 h-4"></i>
+             class="apple-btn-secondary px-4 py-2 text-xs bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white flex items-center gap-1.5 border border-black/10 dark:border-white/10">
+            <i data-lucide="github" class="w-3.5 h-3.5"></i>
             <span>GitHub 源码</span>
           </a>
         ` : ''}
         ${project.demoUrl && project.demoUrl !== '#' ? `
           <a href="${project.demoUrl}" target="_blank" rel="noopener noreferrer"
-             class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 font-medium text-xs transition">
+             class="apple-btn-secondary px-4 py-2 text-xs bg-slate-100 dark:bg-white/10 text-[#1d1d1f] dark:text-white flex items-center gap-1.5 border border-black/10 dark:border-white/10">
             <span>在线发布 / Releases</span>
             <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
           </a>
@@ -298,28 +298,26 @@ function initArticles() {
 
   if (listContainer) {
     listContainer.innerHTML = articles.map(art => `
-      <article class="p-5 sm:p-6 rounded-xl bg-white dark:bg-[#111622] border border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <article class="apple-bento-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer group" onclick="openArticleModal('${art.id}')">
         <div class="space-y-2 flex-1">
-          <div class="flex items-center gap-2 text-xs font-mono text-slate-500">
-            <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-              ${escapeHtml(art.category || '文章')}
+          <div class="flex items-center gap-2 text-xs font-mono text-[#86868b]">
+            <span class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] font-medium border border-[#0071e3]/20">
+              ${escapeHtml(art.category || '技术手记')}
             </span>
             <span>${escapeHtml(art.date)}</span>
+            ${art.readTime ? `<span>· ${escapeHtml(art.readTime)}</span>` : ''}
           </div>
-          <h3 class="text-lg font-bold text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition"
-              onclick="openArticleModal('${art.id}')">
+          <h3 class="text-lg font-bold text-[#1d1d1f] dark:text-white group-hover:text-[#0071e3] transition-colors leading-snug">
             ${escapeHtml(art.title)}
           </h3>
-          <p class="text-slate-600 dark:text-slate-400 text-sm line-clamp-2">
+          <p class="text-[#86868b] text-sm line-clamp-2 leading-relaxed">
             ${escapeHtml(art.summary)}
           </p>
         </div>
-        <button 
-          onclick="openArticleModal('${art.id}')"
-          class="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1 cursor-pointer self-start md:self-auto">
-          <span>阅读</span>
-          <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-        </button>
+        <div class="text-xs font-medium text-[#0071e3] inline-flex items-center gap-1 self-start md:self-auto group-hover:translate-x-0.5 transition-transform whitespace-nowrap">
+          <span>阅读手记</span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+        </div>
       </article>
     `).join('');
 
@@ -339,11 +337,17 @@ window.openArticleModal = function(id) {
 
   modalContent.innerHTML = `
     <div class="p-6 sm:p-8 space-y-5">
-      <div class="space-y-2 border-b border-slate-100 dark:border-slate-800 pb-5">
-        <span class="text-xs font-mono text-slate-500">${escapeHtml(article.date)} · ${escapeHtml(article.category || '随笔')}</span>
-        <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">${escapeHtml(article.title)}</h1>
+      <div class="space-y-2 border-b border-black/10 dark:border-white/10 pb-5">
+        <div class="flex items-center gap-2 text-xs font-mono text-[#86868b]">
+          <span class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] font-medium border border-[#0071e3]/20">
+            ${escapeHtml(article.category || '技术手记')}
+          </span>
+          <span>${escapeHtml(article.date)}</span>
+          ${article.readTime ? `<span>· ${escapeHtml(article.readTime)}</span>` : ''}
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-[#1d1d1f] dark:text-white tracking-tight">${escapeHtml(article.title)}</h1>
       </div>
-      <div class="markdown-body text-slate-800 dark:text-slate-200">
+      <div class="markdown-body text-[#1d1d1f] dark:text-[#f5f5f7]">
         ${parsedMarkdown}
       </div>
     </div>
