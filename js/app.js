@@ -140,6 +140,14 @@ function initProjects() {
                 <i data-lucide="github" class="w-4 h-4"></i>
               </a>
             ` : ''}
+            ${item.downloadUrl ? `
+              <a href="${escapeHtml(item.downloadUrl)}" target="_blank" rel="noopener noreferrer"
+                 class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 font-medium transition text-xs shadow-sm shadow-emerald-500/30"
+                 title="下载${item.downloadPwd ? '（提取码：' + escapeHtml(item.downloadPwd) + '）' : ''}">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                <span>下载</span>
+              </a>
+            ` : ''}
             ${item.demoUrl && item.demoUrl !== '#' ? `
               <a href="${item.demoUrl}" target="_blank" rel="noopener noreferrer" 
                  class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 font-medium transition text-xs shadow-sm shadow-blue-500/30">
@@ -245,6 +253,13 @@ window.openProjectModal = function(id) {
              class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md shadow-blue-500/20 transition">
             <i data-lucide="external-link" class="w-5 h-5"></i>
             <span>访问在线演示</span>
+          </a>
+        ` : ''}
+        ${project.downloadUrl ? `
+          <a href="${escapeHtml(project.downloadUrl)}" target="_blank" rel="noopener noreferrer"
+             class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-md shadow-emerald-500/20 transition">
+            <i data-lucide="download" class="w-5 h-5"></i>
+            <span>下载安装包${project.downloadPwd ? '（提取码：' + escapeHtml(project.downloadPwd) + '）' : ''}</span>
           </a>
         ` : ''}
       </div>

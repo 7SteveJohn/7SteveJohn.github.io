@@ -14,6 +14,8 @@
  * - image: 项目封面图（可以是网络图片链接，或者放在 assets/images/ 中的本地相对路径）
  * - demoUrl: 在线演示地址（若暂无请填 "#"）
  * - githubUrl: 源码仓库地址（GitHub/Gitee链接，若暂无请填 "#"）
+ * - downloadUrl: 下载地址（如蓝奏云网盘链接，若暂无则不填该字段）
+ * - downloadPwd: 下载提取码/密码（与 downloadUrl 配套，若无密码则不填）
  * - featured: 是否推荐在醒目位置展示 (true / false)
  * - details: 点击查看详情时的完整介绍（支持 Markdown 或文字排版）
  */
@@ -29,6 +31,8 @@ window.PROJECTS_DATA = [
     image: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?auto=format&fit=crop&w=800&q=80",
     demoUrl: "https://github.com/7SteveJohn/FileButler/releases",
     githubUrl: "https://github.com/7SteveJohn/FileButler",
+    downloadUrl: "https://wwblz.lanzouu.com/irw4346nqpfa",
+    downloadPwd: "95ak",
     featured: true,
     details: `
 ### 💡 项目介绍
@@ -58,6 +62,8 @@ FileButler 是一款**完全本地运行**的智能文件管家桌面应用（py
     image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80",
     demoUrl: "#",
     githubUrl: "https://github.com/7SteveJohn/netops-handbook",
+    downloadUrl: "https://wwblz.lanzouu.com/iTcqo46ntzy",
+    downloadPwd: "9uma",
     featured: true,
     details: `
 ### 💡 项目介绍
@@ -85,6 +91,8 @@ NetOps 2.0 是一款**零网络权限、100% 离线**的 Android 网络运维知
     image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80",
     demoUrl: "#",
     githubUrl: "https://github.com/7SteveJohn/GameBoost",
+    downloadUrl: "https://wwblz.lanzouu.com/i40WL46nu73e",
+    downloadPwd: "5xqi",
     featured: false,
     details: `
 ### 💡 项目介绍

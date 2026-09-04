@@ -49,6 +49,8 @@ npx serve d:/HTML
   image: "assets/images/my-project.png", // 可以是本地相对路径或网络图片地址
   demoUrl: "https://your-demo.com",     // 在线演示链接，若无填 "#"
   githubUrl: "https://github.com/...",  // 代码仓库链接，若无填 "#"
+  downloadUrl: "https://...",            // 下载地址（如蓝奏云），无则整行删掉
+  downloadPwd: "abcd",                   // 下载提取码，无密码则删掉该行
   featured: true,                       // 是否设为精选推荐
   details: `
 ### 💡 项目介绍
