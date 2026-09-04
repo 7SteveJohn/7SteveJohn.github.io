@@ -12,7 +12,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // 3. 渲染博客文章列表与阅读弹窗
   initArticles();
 
-  // 4. 初始化移动端抽屉菜单与滚动交互
+  // 4. 初始化滚动进场动画
+  initReveal();
+
+  // 5. 初始化移动端抽屉菜单与滚动交互
   initNavigation();
 
   // 6. 渲染图标
@@ -159,6 +162,12 @@ function initProjects() {
         </div>
       </div>
     `).join('');
+
+    // 卡片逐张错峰进场
+    container.querySelectorAll('.project-card').forEach((card, idx) => {
+      card.style.transitionDelay = `${Math.min(idx, 5) * 60}ms`;
+      observeReveal(card);
+    });
 
     if (window.lucide) window.lucide.createIcons();
   }
@@ -393,7 +402,38 @@ window.closeArticleModal = function() {
 };
 
 /* ============================================================
-   4. 响应式导航与平滑交互
+   4. 滚动进场动画 (Scroll Reveal)
+   ============================================================ */
+let revealObserver = null;
+
+function getRevealObserver() {
+  if (revealObserver) return revealObserver;
+  revealObserver = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+  return revealObserver;
+}
+
+function observeReveal(el) {
+  if (!el) return;
+  // 不支持 IntersectionObserver 或用户偏好减少动效时：不做进场动画，内容直接可见
+  if (!('IntersectionObserver' in window)) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  el.classList.add('reveal');
+  getRevealObserver().observe(el);
+}
+
+function initReveal() {
+  document.querySelectorAll('main > section').forEach(sec => observeReveal(sec));
+}
+
+/* ============================================================
+   5. 响应式导航与平滑交互
    ============================================================ */
 function initNavigation() {
   const menuBtn = document.getElementById('mobile-menu-btn');
