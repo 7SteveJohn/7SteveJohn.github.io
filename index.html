@@ -7,6 +7,10 @@
   <meta name="description" content="SevenJohn 的个人技术博客与项目作品展示空间，记录开发历程与探索心得。" data-page-node-id="F7mGCd0SaoiC1BZHVrTrya" />
   <meta property="og:title" content="SevenJohn 的个人主页与作品集" data-page-node-id="1Lz04We47YP4dapx1Mvepf" />
   <meta property="og:url" content="https://7stevejohn.github.io/" data-page-node-id="tumgm7xtG4C6CIBPyo8LeB" />
+  <meta property="og:image" content="https://7stevejohn.github.io/assets/images/avatar.jpg" />
+  <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0b1120" media="(prefers-color-scheme: dark)" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%232563eb'/%3E%3Cstop offset='1' stop-color='%234f46e5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ctext x='32' y='44' font-family='Segoe UI,sans-serif' font-size='36' font-weight='700' fill='white' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E" />
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -44,11 +48,14 @@
 </head>
 <body class="bg-slate-50 text-slate-900 dark:bg-[#0b1120] dark:text-slate-100 min-h-screen transition-colors duration-300 antialiased selection:bg-blue-500 selection:text-white relative overflow-x-hidden" data-page-node-id="9BPf00tf7ot9SBJaimlCJe">
 
+  <!-- 键盘用户跳转正文 -->
+  <a href="#home" class="skip-link">跳转到正文</a>
+
   <!-- 背景装饰光晕光效 -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10" data-page-node-id="yPHU0x7h8eds5ogSSjHvqk">
     <div class="absolute -top-40 -left-40 w-96 h-96 bg-blue-400/20 dark:bg-blue-600/15 rounded-full blur-3xl animate-glow" data-page-node-id="gG8dRAiXnGY2O1mq8Q6qz0"></div>
     <div class="absolute top-1/3 -right-40 w-[30rem] h-[30rem] bg-indigo-400/20 dark:bg-indigo-600/15 rounded-full blur-3xl animate-glow" style="animation-delay: -3s;" data-page-node-id="Q7DXyMq5oZYgPzOUhdoffv"></div>
-    <div class="absolute -bottom-40 left-1/3 w-96 h-96 bg-purple-400/20 dark:bg-purple-600/10 rounded-full blur-3xl animate-glow" style="animation-delay: -5s;" data-page-node-id="NFeuQtVNA4xEUmfSxj8wjJ"></div>
+    <div class="absolute -bottom-40 left-1/3 w-96 h-96 bg-blue-300/15 dark:bg-blue-600/10 rounded-full blur-3xl animate-glow" style="animation-delay: -5s;" data-page-node-id="NFeuQtVNA4xEUmfSxj8wjJ"></div>
   </div>
 
   <!-- 顶部导航栏 (Navbar) -->
@@ -123,7 +130,7 @@
         </div>
 
         <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.15]" data-page-node-id="Ut4t1eXUtC5jPl5dMmVcE2">
-          你好，我是 <span class="bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 bg-clip-text text-transparent" data-page-node-id="12Pjz03SBcSAnFxnBDoern">SevenJohn</span> 👋
+          你好，我是 <span class="bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent" data-page-node-id="12Pjz03SBcSAnFxnBDoern">SevenJohn</span> 👋
         </h1>
 
         <p class="text-lg sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed font-normal" data-page-node-id="u4YySDfdOOidX5huqtVeYr">
@@ -132,11 +139,11 @@
 
         <!-- CTA 按钮组 -->
         <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2" data-page-node-id="tsEmAqFwDqbyBiNTJrEPez">
-          <a href="#projects" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition" data-page-node-id="8ewpubWFeACJjRGQIOJU3S">
+          <a href="#projects" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition active:scale-[0.98]" data-page-node-id="8ewpubWFeACJjRGQIOJU3S">
             <i data-lucide="layers" class="w-4 h-4" data-page-node-id="ZWcE9GtACOSfk18svjN6nl"></i>
             <span data-page-node-id="zNGkIJev5AGza0xWzft97O">浏览我的作品</span>
           </a>
-          <a href="#blog" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-semibold text-sm shadow-sm transition" data-page-node-id="E4TXFFoJsD29H99HHdQV4c">
+          <a href="#blog" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-semibold text-sm shadow-sm transition active:scale-[0.98]" data-page-node-id="E4TXFFoJsD29H99HHdQV4c">
             <i data-lucide="book-open" class="w-4 h-4" data-page-node-id="wGawvOa9Bi9yvKJbKUsAtb"></i>
             <span data-page-node-id="IAEQRNgvRpIfFnFhZgsvcL">阅读技术博客</span>
           </a>
@@ -156,7 +163,7 @@
 
       <!-- 右侧头像素描/立体卡片 -->
       <div class="relative group" data-page-node-id="ZJb4GlIq58Ov7qtz9AHA6F">
-        <div class="w-48 h-48 sm:w-60 sm:h-60 rounded-3xl p-1 bg-gradient-to-tr from-blue-500 via-indigo-500 to-purple-500 shadow-2xl shadow-indigo-500/20" data-page-node-id="JL2o3O0O9vu7ArVecsXkLv">
+        <div class="w-48 h-48 sm:w-60 sm:h-60 rounded-3xl p-1 bg-gradient-to-tr from-blue-500 to-indigo-500 shadow-2xl shadow-blue-500/20" data-page-node-id="JL2o3O0O9vu7ArVecsXkLv">
           <img
             src="assets/images/avatar.jpg"
             alt="Avatar"

@@ -195,6 +195,17 @@ function initProjects() {
     });
   }
 
+  // 卡片追光：光斑位置跟随鼠标（事件委托，重渲染后依然有效）
+  if (container) {
+    container.addEventListener('pointermove', (e) => {
+      const card = e.target.closest('.project-card');
+      if (!card) return;
+      const rect = card.getBoundingClientRect();
+      card.style.setProperty('--mx', `${e.clientX - rect.left}px`);
+      card.style.setProperty('--my', `${e.clientY - rect.top}px`);
+    });
+  }
+
   render();
 }
 

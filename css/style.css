@@ -3,6 +3,59 @@ html {
   scroll-behavior: smooth;
 }
 
+/* 字体栈：中文优先本地字体，数字用等宽数字保证对齐 */
+body {
+  font-family: "Segoe UI", "MiSans", "HarmonyOS Sans SC", "PingFang SC",
+    "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 标题断行优化：避免孤字换行 */
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+/* 键盘导航焦点环（可访问性） */
+:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* 按压反馈：所有按钮按下轻微下沉 */
+button:active {
+  transform: scale(0.97);
+}
+
+/* 全局细噪点：打破纯色平面的「数字感」 */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* 跳转正文链接（键盘用户）：默认隐藏，聚焦时出现 */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -3rem;
+  z-index: 100;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  background: #2563eb;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: top 0.2s ease-out;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
 /* 自定义滚动条 */
 ::-webkit-scrollbar {
   width: 8px;
@@ -40,10 +93,30 @@ html {
 
 /* 卡片悬停微质感 */
 .project-card {
+  position: relative;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .project-card:hover {
   transform: translateY(-4px);
+}
+
+/* 卡片追光边框：光斑跟随鼠标 */
+.project-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    560px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(59, 130, 246, 0.12),
+    transparent 45%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+  pointer-events: none;
+}
+.project-card:hover::before {
+  opacity: 1;
 }
 
 /* 滚动进场：初始隐藏，进入视口后淡入上移 */
