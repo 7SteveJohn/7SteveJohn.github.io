@@ -124,38 +124,38 @@ function initProjects() {
         </div>
 
         <!-- 卡片底部链接按钮 -->
-        <div class="px-5 sm:px-6 py-4 border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/40 flex items-center justify-between gap-3 text-sm">
+        <div class="px-4 sm:px-5 py-3.5 border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/40 flex items-center justify-between gap-2 text-sm">
           <button 
             onclick="openProjectModal('${item.id}')"
-            class="inline-flex items-center gap-1 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium cursor-pointer transition text-xs"
+            class="inline-flex items-center gap-1 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-medium cursor-pointer transition text-xs whitespace-nowrap flex-shrink-0"
           >
             <span>详情说明</span>
             <i data-lucide="chevron-right" class="w-3.5 h-3.5 arrow-slide"></i>
           </button>
 
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-1.5 flex-wrap justify-end">
             ${item.downloadUrl ? `
               <a href="${item.downloadUrl}" target="_blank" rel="noopener noreferrer" 
-                 class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200/60 dark:border-emerald-800/40 text-xs font-medium transition"
+                 class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200/60 dark:border-emerald-800/40 text-xs font-medium transition whitespace-nowrap"
                  title="网盘下载 ${item.downloadPwd ? '提取码: ' + item.downloadPwd : ''}">
-                <i data-lucide="download" class="w-3.5 h-3.5"></i>
-                <span>网盘下载${item.downloadPwd ? ` <span class="font-mono text-[11px] opacity-80">(${item.downloadPwd})</span>` : ''}</span>
-              </a>
-            ` : ''}
-
-            ${item.githubUrl && item.githubUrl !== '#' ? `
-              <a href="${item.githubUrl}" target="_blank" rel="noopener noreferrer" 
-                 class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800 transition" 
-                 title="GitHub 源码">
-                <i data-lucide="github" class="w-4 h-4"></i>
+                <i data-lucide="download" class="w-3 h-3"></i>
+                <span>网盘${item.downloadPwd ? `<span class="font-mono text-[11px] opacity-80">(${item.downloadPwd})</span>` : ''}</span>
               </a>
             ` : ''}
 
             ${item.demoUrl && item.demoUrl !== '#' ? `
               <a href="${item.demoUrl}" target="_blank" rel="noopener noreferrer" 
-                 class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 font-medium transition text-xs shadow-sm">
+                 class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 font-medium transition text-xs shadow-sm whitespace-nowrap">
                 <span>Release</span>
                 <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
+              </a>
+            ` : ''}
+
+            ${item.githubUrl && item.githubUrl !== '#' ? `
+              <a href="${item.githubUrl}" target="_blank" rel="noopener noreferrer" 
+                 class="p-1 rounded-md text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800 transition" 
+                 title="GitHub 源码">
+                <i data-lucide="github" class="w-3.5 h-3.5"></i>
               </a>
             ` : ''}
           </div>
