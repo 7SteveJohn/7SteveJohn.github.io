@@ -143,9 +143,9 @@ function initProjects() {
             ${item.downloadUrl ? `
               <a href="${escapeHtml(item.downloadUrl)}" target="_blank" rel="noopener noreferrer"
                  class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 font-medium transition text-xs shadow-sm shadow-emerald-500/30"
-                 title="下载${item.downloadPwd ? '（提取码：' + escapeHtml(item.downloadPwd) + '）' : ''}">
+                 title="点击下载${item.downloadPwd ? '，提取码 ' + escapeHtml(item.downloadPwd) : ''}">
                 <i data-lucide="download" class="w-3.5 h-3.5"></i>
-                <span>下载</span>
+                <span>下载${item.downloadPwd ? ' ' + escapeHtml(item.downloadPwd) : ''}</span>
               </a>
             ` : ''}
             ${item.demoUrl && item.demoUrl !== '#' ? `
