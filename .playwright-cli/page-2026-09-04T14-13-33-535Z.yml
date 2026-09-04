@@ -1,0 +1,129 @@
+- generic [active] [ref=e1]:
+  - link "跳转到正文" [ref=e2] [cursor=pointer]:
+    - /url: "#home"
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "S SevenJohn.io" [ref=e5] [cursor=pointer]:
+        - /url: "#home"
+        - generic [ref=e6]: S
+        - generic [ref=e7]: SevenJohn.io
+      - navigation [ref=e8]:
+        - link "首页" [ref=e9] [cursor=pointer]:
+          - /url: "#home"
+        - link "作品展示" [ref=e10] [cursor=pointer]:
+          - /url: "#projects"
+        - link "关于我" [ref=e11] [cursor=pointer]:
+          - /url: "#about"
+      - button "切换明暗主题" [ref=e13] [cursor=pointer]
+  - main [ref=e16]:
+    - generic [ref=e17]:
+      - generic [ref=e18]:
+        - generic [ref=e19]: 积极探索新技术的开发者
+        - heading "你好，我是 SevenJohn 👋" [level=1] [ref=e22]
+        - paragraph [ref=e23]:
+          - text: 这里是我的数字花园与个人试验田。我在这里展示亲手打造的
+          - strong [ref=e24]: 各类独立项目
+          - text: ，并记录技术踩坑、代码实践与思考随笔。
+        - link "浏览我的作品" [ref=e26] [cursor=pointer]:
+          - /url: "#projects"
+        - generic [ref=e32]:
+          - link "@7SteveJohn" [ref=e33] [cursor=pointer]:
+            - /url: https://github.com/7SteveJohn
+          - generic [ref=e36]: GitHub Pages 专属主页
+      - img "Avatar" [ref=e39]
+    - generic [ref=e40]:
+      - generic [ref=e41]:
+        - generic [ref=e42]:
+          - generic [ref=e43]: Portfolio
+          - heading "精选项目作品展示" [level=2] [ref=e50]
+          - paragraph [ref=e51]: 点击卡片可查看项目架构与详细描述，支持在线演示与查看代码仓库。
+        - textbox "搜索项目或标签..." [ref=e57]
+      - generic [ref=e58]:
+        - button "全部项目" [ref=e59] [cursor=pointer]
+        - button "桌面应用" [ref=e60] [cursor=pointer]
+        - button "Android 应用" [ref=e61] [cursor=pointer]
+      - generic [ref=e62]:
+        - generic [ref=e63]:
+          - generic [ref=e64]:
+            - generic [ref=e65]:
+              - generic [ref=e66]: F
+              - generic [ref=e68]: 桌面应用
+              - generic [ref=e69]: 推荐
+            - generic [ref=e73]:
+              - heading "FileButler · 本地智能文件管家" [level=3] [ref=e74]
+              - paragraph [ref=e75]: 完全本地运行的文件整理 + 知识库问答桌面应用：AI 由 Ollama 免费模型驱动，无需 API Key。支持 Everything 式秒搜、文档自动向量化、图片语义搜索/OCR、重复文件安全清理，全程可撤销，数据不出本机。
+              - generic [ref=e76]:
+                - generic [ref=e77]: "#Python"
+                - generic [ref=e78]: "#Vue 3"
+                - generic [ref=e79]: "#Ollama"
+                - generic [ref=e80]: "#SQLite / FTS5"
+                - generic [ref=e81]: "#RAG"
+          - generic [ref=e82]:
+            - button "查看详情" [ref=e83] [cursor=pointer]
+            - generic [ref=e87]:
+              - link "查看源码" [ref=e88] [cursor=pointer]:
+                - /url: https://github.com/7SteveJohn/FileButler
+              - link "下载 95ak" [ref=e89] [cursor=pointer]:
+                - /url: https://wwblz.lanzouu.com/irw4346nqpfa
+              - link "演示" [ref=e94] [cursor=pointer]:
+                - /url: https://github.com/7SteveJohn/FileButler/releases
+        - generic [ref=e100]:
+          - generic [ref=e101]:
+            - generic [ref=e102]:
+              - generic [ref=e103]: "N"
+              - generic [ref=e105]: Android 应用
+              - generic [ref=e106]: 推荐
+            - generic [ref=e110]:
+              - heading "NetOps Handbook · 离线网络运维知识体系" [level=3] [ref=e111]
+              - paragraph [ref=e112]: 100% 离线的 Android 应用：58 知识模块、25 排障案例、500+ 多厂商 CLI 命令、30 道面试真题。WebView 壳层 + 单文件 SPA 架构，零网络权限，数据与界面完全解耦。
+              - generic [ref=e113]:
+                - generic [ref=e114]: "#Android"
+                - generic [ref=e115]: "#WebView"
+                - generic [ref=e116]: "#Gradle 8.9"
+                - generic [ref=e117]: "#单页 SPA"
+                - generic [ref=e118]: "#离线应用"
+          - generic [ref=e119]:
+            - button "查看详情" [ref=e120] [cursor=pointer]
+            - generic [ref=e124]:
+              - link "查看源码" [ref=e125] [cursor=pointer]:
+                - /url: https://github.com/7SteveJohn/netops-handbook
+              - link "下载 9uma" [ref=e126] [cursor=pointer]:
+                - /url: https://wwblz.lanzouu.com/iTcqo46ntzy
+        - generic [ref=e131]:
+          - generic [ref=e132]:
+            - generic [ref=e133]:
+              - generic [ref=e134]: G
+              - generic [ref=e136]: 桌面应用
+            - generic [ref=e137]:
+              - heading "GameBoost · 竞技游戏一键优化工具" [level=3] [ref=e138]
+              - paragraph [ref=e139]: Windows 竞技游戏一键优化：针对 CS2 / 瓦罗兰特 / 三角洲行动，自动调优电源、GPU、网络、CPU 调度与定时器分辨率，压低帧生成时间抖动。硬件自适应，全部可回滚。
+              - generic [ref=e140]:
+                - generic [ref=e141]: "#C#"
+                - generic [ref=e142]: "#PowerShell"
+                - generic [ref=e143]: "#Windows"
+                - generic [ref=e144]: "#游戏性能"
+          - generic [ref=e145]:
+            - button "查看详情" [ref=e146] [cursor=pointer]
+            - generic [ref=e150]:
+              - link "查看源码" [ref=e151] [cursor=pointer]:
+                - /url: https://github.com/7SteveJohn/GameBoost
+              - link "下载 5xqi" [ref=e152] [cursor=pointer]:
+                - /url: https://wwblz.lanzouu.com/i40WL46nu73e
+    - generic [ref=e157]:
+      - generic [ref=e158]:
+        - generic [ref=e159]: About Me
+        - heading "关于我与核心技能" [level=2] [ref=e164]
+      - generic [ref=e166]:
+        - heading "你好，很高兴遇见你！" [level=3] [ref=e167]
+        - paragraph [ref=e173]: 我是一名专注于现代 Web 体验的前端/全栈开发者。喜欢从零搭建精致、易用、高效的数字化产品，并热衷于探索新兴开源技术。
+        - paragraph [ref=e174]: 这个网站也是我的个人试验田，所有的项目与技术沉淀都会第一时间同步到这里。欢迎随时通过 GitHub 或邮件与我交流合作！
+  - contentinfo [ref=e175]:
+    - generic [ref=e176]:
+      - generic [ref=e177]:
+        - generic [ref=e178]: SevenJohn
+        - generic [ref=e179]: © 2026. 保留所有权利。
+      - generic [ref=e180]:
+        - link "回到顶部 ↑" [ref=e181] [cursor=pointer]:
+          - /url: "#home"
+        - link "GitHub 主页" [ref=e182] [cursor=pointer]:
+          - /url: https://github.com/7SteveJohn

@@ -3,9 +3,9 @@ html {
   scroll-behavior: smooth;
 }
 
-/* 字体栈：中文优先本地字体，数字用等宽数字保证对齐 */
+/* 字体栈：Inter 管拉丁与数字，中文优先本地字体；数字用等宽数字保证对齐 */
 body {
-  font-family: "Segoe UI", "MiSans", "HarmonyOS Sans SC", "PingFang SC",
+  font-family: "Inter", "Segoe UI", "MiSans", "HarmonyOS Sans SC", "PingFang SC",
     "Microsoft YaHei", system-ui, -apple-system, sans-serif;
   font-variant-numeric: tabular-nums;
 }

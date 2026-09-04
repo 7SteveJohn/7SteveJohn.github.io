@@ -12,24 +12,16 @@
   <meta name="theme-color" content="#0b1120" media="(prefers-color-scheme: dark)" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%232563eb'/%3E%3Cstop offset='1' stop-color='%234f46e5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ctext x='32' y='44' font-family='Segoe UI,sans-serif' font-size='36' font-weight='700' fill='white' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E" />
 
+  <!-- Inter 字体（拉丁字母/数字；中文自动回退本地字体栈） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              50: '#eef2ff',
-              100: '#e0e7ff',
-              500: '#6366f1',
-              600: '#4f46e5',
-              700: '#4338ca',
-            }
-          }
-        }
-      }
+      darkMode: 'class'
     }
   </script>
 
@@ -93,9 +85,11 @@
         </button>
 
         <!-- 移动端汉堡菜单按钮 -->
-        <button 
+        <button
           id="mobile-menu-btn"
           aria-label="打开移动菜单"
+          aria-controls="mobile-menu"
+          aria-expanded="false"
           class="md:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer" data-page-node-id="mryiG6P4AB7ShslCE1FmDH"
         >
           <i data-lucide="menu" class="w-5 h-5" data-page-node-id="FncW1RMA1Z9jf9CvJmoMHq"></i>
@@ -206,13 +200,13 @@
 
       <!-- 分类过滤筛选药丸 (Filter Pills) -->
       <div class="flex flex-wrap gap-2 pb-2" data-page-node-id="TTPFsvvEmUa0UuTXOdgFY3">
-        <button data-category="all" class="filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 text-white shadow transition cursor-pointer" data-page-node-id="c1I2GJd1bOaQKqSHbnwGRl">
+        <button data-category="all" class="filter-btn px-4 py-2.5 rounded-xl text-xs font-semibold bg-blue-600 text-white shadow transition cursor-pointer" data-page-node-id="c1I2GJd1bOaQKqSHbnwGRl">
           全部项目
         </button>
-        <button data-category="desktop" class="filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer" data-page-node-id="i8wzQWz2HZNY7V7E3BbkbK">
+        <button data-category="desktop" class="filter-btn px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer" data-page-node-id="i8wzQWz2HZNY7V7E3BbkbK">
           桌面应用
         </button>
-        <button data-category="android" class="filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer" data-page-node-id="8mNNPUNv351iyWGNcAjFuh">
+        <button data-category="android" class="filter-btn px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer" data-page-node-id="8mNNPUNv351iyWGNcAjFuh">
           Android 应用
         </button>
       </div>
@@ -299,7 +293,7 @@
   <!-- ======================== 弹窗层集合 ======================== -->
 
   <!-- 1. 项目详情弹窗 (Project Modal) -->
-  <div id="project-modal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto" data-page-node-id="q9mGvjMmV2NqkLxZkXy2Zk">
+  <div id="project-modal" role="dialog" aria-modal="true" aria-label="项目详情" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto" data-page-node-id="q9mGvjMmV2NqkLxZkXy2Zk">
     <div class="modal-panel relative w-full max-w-3xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 my-8" data-page-node-id="Yex9oj5Io7iKvDv7hJT16V">
       <!-- 关闭按钮 -->
       <button 
@@ -316,7 +310,7 @@
   </div>
 
   <!-- 2. 博客文章详情弹窗 (Article Modal) -->
-  <div id="article-modal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto" data-page-node-id="4HSWsRJo4CAbxwLRmoDjeB">
+  <div id="article-modal" role="dialog" aria-modal="true" aria-label="文章阅读" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto" data-page-node-id="4HSWsRJo4CAbxwLRmoDjeB">
     <div class="modal-panel relative w-full max-w-3xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 my-8" data-page-node-id="3Pfn7GuD2kn9rl6jt40acb">
       <!-- 关闭按钮 -->
       <button 
