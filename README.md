@@ -42,8 +42,8 @@ npx serve d:/HTML
 {
   id: "my-awesome-project",
   title: "我的项目名称",
-  category: "frontend",               // 可选: frontend (前端) | fullstack (全栈) | tools (工具)
-  categoryName: "前端开发",
+  category: "desktop",                // 可选: desktop (桌面应用) | android (Android 应用)
+  categoryName: "桌面应用",
   description: "一句话介绍这个项目的核心亮点与用途",
   tags: ["Vue3", "TailwindCSS", "Vite"],
   image: "assets/images/my-project.png", // 可以是本地相对路径或网络图片地址
