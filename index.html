@@ -1,15 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="scroll-smooth">
+<html lang="zh-CN" class="scroll-smooth dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SevenJohn · 独立开发者主页与项目作品集</title>
-  <meta name="description" content="SevenJohn 的个人主页：专注于 Python 本地工具、Android 离线应用与 Windows 性能调优，拒绝假大空。" />
-  <meta property="og:title" content="SevenJohn · 独立开发者主页与项目作品集" />
+  <title>SevenJohn · 纯粹工具，为硬核场景而生 | 官方主页</title>
+  <meta name="description" content="SevenJohn 的个人主页：参考 Apple 旗舰设计美学，展示 Python 端侧 AI 工具、Android 离线应用与 Windows 性能优化工具。" />
+  <meta property="og:title" content="SevenJohn · 纯粹工具，为硬核场景而生" />
   <meta property="og:url" content="https://7stevejohn.github.io/" />
-  <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#090d16" media="(prefers-color-scheme: dark)" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f172a'/%3E%3Ctext x='32' y='43' font-family='Inter,-apple-system,sans-serif' font-size='34' font-weight='700' fill='white' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E" />
+  <meta name="theme-color" content="#000000" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d1d1f'/%3E%3Ctext x='32' y='43' font-family='Inter,-apple-system,sans-serif' font-size='34' font-weight='700' fill='white' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E" />
 
   <!-- 关键首屏图片极速预加载 -->
   <link rel="preload" as="image" href="assets/images/cover-filebutler.webp" type="image/webp" fetchpriority="high" />
@@ -42,111 +41,106 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
-  <!-- 自定义样式 -->
+  <!-- Apple 风格定制样式 -->
   <link rel="stylesheet" href="css/style.css" />
 </head>
-<body class="bg-[#fafafa] text-slate-900 dark:bg-[#090d16] dark:text-slate-100 min-h-screen transition-colors duration-200 antialiased selection:bg-slate-900 selection:text-white dark:selection:bg-slate-100 dark:selection:text-slate-900">
+<body class="bg-white text-[#1d1d1f] dark:bg-[#000000] dark:text-[#f5f5f7] min-h-screen transition-colors duration-200 antialiased selection:bg-[#0071e3] selection:text-white">
 
-  <!-- 键盘用户无障碍跳转 -->
-  <a href="#projects" class="skip-link">跳转到作品</a>
+  <!-- 键盘无障碍跳转 -->
+  <a href="#products" class="skip-link">跳转到产品专栏</a>
 
-  <!-- 顶部导航栏 -->
-  <header class="sticky top-0 z-40 w-full backdrop-blur-md bg-[#fafafa]/80 dark:bg-[#090d16]/80 border-b border-slate-200/80 dark:border-slate-800/80 transition-colors">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-15 flex items-center justify-between">
+  <!--  苹果吸顶二级导航 (Sticky LocalNav) -->
+  <header class="sticky top-0 z-40 w-full apple-nav bg-white/80 dark:bg-[#000000]/80 border-b border-[#d2d2d7]/50 dark:border-white/10 transition-colors">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-12 flex items-center justify-between text-xs">
       
-      <!-- 个人 Logo -->
-      <a href="#home" class="flex items-center gap-2 group">
-        <span class="w-8 h-8 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center font-bold text-sm">
-          S
-        </span>
-        <span class="font-bold text-base tracking-tight text-slate-900 dark:text-white">
-          SevenJohn
-        </span>
+      <!-- 品牌名 -->
+      <a href="#home" class="flex items-center gap-2 font-semibold text-sm tracking-tight text-[#1d1d1f] dark:text-white hover:opacity-80 transition">
+        <span>SevenJohn</span>
+        <span class="text-[#86868b] font-normal text-xs">· 工具矩阵</span>
       </a>
 
-      <!-- 菜单导航 -->
-      <nav class="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600 dark:text-slate-400">
-        <a href="#projects" class="hover:text-slate-900 dark:hover:text-white transition">作品</a>
-        <a href="#about" class="hover:text-slate-900 dark:hover:text-white transition">关于与理念</a>
-        <a href="#blog" class="hover:text-slate-900 dark:hover:text-white transition">文章</a>
+      <!-- 导航锚点 -->
+      <nav class="hidden md:flex items-center gap-6 text-[#1d1d1f] dark:text-[#86868b] text-xs">
+        <a href="#home" class="hover:text-black dark:hover:text-white transition">概览</a>
+        <a href="#metrics" class="hover:text-black dark:hover:text-white transition">核心数据</a>
+        <a href="#products" class="hover:text-black dark:hover:text-white transition">旗舰单品</a>
+        <a href="#philosophy" class="hover:text-black dark:hover:text-white transition">设计原则</a>
+        <a href="#blog" class="hover:text-black dark:hover:text-white transition">技术手记</a>
       </nav>
 
-      <!-- 右侧操作 -->
-      <div class="flex items-center gap-2">
+      <!-- 快捷操作栏 -->
+      <div class="flex items-center gap-3">
         <a 
           href="https://github.com/7SteveJohn" 
           target="_blank" 
           rel="noopener noreferrer"
-          class="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800 transition"
-          title="GitHub 主页"
+          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-black dark:hover:text-white transition"
+          title="GitHub 个人主页"
         >
-          <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+          <span>@7SteveJohn</span>
         </a>
 
         <!-- 主题切换 -->
         <button 
           id="theme-toggle" 
-          aria-label="切换明暗主题"
-          class="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800 transition cursor-pointer"
+          aria-label="切换明暗模式"
+          class="p-1.5 rounded-full text-[#86868b] hover:text-black dark:hover:text-white transition cursor-pointer"
         >
-          <i data-lucide="sun" class="w-4 h-4 hidden dark:block"></i>
-          <i data-lucide="moon" class="w-4 h-4 block dark:hidden"></i>
+          <i data-lucide="sun" class="w-3.5 h-3.5 hidden dark:block"></i>
+          <i data-lucide="moon" class="w-3.5 h-3.5 block dark:hidden"></i>
         </button>
 
-        <!-- 移动端汉堡菜单 -->
-        <button
-          id="mobile-menu-btn"
-          aria-label="打开移动菜单"
-          class="md:hidden p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition cursor-pointer"
+        <a 
+          href="#products" 
+          class="apple-btn-primary px-3 py-1 text-xs"
         >
-          <i data-lucide="menu" class="w-4 h-4"></i>
-        </button>
+          查看作品
+        </a>
       </div>
-    </div>
-
-    <!-- 移动端下拉菜单 -->
-    <div id="mobile-menu" class="hidden md:hidden border-b border-slate-200 dark:border-slate-800 bg-[#fafafa] dark:bg-[#090d16] px-4 py-3 space-y-2 text-sm">
-      <a href="#projects" class="block py-1 text-slate-700 dark:text-slate-300">作品</a>
-      <a href="#about" class="block py-1 text-slate-700 dark:text-slate-300">关于与理念</a>
-      <a href="#blog" class="block py-1 text-slate-700 dark:text-slate-300">文章</a>
     </div>
   </header>
 
-  <!-- 主体内容 -->
-  <main class="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16 space-y-20">
+  <!-- 主体画卷内容 -->
+  <main class="space-y-24 sm:space-y-36 pb-24">
 
-    <!-- 1. Hero 真实开发者自白 -->
-    <section id="home" class="flex flex-col sm:flex-row items-start justify-between gap-8 pt-4 pb-2 border-b border-slate-200/80 dark:border-slate-800/80 pb-12">
-      <div class="space-y-4 max-w-2xl">
-        <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-          Hi, 我是 SevenJohn
-        </h1>
+    <!-- 1. 🎬 Hero 巨幕发布会首屏 (Apple Keynote Style) -->
+    <section id="home" class="pt-16 sm:pt-24 px-4 sm:px-6 max-w-5xl mx-auto text-center space-y-6">
+      <!-- 眉标 -->
+      <p class="text-xs sm:text-sm font-semibold tracking-wide uppercase text-[#86868b]">
+        SevenJohn · 独立开发与系统软件调优
+      </p>
 
-        <p class="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
-          平时主要写 <strong>Python、C# 和 Android</strong>。热衷于做一些自己每天都会用到的实用小工具——从本地离线知识库、竞技游戏帧率压抖动，到网络运维手册。
-        </p>
+      <!-- 巨幅标题 -->
+      <h1 class="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-[#1d1d1f] dark:text-white leading-[1.08]">
+        纯粹工具。<br />
+        <span class="text-[#86868b]">为硬核场景而生。</span>
+      </h1>
 
-        <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-          理念很简单：<strong>本地优先（Local-First）</strong>、注重隐私与安全性、厌恶动辄几百兆的臃肿包体，喜欢免安装、纯离线、即开即用的软件。
-        </p>
+      <!-- 副标自白 -->
+      <p class="max-w-2xl mx-auto text-base sm:text-xl text-[#86868b] leading-relaxed font-normal">
+        写 Python、C# 和 Android。专注于解决自己痛点的实用软件——从本地端侧 AI 知识库、竞技游戏帧率压抖动，到网络运维手册。
+      </p>
 
-        <!-- 快捷操作与标签 -->
-        <div class="flex flex-wrap items-center gap-3 pt-2 text-xs">
-          <a href="#projects" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-medium hover:bg-slate-800 dark:hover:bg-slate-100 transition shadow-sm">
-            <span>浏览工具与下载</span>
-            <i data-lucide="arrow-down" class="w-3.5 h-3.5"></i>
-          </a>
-
-          <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 font-medium transition">
-            <svg viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
-            <span>GitHub @7SteveJohn</span>
-          </a>
-        </div>
+      <!-- 双行动按钮 -->
+      <div class="flex flex-wrap items-center justify-center gap-4 pt-4">
+        <a href="#products" class="apple-btn-primary px-6 py-2.5 text-sm">
+          浏览工具矩阵
+        </a>
+        <a 
+          href="https://github.com/7SteveJohn" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          class="inline-flex items-center gap-1.5 text-[#0071e3] hover:underline text-sm font-medium"
+        >
+          <span>查看 GitHub 全部开源</span>
+          <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </a>
       </div>
 
-      <!-- 右侧真实头像 -->
-      <div class="flex-shrink-0">
-        <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-800 shadow-sm bg-slate-100 dark:bg-slate-900">
+      <!-- 真实头像与创作者介绍 -->
+      <div class="pt-8 flex items-center justify-center gap-4 text-left">
+        <div class="w-14 h-14 rounded-full overflow-hidden border border-black/10 dark:border-white/20 shadow-md">
           <img
             src="assets/images/avatar.webp"
             alt="SevenJohn Avatar"
@@ -157,153 +151,397 @@
             onerror="this.src='assets/images/avatar.jpg'"
           />
         </div>
+        <div>
+          <div class="text-sm font-bold text-[#1d1d1f] dark:text-white">SevenJohn</div>
+          <div class="text-xs text-[#86868b]">独立开发者 / 本地优先倡导者</div>
+        </div>
       </div>
     </section>
 
-    <!-- 2. 项目作品集展示区块 (Projects Section) -->
-    <section id="projects" class="space-y-6 scroll-mt-20">
-      <!-- 标题栏与过滤 -->
-      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <h2 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-            独立项目与工具
-          </h2>
-          <p class="text-slate-500 dark:text-slate-400 text-sm mt-0.5">
-            平时自己折腾、且每天都在用的实用工具。支持蓝奏云直接下载与 GitHub 源码查阅。
-          </p>
+    <!-- 2. 📊 Bento 参数大数字矩阵 (Key Metrics Callouts) -->
+    <section id="metrics" class="max-w-5xl mx-auto px-4 sm:px-6 space-y-6">
+      <div class="text-center space-y-2">
+        <h2 class="text-xs font-semibold uppercase tracking-wider text-[#86868b]">规格概览</h2>
+        <p class="text-2xl sm:text-3xl font-bold tracking-tight text-[#1d1d1f] dark:text-white">以数据衡量工程质感</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- 统计 1 -->
+        <div class="apple-bento-card p-6 flex flex-col justify-between space-y-4">
+          <span class="text-xs font-mono text-[#86868b]">本地优先</span>
+          <div>
+            <div class="apple-stat-number text-5xl sm:text-6xl text-[#1d1d1f] dark:text-white">100%</div>
+            <p class="text-xs text-[#86868b] mt-2 leading-relaxed">
+              纯离线与端侧计算。模型与向量库本地闭环，数据不出本机。
+            </p>
+          </div>
         </div>
 
-        <!-- 搜索框 -->
-        <div class="relative">
-          <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
-          <input 
-            id="project-search-input"
-            type="text" 
-            placeholder="搜索工具或关键词..." 
-            class="w-full sm:w-56 pl-8 pr-3 py-1.5 rounded-lg text-xs bg-white dark:bg-[#111622] border border-slate-200 dark:border-slate-800 focus:outline-none focus:border-slate-400 dark:focus:border-slate-600 transition text-slate-800 dark:text-slate-200 placeholder:text-slate-400"
+        <!-- 统计 2 -->
+        <div class="apple-bento-card p-6 flex flex-col justify-between space-y-4">
+          <span class="text-xs font-mono text-[#86868b]">权限纯净</span>
+          <div>
+            <div class="apple-stat-number text-5xl sm:text-6xl text-[#1d1d1f] dark:text-white">0</div>
+            <p class="text-xs text-[#86868b] mt-2 leading-relaxed">
+              零网络权限索取。Android 端绝不联网，桌面端免安装绿色便携。
+            </p>
+          </div>
+        </div>
+
+        <!-- 统计 3 -->
+        <div class="apple-bento-card p-6 flex flex-col justify-between space-y-4">
+          <span class="text-xs font-mono text-[#86868b]">电竞响应</span>
+          <div>
+            <div class="apple-stat-number text-4xl sm:text-5xl text-[#1d1d1f] dark:text-white">1% Low</div>
+            <p class="text-xs text-[#86868b] mt-2 leading-relaxed">
+              帧生成时间防抖压制。专注消除关键交战瞬间的卡顿。
+            </p>
+          </div>
+        </div>
+
+        <!-- 统计 4 -->
+        <div class="apple-bento-card p-6 flex flex-col justify-between space-y-4">
+          <span class="text-xs font-mono text-[#86868b]">页面性能</span>
+          <div>
+            <div class="apple-stat-number text-5xl sm:text-6xl text-[#1d1d1f] dark:text-white">&lt;50<span class="text-2xl">ms</span></div>
+            <p class="text-xs text-[#86868b] mt-2 leading-relaxed">
+              极速秒开体验。全站图片 WebP 深度压缩 + Preload 预加载。
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. 🚀 三大旗舰单品画卷式深度专栏 (Product Featurettes) -->
+    <section id="products" class="max-w-5xl mx-auto px-4 sm:px-6 space-y-16 sm:space-y-24 scroll-mt-20">
+      
+      <div class="border-b border-[#d2d2d7]/50 dark:border-white/10 pb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-[#86868b]">旗舰作品专栏</h2>
+          <p class="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1d1d1f] dark:text-white mt-1">精工打造的独立工具</p>
+        </div>
+        <div class="text-xs text-[#86868b]">
+          所有工具支持蓝奏云直接下载与 GitHub 源码查阅
+        </div>
+      </div>
+
+      <!-- 单品 1: FileButler -->
+      <article class="apple-bento-card overflow-hidden">
+        <div class="p-8 sm:p-12 space-y-4 max-w-3xl">
+          <span class="inline-block px-3 py-1 rounded-full text-xs font-mono bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+            端侧 AI 桌面应用 · pywebview / Vue 3 / Ollama
+          </span>
+          <h3 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1d1d1f] dark:text-white">
+            FileButler · 本地智能文件管家
+          </h3>
+          <p class="text-lg sm:text-xl font-medium text-slate-700 dark:text-slate-300">
+            “隐私，深不可测。整理，快如闪电。”
+          </p>
+          <p class="text-sm sm:text-base text-[#86868b] leading-relaxed">
+            把文件整理与本地知识库问答合二为一。完全由本机 Ollama 离线开源大模型驱动，无需任何 API Key，数据永不出本机。支持 Everything 式秒级搜索语法、新文档自动向量化（BGE-M3）、图片语义 OCR 与三级哈希查重清理，每步移动均有日志且全程可撤销。
+          </p>
+
+          <!-- 标签 -->
+          <div class="flex flex-wrap gap-2 pt-2">
+            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">Python 3</span>
+            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">Vue 3 + Naive UI</span>
+            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">SQLite / FTS5</span>
+            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">Ollama 本地 RAG</span>
+          </div>
+
+          <!-- 操作胶囊组 -->
+          <div class="flex flex-wrap items-center gap-3 pt-4">
+            <a 
+              href="https://wwblz.lanzouu.com/irw4346nqpfa" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="apple-btn-primary px-5 py-2 text-xs flex items-center gap-1.5"
+            >
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>网盘下载 (提取码: 95ak)</span>
+            </a>
+            <a 
+              href="https://github.com/7SteveJohn/FileButler/releases" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="apple-btn-secondary px-4 py-2 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white flex items-center gap-1.5"
+            >
+              <span>GitHub Releases</span>
+              <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+            </a>
+            <a 
+              href="https://github.com/7SteveJohn/FileButler" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="p-2 rounded-full text-[#86868b] hover:text-black dark:hover:text-white transition"
+              title="查看 GitHub 仓库"
+            >
+              <i data-lucide="github" class="w-4 h-4"></i>
+            </a>
+            <button 
+              onclick="openProjectModal('filebutler')" 
+              class="text-xs text-[#0071e3] hover:underline ml-2 cursor-pointer font-medium"
+            >
+              技术规格详情 &gt;
+            </button>
+          </div>
+        </div>
+
+        <!-- 大幅产品图 -->
+        <div class="w-full bg-[#0d0d0f] border-t border-black/10 dark:border-white/10">
+          <img 
+            src="assets/images/cover-filebutler.webp" 
+            alt="FileButler 真实界面" 
+            class="w-full h-auto object-cover max-h-[500px]"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+            onerror="this.src='assets/images/cover-filebutler.jpg'"
           />
         </div>
-      </div>
+      </article>
 
-      <!-- 分类筛选药丸 -->
-      <div class="flex flex-wrap gap-2">
-        <button data-category="all" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-white dark:bg-white dark:text-slate-900 transition cursor-pointer">
-          全部
-        </button>
-        <button data-category="desktop" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer">
-          桌面应用
-        </button>
-        <button data-category="android" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer">
-          Android 离线应用
-        </button>
-      </div>
+      <!-- 单品 2: NetOps Handbook -->
+      <article class="apple-bento-card overflow-hidden">
+        <div class="p-8 sm:p-12 space-y-4 max-w-3xl">
+          <span class="inline-block px-3 py-1 rounded-full text-xs font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            Android 离线应用 · Gradle 8.9 / 单页 SPA
+          </span>
+          <h3 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1d1d1f] dark:text-white">
+            NetOps Handbook · 离线网络运维知识体系
+          </h3>
+          <p class="text-lg sm:text-xl font-medium text-slate-700 dark:text-slate-300">
+            “一部把网络工程师随身装下的离线百科全书。”
+          </p>
+          <p class="text-sm sm:text-base text-[#86868b] leading-relaxed">
+            专为机房断网、野外抢修与弱网环境打造。包含 58 个知识模块、25 个实操排障案例、500+ 条多厂商 CLI 命令字典与模拟器，以及 30 道精选面试真题。纯离线设计，零网络权限申请（不申请 INTERNET 权限），自研轻量导航栈与 WebView 降级检测。
+          </p>
 
-      <!-- 项目卡片网格列表 (由 app.js 动态渲染) -->
-      <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+          <!-- 标签 -->
+          <div class="flex flex-wrap gap-2 pt-2">
+            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">Android Native</span>
+            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">Edge-to-Edge WebView</span>
+            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">100% 零网络权限</span>
+            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">500+ CLI 命令</span>
+          </div>
 
-      <!-- 检索为空提示 -->
-      <div id="projects-empty" class="hidden text-center py-12 space-y-2 bg-white dark:bg-[#111622] rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
-        <p class="text-slate-500 dark:text-slate-400 text-sm">没有匹配到相关项目</p>
-      </div>
+          <!-- 操作胶囊组 -->
+          <div class="flex flex-wrap items-center gap-3 pt-4">
+            <a 
+              href="https://wwblz.lanzouu.com/iTcqo46ntzy" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="apple-btn-primary px-5 py-2 text-xs flex items-center gap-1.5"
+            >
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>网盘下载 (提取码: 9uma)</span>
+            </a>
+            <a 
+              href="https://github.com/7SteveJohn/netops-handbook/releases" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="apple-btn-secondary px-4 py-2 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white flex items-center gap-1.5"
+            >
+              <span>GitHub Releases</span>
+              <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+            </a>
+            <a 
+              href="https://github.com/7SteveJohn/netops-handbook" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="p-2 rounded-full text-[#86868b] hover:text-black dark:hover:text-white transition"
+              title="查看 GitHub 仓库"
+            >
+              <i data-lucide="github" class="w-4 h-4"></i>
+            </a>
+            <button 
+              onclick="openProjectModal('netops-handbook')" 
+              class="text-xs text-[#0071e3] hover:underline ml-2 cursor-pointer font-medium"
+            >
+              技术规格详情 &gt;
+            </button>
+          </div>
+        </div>
+
+        <!-- 大幅产品图 -->
+        <div class="w-full bg-[#0d0d0f] border-t border-black/10 dark:border-white/10">
+          <img 
+            src="assets/images/cover-netops.webp" 
+            alt="NetOps Handbook 真实实机" 
+            class="w-full h-auto object-cover max-h-[500px]"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+            onerror="this.src='assets/images/cover-netops.jpg'"
+          />
+        </div>
+      </article>
+
+      <!-- 单品 3: GameBoost -->
+      <article class="apple-bento-card overflow-hidden">
+        <div class="p-8 sm:p-12 space-y-4 max-w-3xl">
+          <span class="inline-block px-3 py-1 rounded-full text-xs font-mono bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+            Windows 性能调优 · C# / PowerShell / Win32
+          </span>
+          <h3 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1d1d1f] dark:text-white">
+            GameBoost · 竞技游戏一键优化工具
+          </h3>
+          <p class="text-lg sm:text-xl font-medium text-slate-700 dark:text-slate-300">
+            “压平帧生成时间，抖动归零。为竞技胜利调优。”
+          </p>
+          <p class="text-sm sm:text-base text-[#86868b] leading-relaxed">
+            面向 CS2、瓦罗兰特、三角洲行动等竞技 FPS 场景打造。不追求无意义的跑分数字，而是专注解决关键对枪瞬间的 1% Low 帧生成时间抖动与输入延迟。深度自动调优电源计划、GPU 参数、网络套接字、CPU 核心调度与定时器分辨率。原生单 EXE 双击即用，硬件自适应且全部优化项一键回滚。
+          </p>
+
+          <!-- 标签 -->
+          <div class="flex flex-wrap gap-2 pt-2">
+            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">C# 原生编译</span>
+            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">1% Low 帧优化</span>
+            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">定时器分辨率锁定</span>
+            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">自包含单 EXE</span>
+          </div>
+
+          <!-- 操作胶囊组 -->
+          <div class="flex flex-wrap items-center gap-3 pt-4">
+            <a 
+              href="https://wwblz.lanzouu.com/i40WL46nu73e" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="apple-btn-primary px-5 py-2 text-xs flex items-center gap-1.5"
+            >
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>网盘下载 (提取码: 5xqi)</span>
+            </a>
+            <a 
+              href="https://github.com/7SteveJohn/GameBoost/releases" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="apple-btn-secondary px-4 py-2 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white flex items-center gap-1.5"
+            >
+              <span>GitHub Releases</span>
+              <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+            </a>
+            <a 
+              href="https://github.com/7SteveJohn/GameBoost" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="p-2 rounded-full text-[#86868b] hover:text-black dark:hover:text-white transition"
+              title="查看 GitHub 仓库"
+            >
+              <i data-lucide="github" class="w-4 h-4"></i>
+            </a>
+            <button 
+              onclick="openProjectModal('gameboost')" 
+              class="text-xs text-[#0071e3] hover:underline ml-2 cursor-pointer font-medium"
+            >
+              技术规格详情 &gt;
+            </button>
+          </div>
+        </div>
+
+        <!-- 大幅产品图 -->
+        <div class="w-full bg-[#0d0d0f] border-t border-black/10 dark:border-white/10">
+          <img 
+            src="assets/images/cover-gameboost.webp" 
+            alt="GameBoost 性能调优实景" 
+            class="w-full h-auto object-cover max-h-[500px]"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+            onerror="this.src='assets/images/cover-gameboost.jpg'"
+          />
+        </div>
+      </article>
+
     </section>
 
-    <!-- 3. 关于我与开发理念 (真正接地气的技术自白) -->
-    <section id="about" class="space-y-6 scroll-mt-20 border-t border-slate-200/80 dark:border-slate-800/80 pt-12">
-      <div>
-        <h2 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-          技术底色与开发原则
-        </h2>
-        <p class="text-slate-500 dark:text-slate-400 text-sm mt-0.5">
-          不随波逐流，追求克制、可用与长久稳定。
-        </p>
+    <!-- 4. 📐 研发哲学与技术对比 (Apple Philosophy & Comparison) -->
+    <section id="philosophy" class="max-w-5xl mx-auto px-4 sm:px-6 space-y-8 scroll-mt-20">
+      <div class="text-center space-y-2">
+        <h2 class="text-xs font-semibold uppercase tracking-wider text-[#86868b]">研发理念</h2>
+        <p class="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1d1d1f] dark:text-white">为什么坚持做这样的软件？</p>
       </div>
 
-      <!-- 三大原则卡片 -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="p-5 rounded-xl bg-white dark:bg-[#111622] border border-slate-200 dark:border-slate-800 space-y-2.5">
-          <div class="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xs">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- 理念 1 -->
+        <div class="apple-bento-card p-8 space-y-4">
+          <div class="w-10 h-10 rounded-full bg-[#0071e3]/10 text-[#0071e3] flex items-center justify-center font-bold text-sm">
             01
           </div>
-          <h3 class="text-base font-bold text-slate-900 dark:text-white">本地优先与隐私 (Local-First)</h3>
-          <p class="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
-            数据必须留在用户自己的机器上。比如 FileButler 的 AI 能力完全依赖本地 Ollama 大模型与本地 SQLite 向量库，零 API Key 依赖，断网也能正常运转。
+          <h3 class="text-xl font-bold text-[#1d1d1f] dark:text-white">本地优先 (Local-First)</h3>
+          <p class="text-sm text-[#86868b] leading-relaxed">
+            数据和算力应当完全掌握在用户手中。FileButler 将视觉大模型、文本嵌入与全文搜索全部置于本地运行，零外部网络请求，断网亦能完整工作。
           </p>
         </div>
 
-        <div class="p-5 rounded-xl bg-white dark:bg-[#111622] border border-slate-200 dark:border-slate-800 space-y-2.5">
-          <div class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs">
+        <!-- 理念 2 -->
+        <div class="apple-bento-card p-8 space-y-4">
+          <div class="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold text-sm">
             02
           </div>
-          <h3 class="text-base font-bold text-slate-900 dark:text-white">极致轻量与零权限 (Lightweight)</h3>
-          <p class="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
-            拒绝动辄几百兆的 Electron 臃肿安装包。桌面端倾向于 C# / Win32 原生可执行文件与轻量 pywebview；移动端 NetOps 做到完全不申请 INTERNET 网络权限。
+          <h3 class="text-xl font-bold text-[#1d1d1f] dark:text-white">极简克制 (Lightweight)</h3>
+          <p class="text-sm text-[#86868b] leading-relaxed">
+            坚决拒绝动辄几百兆的 Electron 臃肿打包与后台驻留窃取数据。桌面端倾向原生的 Win32/C# 架构；Android 端做到零网络权限申请。
           </p>
         </div>
 
-        <div class="p-5 rounded-xl bg-white dark:bg-[#111622] border border-slate-200 dark:border-slate-800 space-y-2.5">
-          <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs">
+        <!-- 理念 3 -->
+        <div class="apple-bento-card p-8 space-y-4">
+          <div class="w-10 h-10 rounded-full bg-purple-500/10 text-purple-500 flex items-center justify-center font-bold text-sm">
             03
           </div>
-          <h3 class="text-base font-bold text-slate-900 dark:text-white">为真实场景死磕细节 (Crafted)</h3>
-          <p class="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
-            每个项目都源于真实痛点。比如 GameBoost 专注压低竞技游戏 1% Low 帧生成时间抖动；NetOps 整理 500+ CLI 命令方便在机房断网环境下随身速查。
+          <h3 class="text-xl font-bold text-[#1d1d1f] dark:text-white">源于真实痛点 (Crafted)</h3>
+          <p class="text-sm text-[#86868b] leading-relaxed">
+            不写无意义的玩具 Demo。每一个工具都必须在日常高强度使用中经受考验——从降低射击游戏的输入延迟，到机房弱网下的 CLI 命令速查。
           </p>
-        </div>
-      </div>
-
-      <!-- 核心技术栈清单 -->
-      <div class="p-5 rounded-xl bg-white dark:bg-[#111622] border border-slate-200 dark:border-slate-800 space-y-3">
-        <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">常用技术栈</h4>
-        <div class="flex flex-wrap gap-2 text-xs font-mono">
-          <span class="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Python (FastAPI / pywebview / watchdog)</span>
-          <span class="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">C# / .NET / PowerShell</span>
-          <span class="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Android / WebView / Gradle</span>
-          <span class="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Vue 3 / Tailwind CSS</span>
-          <span class="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">SQLite / FTS5 全文索引</span>
-          <span class="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Ollama / 端侧向量检索 (BGE-M3)</span>
-          <span class="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Git / 自动化打包构建</span>
         </div>
       </div>
     </section>
 
-    <!-- 4. 博客文章区块 (若无文章则由 app.js 自动隐藏) -->
-    <section id="blog" class="space-y-6 scroll-mt-20 border-t border-slate-200/80 dark:border-slate-800/80 pt-12">
-      <div>
-        <h2 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-          技术手记与随笔
-        </h2>
-        <p class="text-slate-500 dark:text-slate-400 text-sm mt-0.5">
-          记录日常研发的踩坑记录与思考。
-        </p>
+    <!-- 5. ✍️ 技术手记与博客 (Apple Style Minimalist Notes) -->
+    <section id="blog" class="max-w-5xl mx-auto px-4 sm:px-6 space-y-6 scroll-mt-20">
+      <div class="border-b border-[#d2d2d7]/50 dark:border-white/10 pb-4 flex items-end justify-between">
+        <div>
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-[#86868b]">技术手记</h2>
+          <p class="text-2xl font-bold tracking-tight text-[#1d1d1f] dark:text-white mt-1">深度思考与踩坑实录</p>
+        </div>
       </div>
 
-      <div id="articles-list" class="space-y-3"></div>
+      <div id="articles-list" class="space-y-3">
+        <!-- 动态渲染或无文章时自动隐藏 -->
+      </div>
     </section>
 
   </main>
 
-  <!-- 底部页脚 -->
-  <footer class="border-t border-slate-200/80 dark:border-slate-800/80 py-8 bg-[#fafafa] dark:bg-[#090d16] text-xs text-slate-500">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-      <div>
-        <span class="font-bold text-slate-700 dark:text-slate-300">SevenJohn</span>
-        <span>· 个人独立主页</span>
+  <!--  苹果风格全局页脚 (Apple Global Footer) -->
+  <footer class="border-t border-[#d2d2d7]/50 dark:border-white/10 py-12 bg-slate-50 dark:bg-[#000000] text-xs text-[#86868b]">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 space-y-4">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <span class="font-semibold text-black dark:text-white">SevenJohn</span>
+          <span>· 独立开发主页与软件工程矩阵</span>
+        </div>
+        <div class="flex items-center gap-6">
+          <a href="#home" class="hover:text-black dark:hover:text-white transition">回到顶部 ↑</a>
+          <a href="https://github.com/7SteveJohn/7SteveJohn.github.io" target="_blank" rel="noopener noreferrer" class="hover:text-black dark:hover:text-white transition">GitHub 仓库</a>
+          <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="hover:text-black dark:hover:text-white transition">@7SteveJohn</a>
+        </div>
       </div>
-      <div class="flex items-center gap-5">
-        <a href="#home" class="hover:text-slate-900 dark:hover:text-white transition">回到顶部 ↑</a>
-        <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="hover:text-slate-900 dark:hover:text-white transition">GitHub 仓库</a>
-      </div>
+      <p class="text-[11px] text-[#86868b]/80 border-t border-[#d2d2d7]/30 dark:border-white/5 pt-4">
+        © 2026 SevenJohn. 设计灵感源自 Apple 旗舰产品页设计语言。保留所有权利。
+      </p>
     </div>
   </footer>
 
   <!-- ======================== 弹窗层 ======================== -->
-  <!-- 1. 项目详情弹窗 -->
-  <div id="project-modal" role="dialog" aria-modal="true" aria-label="项目详情" class="modal-overlay hidden fixed inset-0 z-50 flex justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
-    <div class="modal-panel relative m-auto w-full max-w-2xl bg-white dark:bg-[#111622] rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 my-8">
+  <!-- 项目技术规格详情弹窗 -->
+  <div id="project-modal" role="dialog" aria-modal="true" aria-label="技术规格详情" class="modal-overlay hidden fixed inset-0 z-50 flex justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto">
+    <div class="modal-panel relative m-auto w-full max-w-2xl bg-white dark:bg-[#161617] rounded-3xl shadow-2xl overflow-hidden border border-black/10 dark:border-white/10 my-8">
       <button 
         onclick="closeProjectModal()" 
         aria-label="关闭"
-        class="absolute top-4 right-4 z-10 p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition cursor-pointer"
+        class="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white transition cursor-pointer"
       >
         <i data-lucide="x" class="w-4 h-4"></i>
       </button>
@@ -312,13 +550,13 @@
     </div>
   </div>
 
-  <!-- 2. 博客文章弹窗 -->
-  <div id="article-modal" role="dialog" aria-modal="true" aria-label="文章阅读" class="modal-overlay hidden fixed inset-0 z-50 flex justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
-    <div class="modal-panel relative m-auto w-full max-w-2xl bg-white dark:bg-[#111622] rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 my-8">
+  <!-- 博客文章弹窗 -->
+  <div id="article-modal" role="dialog" aria-modal="true" aria-label="文章阅读" class="modal-overlay hidden fixed inset-0 z-50 flex justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto">
+    <div class="modal-panel relative m-auto w-full max-w-2xl bg-white dark:bg-[#161617] rounded-3xl shadow-2xl overflow-hidden border border-black/10 dark:border-white/10 my-8">
       <button 
         onclick="closeArticleModal()" 
         aria-label="关闭"
-        class="absolute top-4 right-4 z-10 p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition cursor-pointer"
+        class="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white transition cursor-pointer"
       >
         <i data-lucide="x" class="w-4 h-4"></i>
       </button>
