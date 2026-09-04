@@ -46,7 +46,7 @@ npx serve d:/HTML
   categoryName: "桌面应用",
   description: "一句话介绍这个项目的核心亮点与用途",
   tags: ["Vue3", "TailwindCSS", "Vite"],
-  image: "assets/images/my-project.png", // 可以是本地相对路径或网络图片地址
+  image: "assets/images/my-project.png", // 可选。不填时自动渲染「渐变+首字母」品牌封面
   demoUrl: "https://your-demo.com",     // 在线演示链接，若无填 "#"
   githubUrl: "https://github.com/...",  // 代码仓库链接，若无填 "#"
   downloadUrl: "https://...",            // 下载地址（如蓝奏云），无则整行删掉
@@ -59,7 +59,7 @@ npx serve d:/HTML
 }
 ```
 
-> 💡 **小贴士**：如果项目有截图，建议将图片保存在 `assets/images/` 目录下，并在 `image` 字段填写例如 `"assets/images/your-screenshot.png"`。
+> 💡 **小贴士**：`image` 字段可省略——不填时卡片会自动渲染与站点配色统一的「渐变+项目名首字母」品牌封面。如果项目有真实截图，建议保存在 `assets/images/` 目录下并在 `image` 字段填写例如 `"assets/images/your-screenshot.png"`。
 
 ---
 

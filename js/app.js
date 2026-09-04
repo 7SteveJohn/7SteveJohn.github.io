@@ -18,7 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // 5. 初始化移动端抽屉菜单与滚动交互
   initNavigation();
 
-  // 6. 渲染图标
+  // 6. Hero 标题逐字模糊进场
+  initHeroTitle();
+
+  // 7. 渲染图标
   if (window.lucide) {
     window.lucide.createIcons();
   }
@@ -86,21 +89,27 @@ function initProjects() {
     container.innerHTML = filtered.map(item => `
       <div class="project-card flex flex-col justify-between rounded-2xl overflow-hidden bg-white/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 shadow-sm hover:shadow-xl backdrop-blur-sm">
         <div>
-          <!-- 封面图容器 -->
+          <!-- 封面图容器（无图时渲染渐变+首字母品牌封面） -->
           <div class="relative w-full h-48 overflow-hidden bg-slate-100 dark:bg-slate-700">
-            <img 
-              src="${item.image || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80'}" 
-              alt="${escapeHtml(item.title)}" 
+            ${item.image ? `
+            <img
+              src="${escapeHtml(item.image)}"
+              alt="${escapeHtml(item.title)}"
               loading="lazy"
               class="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-              onerror="this.src='https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80'"
             />
+            ` : `
+            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-500">
+              <span class="text-5xl font-extrabold text-white/90 tracking-tight">${escapeHtml((item.title || '?').charAt(0).toUpperCase())}</span>
+            </div>
+            `}
             <span class="absolute top-3 left-3 px-2.5 py-1 text-xs font-medium rounded-full bg-slate-900/70 text-white backdrop-blur-md">
               ${escapeHtml(item.categoryName || item.category)}
             </span>
             ${item.featured ? `
-              <span class="absolute top-3 right-3 px-2.5 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow">
-                ⭐ 推荐
+              <span class="absolute top-3 right-3 px-2.5 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow flex items-center gap-1">
+                <i data-lucide="star" class="w-3 h-3"></i>
+                <span>推荐</span>
               </span>
             ` : ''}
           </div>
@@ -187,11 +196,16 @@ function initProjects() {
     });
   });
 
-  // 绑定搜索输入
+  // 绑定搜索输入（150ms 防抖，避免每键全量重渲染）
+  let searchTimer = null;
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
-      searchKeyword = e.target.value.trim();
-      render();
+      const value = e.target.value;
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        searchKeyword = value.trim();
+        render();
+      }, 150);
     });
   }
 
@@ -224,11 +238,17 @@ window.openProjectModal = function(id) {
 
   modalContent.innerHTML = `
     <div class="relative w-full h-64 md:h-80 overflow-hidden rounded-t-2xl bg-slate-100 dark:bg-slate-800">
+      ${project.image ? `
       <img 
-        src="${project.image || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1200&q=80'}" 
+        src="${escapeHtml(project.image)}" 
         alt="${escapeHtml(project.title)}" 
         class="w-full h-full object-cover"
       />
+      ` : `
+      <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-500">
+        <span class="text-7xl md:text-8xl font-extrabold text-white/90 tracking-tight">${escapeHtml((project.title || '?').charAt(0).toUpperCase())}</span>
+      </div>
+      `}
       <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent flex items-end p-6">
         <div>
           <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-blue-500 text-white mb-2 inline-block">
@@ -288,16 +308,32 @@ window.openProjectModal = function(id) {
 
   modal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
+  // 焦点管理：记录触发元素并移入弹窗，关闭时还原
+  lastFocused = document.activeElement;
+  const modalCloseBtn = modal.querySelector('button[aria-label="关闭"]');
+  if (modalCloseBtn) modalCloseBtn.focus();
   if (window.lucide) window.lucide.createIcons();
 };
 
 window.closeProjectModal = function() {
-  const modal = document.getElementById('project-modal');
-  if (modal) {
-    modal.classList.add('hidden');
-    document.body.style.overflow = '';
-  }
+  animateCloseModal(document.getElementById('project-modal'));
 };
+
+// 统一弹窗关闭：播退场动画 → 隐藏 → 还原焦点
+let lastFocused = null;
+function animateCloseModal(modal) {
+  if (!modal || modal.classList.contains('hidden')) return;
+  modal.classList.add('closing');
+  setTimeout(() => {
+    modal.classList.add('hidden');
+    modal.classList.remove('closing');
+    document.body.style.overflow = '';
+    if (lastFocused) {
+      lastFocused.focus();
+      lastFocused = null;
+    }
+  }, 150);
+}
 
 /* ============================================================
    3. 博客文章模块 (Blog Articles)
@@ -322,8 +358,8 @@ function initArticles() {
           <span class="px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300">
             ${escapeHtml(art.category || '随笔')}
           </span>
-          <span>📅 ${escapeHtml(art.date)}</span>
-          <span>⏱️ ${escapeHtml(art.readTime || '3 分钟')}</span>
+          <span class="inline-flex items-center gap-1"><i data-lucide="calendar" class="w-3.5 h-3.5"></i>${escapeHtml(art.date)}</span>
+          <span class="inline-flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i>${escapeHtml(art.readTime || '3 分钟')}</span>
         </div>
         
         <h3 class="text-xl md:text-2xl font-bold text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition"
@@ -374,8 +410,8 @@ window.openArticleModal = function(id) {
           <span class="px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300">
             ${escapeHtml(article.category || '文章')}
           </span>
-          <span>📅 ${escapeHtml(article.date)}</span>
-          <span>⏱️ ${escapeHtml(article.readTime || '')}</span>
+          <span class="inline-flex items-center gap-1"><i data-lucide="calendar" class="w-3.5 h-3.5"></i>${escapeHtml(article.date)}</span>
+          <span class="inline-flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i>${escapeHtml(article.readTime || '')}</span>
         </div>
         <h1 class="text-2xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
           ${escapeHtml(article.title)}
@@ -401,15 +437,14 @@ window.openArticleModal = function(id) {
 
   modal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
+  lastFocused = document.activeElement;
+  const articleCloseBtn = modal.querySelector('button[aria-label="关闭"]');
+  if (articleCloseBtn) articleCloseBtn.focus();
   if (window.lucide) window.lucide.createIcons();
 };
 
 window.closeArticleModal = function() {
-  const modal = document.getElementById('article-modal');
-  if (modal) {
-    modal.classList.add('hidden');
-    document.body.style.overflow = '';
-  }
+  animateCloseModal(document.getElementById('article-modal'));
 };
 
 /* ============================================================
@@ -444,7 +479,41 @@ function initReveal() {
 }
 
 /* ============================================================
-   5. 响应式导航与平滑交互
+   6. Hero 标题逐字模糊进场（react-bits BlurText 的原生 JS 复刻）
+   ============================================================ */
+function initHeroTitle() {
+  const h1 = document.querySelector('#home h1');
+  if (!h1) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  let delay = 0;
+  const units = [];
+  [...h1.childNodes].forEach(node => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      // 中文按字拆分
+      node.textContent.split('').forEach(ch => {
+        if (ch === ' ') { units.push(document.createTextNode(' ')); return; }
+        const span = document.createElement('span');
+        span.className = 'blur-in';
+        span.textContent = ch;
+        span.style.animationDelay = `${delay}ms`;
+        delay += 45;
+        units.push(span);
+      });
+    } else {
+      // 元素节点（渐变色名字等）作为整体进场
+      node.classList.add('blur-in');
+      node.style.animationDelay = `${delay}ms`;
+      delay += 45;
+      units.push(node);
+    }
+  });
+  h1.textContent = '';
+  units.forEach(u => h1.appendChild(u));
+}
+
+/* ============================================================
+   7. 响应式导航与平滑交互
    ============================================================ */
 function initNavigation() {
   const menuBtn = document.getElementById('mobile-menu-btn');
@@ -452,26 +521,29 @@ function initNavigation() {
 
   if (menuBtn && mobileMenu) {
     menuBtn.addEventListener('click', () => {
+      const willOpen = mobileMenu.classList.contains('hidden');
       mobileMenu.classList.toggle('hidden');
+      menuBtn.setAttribute('aria-expanded', String(willOpen));
     });
 
     mobileMenu.querySelectorAll('a').forEach(link => {
       link.addEventListener('click', () => {
         mobileMenu.classList.add('hidden');
+        menuBtn.setAttribute('aria-expanded', 'false');
       });
     });
   }
 
-  // 点击弹窗背景遮罩关闭
-  const modals = ['project-modal', 'article-modal'];
-  modals.forEach(modalId => {
+  // 点击弹窗背景遮罩关闭（走统一关闭：退场动画 + 焦点还原）
+  const modalClosers = {
+    'project-modal': () => window.closeProjectModal(),
+    'article-modal': () => window.closeArticleModal()
+  };
+  Object.entries(modalClosers).forEach(([modalId, closeFn]) => {
     const el = document.getElementById(modalId);
     if (el) {
       el.addEventListener('click', (e) => {
-        if (e.target === el) {
-          el.classList.add('hidden');
-          document.body.style.overflow = '';
-        }
+        if (e.target === el) closeFn();
       });
     }
   });
@@ -479,11 +551,8 @@ function initNavigation() {
   // ESC 键关闭所有弹窗
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      modals.forEach(id => {
-        const m = document.getElementById(id);
-        if (m) m.classList.add('hidden');
-      });
-      document.body.style.overflow = '';
+      window.closeProjectModal();
+      window.closeArticleModal();
     }
   });
 }

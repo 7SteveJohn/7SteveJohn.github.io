@@ -11,7 +11,7 @@
  * - categoryName: 分类显示名称（如：桌面应用、Android 应用）
  * - description: 一句话/简短介绍项目亮点与功能
  * - tags: 技术栈标签数组（如：["Vue 3", "Vite", "Tailwind"]）
- * - image: 项目封面图（可以是网络图片链接，或者放在 assets/images/ 中的本地相对路径）
+ * - image: 项目封面图（可选。不填时自动渲染「渐变+首字母」品牌封面；可填网络链接或 assets/images/ 本地路径）
  * - demoUrl: 在线演示地址（若暂无请填 "#"）
  * - githubUrl: 源码仓库地址（GitHub/Gitee链接，若暂无请填 "#"）
  * - downloadUrl: 下载地址（如蓝奏云网盘链接，若暂无则不填该字段）
@@ -28,7 +28,6 @@ window.PROJECTS_DATA = [
     categoryName: "桌面应用",
     description: "完全本地运行的文件整理 + 知识库问答桌面应用：AI 由 Ollama 免费模型驱动，无需 API Key。支持 Everything 式秒搜、文档自动向量化、图片语义搜索/OCR、重复文件安全清理，全程可撤销，数据不出本机。",
     tags: ["Python", "Vue 3", "Ollama", "SQLite / FTS5", "RAG"],
-    image: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?auto=format&fit=crop&w=800&q=80",
     demoUrl: "https://github.com/7SteveJohn/FileButler/releases",
     githubUrl: "https://github.com/7SteveJohn/FileButler",
     downloadUrl: "https://wwblz.lanzouu.com/irw4346nqpfa",
@@ -59,7 +58,6 @@ FileButler 是一款**完全本地运行**的智能文件管家桌面应用（py
     categoryName: "Android 应用",
     description: "100% 离线的 Android 应用：58 知识模块、25 排障案例、500+ 多厂商 CLI 命令、30 道面试真题。WebView 壳层 + 单文件 SPA 架构，零网络权限，数据与界面完全解耦。",
     tags: ["Android", "WebView", "Gradle 8.9", "单页 SPA", "离线应用"],
-    image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80",
     demoUrl: "#",
     githubUrl: "https://github.com/7SteveJohn/netops-handbook",
     downloadUrl: "https://wwblz.lanzouu.com/iTcqo46ntzy",
@@ -88,7 +86,6 @@ NetOps 2.0 是一款**零网络权限、100% 离线**的 Android 网络运维知
     categoryName: "桌面应用",
     description: "Windows 竞技游戏一键优化：针对 CS2 / 瓦罗兰特 / 三角洲行动，自动调优电源、GPU、网络、CPU 调度与定时器分辨率，压低帧生成时间抖动。硬件自适应，全部可回滚。",
     tags: ["C#", "PowerShell", "Windows", "游戏性能"],
-    image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80",
     demoUrl: "#",
     githubUrl: "https://github.com/7SteveJohn/GameBoost",
     downloadUrl: "https://wwblz.lanzouu.com/i40WL46nu73e",

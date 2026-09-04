@@ -1,0 +1,9 @@
+[   34677ms] [WARNING] cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation @ https://cdn.tailwindcss.com/:63
+[   34979ms] [WARNING] <i data-lucide="github" class="w-5 h-5" data-page-node-id="kRH2gaRIfMRONcFfoBZLG7"></i> icon name was not found in the provided icons object. @ https://unpkg.com/lucide@latest:7
+[   34979ms] [WARNING] <i data-lucide="github" class="w-4 h-4"></i> icon name was not found in the provided icons object. @ https://unpkg.com/lucide@latest:7
+[   34979ms] [WARNING] <i data-lucide="github" class="w-4 h-4"></i> icon name was not found in the provided icons object. @ https://unpkg.com/lucide@latest:7
+[   34980ms] [WARNING] <i data-lucide="github" class="w-4 h-4"></i> icon name was not found in the provided icons object. @ https://unpkg.com/lucide@latest:7
+[   34981ms] [WARNING] <i data-lucide="github" class="w-5 h-5" data-page-node-id="kRH2gaRIfMRONcFfoBZLG7"></i> icon name was not found in the provided icons object. @ https://unpkg.com/lucide@latest:7
+[   34982ms] [WARNING] <i data-lucide="github" class="w-4 h-4"></i> icon name was not found in the provided icons object. @ https://unpkg.com/lucide@latest:7
+[   34982ms] [WARNING] <i data-lucide="github" class="w-4 h-4"></i> icon name was not found in the provided icons object. @ https://unpkg.com/lucide@latest:7
+[   34983ms] [WARNING] <i data-lucide="github" class="w-4 h-4"></i> icon name was not found in the provided icons object. @ https://unpkg.com/lucide@latest:7
