@@ -1,18 +1,17 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="scroll-smooth" data-page-node-id="B7ISbKPtc61M9mrmPRBjta">
-<head data-page-node-id="HiRRm5KZkJxecF4tTV4R0y">
-  <meta charset="UTF-8" data-page-node-id="mGrmybWB3UTFCeOB1CZBD5" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="1nlpw2ptl8sIf2aW6sZmIH" />
-  <title>SevenJohn 的个人主页与作品集 | 7SteveJohn.github.io</title>
-  <meta name="description" content="SevenJohn 的个人技术博客与项目作品展示空间，记录开发历程与探索心得。" data-page-node-id="F7mGCd0SaoiC1BZHVrTrya" />
-  <meta property="og:title" content="SevenJohn 的个人主页与作品集" data-page-node-id="1Lz04We47YP4dapx1Mvepf" />
-  <meta property="og:url" content="https://7stevejohn.github.io/" data-page-node-id="tumgm7xtG4C6CIBPyo8LeB" />
-  <meta property="og:image" content="https://7stevejohn.github.io/assets/images/avatar.jpg" />
-  <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#0b1120" media="(prefers-color-scheme: dark)" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%232563eb'/%3E%3Cstop offset='1' stop-color='%234f46e5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ctext x='32' y='44' font-family='Segoe UI,sans-serif' font-size='36' font-weight='700' fill='white' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E" />
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SevenJohn · 独立开发者主页与项目作品集</title>
+  <meta name="description" content="SevenJohn 的个人主页：专注于 Python 本地工具、Android 离线应用与 Windows 性能调优，拒绝假大空。" />
+  <meta property="og:title" content="SevenJohn · 独立开发者主页与项目作品集" />
+  <meta property="og:url" content="https://7stevejohn.github.io/" />
+  <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#090d16" media="(prefers-color-scheme: dark)" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f172a'/%3E%3Ctext x='32' y='43' font-family='Inter,-apple-system,sans-serif' font-size='34' font-weight='700' fill='white' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E" />
 
-  <!-- Inter 字体（拉丁字母/数字；中文自动回退本地字体栈） -->
+  <!-- Inter 字体 -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -20,7 +19,6 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    // CDN 加载失败时不抛错（页面回退到无主题配置的可用状态）
     if (window.tailwind) {
       tailwind.config = {
         darkMode: 'class'
@@ -35,297 +33,287 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <!-- Highlight.js (代码语法高亮) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" data-page-node-id="zaH9CHRpnYKHctZq6kPJIz" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
   <!-- 自定义样式 -->
-  <link rel="stylesheet" href="css/style.css" data-page-node-id="LCAX1RSGwKbD1mpNQJrPL9" />
+  <link rel="stylesheet" href="css/style.css" />
 </head>
-<body class="bg-slate-50 text-slate-900 dark:bg-[#0b1120] dark:text-slate-100 min-h-screen transition-colors duration-300 antialiased selection:bg-blue-500 selection:text-white relative overflow-x-hidden" data-page-node-id="9BPf00tf7ot9SBJaimlCJe">
+<body class="bg-[#fafafa] text-slate-900 dark:bg-[#090d16] dark:text-slate-100 min-h-screen transition-colors duration-200 antialiased selection:bg-slate-900 selection:text-white dark:selection:bg-slate-100 dark:selection:text-slate-900">
 
-  <!-- 键盘用户跳转正文 -->
-  <a href="#home" class="skip-link">跳转到正文</a>
+  <!-- 键盘用户无障碍跳转 -->
+  <a href="#projects" class="skip-link">跳转到作品</a>
 
-  <!-- 背景装饰光晕光效 -->
-  <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10" data-page-node-id="yPHU0x7h8eds5ogSSjHvqk">
-    <div class="absolute -top-40 -left-40 w-96 h-96 bg-blue-400/20 dark:bg-blue-600/15 rounded-full blur-3xl animate-glow" data-page-node-id="gG8dRAiXnGY2O1mq8Q6qz0"></div>
-    <div class="absolute top-1/3 -right-40 w-[30rem] h-[30rem] bg-indigo-400/20 dark:bg-indigo-600/15 rounded-full blur-3xl animate-glow" style="animation-delay: -3s;" data-page-node-id="Q7DXyMq5oZYgPzOUhdoffv"></div>
-    <div class="absolute -bottom-40 left-1/3 w-96 h-96 bg-blue-300/15 dark:bg-blue-600/10 rounded-full blur-3xl animate-glow" style="animation-delay: -5s;" data-page-node-id="NFeuQtVNA4xEUmfSxj8wjJ"></div>
-  </div>
-
-  <!-- 顶部导航栏 (Navbar) -->
-  <header class="sticky top-0 z-40 w-full backdrop-blur-md bg-white/75 dark:bg-[#0b1120]/75 border-b border-slate-200/80 dark:border-slate-800/80 transition-colors" data-page-node-id="pFXYHTwX6APu7s9UB73GHM">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between" data-page-node-id="jSKZgTHheJQuWbc4YJcGVj">
+  <!-- 顶部导航栏 -->
+  <header class="sticky top-0 z-40 w-full backdrop-blur-md bg-[#fafafa]/80 dark:bg-[#090d16]/80 border-b border-slate-200/80 dark:border-slate-800/80 transition-colors">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-15 flex items-center justify-between">
       
-      <!-- 个人 Logo / 标题 -->
-      <a href="#home" class="flex items-center gap-2.5 group" data-page-node-id="Wnnuqb2DsuTyGT00DCgCam">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white font-bold shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform" data-page-node-id="PWvW6Gwu2Adwnj7jHjCihj">
+      <!-- 个人 Logo -->
+      <a href="#home" class="flex items-center gap-2 group">
+        <span class="w-8 h-8 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center font-bold text-sm">
           S
-        </div>
-        <span class="font-bold text-lg tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" data-page-node-id="1eznByHeOtg24Bh6w6mXK5">
-          SevenJohn<span class="text-blue-600" data-page-node-id="IGILCtyR10a2Sy29DHo7SN">.io</span>
+        </span>
+        <span class="font-bold text-base tracking-tight text-slate-900 dark:text-white">
+          SevenJohn
         </span>
       </a>
 
-      <!-- 桌面端菜单导航 -->
-      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600 dark:text-slate-300" data-page-node-id="chW91UEnOZqr8KE3n9roAa">
-        <a href="#home" class="hover:text-blue-600 dark:hover:text-blue-400 transition" data-page-node-id="LwJs4WJ8dkvlQ8PXTXMxIW">首页</a>
-        <a href="#projects" class="hover:text-blue-600 dark:hover:text-blue-400 transition" data-page-node-id="dGsifPu75EyqGJvWxxqkwX">作品展示</a>
-        <a href="#blog" class="hover:text-blue-600 dark:hover:text-blue-400 transition" data-page-node-id="IDGJRQdE3ikpHmpcyupuS9">技术文章</a>
-        <a href="#about" class="hover:text-blue-600 dark:hover:text-blue-400 transition" data-page-node-id="lewC08t6xECk1WmOKgtDuN">关于我</a>
+      <!-- 菜单导航 -->
+      <nav class="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600 dark:text-slate-400">
+        <a href="#projects" class="hover:text-slate-900 dark:hover:text-white transition">作品</a>
+        <a href="#about" class="hover:text-slate-900 dark:hover:text-white transition">关于与理念</a>
+        <a href="#blog" class="hover:text-slate-900 dark:hover:text-white transition">文章</a>
       </nav>
 
-      <!-- 快捷操作栏（主题切换 + 移动端折叠） -->
-      <div class="flex items-center gap-3" data-page-node-id="Xn4KeYtzogpsLheRf8FHI1">
-        <!-- 暗色/明亮模式切换 -->
+      <!-- 右侧操作 -->
+      <div class="flex items-center gap-2">
+        <a 
+          href="https://github.com/7SteveJohn" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800 transition"
+          title="GitHub 主页"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+        </a>
+
+        <!-- 主题切换 -->
         <button 
           id="theme-toggle" 
           aria-label="切换明暗主题"
-          class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer" data-page-node-id="WHmQG5fKrvHoHW3mzTiTsW"
+          class="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800 transition cursor-pointer"
         >
-          <i data-lucide="sun" class="w-5 h-5 hidden dark:block" data-page-node-id="5m3wPxaNSBIAioiXxp8OSE"></i>
-          <i data-lucide="moon" class="w-5 h-5 block dark:hidden" data-page-node-id="qoIJKLiujfr5g5BzHBqqEI"></i>
+          <i data-lucide="sun" class="w-4 h-4 hidden dark:block"></i>
+          <i data-lucide="moon" class="w-4 h-4 block dark:hidden"></i>
         </button>
 
-        <!-- 移动端汉堡菜单按钮 -->
+        <!-- 移动端汉堡菜单 -->
         <button
           id="mobile-menu-btn"
           aria-label="打开移动菜单"
-          aria-controls="mobile-menu"
-          aria-expanded="false"
-          class="md:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer" data-page-node-id="mryiG6P4AB7ShslCE1FmDH"
+          class="md:hidden p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition cursor-pointer"
         >
-          <i data-lucide="menu" class="w-5 h-5" data-page-node-id="FncW1RMA1Z9jf9CvJmoMHq"></i>
+          <i data-lucide="menu" class="w-4 h-4"></i>
         </button>
       </div>
     </div>
 
     <!-- 移动端下拉菜单 -->
-    <div id="mobile-menu" class="hidden md:hidden border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-[#0b1120]/95 backdrop-blur-md px-4 py-4 space-y-3" data-page-node-id="XyFT8dH8jISX1r25kRU3UG">
-      <a href="#home" class="block text-sm font-medium py-1.5 text-slate-700 dark:text-slate-200" data-page-node-id="zJG3Dr0koCoEvc5K0FQCDK">首页</a>
-      <a href="#projects" class="block text-sm font-medium py-1.5 text-slate-700 dark:text-slate-200" data-page-node-id="rjFJQnskSzmAbZhLa05oGB">作品展示</a>
-      <a href="#blog" class="block text-sm font-medium py-1.5 text-slate-700 dark:text-slate-200" data-page-node-id="SqL4b24nAWRQSuB3BCYPyr">技术文章</a>
-      <a href="#about" class="block text-sm font-medium py-1.5 text-slate-700 dark:text-slate-200" data-page-node-id="sdVpMwxyggf2fgwlxS6to3">关于我</a>
-      <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center" data-page-node-id="b3ftQ71wSHQxe8UjaBG6WG">
-        <button id="mobile-theme-toggle" class="text-xs font-medium text-slate-600 dark:text-slate-300 flex items-center gap-1.5" data-page-node-id="yV9aap1BSzAasJP1UzfYEl">
-          <i data-lucide="sun-medium" class="w-4 h-4" data-page-node-id="aQSZYKlA1XwaHdvYjcftnL"></i> 切换浅色/深色
-        </button>
-      </div>
+    <div id="mobile-menu" class="hidden md:hidden border-b border-slate-200 dark:border-slate-800 bg-[#fafafa] dark:bg-[#090d16] px-4 py-3 space-y-2 text-sm">
+      <a href="#projects" class="block py-1 text-slate-700 dark:text-slate-300">作品</a>
+      <a href="#about" class="block py-1 text-slate-700 dark:text-slate-300">关于与理念</a>
+      <a href="#blog" class="block py-1 text-slate-700 dark:text-slate-300">文章</a>
     </div>
   </header>
 
   <!-- 主体内容 -->
-  <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-24" data-page-node-id="K65CrPedp3xGlfuD66f8aV">
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16 space-y-20">
 
-    <!-- 1. Hero 个人介绍区块 -->
-    <section id="home" class="pt-8 sm:pt-14 pb-8 flex flex-col-reverse lg:flex-row items-center justify-between gap-12" data-page-node-id="nNlMw1ywTsPipWeYH1r5JB">
-      <!-- 文字介绍 -->
-      <div class="space-y-6 text-center lg:text-left max-w-2xl" data-page-node-id="wUEFyhn1BFQ0xx45xe3zeo">
-        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-100/80 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-semibold tracking-wide" data-page-node-id="VYnuN4FGm57OjUT0uzWHIy">
-          <span class="w-2 h-2 rounded-full bg-emerald-500" data-page-node-id="dsC0sqSWeZpx7TQWlQ5VWg"></span>
-          <span data-page-node-id="OO23gtY7I9AGOG1rK2m8iM">积极探索新技术的开发者</span>
-        </div>
-
-        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.15]" data-page-node-id="Ut4t1eXUtC5jPl5dMmVcE2">
-          你好，我是 <span class="bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent" data-page-node-id="12Pjz03SBcSAnFxnBDoern">SevenJohn</span> 👋
+    <!-- 1. Hero 真实开发者自白 -->
+    <section id="home" class="flex flex-col sm:flex-row items-start justify-between gap-8 pt-4 pb-2 border-b border-slate-200/80 dark:border-slate-800/80 pb-12">
+      <div class="space-y-4 max-w-2xl">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          Hi, 我是 SevenJohn
         </h1>
 
-        <p class="text-lg sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed font-normal" data-page-node-id="u4YySDfdOOidX5huqtVeYr">
-          这里是我的数字花园与个人试验田。我在这里展示亲手打造的<strong data-page-node-id="pNAUzbXqPy00yGLDj3GGnk">各类独立项目</strong>，并记录技术踩坑、代码实践与思考随笔。
+        <p class="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
+          平时主要写 <strong>Python、C# 和 Android</strong>。热衷于做一些自己每天都会用到的实用小工具——从本地离线知识库、竞技游戏帧率压抖动，到网络运维手册。
         </p>
 
-        <!-- CTA 按钮组 -->
-        <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2" data-page-node-id="tsEmAqFwDqbyBiNTJrEPez">
-          <a href="#projects" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition active:scale-[0.98]" data-page-node-id="8ewpubWFeACJjRGQIOJU3S">
-            <i data-lucide="layers" class="w-4 h-4" data-page-node-id="ZWcE9GtACOSfk18svjN6nl"></i>
-            <span data-page-node-id="zNGkIJev5AGza0xWzft97O">浏览我的作品</span>
-          </a>
-          <a href="#blog" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-semibold text-sm shadow-sm transition active:scale-[0.98]" data-page-node-id="E4TXFFoJsD29H99HHdQV4c">
-            <i data-lucide="book-open" class="w-4 h-4" data-page-node-id="wGawvOa9Bi9yvKJbKUsAtb"></i>
-            <span data-page-node-id="IAEQRNgvRpIfFnFhZgsvcL">阅读技术博客</span>
-          </a>
-        </div>
+        <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+          理念很简单：<strong>本地优先（Local-First）</strong>、注重隐私与安全性、厌恶动辄几百兆的臃肿包体，喜欢免安装、纯离线、即开即用的软件。
+        </p>
 
-        <!-- 社交 / 代码主页链接 -->
-        <div class="flex items-center justify-center lg:justify-start gap-5 pt-2 text-slate-500 dark:text-slate-400" data-page-node-id="lPb6o0nxb8pkkExxKsEkDI">
-          <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="hover:text-slate-900 dark:hover:text-white transition flex items-center gap-1.5" title="GitHub 主页" data-page-node-id="hGq1AjrPbGc6W0AfWq0FwA">
-            <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5" aria-hidden="true" data-page-node-id="kRH2gaRIfMRONcFfoBZLG7"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
-            <span class="text-xs font-medium" data-page-node-id="eeFzl3NpxKWIwwo8GrlpPl">@7SteveJohn</span>
+        <!-- 快捷操作与标签 -->
+        <div class="flex flex-wrap items-center gap-3 pt-2 text-xs">
+          <a href="#projects" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-medium hover:bg-slate-800 dark:hover:bg-slate-100 transition shadow-sm">
+            <span>浏览工具与下载</span>
+            <i data-lucide="arrow-down" class="w-3.5 h-3.5"></i>
           </a>
-          <span class="text-xs text-slate-400 border-l border-slate-300 dark:border-slate-700 pl-4" data-page-node-id="CE8Jao1qOdwUmNy00PKNWW">
-            GitHub Pages 专属主页
-          </span>
+
+          <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 font-medium transition">
+            <svg viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+            <span>GitHub @7SteveJohn</span>
+          </a>
         </div>
       </div>
 
-      <!-- 右侧头像素描/立体卡片 -->
-      <div class="relative group" data-page-node-id="ZJb4GlIq58Ov7qtz9AHA6F">
-        <div class="w-48 h-48 sm:w-60 sm:h-60 rounded-3xl p-1 bg-gradient-to-tr from-blue-500 to-indigo-500 shadow-2xl shadow-blue-500/20" data-page-node-id="JL2o3O0O9vu7ArVecsXkLv">
+      <!-- 右侧真实头像 -->
+      <div class="flex-shrink-0">
+        <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-800 shadow-sm bg-slate-100 dark:bg-slate-900">
           <img
             src="assets/images/avatar.jpg"
-            alt="Avatar"
-            class="w-full h-full object-cover rounded-[22px] bg-slate-900" data-page-node-id="PwBuE2pc0swpF9FwpNqcFD"
+            alt="SevenJohn Avatar"
+            class="w-full h-full object-cover"
           />
         </div>
       </div>
     </section>
 
     <!-- 2. 项目作品集展示区块 (Projects Section) -->
-    <section id="projects" class="space-y-8 scroll-mt-20" data-page-node-id="peEeYxmyNthppw5jAl2pjn">
-      <!-- 标题栏与控制区 -->
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6" data-page-node-id="6Om5kHoYGSCa6k1TJK69ja">
-        <div data-page-node-id="aswG0l1DDQ9HIHFhhdvRin">
-          <div class="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2" data-page-node-id="jtOhl6WVnopogpY4bL9C0D">
-            <i data-lucide="folder-git-2" class="w-4 h-4" data-page-node-id="MkVuMLzNGu8qlo8kphydHD"></i>
-            <span data-page-node-id="mygNN7WMI7bLsPq5cvVadc">Portfolio</span>
-          </div>
-          <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight" data-page-node-id="sxvDuXxLMZshzcXXSHXOjO">
-            精选项目作品展示
+    <section id="projects" class="space-y-6 scroll-mt-20">
+      <!-- 标题栏与过滤 -->
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+            独立项目与工具
           </h2>
-          <p class="text-slate-500 dark:text-slate-400 text-sm mt-1" data-page-node-id="IMOSfWXPbbrqKsNurksnfp">
-            点击卡片可查看项目架构与详细描述，支持在线演示与查看代码仓库。
+          <p class="text-slate-500 dark:text-slate-400 text-sm mt-0.5">
+            平时自己折腾、且每天都在用的实用工具。支持蓝奏云直接下载与 GitHub 源码查阅。
           </p>
         </div>
 
-        <!-- 搜索框与配置生成入口 -->
-        <div class="flex flex-wrap items-center gap-3" data-page-node-id="BpOAlFg5rNcQ8SoD1Ifg2C">
-          <div class="relative" data-page-node-id="27EVBiTs9vojCJHKp7jZ2O">
-            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" data-page-node-id="K3GAwB7QsbIkShEdV1kbPZ"></i>
-            <input 
-              id="project-search-input"
-              type="text" 
-              placeholder="搜索项目或标签..." 
-              class="w-48 sm:w-60 pl-9 pr-4 py-2 rounded-xl text-sm bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition text-slate-800 dark:text-slate-200 placeholder:text-slate-400" data-page-node-id="1KpVm9CZQrFfcpGrBFgXdO"
-            />
-          </div>
+        <!-- 搜索框 -->
+        <div class="relative">
+          <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+          <input 
+            id="project-search-input"
+            type="text" 
+            placeholder="搜索工具或关键词..." 
+            class="w-full sm:w-56 pl-8 pr-3 py-1.5 rounded-lg text-xs bg-white dark:bg-[#111622] border border-slate-200 dark:border-slate-800 focus:outline-none focus:border-slate-400 dark:focus:border-slate-600 transition text-slate-800 dark:text-slate-200 placeholder:text-slate-400"
+          />
         </div>
       </div>
 
-      <!-- 分类过滤筛选药丸 (Filter Pills) -->
-      <div class="flex flex-wrap gap-2 pb-2" data-page-node-id="TTPFsvvEmUa0UuTXOdgFY3">
-        <button data-category="all" class="filter-btn px-4 py-2.5 rounded-xl text-xs font-semibold bg-blue-600 text-white shadow transition cursor-pointer" data-page-node-id="c1I2GJd1bOaQKqSHbnwGRl">
-          全部项目
+      <!-- 分类筛选药丸 -->
+      <div class="flex flex-wrap gap-2">
+        <button data-category="all" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-white dark:bg-white dark:text-slate-900 transition cursor-pointer">
+          全部
         </button>
-        <button data-category="desktop" class="filter-btn px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer" data-page-node-id="i8wzQWz2HZNY7V7E3BbkbK">
+        <button data-category="desktop" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer">
           桌面应用
         </button>
-        <button data-category="android" class="filter-btn px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer" data-page-node-id="8mNNPUNv351iyWGNcAjFuh">
-          Android 应用
+        <button data-category="android" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer">
+          Android 离线应用
         </button>
       </div>
 
-      <!-- 项目卡片网格列表 (动态渲染) -->
-      <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-page-node-id="EEEjoyF3kCCX5mS82S8B7s">
-        <!-- 由 app.js 从 projects.js 动态渲染生成 -->
-      </div>
+      <!-- 项目卡片网格列表 (由 app.js 动态渲染) -->
+      <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
 
       <!-- 检索为空提示 -->
-      <div id="projects-empty" class="hidden text-center py-16 space-y-3 bg-white/50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700" data-page-node-id="3qmwbNQ1dgzGwqPdS9FGpq">
-        <i data-lucide="package-open" class="w-10 h-10 text-slate-400 mx-auto" data-page-node-id="O2UKRFEdcSfRX438TUdjUr"></i>
-        <p class="text-slate-500 dark:text-slate-400 font-medium" data-page-node-id="3XAFMJToEb02ddqal4AIx1">没有找到符合条件的项目</p>
+      <div id="projects-empty" class="hidden text-center py-12 space-y-2 bg-white dark:bg-[#111622] rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
+        <p class="text-slate-500 dark:text-slate-400 text-sm">没有匹配到相关项目</p>
       </div>
     </section>
 
-    <!-- 3. 博客文章区块 (Blog Section) -->
-    <section id="blog" class="space-y-8 scroll-mt-20" data-page-node-id="Ff5vKBvJkGeYkJJk0pPe7S">
-      <div data-page-node-id="QiNxSizggCYYBWutwUh70Q">
-        <div class="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2" data-page-node-id="pEgNQEeDUWIkFiM0kZcsAp">
-          <i data-lucide="feather" class="w-4 h-4" data-page-node-id="QVRUewBLkHGLBQcG18YIi1"></i>
-          <span data-page-node-id="jVUlwniEzjcl7Ue2VsgKP1">Articles & Notes</span>
-        </div>
-        <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight" data-page-node-id="g8zZheqoqnhuWDSCMCkPkM">
-          最新技术博客与思考
+    <!-- 3. 关于我与开发理念 (真正接地气的技术自白) -->
+    <section id="about" class="space-y-6 scroll-mt-20 border-t border-slate-200/80 dark:border-slate-800/80 pt-12">
+      <div>
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+          技术底色与开发原则
         </h2>
-        <p class="text-slate-500 dark:text-slate-400 text-sm mt-1" data-page-node-id="2u2CzrHJFMB0EJU25yxwuD">
-          记录日常遇到的难题、架构方案剖析以及技术探索心得，正文支持 Markdown 排版与代码高亮。
+        <p class="text-slate-500 dark:text-slate-400 text-sm mt-0.5">
+          不随波逐流，追求克制、可用与长久稳定。
         </p>
       </div>
 
-      <!-- 文章列表 (动态渲染) -->
-      <div id="articles-list" class="space-y-4" data-page-node-id="P2cXzA3DPtqGX21zZAnNHF">
-        <!-- 由 app.js 从 articles.js 动态渲染生成 -->
+      <!-- 三大原则卡片 -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="p-5 rounded-xl bg-white dark:bg-[#111622] border border-slate-200 dark:border-slate-800 space-y-2.5">
+          <div class="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xs">
+            01
+          </div>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white">本地优先与隐私 (Local-First)</h3>
+          <p class="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
+            数据必须留在用户自己的机器上。比如 FileButler 的 AI 能力完全依赖本地 Ollama 大模型与本地 SQLite 向量库，零 API Key 依赖，断网也能正常运转。
+          </p>
+        </div>
+
+        <div class="p-5 rounded-xl bg-white dark:bg-[#111622] border border-slate-200 dark:border-slate-800 space-y-2.5">
+          <div class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs">
+            02
+          </div>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white">极致轻量与零权限 (Lightweight)</h3>
+          <p class="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
+            拒绝动辄几百兆的 Electron 臃肿安装包。桌面端倾向于 C# / Win32 原生可执行文件与轻量 pywebview；移动端 NetOps 做到完全不申请 INTERNET 网络权限。
+          </p>
+        </div>
+
+        <div class="p-5 rounded-xl bg-white dark:bg-[#111622] border border-slate-200 dark:border-slate-800 space-y-2.5">
+          <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs">
+            03
+          </div>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white">为真实场景死磕细节 (Crafted)</h3>
+          <p class="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
+            每个项目都源于真实痛点。比如 GameBoost 专注压低竞技游戏 1% Low 帧生成时间抖动；NetOps 整理 500+ CLI 命令方便在机房断网环境下随身速查。
+          </p>
+        </div>
+      </div>
+
+      <!-- 核心技术栈清单 -->
+      <div class="p-5 rounded-xl bg-white dark:bg-[#111622] border border-slate-200 dark:border-slate-800 space-y-3">
+        <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">常用技术栈</h4>
+        <div class="flex flex-wrap gap-2 text-xs font-mono">
+          <span class="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Python (FastAPI / pywebview / watchdog)</span>
+          <span class="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">C# / .NET / PowerShell</span>
+          <span class="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Android / WebView / Gradle</span>
+          <span class="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Vue 3 / Tailwind CSS</span>
+          <span class="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">SQLite / FTS5 全文索引</span>
+          <span class="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Ollama / 端侧向量检索 (BGE-M3)</span>
+          <span class="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Git / 自动化打包构建</span>
+        </div>
       </div>
     </section>
 
-    <!-- 4. 关于我与技能栈 (About & Skills Bento Section) -->
-    <section id="about" class="space-y-8 scroll-mt-20" data-page-node-id="vXTPjyrBtwLbD80r5RVxD5">
-      <div data-page-node-id="Cqp6UeJsHYXiz0lFVhDKTa">
-        <div class="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2" data-page-node-id="s7tum6V9AC8PeaRp9ZBLnm">
-          <i data-lucide="user" class="w-4 h-4" data-page-node-id="O5npwP3vBjl2JGCrFH5dzG"></i>
-          <span data-page-node-id="BB4wYrKW1e9S53jz8jFMFU">About Me</span>
-        </div>
-        <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight" data-page-node-id="nFj4uQu7afvBFVfdlNPySe">
-          关于我与核心技能
+    <!-- 4. 博客文章区块 (若无文章则由 app.js 自动隐藏) -->
+    <section id="blog" class="space-y-6 scroll-mt-20 border-t border-slate-200/80 dark:border-slate-800/80 pt-12">
+      <div>
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+          技术手记与随笔
         </h2>
+        <p class="text-slate-500 dark:text-slate-400 text-sm mt-0.5">
+          记录日常研发的踩坑记录与思考。
+        </p>
       </div>
 
-      <!-- Bento 风格卡片排版 -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6" data-page-node-id="QAjBc2OBkms7eSlGHE6Vys">
-        <!-- 卡片 1: 个人简介 -->
-        <div class="p-6 md:p-8 rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 shadow-sm backdrop-blur-sm space-y-4" data-page-node-id="O2E7y405zyNCHWRLyw0foj">
-          <h3 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2" data-page-node-id="7YAJfuy88uvP87TOAr9UXp">
-            <i data-lucide="code-2" class="w-5 h-5 text-blue-600" data-page-node-id="k61qJLZEPOOHzSBgr6nRob"></i>
-            <span data-page-node-id="bSsng2yoKs1ezDwnMwn1Ge">你好，很高兴遇见你！</span>
-          </h3>
-          <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed" data-page-node-id="rEVMPvDcdGOzXsQmwFI3Qo">
-            我是一名专注于现代 Web 体验的前端/全栈开发者。喜欢从零搭建精致、易用、高效的数字化产品，并热衷于探索新兴开源技术。
-          </p>
-          <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed" data-page-node-id="nVNyKsHDKYtOwznslM2dKK">
-            这个网站也是我的个人试验田，所有的项目与技术沉淀都会第一时间同步到这里。欢迎随时通过 GitHub 或邮件与我交流合作！
-          </p>
-        </div>
-      </div>
+      <div id="articles-list" class="space-y-3"></div>
     </section>
 
   </main>
 
-  <!-- 底部页脚 (Footer) -->
-  <footer class="border-t border-slate-200/80 dark:border-slate-800/80 mt-20 py-10 bg-white/50 dark:bg-slate-900/50 text-sm text-slate-500 dark:text-slate-400" data-page-node-id="6zYFCn97r9I6qtvMdz4Ufn">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4" data-page-node-id="XzDwgg50gwHkdoSH05tLYF">
-      <div class="flex items-center gap-2" data-page-node-id="KsHMIPqned0IUfA6wAhyeL">
-        <span class="font-bold text-slate-800 dark:text-slate-200" data-page-node-id="yXmzs4cDyRxb35f6XQ3M0M">SevenJohn</span>
-        <span data-page-node-id="wBThJTwfngdB6LL2pmYJYJ">© 2026. 保留所有权利。</span>
+  <!-- 底部页脚 -->
+  <footer class="border-t border-slate-200/80 dark:border-slate-800/80 py-8 bg-[#fafafa] dark:bg-[#090d16] text-xs text-slate-500">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div>
+        <span class="font-bold text-slate-700 dark:text-slate-300">SevenJohn</span>
+        <span>· 个人独立主页</span>
       </div>
-      <div class="flex items-center gap-6" data-page-node-id="OwsZcR8MKhF8siyZAUkPFT">
-        <a href="#home" class="hover:text-blue-600 transition" data-page-node-id="tjrlZIPGGhDBbrTwsBUU3S">回到顶部 ↑</a>
-        <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600 transition" data-page-node-id="3hZDAR4iG3MsAjIto9hL7B">GitHub 主页</a>
+      <div class="flex items-center gap-5">
+        <a href="#home" class="hover:text-slate-900 dark:hover:text-white transition">回到顶部 ↑</a>
+        <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="hover:text-slate-900 dark:hover:text-white transition">GitHub 仓库</a>
       </div>
     </div>
   </footer>
 
-  <!-- ======================== 弹窗层集合 ======================== -->
-
-  <!-- 1. 项目详情弹窗 (Project Modal) -->
-  <div id="project-modal" role="dialog" aria-modal="true" aria-label="项目详情" class="modal-overlay hidden fixed inset-0 z-50 flex justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto" data-page-node-id="q9mGvjMmV2NqkLxZkXy2Zk">
-    <div class="modal-panel relative m-auto w-full max-w-3xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800" data-page-node-id="Yex9oj5Io7iKvDv7hJT16V">
-      <!-- 关闭按钮 -->
+  <!-- ======================== 弹窗层 ======================== -->
+  <!-- 1. 项目详情弹窗 -->
+  <div id="project-modal" role="dialog" aria-modal="true" aria-label="项目详情" class="modal-overlay hidden fixed inset-0 z-50 flex justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
+    <div class="modal-panel relative m-auto w-full max-w-2xl bg-white dark:bg-[#111622] rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 my-8">
       <button 
         onclick="closeProjectModal()" 
         aria-label="关闭"
-        class="absolute top-4 right-4 z-10 p-2 rounded-full bg-slate-900/50 text-white hover:bg-slate-900 transition cursor-pointer" data-page-node-id="SnS8CUD7uyUnTVn796V9Wf"
+        class="absolute top-4 right-4 z-10 p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition cursor-pointer"
       >
-        <i data-lucide="x" class="w-5 h-5" data-page-node-id="OKCvxyO4cChtedSOy66WGO"></i>
+        <i data-lucide="x" class="w-4 h-4"></i>
       </button>
 
-      <!-- 动态注入的内容 -->
-      <div id="project-modal-content" data-page-node-id="UrOiZnfIUKWqPeR0hcjQ0K"></div>
+      <div id="project-modal-content" class="max-h-[85vh] overflow-y-auto"></div>
     </div>
   </div>
 
-  <!-- 2. 博客文章详情弹窗 (Article Modal) -->
-  <div id="article-modal" role="dialog" aria-modal="true" aria-label="文章阅读" class="modal-overlay hidden fixed inset-0 z-50 flex justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto" data-page-node-id="4HSWsRJo4CAbxwLRmoDjeB">
-    <div class="modal-panel relative m-auto w-full max-w-3xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800" data-page-node-id="3Pfn7GuD2kn9rl6jt40acb">
-      <!-- 关闭按钮 -->
+  <!-- 2. 博客文章弹窗 -->
+  <div id="article-modal" role="dialog" aria-modal="true" aria-label="文章阅读" class="modal-overlay hidden fixed inset-0 z-50 flex justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
+    <div class="modal-panel relative m-auto w-full max-w-2xl bg-white dark:bg-[#111622] rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 my-8">
       <button 
         onclick="closeArticleModal()" 
         aria-label="关闭"
-        class="absolute top-6 right-6 z-10 p-2 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition cursor-pointer" data-page-node-id="EsZT3uNfQprCE7WqqOqJf5"
+        class="absolute top-4 right-4 z-10 p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition cursor-pointer"
       >
-        <i data-lucide="x" class="w-5 h-5" data-page-node-id="nO0GSE4ZD2E06FmTlAMD6t"></i>
+        <i data-lucide="x" class="w-4 h-4"></i>
       </button>
 
-      <!-- 动态注入的文章内容 -->
-      <div id="article-modal-content" class="max-h-[85vh] overflow-y-auto" data-page-node-id="HKhdofHGtCUPc0shP2ILwZ"></div>
+      <div id="article-modal-content" class="max-h-[85vh] overflow-y-auto"></div>
     </div>
   </div>
 
