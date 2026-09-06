@@ -532,16 +532,20 @@ function initFooterYear() {
 }
 
 // 单条内容卡片（技术手记 / 创作 / 随笔共用同一卡片样式）；可键盘聚焦，Enter/Space 触发打开
-function articleCardHtml(art) {
+// opts.hideCategory：分组头已表达分类时（创作模块），卡片内不再重复渲染分类 pill
+function articleCardHtml(art, opts = {}) {
+  const metaLead = opts.hideCategory
+    ? `<span>${escapeHtml(art.date)}</span><span>· ${escapeHtml(getReadTime(art))}</span>`
+    : `<span class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] font-medium border border-[#0071e3]/20">
+         ${escapeHtml(art.category || '技术手记')}
+       </span>
+       <span>${escapeHtml(art.date)}</span>
+       <span>· ${escapeHtml(getReadTime(art))}</span>`;
   return `
     <article tabindex="0" role="button" aria-label="阅读：${escapeHtml(art.title)}" class="apple-bento-card reveal p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer group" onclick="openArticleModal('${art.id}')">
       <div class="space-y-2 flex-1">
-        <div class="flex items-center gap-2 text-xs font-mono text-[#86868b]">
-          <span class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] font-medium border border-[#0071e3]/20">
-            ${escapeHtml(art.category || '技术手记')}
-          </span>
-          <span>${escapeHtml(art.date)}</span>
-          <span>· ${escapeHtml(getReadTime(art))}</span>
+        <div class="flex items-center gap-2 text-xs font-mono text-[#86868b] flex-wrap">
+          ${metaLead}
         </div>
         <h3 class="text-lg font-bold text-[#1d1d1f] dark:text-white group-hover:text-[#0071e3] transition-colors leading-snug">
           ${escapeHtml(art.title)}
@@ -613,12 +617,18 @@ function initCreation() {
       return;
     }
     wrap.style.display = '';
+    const countEl = wrap.querySelector('[data-group-count]');
+    if (countEl) countEl.textContent = groupItems.length === 1 ? '1 篇' : `${groupItems.length} 篇`;
     if (list) {
-      list.innerHTML = groupItems.map(articleCardHtml).join('');
+      list.innerHTML = groupItems.map((a) => articleCardHtml(a, { hideCategory: true })).join('');
       if (window.lucide) window.lucide.createIcons();
       observeReveals();
     }
   });
+
+  // 栏目头右侧总数
+  const countEl = document.getElementById('creation-count');
+  if (countEl) countEl.textContent = items.length === 1 ? '共 1 篇' : `共 ${items.length} 篇`;
 }
 
 function initArticles() {
