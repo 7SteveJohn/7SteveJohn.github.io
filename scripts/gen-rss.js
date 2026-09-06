@@ -47,7 +47,7 @@ const rss = `<?xml version="1.0" encoding="UTF-8"?>
   <channel>
     <title>SevenJohn · 手记与创作</title>
     <link>${SITE_URL}/</link>
-    <description>独立开发者的技术手记、小说、游戏创作与随笔。</description>
+    <description>技术手记、小说、游戏创作与随笔，想到什么写什么。</description>
     <language>zh-cn</language>
     <lastBuildDate>${new Date(latest).toUTCString()}</lastBuildDate>
     <atom:link href="${SITE_URL}/rss.xml" rel="self" type="application/rss+xml" />

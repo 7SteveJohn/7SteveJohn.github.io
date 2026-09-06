@@ -1,7 +1,7 @@
 {
-  "name": "SevenJohn · 纯粹工具，为硬核场景而生",
+  "name": "SevenJohn · 个人小站",
   "short_name": "SevenJohn",
-  "description": "独立开发者的工具矩阵与技术手记：端侧 AI、离线架构、系统调优、小说与游戏创作。",
+  "description": "自己做的一些小工具与技术手记：本地 AI、游戏优化、运维手册，还有小说和随笔。",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

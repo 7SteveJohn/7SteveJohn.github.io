@@ -457,7 +457,7 @@ function initHeroGreeting() {
   const el = document.getElementById('hero-greeting');
   if (!el) return;
   const h = new Date().getHours();
-  const g = h < 5 ? '夜深了，正是安静创作的时间' : h < 9 ? '早安' : h < 12 ? '上午好' : h < 14 ? '中午好' : h < 18 ? '下午好' : h < 23 ? '晚上好' : '夜深了，注意休息';
+  const g = h < 5 ? '夜还长，随你折腾' : h < 9 ? '早安' : h < 12 ? '上午好' : h < 14 ? '中午好' : h < 18 ? '下午好' : h < 23 ? '晚上好' : '夜深了，注意休息';
   el.textContent = g;
 }
 
