@@ -1,0 +1,25 @@
+{
+  "name": "SevenJohn · 纯粹工具，为硬核场景而生",
+  "short_name": "SevenJohn",
+  "description": "独立开发者的工具矩阵与技术手记：端侧 AI、离线架构、系统调优、小说与游戏创作。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

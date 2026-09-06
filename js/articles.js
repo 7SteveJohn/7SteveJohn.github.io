@@ -1,11 +1,66 @@
 /**
- * 博客文章数据配置 (articles.js)
+ * 全部文字内容数据配置 (articles.js)
  * ----------------------------------------------------
- * 包含技术手记、架构复盘与工程深度实践。
+ * 三类内容共用此文件，用可选字段 `section` 路由到首页不同模块：
+ * - 不填 section            → 技术手记 (#blog)
+ * - section: "creation"     → 创作模块 (#creation)，category 填 "小说" 或 "游戏创作"（不填默认归入小说）
+ * - section: "essay"        → 随笔模块 (#essays)
+ * 某类内容为空时，对应模块与导航入口自动隐藏。
  * 正文 `content` 字段支持标准 Markdown 与 Highlight.js 代码语法高亮。
  */
 
 window.ARTICLES_DATA = [
+  {
+    id: "creation-novel-demo",
+    section: "creation",
+    category: "小说",
+    title: "【示例】把你的小说章节放进这里",
+    date: "2026-09-06",
+    readTime: "2 分钟",
+    summary: "这条是示例条目：title 写「作品名 · 章节名」，content 写正文（支持 Markdown），写好后删掉这条即可。",
+    tags: ["连载中"],
+    content: `
+## 正文区
+
+每一条数据就是一章或一个短篇。标题、简介、正文都支持完整的 Markdown。
+
+写小说时建议把 \`tags\` 用来标记连载状态（如「连载中」「已完结」）。
+    `
+  },
+  {
+    id: "creation-game-demo",
+    section: "creation",
+    category: "游戏创作",
+    title: "【示例】游戏设计笔记 / 开发日志",
+    date: "2026-09-06",
+    readTime: "2 分钟",
+    summary: "这条是示例条目：放 GDD 节选、世界观设定、关卡设计或开发日志，写好后删掉这条即可。",
+    tags: ["世界观", "开发日志"],
+    content: `
+## 游戏创作区
+
+可以放世界观设定、机制拆解、关卡草图思路或版本开发日志。
+
+\`\`\`text
+例：机制笔记 —— 核心循环 = 探索 → 收集 → 解锁新区域
+\`\`\`
+    `
+  },
+  {
+    id: "essay-demo",
+    section: "essay",
+    category: "随笔",
+    title: "【示例】随笔：随手记一条",
+    date: "2026-09-06",
+    readTime: "1 分钟",
+    summary: "这条是示例条目：随笔就是想到什么写什么的生活碎片，写好后删掉这条即可。",
+    tags: ["日常"],
+    content: `
+## 这里放随笔正文
+
+不用有主题，不用有结论。今天的天气、昨晚的梦、突然想通的一件小事，都值得记下来。
+    `
+  },
   {
     id: "filebutler-local-rag",
     title: "端侧智能文件管家：如何在本地实现毫秒级向量检索与零泄密问答",

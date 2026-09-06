@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>SevenJohn · 手记与创作</title>
+    <link>https://7stevejohn.github.io/</link>
+    <description>独立开发者的技术手记、小说、游戏创作与随笔。</description>
+    <language>zh-cn</language>
+    <lastBuildDate>Sun, 06 Sep 2026 00:00:00 GMT</lastBuildDate>
+    <atom:link href="https://7stevejohn.github.io/rss.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【示例】把你的小说章节放进这里</title>
+      <link>https://7stevejohn.github.io/?post=creation-novel-demo</link>
+      <guid isPermaLink="false">creation-novel-demo</guid>
+      <pubDate>Sun, 06 Sep 2026 00:00:00 GMT</pubDate>
+      <category>小说</category>
+      <description>这条是示例条目：title 写「作品名 · 章节名」，content 写正文（支持 Markdown），写好后删掉这条即可。</description>
+    </item>
+    <item>
+      <title>【示例】游戏设计笔记 / 开发日志</title>
+      <link>https://7stevejohn.github.io/?post=creation-game-demo</link>
+      <guid isPermaLink="false">creation-game-demo</guid>
+      <pubDate>Sun, 06 Sep 2026 00:00:00 GMT</pubDate>
+      <category>游戏创作</category>
+      <description>这条是示例条目：放 GDD 节选、世界观设定、关卡设计或开发日志，写好后删掉这条即可。</description>
+    </item>
+    <item>
+      <title>【示例】随笔：随手记一条</title>
+      <link>https://7stevejohn.github.io/?post=essay-demo</link>
+      <guid isPermaLink="false">essay-demo</guid>
+      <pubDate>Sun, 06 Sep 2026 00:00:00 GMT</pubDate>
+      <category>随笔</category>
+      <description>这条是示例条目：随笔就是想到什么写什么的生活碎片，写好后删掉这条即可。</description>
+    </item>
+    <item>
+      <title>端侧智能文件管家：如何在本地实现毫秒级向量检索与零泄密问答</title>
+      <link>https://7stevejohn.github.io/?post=filebutler-local-rag</link>
+      <guid isPermaLink="false">filebutler-local-rag</guid>
+      <pubDate>Wed, 02 Sep 2026 00:00:00 GMT</pubDate>
+      <category>架构设计</category>
+      <description>剖析 FileButler 将 pywebview、SQLite FTS5 与 Ollama 本地模型结合的技术实现，探讨如何在不依赖任何云端 API 的前提下完成自动化知识库构建与安全操作撤销机制。</description>
+    </item>
+    <item>
+      <title>机房与野外应急场景：打造 100% 零网络权限 Android 离线应用</title>
+      <link>https://7stevejohn.github.io/?post=netops-zero-permission</link>
+      <guid isPermaLink="false">netops-zero-permission</guid>
+      <pubDate>Thu, 20 Aug 2026 00:00:00 GMT</pubDate>
+      <category>移动开发</category>
+      <description>传统网络运维场景常伴随断网环境。本文复盘 NetOps Handbook 如何在 AndroidManifest 中彻底剔除 INTERNET 权限，并通过自研单页导航与 WebView 本地桥接实现流畅体验。</description>
+    </item>
+    <item>
+      <title>竞技帧率防抖：为什么 1% Low 远比平均帧率更能决定胜负？</title>
+      <link>https://7stevejohn.github.io/?post=gameboost-frame-pacing</link>
+      <guid isPermaLink="false">gameboost-frame-pacing</guid>
+      <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
+      <category>系统调优</category>
+      <description>深入剖析 CS2 与瓦罗兰特等射击游戏中的微卡顿根源。从 Windows 默认定时器分辨率、DPC 中断延迟到核心调度，探讨 GameBoost 如何实现原生一键优化与安全回滚。</description>
+    </item>
+  </channel>
+</rss>

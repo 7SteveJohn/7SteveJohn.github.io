@@ -1,5 +1,9 @@
 # WorkBuddy 工作区数据（本地 AI 助手记忆，不属于博客站点）
 .workbuddy/
 .playwright-cli/
+.mimosa/
+gui-test-screenshots/
+# AI 生成的原始合成素材（体积过大，不入库；成品已另存为 cover-*.webp/jpg）
+assets/images/图片合成*.png
 holo-card/
 holo-preview.png

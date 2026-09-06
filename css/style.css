@@ -31,6 +31,23 @@ h1, h2, h3 {
   -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
 
+/* 键盘无障碍跳转链接：默认视觉隐藏，Tab 聚焦时浮现 */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -3rem;
+  z-index: 50;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  background: #0071e3;
+  color: #ffffff;
+  font-size: 0.75rem;
+  transition: top 0.18s ease-out;
+}
+.skip-link:focus {
+  top: 0.75rem;
+}
+
 /* 键盘可访问性焦点环 */
 :focus-visible {
   outline: 2px solid #0071e3;
@@ -100,7 +117,7 @@ h1, h2, h3 {
 html:not(.dark) .apple-bento-card {
   background: #ffffff;
   border: 1px solid #e5e5e7;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04), 0 8px 24px -4px rgba(0, 0, 0, 0.08);
 }
 html:not(.dark) .apple-bento-card:hover {
   border-color: #d2d2d7;
@@ -131,6 +148,314 @@ html:not(.dark) .apple-bento-card:hover {
   to   { opacity: 1; transform: none; }
 }
 
+/* 弹窗关闭（加速退出，motion-craft Exit 规则） */
+.modal-overlay.is-closing {
+  animation: apple-fade-out 0.17s cubic-bezier(0.4, 0, 1, 1) both;
+}
+.modal-overlay.is-closing .modal-panel {
+  animation: apple-sheet-out 0.17s cubic-bezier(0.4, 0, 1, 1) both;
+}
+@keyframes apple-fade-out {
+  to { opacity: 0; }
+}
+@keyframes apple-sheet-out {
+  to { opacity: 0; transform: translateY(10px) scale(0.98); }
+}
+
+/* ============================================================
+   动效编排（对标 Apple 官网：减速入场、错峰浮现、导航滚动状态）
+   仅动画 transform / opacity，保证合成器 60fps
+   ============================================================ */
+
+/* Hero 入场：首屏元素级联升起，纯 CSS 无 JS 依赖 */
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: none; }
+}
+.hero-anim {
+  animation: hero-rise 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 80ms);
+}
+
+/* 滚动浮现：仅 JS 可用时预隐藏，无 JS 环境内容直出 */
+.js .reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.js .reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+/* 封面图随卡片浮现做 1.03 → 1 微缩放 */
+.js .reveal .reveal-img {
+  transform: scale(1.03);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.js .reveal.is-visible .reveal-img {
+  transform: scale(1);
+}
+
+/* 导航滚动状态：顶部无边框，下滑后浮现边框（Apple LocalNav 行为） */
+header.site-header {
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+header.site-header:not(.is-scrolled) {
+  border-bottom-color: transparent;
+}
+
+/* 背景光粒子画布：固定铺满、置于页面内容之下、不拦截任何交互 */
+#particle-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* 移动端菜单下拉：展开时播放（收起保持瞬时退出，motion-craft Exit 规则） */
+#mobile-menu:not(.hidden) {
+  animation: menu-drop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes menu-drop {
+  from { opacity: 0; transform: translateY(-6px); }
+}
+
+/* 弹窗内容切换淡入（切章 / 切换规格详情时避免生硬直切） */
+.modal-content-in {
+  animation: content-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes content-in {
+  from { opacity: 0; transform: translateY(8px); }
+}
+
+/* 代码块一键复制按钮（代码块固定深色底，明暗主题共用一套样式） */
+.code-copy-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 0.375rem;
+  font-size: 0.7rem;
+  line-height: 1.2;
+  color: #8b949e;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.code-copy-btn:hover {
+  color: #f5f5f7;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* ⌘K 搜索命令面板 */
+.search-item.is-selected {
+  background: rgba(0, 113, 227, 0.08);
+}
+.dark .search-item.is-selected {
+  background: rgba(41, 151, 255, 0.12);
+}
+.search-item mark {
+  background: transparent;
+  color: #0071e3;
+  font-weight: 600;
+}
+.dark .search-item mark {
+  color: #2997ff;
+}
+
+/* 长文自动目录 */
+.toc-box {
+  border: 1px solid rgba(0, 113, 227, 0.2);
+  background: rgba(0, 113, 227, 0.05);
+  border-radius: 0.75rem;
+  padding: 0.7rem 1rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.85rem;
+}
+.toc-box summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #0071e3;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.toc-box summary::before {
+  content: '▸';
+  transition: transform 0.15s ease;
+}
+.toc-box[open] summary::before {
+  transform: rotate(90deg);
+}
+.dark .toc-box summary {
+  color: #2997ff;
+}
+.toc-link {
+  display: block;
+  padding: 0.3rem 0.5rem;
+  border-radius: 0.375rem;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.toc-link:hover {
+  background: rgba(0, 113, 227, 0.08);
+  color: #0071e3;
+}
+.dark .toc-link:hover {
+  color: #2997ff;
+}
+
+/* 全局轻提示 */
+.sj-toast {
+  position: fixed;
+  bottom: 5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  z-index: 70;
+  padding: 0.55rem 1.1rem;
+  border-radius: 9999px;
+  background: rgba(29, 29, 31, 0.92);
+  color: #f5f5f7;
+  font-size: 0.8rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sj-toast.is-show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* 本地文本批注（仅存访客本机） */
+mark.sj-note {
+  background: rgba(255, 214, 10, 0.32);
+  color: inherit;
+  border-bottom: 2px solid rgba(255, 214, 10, 0.85);
+  cursor: pointer;
+  padding: 0.05em 0;
+}
+.sj-popover {
+  position: absolute;
+  z-index: 20;
+  width: 250px;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 32px -6px rgba(0, 0, 0, 0.25);
+  animation: content-in 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dark .sj-popover {
+  background: #2a2a2c;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+.sj-popover textarea {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: transparent;
+  color: inherit;
+  font-size: 0.8rem;
+  resize: none;
+  outline: none;
+}
+.dark .sj-popover textarea {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.sj-popover textarea:focus {
+  border-color: #0071e3;
+}
+.sj-popover-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+.sj-popover-actions button {
+  padding: 0.25rem 0.7rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: transparent;
+  color: inherit;
+}
+.dark .sj-popover-actions button {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.sj-popover-actions button[data-act='save'],
+.sj-popover-actions button[data-act='del'] {
+  background: #0071e3;
+  border-color: #0071e3;
+  color: #ffffff;
+}
+.sj-popover-actions button[data-act='save']:hover,
+.sj-popover-actions button[data-act='del']:hover {
+  background: #0077ed;
+}
+.sj-note-view {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: inherit;
+}
+
+/* 情绪反馈按钮（本地版） */
+.emotion-btn {
+  border-color: rgba(0, 0, 0, 0.1);
+  background: transparent;
+  color: #86868b;
+}
+.dark .emotion-btn {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.emotion-btn:hover {
+  border-color: #0071e3;
+  color: #0071e3;
+}
+.dark .emotion-btn:hover {
+  color: #2997ff;
+  border-color: #2997ff;
+}
+.emotion-btn.is-active {
+  background: #0071e3;
+  border-color: #0071e3;
+  color: #ffffff;
+}
+.dark .emotion-btn.is-active {
+  background: #0071e3;
+  border-color: #0071e3;
+}
+
+/* 版本切换与阅读偏好小按钮（复用胶囊样式） */
+.pref-btn {
+  padding: 0.15rem 0.55rem;
+  border-radius: 0.375rem;
+  font-size: 0.7rem;
+  color: #86868b;
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.dark .pref-btn {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+.pref-btn:hover {
+  color: #0071e3;
+  border-color: #0071e3;
+}
+.pref-btn.is-active {
+  background: #0071e3;
+  color: #ffffff;
+  border-color: #0071e3;
+}
+
 /* 尊重减少动效 */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
@@ -142,6 +467,28 @@ html:not(.dark) .apple-bento-card:hover {
   .apple-btn-primary:hover,
   .apple-btn-secondary:hover {
     transform: none !important;
+  }
+  .hero-anim {
+    animation: none !important;
+  }
+  .js .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .js .reveal .reveal-img {
+    transform: none !important;
+    transition: none !important;
+  }
+  header.site-header {
+    transition: none !important;
+  }
+  #particle-canvas {
+    display: none;
+  }
+  #mobile-menu:not(.hidden),
+  .modal-content-in {
+    animation: none !important;
   }
 }
 
