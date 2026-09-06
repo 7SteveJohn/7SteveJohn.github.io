@@ -178,7 +178,8 @@
     if (!palette.classList.contains('hidden')) return;
     buildIndex();
     lastFocus = document.activeElement;
-    palette.classList.remove('hidden');
+    if (palette._closeTimer) { clearTimeout(palette._closeTimer); palette._closeTimer = null; }
+    palette.classList.remove('hidden', 'is-closing');
     document.body.style.overflow = 'hidden';
     input.value = '';
     render('');
@@ -187,9 +188,15 @@
 
   function close() {
     if (palette.classList.contains('hidden')) return;
-    palette.classList.add('hidden');
     document.body.style.overflow = '';
     if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+    // 收起淡出（与弹窗同款退场节奏），动画结束后再隐藏
+    palette.classList.add('is-closing');
+    palette._closeTimer = setTimeout(() => {
+      palette.classList.add('hidden');
+      palette.classList.remove('is-closing');
+      palette._closeTimer = null;
+    }, 220);
   }
 
   function toggle() {

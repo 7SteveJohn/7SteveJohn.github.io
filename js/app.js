@@ -651,6 +651,29 @@ function getSiblingList(article) {
   return all.filter(a => !a.section);
 }
 
+// 弹窗内容方向性切换：旧内容按方向滑出(0.18s) → mutate() 换内容 → 新内容从反侧滑入
+// dir: 'next' 向左翻页 | 'prev' 向右翻页 | 'fade' 上下交替
+function swapModalContent(el, mutate, dir = 'fade') {
+  if (!el || typeof mutate !== 'function') return;
+  // 减少动效 / 弹窗不可见时直接换内容，不做过渡
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !el.offsetParent) {
+    mutate();
+    return;
+  }
+  if (el._swapTimer) { clearTimeout(el._swapTimer); el._swapTimer = null; }
+  const CLS = ['content-out-next', 'content-out-prev', 'content-out-fade', 'content-in-next', 'content-in-prev', 'content-in-fade', 'modal-content-in'];
+  CLS.forEach((c) => el.classList.remove(c));
+  el.classList.add('content-out-' + dir);
+  el._swapTimer = setTimeout(() => {
+    el._swapTimer = null;
+    el.classList.remove('content-out-' + dir);
+    mutate();
+    void el.offsetWidth; // 强制回流，确保入场动画从头播放
+    el.classList.add('content-in-' + dir);
+    setTimeout(() => el.classList.remove('content-in-' + dir), 450);
+  }, 180);
+}
+
 window.openArticleModal = function(id, skipUrlSync) {
   const article = (window.ARTICLES_DATA || []).find(a => a.id === id);
   if (!article) return;
@@ -661,6 +684,9 @@ window.openArticleModal = function(id, skipUrlSync) {
   if (modal._closeTimer) { clearTimeout(modal._closeTimer); modal._closeTimer = null; }
   modal.classList.remove('is-closing');
   modal._lastFocus = document.activeElement;
+  // 记录切换前的状态：弹窗已打开时切篇走方向性交叉过渡
+  const wasOpen = !modal.classList.contains('hidden') && !modal.classList.contains('is-closing');
+  const prevActiveArticle = activeArticle;
   activeArticle = article;
   activeVersion = 0;
 
@@ -719,6 +745,8 @@ window.openArticleModal = function(id, skipUrlSync) {
         `).join('')}
       </div>`;
 
+  // 把「换内容 + 重建事件」包成函数：首开直接执行；已开时等旧内容滑出后再执行
+  const renderNow = () => {
   modalContent.innerHTML = `
     <div class="p-6 sm:p-8 space-y-5">
       <div class="space-y-2 border-b border-black/10 dark:border-white/10 pb-5">
@@ -768,32 +796,45 @@ window.openArticleModal = function(id, skipUrlSync) {
       btn.addEventListener('click', () => {
         activeVersion = Number(btn.dataset.version);
         modalContent.querySelectorAll('[data-version]').forEach((b) => b.classList.toggle('is-active', Number(b.dataset.version) === activeVersion));
-        const body = modalContent.querySelector('.markdown-body');
-        if (body) body.innerHTML = window.marked.parse(versionedContent(activeArticle));
-        if (window.hljs) modalContent.querySelectorAll('pre code').forEach((el) => window.hljs.highlightElement(el));
-        addCopyButtons(modalContent);
-        buildArticleToc(modalContent);
-        initAnnotations(modalContent, article.id);
-        if (window.__applyReadingPrefs) window.__applyReadingPrefs();
-        modalContent.scrollTop = 0;
-        const bar = document.getElementById('article-progress');
-        if (bar) bar.style.width = '0%';
-        delete modalContent.dataset.thanked;
-        modalContent.classList.remove('modal-content-in');
-        void modalContent.offsetWidth;
-        modalContent.classList.add('modal-content-in');
+        // 正文区上下交替过渡：旧内容先淡出，再换内容淡入
+        swapModalContent(modalContent, () => {
+          const body = modalContent.querySelector('.markdown-body');
+          if (body) body.innerHTML = window.marked.parse(versionedContent(activeArticle));
+          if (window.hljs) modalContent.querySelectorAll('pre code').forEach((el) => window.hljs.highlightElement(el));
+          addCopyButtons(modalContent);
+          buildArticleToc(modalContent);
+          initAnnotations(modalContent, article.id);
+          if (window.__applyReadingPrefs) window.__applyReadingPrefs();
+          modalContent.scrollTop = 0;
+          const bar = document.getElementById('article-progress');
+          if (bar) bar.style.width = '0%';
+          delete modalContent.dataset.thanked;
+        }, 'fade');
       });
     });
   }
 
-  // 切换篇目后回到正文顶部、复位进度条与致谢状态，内容淡入过渡避免生硬直切
+  // 切换篇目后回到正文顶部、复位进度条与致谢状态
   modalContent.scrollTop = 0;
   delete modalContent.dataset.thanked;
   const progress = document.getElementById('article-progress');
   if (progress) progress.style.width = '0%';
-  modalContent.classList.remove('modal-content-in');
-  void modalContent.offsetWidth;
-  modalContent.classList.add('modal-content-in');
+  if (window.lucide) window.lucide.createIcons();
+  };
+
+  // 已打开时切篇/翻章：按同模块列表顺序决定左右方向；首开仅内容淡入（面板自带入场）
+  if (wasOpen && prevActiveArticle && prevActiveArticle.id !== article.id) {
+    const sib = getSiblingList(prevActiveArticle);
+    const a = sib.findIndex((x) => x.id === prevActiveArticle.id);
+    const b = sib.findIndex((x) => x.id === article.id);
+    const dir = a > -1 && b > -1 && a !== b ? (b > a ? 'next' : 'prev') : 'fade';
+    swapModalContent(modalContent, renderNow, dir);
+  } else {
+    renderNow();
+    modalContent.classList.remove('modal-content-in');
+    void modalContent.offsetWidth;
+    modalContent.classList.add('modal-content-in');
+  }
 
   modal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
@@ -802,7 +843,6 @@ window.openArticleModal = function(id, skipUrlSync) {
     url.searchParams.set('post', id);
     history.pushState(null, '', url);
   }
-  if (window.lucide) window.lucide.createIcons();
   modal.querySelector('button[aria-label="关闭"]')?.focus({ preventScroll: true });
 };
 
@@ -838,14 +878,31 @@ function initNavigation() {
   const mobileMenu = document.getElementById('mobile-menu');
 
   if (menuBtn && mobileMenu) {
+    // 子项错峰浮起用
+    [...mobileMenu.children].forEach((c, i) => c.style.setProperty('--i', i));
+    const closeMenu = () => {
+      if (mobileMenu.classList.contains('hidden') || mobileMenu.classList.contains('is-closing')) return;
+      mobileMenu.classList.add('is-closing');
+      mobileMenu._closeTimer = setTimeout(() => {
+        mobileMenu.classList.add('hidden');
+        mobileMenu.classList.remove('is-closing');
+        mobileMenu._closeTimer = null;
+      }, 200);
+    };
     menuBtn.addEventListener('click', () => {
-      const isOpen = !mobileMenu.classList.toggle('hidden');
+      const isOpen = mobileMenu.classList.contains('hidden');
+      if (mobileMenu._closeTimer) { clearTimeout(mobileMenu._closeTimer); mobileMenu._closeTimer = null; }
+      if (isOpen) {
+        mobileMenu.classList.remove('hidden', 'is-closing');
+      } else {
+        closeMenu();
+      }
       menuBtn.setAttribute('aria-expanded', String(isOpen));
     });
 
     mobileMenu.querySelectorAll('a').forEach(link => {
       link.addEventListener('click', () => {
-        mobileMenu.classList.add('hidden');
+        closeMenu();
         menuBtn.setAttribute('aria-expanded', 'false');
       });
     });
@@ -915,7 +972,7 @@ const revealObserver = ('IntersectionObserver' in window)
         if (group && !el.style.getPropertyValue('--reveal-delay')) {
           const siblings = [...group.querySelectorAll('.reveal')];
           const i = siblings.indexOf(el);
-          if (i > 0) el.style.setProperty('--reveal-delay', `${Math.min(i * 70, 280)}ms`);
+          if (i > 0) el.style.setProperty('--reveal-delay', `${Math.min(i * 90, 360)}ms`);
         }
         el.classList.add('is-visible');
         io.unobserve(el);
@@ -1080,7 +1137,7 @@ function animateModalClose(modal) {
     modal.classList.add('hidden');
     modal.classList.remove('is-closing');
     modal._closeTimer = null;
-  }, 170);
+  }, 240);
 }
 
 function escapeHtml(str) {

@@ -131,35 +131,40 @@ html:not(.dark) .apple-bento-card:hover {
   line-height: 1;
 }
 
-/* 弹窗遮罩与面板 */
+/* 弹窗遮罩与面板：入场更重（大位移 + 弹性超调 + 背景模糊渐起），层次明确 */
 .modal-overlay {
-  animation: apple-fade 0.2s ease-out;
+  animation: apple-fade 0.32s cubic-bezier(0.16, 1, 0.3, 1), apple-blur 0.4s ease-out;
 }
 .modal-panel {
-  animation: apple-sheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: apple-sheet 0.46s cubic-bezier(0.22, 1.24, 0.32, 1);
 }
 
 @keyframes apple-fade {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
+/* 遮罩模糊渐起：页面在身后"聚焦"到弹窗上 */
+@keyframes apple-blur {
+  from { backdrop-filter: blur(2px); }
+  to   { backdrop-filter: blur(12px); }
+}
 @keyframes apple-sheet {
-  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  from { opacity: 0; transform: translateY(44px) scale(0.92); }
   to   { opacity: 1; transform: none; }
 }
 
-/* 弹窗关闭（加速退出，motion-craft Exit 规则） */
+/* 弹窗关闭（加速退出，motion-craft Exit 规则：出比进快近一倍） */
 .modal-overlay.is-closing {
-  animation: apple-fade-out 0.17s cubic-bezier(0.4, 0, 1, 1) both;
+  animation: apple-fade-out 0.24s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 .modal-overlay.is-closing .modal-panel {
-  animation: apple-sheet-out 0.17s cubic-bezier(0.4, 0, 1, 1) both;
+  animation: apple-sheet-out 0.24s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 @keyframes apple-fade-out {
-  to { opacity: 0; }
+  to { opacity: 0; backdrop-filter: blur(0px); }
 }
 @keyframes apple-sheet-out {
-  to { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 0; transform: translateY(26px) scale(0.94); }
 }
 
 /* ============================================================
@@ -177,16 +182,18 @@ html:not(.dark) .apple-bento-card:hover {
   animation-delay: calc(var(--i, 0) * 80ms);
 }
 
-/* 滚动浮现：仅 JS 可用时预隐藏，无 JS 环境内容直出 */
+/* 滚动浮现：仅 JS 可用时预隐藏，无 JS 环境内容直出（大位移 + 模糊消散，存在感更强） */
 .js .reveal {
   opacity: 0;
-  transform: translateY(26px);
-  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(40px) scale(0.985);
+  filter: blur(6px);
+  transition: opacity 0.72s cubic-bezier(0.16, 1, 0.3, 1), transform 0.72s cubic-bezier(0.16, 1, 0.3, 1), filter 0.72s cubic-bezier(0.16, 1, 0.3, 1);
   transition-delay: var(--reveal-delay, 0ms);
 }
 .js .reveal.is-visible {
   opacity: 1;
   transform: none;
+  filter: blur(0);
 }
 /* 封面图随卡片浮现做 1.03 → 1 微缩放 */
 .js .reveal .reveal-img {
@@ -213,21 +220,60 @@ header.site-header:not(.is-scrolled) {
   pointer-events: none;
 }
 
-/* 移动端菜单下拉：展开时播放（收起保持瞬时退出，motion-craft Exit 规则） */
+/* 移动端菜单：展开下拉（错峰子项浮起），收起上滑退出（motion-craft Exit 规则） */
 #mobile-menu:not(.hidden) {
-  animation: menu-drop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: menu-drop 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+#mobile-menu:not(.hidden) > * {
+  animation: menu-item 0.34s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+#mobile-menu.is-closing {
+  animation: menu-close 0.2s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 @keyframes menu-drop {
-  from { opacity: 0; transform: translateY(-6px); }
+  from { opacity: 0; transform: translateY(-14px); }
+}
+@keyframes menu-item {
+  from { opacity: 0; transform: translateY(-10px); }
+}
+@keyframes menu-close {
+  to { opacity: 0; transform: translateY(-12px); }
 }
 
-/* 弹窗内容切换淡入（切章 / 切换规格详情时避免生硬直切） */
-.modal-content-in {
-  animation: content-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+/* ============================================================
+   弹窗内容切换：方向性交叉过渡
+   - next/prev：← → 翻章，旧内容向出方向滑出，新内容从反侧滑入 + 轻微模糊消散
+   - fade：上下温和交替（切版本 / 重开规格详情）
+   仅动画 transform / opacity / filter
+   ============================================================ */
+@keyframes content-out-next { to { opacity: 0; transform: translateX(-28px); } }
+@keyframes content-out-prev { to { opacity: 0; transform: translateX(28px); } }
+@keyframes content-out-fade { to { opacity: 0; transform: translateY(-12px); } }
+
+@keyframes content-in-next {
+  from { opacity: 0; transform: translateX(34px); filter: blur(5px); }
+  to   { opacity: 1; transform: none; filter: blur(0); }
 }
-@keyframes content-in {
-  from { opacity: 0; transform: translateY(8px); }
+@keyframes content-in-prev {
+  from { opacity: 0; transform: translateX(-34px); filter: blur(5px); }
+  to   { opacity: 1; transform: none; filter: blur(0); }
 }
+@keyframes content-in-fade {
+  from { opacity: 0; transform: translateY(16px); filter: blur(4px); }
+  to   { opacity: 1; transform: none; filter: blur(0); }
+}
+
+/* 保留旧类名：首次渲染 / 兼容 */
+.modal-content-in { animation: content-in-fade 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+
+.content-out-next { animation: content-out-next 0.18s cubic-bezier(0.4, 0, 1, 1) forwards; }
+.content-out-prev { animation: content-out-prev 0.18s cubic-bezier(0.4, 0, 1, 1) forwards; }
+.content-out-fade { animation: content-out-fade 0.18s cubic-bezier(0.4, 0, 1, 1) forwards; }
+
+.content-in-next { animation: content-in-next 0.36s cubic-bezier(0.16, 1, 0.3, 1); }
+.content-in-prev { animation: content-in-prev 0.36s cubic-bezier(0.16, 1, 0.3, 1); }
+.content-in-fade { animation: content-in-fade 0.34s cubic-bezier(0.16, 1, 0.3, 1); }
 
 /* 代码块一键复制按钮（代码块固定深色底，明暗主题共用一套样式） */
 .code-copy-btn {
@@ -474,6 +520,7 @@ mark.sj-note {
   .js .reveal {
     opacity: 1 !important;
     transform: none !important;
+    filter: none !important;
     transition: none !important;
   }
   .js .reveal .reveal-img {
@@ -487,7 +534,14 @@ mark.sj-note {
     display: none;
   }
   #mobile-menu:not(.hidden),
-  .modal-content-in {
+  #mobile-menu.is-closing,
+  .modal-content-in,
+  .content-out-next,
+  .content-out-prev,
+  .content-out-fade,
+  .content-in-next,
+  .content-in-prev,
+  .content-in-fade {
     animation: none !important;
   }
 }
