@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initNavScrollState();
   initSmoothAnchors();
 
-  // 5. 滚动浮现编排（Apple 式 section reveal，含错峰）
+ // 5. 滚动浮现编排（ section reveal，含错峰）
   observeReveals();
 
   // 6. 页脚版权年份自动更新
@@ -165,21 +165,21 @@ window.openProjectModal = function(id) {
       <div class="pt-6 border-t border-black/10 dark:border-white/10 flex flex-wrap gap-3 items-center justify-end">
         ${project.downloadUrl ? `
           <a href="${project.downloadUrl}" target="_blank" rel="noopener noreferrer"
-             class="apple-btn-primary px-5 py-2 text-xs flex items-center gap-1.5">
+             class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5">
             <i data-lucide="download" class="w-3.5 h-3.5"></i>
             <span>网盘下载${project.downloadPwd ? ' (提取码: ' + project.downloadPwd + ')' : ''}</span>
           </a>
         ` : ''}
         ${project.githubUrl && project.githubUrl !== '#' ? `
           <a href="${project.githubUrl}" target="_blank" rel="noopener noreferrer"
-             class="apple-btn-secondary px-4 py-2 text-xs bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white flex items-center gap-1.5 border border-black/10 dark:border-white/10">
+             class="btn-secondary px-4 py-2 text-xs bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white flex items-center gap-1.5 border border-black/10 dark:border-white/10">
             <i data-lucide="github" class="w-3.5 h-3.5"></i>
             <span>GitHub 源码</span>
           </a>
         ` : ''}
         ${project.demoUrl && project.demoUrl !== '#' ? `
           <a href="${project.demoUrl}" target="_blank" rel="noopener noreferrer"
-             class="apple-btn-secondary px-4 py-2 text-xs bg-slate-100 dark:bg-white/10 text-[#1d1d1f] dark:text-white flex items-center gap-1.5 border border-black/10 dark:border-white/10">
+             class="btn-secondary px-4 py-2 text-xs bg-slate-100 dark:bg-white/10 text-[#1d1d1f] dark:text-white flex items-center gap-1.5 border border-black/10 dark:border-white/10">
             <span>在线发布 / Releases</span>
             <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
           </a>
@@ -550,7 +550,7 @@ function articleCardHtml(art, opts = {}) {
        <span>${escapeHtml(art.date)}</span>
        <span>· ${escapeHtml(getReadTime(art))}</span>`;
   return `
-    <article tabindex="0" role="button" aria-label="阅读：${escapeHtml(art.title)}" class="apple-bento-card reveal p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer group" onclick="openArticleModal('${art.id}')">
+    <article tabindex="0" role="button" aria-label="阅读：${escapeHtml(art.title)}" class="bento-card reveal p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer group" onclick="openArticleModal('${art.id}')">
       <div class="space-y-2 flex-1">
         <div class="flex items-center gap-2 text-xs font-mono text-[#86868b] flex-wrap">
           ${metaLead}
@@ -717,7 +717,7 @@ window.openArticleModal = function(id, skipUrlSync) {
   const nextArticle = idx > -1 && idx < siblings.length - 1 ? siblings[idx + 1] : null;
 
   const pagerBtn = (target, label, icon) => `
-    <button data-pager="${icon === 'left' ? 'prev' : 'next'}" onclick="openArticleModal('${target.id}')" class="apple-btn-secondary px-4 py-2 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white flex items-center gap-1.5 cursor-pointer">
+    <button data-pager="${icon === 'left' ? 'prev' : 'next'}" onclick="openArticleModal('${target.id}')" class="btn-secondary px-4 py-2 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white flex items-center gap-1.5 cursor-pointer">
       ${icon === 'left' ? '<i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>' : ''}
       <span>${label}</span>
       ${icon === 'right' ? '<i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>' : ''}
@@ -987,7 +987,7 @@ function initNavigation() {
 }
 
 /* ============================================================
-   滚动浮现编排与导航滚动状态（Apple LocalNav 行为）
+ 滚动浮现编排与导航滚动状态（ 行为）
    仅动 transform / opacity；无 IntersectionObserver 或减少动效时直出内容
    ============================================================ */
 const revealObserver = ('IntersectionObserver' in window)

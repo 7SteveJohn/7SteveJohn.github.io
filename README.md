@@ -15,7 +15,7 @@
    - 📝 沉浸式 Markdown 阅读弹窗与代码语法高亮（手记、小说、游戏创作、随笔通用），带阅读进度条、← → 方向键翻章、代码块一键复制；
    - 📡 RSS 订阅（`rss.xml`）与 SEO 配套（`sitemap.xml` / `robots.txt` / Open Graph 分享卡片）；
    - 📴 PWA 离线缓存（Service Worker）：断网也能读，可"添加到主屏幕"当 App 用；
-   - 🌌 背景光粒子、滚动浮现编排等 Apple 式动效（全量尊重 `prefers-reduced-motion`）；
+ - 🌌 背景光粒子、滚动浮现编排等 动效（全量尊重 `prefers-reduced-motion`）；
    - 📱 完美适配 PC 电脑端、平板与手机端（移动端含汉堡导航菜单）。
 
 ---
