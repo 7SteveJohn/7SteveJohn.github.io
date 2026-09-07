@@ -34,6 +34,11 @@ window.PROJECTS_DATA = [
     downloadUrl: "https://wwblz.lanzouu.com/irw4346nqpfa",
     downloadPwd: "95ak",
     featured: true,
+    // ↓ 版本/运行环境/校验码：填上即显示在弹窗里，留空自动隐藏
+    version: "",
+    updated: "",
+    requires: "",
+    sha256: "",
     details: `
 ### 💡 这是什么
 文件越堆越乱、想找的东西永远翻不出来——FileButler 就是为这个写的。它是一个**全在你自己电脑上跑**的文件管家 + 知识库问答：AI 用本机 Ollama 的免费模型，**不用申请任何 API Key，文件不会离开这台机器**。
@@ -65,6 +70,11 @@ window.PROJECTS_DATA = [
     downloadUrl: "https://wwblz.lanzouu.com/iTcqo46ntzy",
     downloadPwd: "9uma",
     featured: true,
+    // ↓ 版本/运行环境/校验码：填上即显示在弹窗里，留空自动隐藏
+    version: "",
+    updated: "",
+    requires: "",
+    sha256: "",
     details: `
 ### 💡 这是什么
 NetOps 是一本**能装进口袋的离线网络小册子**。断网、没信号、蹲在机房角落都翻得开——它压根不申请联网权限。
@@ -96,6 +106,11 @@ NetOps 是一本**能装进口袋的离线网络小册子**。断网、没信号
     downloadUrl: "https://wwblz.lanzouu.com/i40WL46nu73e",
     downloadPwd: "5xqi",
     featured: false,
+    // ↓ 版本/运行环境/校验码：填上即显示在弹窗里，留空自动隐藏
+    version: "",
+    updated: "",
+    requires: "",
+    sha256: "",
     details: `
 ### 💡 这是什么
 打 CS2、瓦罗兰特、三角洲这类游戏，最烦的不是平均帧数低，是**对枪那一下突然卡一下**。GameBoost 就是冲着这个做的——开打前点一下，把该调的都调好。跑分多少不重要。
@@ -109,6 +124,8 @@ NetOps 是一本**能装进口袋的离线网络小册子**。断网、没信号
 
 ### 🛠️ 怎么做的
 C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑：单实例锁被 .NET 回收掉，导致能开好几个（局部 Mutex 的经典问题）。
+
+> 这类工具会动系统底层设置（电源计划、定时器分辨率等），个别杀软可能误报。源码已开源，不放心的可以自己看完再编译。
   `
   }
 ];

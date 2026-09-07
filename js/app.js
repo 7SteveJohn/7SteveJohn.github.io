@@ -148,6 +148,14 @@ window.openProjectModal = function(id) {
         `).join('')}
       </div>
 
+      ${(project.version || project.updated || project.requires || project.sha256) ? `
+      <!-- 版本 / 运行环境 / 校验（数据缺失时整块不渲染） -->
+      <div class="rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03] p-4 space-y-2 text-xs">
+        ${project.version ? `<div class="flex gap-2"><span class="text-[#86868b] shrink-0">当前版本</span><span class="font-mono text-[#1d1d1f] dark:text-[#f5f5f7]">${escapeHtml(project.version)}${project.updated ? ' · ' + escapeHtml(project.updated) : ''}</span></div>` : ''}
+        ${project.requires ? `<div class="flex gap-2"><span class="text-[#86868b] shrink-0">运行环境</span><span class="text-[#1d1d1f] dark:text-[#f5f5f7]">${escapeHtml(project.requires)}</span></div>` : ''}
+        ${project.sha256 ? `<div class="flex gap-2"><span class="text-[#86868b] shrink-0">SHA256</span><span class="font-mono text-[#1d1d1f] dark:text-[#f5f5f7] break-all">${escapeHtml(project.sha256)}</span></div>` : ''}
+      </div>
+      ` : ''}
       <!-- Markdown 正文内容 -->
       <div class="markdown-body text-[#1d1d1f] dark:text-[#f5f5f7]">
         ${detailsHtml}
@@ -852,6 +860,7 @@ window.openArticleModal = function(id, skipUrlSync) {
     const url = new URL(location.href);
     url.searchParams.set('post', id);
     history.pushState(null, '', url);
+    modal._urlPushed = true; // 该历史条目由打开动作压入，关闭时应回退而不是再压一条
   }
   modal.querySelector('button[aria-label="关闭"]')?.focus({ preventScroll: true });
 };
@@ -861,9 +870,15 @@ window.closeArticleModal = function(skipUrlSync) {
   const wasOpen = modal && !modal.classList.contains('hidden') && !modal.classList.contains('is-closing');
   if (modal) animateModalClose(modal);
   if (wasOpen && !skipUrlSync) {
-    const url = new URL(location.href);
-    url.searchParams.delete('post');
-    history.pushState(null, '', url);
+    if (modal && modal._urlPushed) {
+      modal._urlPushed = false;
+      history.back(); // 回退掉打开时压入的条目，返回键不会重新弹开文章
+    } else {
+      // 直接带 ?post= 打开的场景没有可回退的条目，就地替换即可
+      const url = new URL(location.href);
+      url.searchParams.delete('post');
+      history.replaceState(null, '', url);
+    }
   }
 };
 
@@ -874,7 +889,10 @@ window.addEventListener('popstate', () => {
   const isOpen = modal && !modal.classList.contains('hidden');
 
   if (id && (window.ARTICLES_DATA || []).some(a => a.id === id)) {
-    if (!isOpen) window.openArticleModal(id, true);
+    if (!isOpen) {
+      window.openArticleModal(id, true);
+      if (modal) modal._urlPushed = true; // 前进回到该条目，条目本身仍在历史里
+    }
   } else if (isOpen) {
     window.closeArticleModal(true);
   }
