@@ -23,10 +23,10 @@
 window.PROJECTS_DATA = [
   {
     id: "filebutler",
-    title: "FileButler · 本地智能文件管家",
+    title: "FileButler · 本地文件管家",
     category: "desktop",
     categoryName: "桌面应用",
-    description: "完全本地运行的文件整理 + 知识库问答桌面应用：AI 由 Ollama 免费模型驱动，无需 API Key。支持 Everything 式秒搜、文档自动向量化、图片语义搜索/OCR、重复文件安全清理，全程可撤销，数据不出本机。",
+    description: "文件乱成一团？这个帮你收拾。文件整理 + 直接问文件，都在你自己电脑上跑：AI 用本机 Ollama 免费模型，不用 API Key；秒搜、图片语义搜索、重复文件清理，每一步都能撤销，数据不出本机。",
     tags: ["Python", "Vue 3", "Ollama", "SQLite / FTS5", "RAG"],
     image: "assets/images/cover-filebutler.webp",
     demoUrl: "https://github.com/7SteveJohn/FileButler/releases",
@@ -35,29 +35,29 @@ window.PROJECTS_DATA = [
     downloadPwd: "95ak",
     featured: true,
     details: `
-### 💡 项目介绍
-FileButler 是一款**完全本地运行**的智能文件管家桌面应用（pywebview + Vue 3 单窗口内嵌），把文件整理与个人知识库问答合二为一。所有 AI 能力由本机 Ollama 免费开源模型提供，**不需要任何 API Key，数据不出本机**。
+### 💡 这是什么
+文件越堆越乱、想找的东西永远翻不出来——FileButler 就是为这个写的。它是一个**全在你自己电脑上跑**的文件管家 + 知识库问答：AI 用本机 Ollama 的免费模型，**不用申请任何 API Key，文件不会离开这台机器**。
 
-### ✨ 核心功能
-- **自动文件编目（Everything 式，只读）**：启动自动扫描用户目录，watchdog 后台实时监控，新文件几秒内可搜；支持 \`ext:pdf\`、\`size:>100mb\`、\`dm:本周\` 等搜索语法，长词走 FTS5 全文索引
-- **自动知识库问答（RAG）**：监控目录的新文档自动向量化入库（bge-m3），无需手动索引即可内容搜索与问答，对话历史可回看
-- **图片语义搜索 + OCR**：视觉模型生成描述并转录图中文字，搜「日落」找照片、搜发票号找截图
-- **智能文件整理**：规则 + 本地大模型批量分类 → 预览确认 → 执行移动 → 全程可撤销，**绝不会自动移动文件**；整理方案可存为模板
-- **重复文件安全清理**：三级哈希找重 → 按规则保留 → 移入「待清理」文件夹（不删除，可撤销）
-- **每周文件报告 / 数据库自动备份 / 开机自启 / 托盘常驻 / 深色模式**
+### ✨ 能干什么
+- **秒搜（只读，不动你的文件）**：启动自动扫描，后台盯着新文件，几秒内就能搜到；支持「ext:pdf」「size:>100mb」「dm:本周」这种语法，长词走全文索引
+- **直接问文件**：新文档自动转成向量入库（bge-m3），不用手动整理，问它就行，聊天记录能回看
+- **图片也能搜**：模型给图写描述、把图里的字抄出来，搜「日落」找照片、搜发票号找截图
+- **批量整理**：规则 + 本地模型先分类 → 给你预览 → 你勾选确认 → 才移动，**不会擅自挪动任何文件**，每一步都能撤销，方案还能存成模板
+- **找重复文件**：三级哈希查重 → 按规则保留 → 挪进「待清理」文件夹（只挪不删，随时撤销）
+- 另外还有：每周文件报告、数据库自动备份、开机自启、托盘常驻、深色模式
 
-### 🛠️ 技术要点
-- 后端：Python（SQLite 向量检索、watchdog 实时监控、仅 127.0.0.1 白名单校验的缩略图服务、RAG 管线）
-- 前端：Vue 3 + Naive UI，Vite 构建为单文件内嵌 pywebview
-- 安全设计：所有文件移动前必须「预览 → 勾选确认」，每步操作写日志、按批次一键撤销，Ollama 未就绪时自动降级为规则整理 + 关键词搜索
-    `
+### 🛠️ 怎么做的
+- 后端：Python（SQLite 向量检索、watchdog 实时监控、缩略图服务只认 127.0.0.1、RAG 管线）
+- 前端：Vue 3 + Naive UI，Vite 打成单文件塞进 pywebview
+- 保险设计：移动前必须「预览 → 勾选确认」，每步写日志、按批次撤销；Ollama 没开时自动退回规则整理 + 关键词搜索
+  `
   },
   {
     id: "netops-handbook",
-    title: "NetOps Handbook · 离线网络运维知识体系",
+    title: "NetOps Handbook · 给小白的离线网络手册",
     category: "android",
     categoryName: "Android 应用",
-    description: "100% 离线的 Android 应用：58 知识模块、25 排障案例、500+ 多厂商 CLI 命令、30 道面试真题。WebView 壳层 + 单文件 SPA 架构，零网络权限，数据与界面完全解耦。",
+    description: "一本装在手机里的离线网络手册：58 个知识模块、25 个排障案例、500+ 条命令速查、30 道面试真题。做给想学网络的新手看，零联网权限，没信号也能翻。",
     tags: ["Android", "WebView", "Gradle 8.9", "单页 SPA", "离线应用"],
     image: "assets/images/cover-netops.webp",
     demoUrl: "https://github.com/7SteveJohn/netops-handbook/releases",
@@ -66,27 +66,29 @@ FileButler 是一款**完全本地运行**的智能文件管家桌面应用（py
     downloadPwd: "9uma",
     featured: true,
     details: `
-### 💡 项目介绍
-NetOps 2.0 是一款**零网络权限、100% 离线**的 Android 网络运维知识应用，覆盖传统网络、云原生、故障排查与面试准备四大方向，专为工程师在无网环境下的速查与学习打造。
+### 💡 这是什么
+NetOps 是一本**能装进口袋的离线网络小册子**。断网、没信号、蹲在机房角落都翻得开——它压根不申请联网权限。
 
-### ✨ 核心数据
-- **58 个知识模块** / **25 个排障案例** / **500+ 条多厂商 CLI 命令**（含命令字典与模拟器） / **30 道面试真题**
-- 内置 CLI 模拟器：前缀联想、历史持久化、快速按钮分组
-- 学习进度 / 收藏支持 JSON 导出导入
-- 液态玻璃三模式主题（透明 / 毛玻璃 / 高斯），带 Android WebView 降级检测，低端机自动降级 backdrop-filter
+给想学网络但不知道从哪下手的人做的：不用先啃完一本教材，翻开就能查。
 
-### 🛠️ 技术架构
-- **Android 壳层**：edge-to-edge WebView + safe-area 注入 + @JavascriptInterface 回退栈桥接 + OnBackPressedCallback 手势返回，纯离线（不申请 INTERNET 权限），release 签名就绪
-- **Web 端**：单页 SPA，自研导航栈适配 file:// WebView；SVG/CSS 全部内联，零外部依赖
-- **构建链路**：gen-data.js → build.js → assets/index.html 单文件打包，附冒烟测试与 APK 校验脚本
-    `
+### ✨ 里面有什么
+- **58 个知识模块** / **25 个排障案例** / **500+ 条命令速查**（带字典和模拟器） / **30 道面试真题**
+- 命令看不懂？内置模拟器可以直接敲，有前缀联想和历史记录
+- 学习进度和收藏能导出成 JSON，换手机不丢
+- 三种毛玻璃主题（透明 / 毛玻璃 / 高斯），低端机会自动降级
+
+### 🛠️ 怎么做的
+- **Android 壳层**：WebView 全屏 + 安全区适配 + 返回手势桥接，纯离线（不申请 INTERNET 权限），release 签名已就绪
+- **内容端**：单文件网页，导航栈是自己写的（为了能用 file:// 直接打开），图形样式全部内联，零外部依赖
+- **打包**：gen-data.js → build.js → 一个 index.html 文件，附冒烟测试和 APK 校验脚本
+  `
   },
   {
     id: "gameboost",
-    title: "GameBoost · 竞技游戏一键优化工具",
+    title: "GameBoost · 打游戏前点一下",
     category: "desktop",
     categoryName: "桌面应用",
-    description: "Windows 竞技游戏一键优化：针对 CS2 / 瓦罗兰特 / 三角洲行动，自动调优电源、GPU、网络、CPU 调度与定时器分辨率，压低帧生成时间抖动。硬件自适应，全部可回滚。",
+    description: "打 CS2 / 瓦罗兰特 / 三角洲之前点一下，自动把电源、显卡、网络、CPU 调度和定时器分辨率调好，专治对枪那一瞬间的卡顿。按你机器配置来，全部能一键还原。",
     tags: ["C#", "PowerShell", "Windows", "游戏性能"],
     image: "assets/images/cover-gameboost.webp",
     demoUrl: "https://github.com/7SteveJohn/GameBoost/releases",
@@ -95,18 +97,18 @@ NetOps 2.0 是一款**零网络权限、100% 离线**的 Android 网络运维知
     downloadPwd: "5xqi",
     featured: false,
     details: `
-### 💡 项目介绍
-GameBoost 是一款 Windows 竞技游戏一键自动优化工具，面向 CS2 / Valorant / 三角洲行动等竞技 FPS 场景，核心目标是**压低帧生成时间的抖动**，而不是跑分。
+### 💡 这是什么
+打 CS2、瓦罗兰特、三角洲这类游戏，最烦的不是平均帧数低，是**对枪那一下突然卡一下**。GameBoost 就是冲着这个做的——开打前点一下，把该调的都调好。跑分多少不重要。
 
-### ✨ 功能特性
-- 自动调优电源计划、GPU、网络参数、CPU 调度与定时器分辨率
-- 硬件自适应：根据本机配置选择优化项，全部可一键回滚
-- 优化前自动备份至 backup/ 目录，运行日志落盘 logs/
-- 原生 exe 双击即用（自包含，内嵌自定义图标），config.json 可编辑优化项开关与游戏联动
-- 附带 PowerShell 引擎模块与重编译脚本（csc 编译 + 嵌图标）
+### ✨ 能干什么
+- 自动调电源计划、显卡、网络、CPU 调度和定时器分辨率
+- 按你机器的配置挑优化项，不喜欢就一键还原
+- 优化前自动备份到 backup/，日志写到 logs/
+- 一个 exe 双击就跑，config.json 里能开关每一项，也能跟游戏联动
+- 附带 PowerShell 引擎模块和重新编译的脚本
 
-### 🛠️ 技术细节
-C# 源码（GameBoost.cs）+ compile.ps1 自动编译打包；曾修复单实例锁被 .NET GC 回收导致失效的经典坑（局部 Mutex）。
-    `
+### 🛠️ 怎么做的
+C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑：单实例锁被 .NET 回收掉，导致能开好几个（局部 Mutex 的经典问题）。
+  `
   }
 ];
