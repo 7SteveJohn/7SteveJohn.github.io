@@ -5,32 +5,8 @@
     <link>https://7stevejohn.github.io/</link>
     <description>技术手记、小说、游戏创作与随笔，想到什么写什么。</description>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 06 Sep 2026 00:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 02 Sep 2026 00:00:00 GMT</lastBuildDate>
     <atom:link href="https://7stevejohn.github.io/rss.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>【示例】把你的小说章节放进这里</title>
-      <link>https://7stevejohn.github.io/?post=creation-novel-demo</link>
-      <guid isPermaLink="false">creation-novel-demo</guid>
-      <pubDate>Sun, 06 Sep 2026 00:00:00 GMT</pubDate>
-      <category>小说</category>
-      <description>这条是示例条目：title 写「作品名 · 章节名」，content 写正文（支持 Markdown），写好后删掉这条即可。</description>
-    </item>
-    <item>
-      <title>【示例】游戏设计笔记 / 开发日志</title>
-      <link>https://7stevejohn.github.io/?post=creation-game-demo</link>
-      <guid isPermaLink="false">creation-game-demo</guid>
-      <pubDate>Sun, 06 Sep 2026 00:00:00 GMT</pubDate>
-      <category>游戏创作</category>
-      <description>这条是示例条目：放 GDD 节选、世界观设定、关卡设计或开发日志，写好后删掉这条即可。</description>
-    </item>
-    <item>
-      <title>【示例】随笔：随手记一条</title>
-      <link>https://7stevejohn.github.io/?post=essay-demo</link>
-      <guid isPermaLink="false">essay-demo</guid>
-      <pubDate>Sun, 06 Sep 2026 00:00:00 GMT</pubDate>
-      <category>随笔</category>
-      <description>这条是示例条目：随笔就是想到什么写什么的生活碎片，写好后删掉这条即可。</description>
-    </item>
     <item>
       <title>端侧智能文件管家：如何在本地实现毫秒级向量检索与零泄密问答</title>
       <link>https://7stevejohn.github.io/?post=filebutler-local-rag</link>

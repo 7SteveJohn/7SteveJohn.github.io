@@ -10,57 +10,22 @@
  */
 
 window.ARTICLES_DATA = [
-  {
-    id: "creation-novel-demo",
-    section: "creation",
-    category: "小说",
-    title: "【示例】把你的小说章节放进这里",
-    date: "2026-09-06",
-    readTime: "2 分钟",
-    summary: "这条是示例条目：title 写「作品名 · 章节名」，content 写正文（支持 Markdown），写好后删掉这条即可。",
-    tags: ["连载中"],
-    content: `
-## 正文区
+  // ✍️ 想加小说 / 游戏设计 / 随笔？解开下面这段注释的开头，复制粘贴改一改即可。
+  //    没有内容时，创作与随笔两个模块（含导航入口）会自动隐藏，不会留空壳。
+  //
+  // {
+  //   id: "novel-chapter-01",   // 唯一 id，深链 ?post=novel-chapter-01 用的就是它
+  //   section: "creation",      // creation=创作 / essay=随笔 / 不填=技术手记
+  //   category: "小说",          // 创作模块填「小说」或「游戏创作」；随笔填「随笔」
+  //   title: "作品名 · 第一章",
+  //   date: "2026-09-07",
+  //   readTime: "5 分钟",
+  //   summary: "一句话简介，会显示在卡片和 RSS 订阅里。",
+  //   tags: ["连载中"],
+  //   content: `## 正文标题
 
-每一条数据就是一章或一个短篇。标题、简介、正文都支持完整的 Markdown。
-
-写小说时建议把 \`tags\` 用来标记连载状态（如「连载中」「已完结」）。
-    `
-  },
-  {
-    id: "creation-game-demo",
-    section: "creation",
-    category: "游戏创作",
-    title: "【示例】游戏设计笔记 / 开发日志",
-    date: "2026-09-06",
-    readTime: "2 分钟",
-    summary: "这条是示例条目：放 GDD 节选、世界观设定、关卡设计或开发日志，写好后删掉这条即可。",
-    tags: ["世界观", "开发日志"],
-    content: `
-## 游戏创作区
-
-可以放世界观设定、机制拆解、关卡草图思路或版本开发日志。
-
-\`\`\`text
-例：机制笔记 —— 核心循环 = 探索 → 收集 → 解锁新区域
-\`\`\`
-    `
-  },
-  {
-    id: "essay-demo",
-    section: "essay",
-    category: "随笔",
-    title: "【示例】随笔：随手记一条",
-    date: "2026-09-06",
-    readTime: "1 分钟",
-    summary: "这条是示例条目：随笔就是想到什么写什么的生活碎片，写好后删掉这条即可。",
-    tags: ["日常"],
-    content: `
-## 这里放随笔正文
-
-不用有主题，不用有结论。今天的天气、昨晚的梦、突然想通的一件小事，都值得记下来。
-    `
-  },
+  // 支持 Markdown，代码块自动高亮。`
+  // },
   {
     id: "filebutler-local-rag",
     title: "端侧智能文件管家：如何在本地实现毫秒级向量检索与零泄密问答",
