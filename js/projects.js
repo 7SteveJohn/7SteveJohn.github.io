@@ -103,8 +103,8 @@ NetOps 是一本**能装进口袋的离线网络小册子**。断网、没信号
     image: "assets/images/cover-gameboost.webp",
     demoUrl: "https://github.com/7SteveJohn/GameBoost/releases",
     githubUrl: "https://github.com/7SteveJohn/GameBoost",
-    downloadUrl: "https://wwblz.lanzouu.com/i40WL46nu73e",
-    downloadPwd: "5xqi",
+    downloadUrl: "https://wwblz.lanzouu.com/i1XLQ47ddyhe",
+    downloadPwd: "8uz7",
     featured: false,
     // ↓ 版本/运行环境/校验码：填上即显示在弹窗里，留空自动隐藏
     version: "",
