@@ -54,27 +54,18 @@
   <!-- Inter 字体（自托管 latin 子集，避免大陆访问 Google Fonts 阻塞） -->
   <link rel="stylesheet" href="assets/fonts/inter.css" data-page-node-id="9EErQatlmHBQHE0mykYO9k" />
 
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    if (window.tailwind) {
-      tailwind.config = {
-        darkMode: 'class'
-      }
-    }
-  </script>
+  <!-- Tailwind CSS 3.4.17（本地静态构建，零外部依赖；新增类名后用 scripts/tailwind.config.js 重建） -->
+  <link rel="stylesheet" href="assets/vendor/tailwind.css" />
 
   <!-- Lucide Icons（自托管 v1.41.0，避免 unpkg 大陆访问不稳定） -->
   <script src="assets/vendor/lucide.min.js"></script>
 
-  <!-- Marked.js (Markdown 解析器) -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Marked.js (Markdown 解析器，自托管) -->
+  <script src="assets/vendor/marked.min.js"></script>
 
-  <!-- Highlight.js (代码语法高亮) -->
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin data-page-node-id="zUnVHor1eDANx3elsRUdDB" />
-  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin data-page-node-id="CgVl5pYefkDCiMe0wSBu2C" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" data-page-node-id="3ByJ05DA7zKeKw8ABdZ4Xj" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <!-- Highlight.js (代码语法高亮，自托管) -->
+  <link rel="stylesheet" href="assets/vendor/github-dark.min.css" />
+  <script src="assets/vendor/highlight.min.js"></script>
 
   <!-- 结构化数据（搜索引擎富摘要） -->
   <script type="application/ld+json">

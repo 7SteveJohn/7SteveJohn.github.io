@@ -51,12 +51,16 @@ document.addEventListener('DOMContentLoaded', () => {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 
-  // 10. 访客计数（busuanzi，无账号）：load 之后再注入脚本，外部服务挂起也不阻塞页面加载
+  // 10. 访客计数（busuanzi）：load 之后等浏览器空闲再注入，外部服务再慢也不拖慢"页面打开"的手感
   window.addEventListener('load', () => {
-    const s = document.createElement('script');
-    s.async = true;
-    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi_pure_mini.js';
-    document.body.appendChild(s);
+    const inject = () => {
+      const s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi_pure_mini.js';
+      document.body.appendChild(s);
+    };
+    if ('requestIdleCallback' in window) requestIdleCallback(inject, { timeout: 3000 });
+    else setTimeout(inject, 1200);
   });
 });
 
