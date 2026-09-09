@@ -2,8 +2,12 @@
 .workbuddy/
 .playwright-cli/
 .mimosa/
+.wrangler/
+.agent/
 gui-test-screenshots/
 # AI 生成的原始合成素材（体积过大，不入库；成品已另存为 cover-*.webp/jpg）
 assets/images/图片合成*.png
 holo-card/
 holo-preview.png
+# 本地归档（未入站的原始素材，如 AI 生成的大图）
+.local/

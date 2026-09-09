@@ -3,44 +3,109 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>页面不存在 · SevenJohn</title>
+  <title>页面走丢了 · SevenJohn</title>
   <meta name="robots" content="noindex" />
-  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="你要找的页面不存在，可能改过名字，或者从来就没有过。" />
+
+  <!-- 与主站一致：任何样式生效前先应用保存的主题，避免亮色用户进站闪黑 -->
+  <script>
+    (function () {
+      var saved = localStorage.getItem('theme');
+      var dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.classList.toggle('dark', dark);
+    })();
+  </script>
+
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d1d1f'/%3E%3Ctext x='32' y='43' font-family='Inter,-apple-system,sans-serif' font-size='34' font-weight='700' fill='white' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E" />
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #000000;
-      color: #f5f5f7;
-      font-family: "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
-      -webkit-font-smoothing: antialiased;
-      text-align: center;
-    }
-    .code { font-size: 5rem; font-weight: 800; letter-spacing: -0.04em; line-height: 1; }
-    .msg { margin-top: 1rem; color: #86868b; font-size: 0.95rem; }
-    .btn {
-      display: inline-block;
-      margin-top: 2rem;
-      padding: 0.625rem 1.5rem;
-      border-radius: 9999px;
-      background: #0071e3;
-      color: #ffffff;
-      text-decoration: none;
-      font-size: 0.875rem;
-      font-weight: 500;
-    }
-    .btn:hover { background: #0077ed; }
-  </style>
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+
+  <!-- 与主站同一套样式：Inter 字体 + Tailwind 静态构建 + 定制样式 -->
+  <link rel="stylesheet" href="assets/fonts/inter.css" />
+  <link rel="stylesheet" href="assets/vendor/tailwind.css" />
+  <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
-  <main>
-    <div class="code">404</div>
-    <p class="msg">这个页面不存在，或者已经被移动了。</p>
-    <a class="btn" href="/">返回首页</a>
+<body class="bg-white text-[#1d1d1f] dark:bg-[#000000] dark:text-[#f5f5f7] min-h-screen transition-colors duration-200 antialiased selection:bg-[#0071e3] selection:text-white">
+
+  <!-- 顶栏：与主站同一套视觉，只保留能用的入口 -->
+  <header class="fixed top-0 inset-x-0 z-50 border-b border-[#d2d2d7]/50 dark:border-white/10 bg-white/80 dark:bg-[#000000]/80 site-nav">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-12 flex items-center justify-between text-xs">
+      <a href="/" class="flex items-center gap-2 font-semibold text-sm tracking-tight text-[#1d1d1f] dark:text-white hover:opacity-80 transition">
+        <span>SevenJohn</span>
+        <span class="text-[#86868b] font-normal text-xs">· 个人小站</span>
+      </a>
+
+      <div class="flex items-center gap-3">
+        <a href="/#products" class="hidden sm:inline-block text-[#86868b] hover:text-black dark:hover:text-white transition">工具</a>
+        <a href="/#blog" class="hidden sm:inline-block text-[#86868b] hover:text-black dark:hover:text-white transition">技术手记</a>
+
+        <button id="theme-toggle" aria-label="切换明暗模式" class="p-1.5 rounded-full text-[#86868b] hover:text-black dark:hover:text-white transition cursor-pointer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 hidden dark:block" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+          </svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 block dark:hidden" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+
+        <a href="/" class="btn-primary px-3 py-1 text-xs">回到首页</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-2xl mx-auto px-4 sm:px-6 pt-40 pb-24 text-center">
+    <p class="text-[5rem] sm:text-[7rem] font-extrabold tracking-tight leading-none text-[#1d1d1f] dark:text-white">404</p>
+
+    <h1 class="mt-6 text-2xl sm:text-3xl font-bold tracking-tight text-[#1d1d1f] dark:text-white">
+      这个页面走丢了
+    </h1>
+    <p class="mt-3 text-sm sm:text-base text-[#86868b] leading-relaxed">
+      地址可能改过名字，也可能从来就没存在过。<br class="hidden sm:block" />
+      要不要回首页看看？那儿放着三个小工具，还有几篇技术手记。
+    </p>
+
+    <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+      <a href="/" class="btn-primary px-5 py-2.5 text-sm">回到首页</a>
+      <a href="/#products" class="btn-secondary px-5 py-2.5 text-sm border border-[#d2d2d7] dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/10">看看我做的工具</a>
+    </div>
+
+    <div class="mt-14 grid gap-3 sm:grid-cols-3 text-left">
+      <a href="/#blog" class="bento-card p-4 block border border-[#d2d2d7]/60 dark:border-white/10 hover:border-[#0071e3]/50 dark:hover:border-[#2997ff]/50">
+        <p class="text-sm font-semibold text-[#1d1d1f] dark:text-white">技术手记</p>
+        <p class="mt-1 text-xs text-[#86868b]">端侧 AI、帧率防抖、离线应用</p>
+      </a>
+      <a href="/#products" class="bento-card p-4 block border border-[#d2d2d7]/60 dark:border-white/10 hover:border-[#0071e3]/50 dark:hover:border-[#2997ff]/50">
+        <p class="text-sm font-semibold text-[#1d1d1f] dark:text-white">三个小工具</p>
+        <p class="mt-1 text-xs text-[#86868b]">FileButler / NetOps / GameBoost</p>
+      </a>
+      <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="bento-card p-4 block border border-[#d2d2d7]/60 dark:border-white/10 hover:border-[#0071e3]/50 dark:hover:border-[#2997ff]/50">
+        <p class="text-sm font-semibold text-[#1d1d1f] dark:text-white">GitHub</p>
+        <p class="mt-1 text-xs text-[#86868b]">@7SteveJohn</p>
+      </a>
+    </div>
   </main>
+
+  <footer class="border-t border-[#d2d2d7]/50 dark:border-white/10 py-8 text-center text-xs text-[#86868b]">
+    © <span id="footer-year">2026</span> SevenJohn. 慢慢写，慢慢看。
+  </footer>
+
+  <script>
+    // 主题切换（与主站共用 localStorage 的 theme 键，切换后回首页保持一致）
+    (function () {
+      var root = document.documentElement;
+      var btn = document.getElementById('theme-toggle');
+      if (btn) {
+        btn.addEventListener('click', function () {
+          var dark = root.classList.toggle('dark');
+          try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
+        });
+      }
+      var year = document.getElementById('footer-year');
+      if (year) year.textContent = String(new Date().getFullYear());
+    })();
+  </script>
 </body>
 </html>

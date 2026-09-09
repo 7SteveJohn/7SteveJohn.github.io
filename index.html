@@ -57,15 +57,15 @@
   <!-- Tailwind CSS 3.4.17（本地静态构建，零外部依赖；新增类名后用 scripts/tailwind.config.js 重建） -->
   <link rel="stylesheet" href="assets/vendor/tailwind.css" />
 
-  <!-- Lucide Icons（自托管 v1.41.0，避免 unpkg 大陆访问不稳定） -->
-  <script src="assets/vendor/lucide.min.js"></script>
+  <!-- Lucide Icons（自托管，仅打包站点实际用到的 14 个图标；避免 unpkg 大陆访问不稳定） -->
+  <script src="assets/vendor/lucide.min.js" defer></script>
 
   <!-- Marked.js (Markdown 解析器，自托管) -->
-  <script src="assets/vendor/marked.min.js"></script>
+  <script src="assets/vendor/marked.min.js" defer></script>
 
   <!-- Highlight.js (代码语法高亮，自托管) -->
   <link rel="stylesheet" href="assets/vendor/github-dark.min.css" />
-  <script src="assets/vendor/highlight.min.js"></script>
+  <script src="assets/vendor/highlight.min.js" defer></script>
 
   <!-- 结构化数据（搜索引擎富摘要） -->
   <script type="application/ld+json">
@@ -363,7 +363,7 @@
               class="p-2 rounded-full text-[#86868b] hover:text-black dark:hover:text-white transition"
               title="查看 GitHub 仓库" data-page-node-id="G92SLAkXHEnc6dTuXUA0QX"
             >
-              <i data-lucide="github" class="w-4 h-4" data-page-node-id="j1Lzb8U11QLWlbygksEvTt"></i>
+              <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
             </a>
             <button 
               onclick="openProjectModal('filebutler')" 
@@ -442,7 +442,7 @@
               class="p-2 rounded-full text-[#86868b] hover:text-black dark:hover:text-white transition"
               title="查看 GitHub 仓库" data-page-node-id="x2QPP4RasfRfUW8QrrqE1B"
             >
-              <i data-lucide="github" class="w-4 h-4" data-page-node-id="8o6fBE27VvFu96pmCEJsQy"></i>
+              <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
             </a>
             <button 
               onclick="openProjectModal('netops-handbook')" 
@@ -521,7 +521,7 @@
               class="p-2 rounded-full text-[#86868b] hover:text-black dark:hover:text-white transition"
               title="查看 GitHub 仓库" data-page-node-id="04udAGUekatB0IJelQfBr8"
             >
-              <i data-lucide="github" class="w-4 h-4" data-page-node-id="fBo1Wv6vtgFFz4ajkg9IvT"></i>
+              <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
             </a>
             <button 
               onclick="openProjectModal('gameboost')" 
@@ -794,12 +794,12 @@
     </div>
   </div>
 
-  <!-- 引入项目数据与交互脚本 -->
-  <script src="js/projects.js"></script>
-  <script src="js/articles.js"></script>
-  <script src="js/status.js"></script>
-  <script src="js/app.js"></script>
-  <script src="js/particles.js"></script>
-  <script src="js/search.js"></script>
+  <!-- 引入项目数据与交互脚本（全部 defer：按文档顺序在 DOM 解析完成后执行，不阻塞首屏渲染） -->
+  <script src="js/projects.js" defer></script>
+  <script src="js/articles.js" defer></script>
+  <script src="js/status.js" defer></script>
+  <script src="js/app.js" defer></script>
+  <script src="js/particles.js" defer></script>
+  <script src="js/search.js" defer></script>
 </body>
 </html>
