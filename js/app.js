@@ -29,11 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // 7. 阅读进度条监听（弹窗内滚动）
   initArticleProgress();
 
-  // 8. 本地趣味与偏好件：时段问候 / 状态仪表盘 / 键盘彩蛋 / 阅读偏好
+  // 8. 本地趣味件：时段问候 / 状态仪表盘 / 键盘彩蛋
   initHeroGreeting();
   initHeroStatus();
   initKonami();
-  initReadingPrefs();
 
   // 7. 支持 ?post=文章id 深链（分享单篇内容链接）
   const postId = new URLSearchParams(location.search).get('post');
@@ -135,11 +134,11 @@ window.openProjectModal = function(id) {
       <!-- 头部 -->
       <div class="space-y-2 border-b border-black/10 dark:border-white/10 pb-5">
         <div class="flex items-center gap-2">
-          <span class="px-2.5 py-1 text-xs font-mono font-medium rounded-full bg-[#0071e3]/10 text-[#0071e3] border border-[#0071e3]/20">
+          <span class="px-2.5 py-1 text-xs font-mono font-medium rounded-md border border-black/8 dark:border-white/12 text-[#86868b]">
             ${escapeHtml(project.categoryName || project.category)}
           </span>
         </div>
-        <h2 class="text-2xl sm:text-3xl font-extrabold text-[#1d1d1f] dark:text-white tracking-tight">${escapeHtml(project.title)}</h2>
+        <h2 class="text-2xl font-semibold text-[#1d1d1f] dark:text-white tracking-tight">${escapeHtml(project.title)}</h2>
         <p class="text-[#86868b] text-sm sm:text-base leading-relaxed">${escapeHtml(project.description)}</p>
       </div>
 
@@ -499,44 +498,6 @@ function initKonami() {
   });
 }
 
-// 阅读偏好：字号 / 行距（LocalStorage 记忆）
-function initReadingPrefs() {
-  const btn = document.getElementById('reading-prefs-btn');
-  const pop = document.getElementById('reading-prefs-pop');
-  const content = document.getElementById('article-modal-content');
-  if (!btn || !pop || !content) return;
-  let saved;
-  try { saved = JSON.parse(localStorage.getItem('sj.reading')) || { font: 1, line: 1 }; } catch (_) { saved = { font: 1, line: 1 }; }
-
-  const FONT = ['0.92rem', '1rem', '1.08rem'];
-  const LINE = ['1.7', '1.85', '2.05'];
-
-  function apply() {
-    const body = content.querySelector('.markdown-body');
-    if (!body) return;
-    body.style.fontSize = FONT[saved.font];
-    body.style.lineHeight = LINE[saved.line];
-    pop.querySelectorAll('[data-pref-group="font"] .pref-btn').forEach((b, i) => b.classList.toggle('is-active', i === saved.font));
-    pop.querySelectorAll('[data-pref-group="line"] .pref-btn').forEach((b, i) => b.classList.toggle('is-active', i === saved.line));
-  }
-  window.__applyReadingPrefs = apply;
-
-  btn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    pop.classList.toggle('hidden');
-  });
-  document.addEventListener('click', (e) => {
-    if (!pop.classList.contains('hidden') && !pop.contains(e.target) && !btn.contains(e.target)) pop.classList.add('hidden');
-  });
-  pop.addEventListener('click', (e) => {
-    const b = e.target.closest('.pref-btn');
-    if (!b) return;
-    saved[b.closest('[data-pref-group]').dataset.prefGroup] = Number(b.dataset.pref);
-    localStorage.setItem('sj.reading', JSON.stringify(saved));
-    apply();
-  });
-}
-
 // 页脚版权年份
 function initFooterYear() {
   const el = document.getElementById('footer-year');
@@ -548,25 +509,25 @@ function initFooterYear() {
 function articleCardHtml(art, opts = {}) {
   const metaLead = opts.hideCategory
     ? `<span>${escapeHtml(art.date)}</span><span>· ${escapeHtml(getReadTime(art))}</span>`
-    : `<span class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] font-medium border border-[#0071e3]/20">
+    : `<span class="px-2 py-0.5 rounded-md border border-black/8 dark:border-white/12 font-medium">
          ${escapeHtml(art.category || '技术手记')}
        </span>
        <span>${escapeHtml(art.date)}</span>
        <span>· ${escapeHtml(getReadTime(art))}</span>`;
   return `
-    <article tabindex="0" role="button" aria-label="阅读：${escapeHtml(art.title)}" class="bento-card reveal p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer group" onclick="openArticleModal('${art.id}')">
+    <article tabindex="0" role="button" aria-label="阅读：${escapeHtml(art.title)}" class="bento-card reveal p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer group" onclick="openArticleModal('${escapeHtml(art.id)}')">
       <div class="space-y-2 flex-1">
         <div class="flex items-center gap-2 text-xs font-mono text-[#86868b] flex-wrap">
           ${metaLead}
         </div>
-        <h3 class="text-lg font-bold text-[#1d1d1f] dark:text-white group-hover:text-[#0071e3] transition-colors leading-snug">
+        <h3 class="text-base font-semibold text-[#1d1d1f] dark:text-white leading-snug">
           ${escapeHtml(art.title)}
         </h3>
         <p class="text-[#86868b] text-sm line-clamp-2 leading-relaxed">
           ${escapeHtml(art.summary)}
         </p>
       </div>
-      <div class="text-xs font-medium text-[#0071e3] inline-flex items-center gap-1 self-start md:self-auto group-hover:translate-x-0.5 transition-transform whitespace-nowrap">
+      <div class="text-xs text-[#86868b] inline-flex items-center gap-1 self-start md:self-auto group-hover:translate-x-0.5 transition-transform whitespace-nowrap">
         <span>阅读</span>
         <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
       </div>
@@ -721,7 +682,7 @@ window.openArticleModal = function(id, skipUrlSync) {
   const nextArticle = idx > -1 && idx < siblings.length - 1 ? siblings[idx + 1] : null;
 
   const pagerBtn = (target, label, icon) => `
-    <button data-pager="${icon === 'left' ? 'prev' : 'next'}" onclick="openArticleModal('${target.id}')" class="btn-secondary px-4 py-2 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white flex items-center gap-1.5 cursor-pointer">
+    <button data-pager="${icon === 'left' ? 'prev' : 'next'}" onclick="openArticleModal('${escapeHtml(target.id)}')" class="btn-secondary px-4 py-2 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white flex items-center gap-1.5 cursor-pointer">
       ${icon === 'left' ? '<i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>' : ''}
       <span>${label}</span>
       ${icon === 'right' ? '<i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>' : ''}
@@ -773,7 +734,7 @@ window.openArticleModal = function(id, skipUrlSync) {
     <div class="p-6 sm:p-8 space-y-5">
       <div class="space-y-2 border-b border-black/10 dark:border-white/10 pb-5">
         <div class="flex items-center gap-2 text-xs font-mono text-[#86868b]">
-          <span class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] font-medium border border-[#0071e3]/20">
+          <span class="px-2 py-0.5 rounded-md border border-black/8 dark:border-white/12 font-medium">
             ${escapeHtml(article.category || '技术手记')}
           </span>
           <span>${escapeHtml(article.date)}</span>
@@ -798,7 +759,6 @@ window.openArticleModal = function(id, skipUrlSync) {
   buildArticleToc(modalContent);
   injectArticleJsonLd(article);
   initAnnotations(modalContent, article.id);
-  if (window.__applyReadingPrefs) window.__applyReadingPrefs();
 
   // 情绪标记：单选可取消，仅写本机 LocalStorage
   modalContent.querySelectorAll('[data-emotion]').forEach((btn) => {
@@ -826,7 +786,6 @@ window.openArticleModal = function(id, skipUrlSync) {
           addCopyButtons(modalContent);
           buildArticleToc(modalContent);
           initAnnotations(modalContent, article.id);
-          if (window.__applyReadingPrefs) window.__applyReadingPrefs();
           modalContent.scrollTop = 0;
           const bar = document.getElementById('article-progress');
           if (bar) bar.style.width = '0%';

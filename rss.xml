@@ -8,12 +8,12 @@
     <lastBuildDate>Wed, 09 Sep 2026 00:00:00 GMT</lastBuildDate>
     <atom:link href="https://7stevejohn.github.io/rss.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>《晚星照澈》开发手记：把“说不出口”做成一个能玩的东西</title>
-      <link>https://7stevejohn.github.io/?post=wanxing-zhaoche-design-notes</link>
-      <guid isPermaLink="false">wanxing-zhaoche-design-notes</guid>
+      <title>像素叙事游戏开发手记：把“说不出口”做成一个能玩的东西</title>
+      <link>https://7stevejohn.github.io/?post=pixel-narrative-devlog</link>
+      <guid isPermaLink="false">pixel-narrative-devlog</guid>
       <pubDate>Wed, 09 Sep 2026 00:00:00 GMT</pubDate>
       <category>游戏创作</category>
-      <description>做了两年多的像素叙事游戏：2011 年的小城，两个不敢开口的人，七卷七十章，没有战斗没有解谜。聊聊它讲什么、怎么玩、为什么这么做。</description>
+      <description>在做的像素叙事游戏：2011 年的小城，两个不敢开口的人，七卷七十章，没有战斗没有解谜。聊聊它讲什么、怎么玩、为什么这么做。</description>
     </item>
     <item>
       <title>端侧智能文件管家：如何在本地实现毫秒级向量检索与零泄密问答</title>

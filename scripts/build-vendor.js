@@ -16,7 +16,8 @@ const MODULES = 'C:/Users/SevenJohn/.workbuddy/binaries/node/workspace/node_modu
 
 let esbuild;
 try {
-  esbuild = require(path.join(MODULES, 'esbuild'));
+  // 路径为固定常量（本机 node 工作区），字面量引入以便静态审查
+  esbuild = require('C:/Users/SevenJohn/.workbuddy/binaries/node/workspace/node_modules/esbuild');
 } catch (e) {
   console.error('❌ 找不到 esbuild，请先在 node 工作区执行：npm i lucide esbuild');
   process.exit(1);

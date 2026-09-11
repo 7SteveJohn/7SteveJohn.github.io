@@ -25,7 +25,7 @@
     (window.ARTICLES_DATA || []).forEach((a) => {
       items.push({
         type: '文章',
-        typeColor: '#0071e3',
+        typeColor: '#86868b',
         title: a.title,
         summary: a.summary || '',
         meta: [a.category || '技术手记', a.date].filter(Boolean).join(' · '),
@@ -38,7 +38,7 @@
     (window.PROJECTS_DATA || []).forEach((p) => {
       items.push({
         type: '工具',
-        typeColor: '#34c759',
+        typeColor: '#86868b',
         title: p.title,
         summary: p.description || '',
         meta: p.categoryName || p.category || '',
