@@ -35,6 +35,9 @@ h1, h2, h3 {
 :root {
   --hairline: rgba(18, 30, 60, 0.10);
   --hairline-strong: rgba(18, 30, 60, 0.18);
+  /* 丝滑入场曲线：无过冲的柔和弹簧（现代对话框动效标准答案） */
+  --ease-swift: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 0.2, 1);
 }
 .dark {
   --hairline: rgba(255, 255, 255, 0.10);
@@ -157,12 +160,12 @@ html:not(.dark) .bento-card:hover {
   line-height: 1;
 }
 
-/* 弹窗：干净减速进出场（无弹性过冲、无模糊渐起） */
+/* 弹窗：柔和弹簧进出场（无过冲，出比入快） */
 .modal-overlay {
-  animation: fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: fade-in 0.22s var(--ease-swift);
 }
 .modal-panel {
-  animation: sheet-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: sheet-in 0.35s var(--ease-swift);
 }
 
 @keyframes fade-in {
@@ -176,10 +179,10 @@ html:not(.dark) .bento-card:hover {
 
 /* 弹窗关闭（加速退出） */
 .modal-overlay.is-closing {
-  animation: fade-out 0.18s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation: fade-out 0.18s var(--ease-exit) both;
 }
 .modal-overlay.is-closing .modal-panel {
-  animation: sheet-out 0.18s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation: sheet-out 0.18s var(--ease-exit) both;
 }
 @keyframes fade-out {
   to { opacity: 0; }
@@ -199,7 +202,7 @@ html:not(.dark) .bento-card:hover {
   to   { opacity: 1; transform: none; }
 }
 .hero-anim {
-  animation: hero-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: hero-rise 0.5s var(--ease-swift) both;
   animation-delay: calc(var(--i, 0) * 70ms);
 }
 
@@ -207,7 +210,7 @@ html:not(.dark) .bento-card:hover {
 .js .reveal {
   opacity: 0;
   transform: translateY(14px);
-  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.5s var(--ease-swift), transform 0.5s var(--ease-swift);
   transition-delay: var(--reveal-delay, 0ms);
 }
 .js .reveal.is-visible {
@@ -217,7 +220,7 @@ html:not(.dark) .bento-card:hover {
 /* 封面图随卡片浮现做 1.02 → 1 微缩放 */
 .js .reveal .reveal-img {
   transform: scale(1.02);
-  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.55s var(--ease-swift);
 }
 .js .reveal.is-visible .reveal-img {
   transform: scale(1);
@@ -241,10 +244,10 @@ header.site-header:not(.is-scrolled) {
 
 /* 移动端菜单：展开下拉，收起上滑退出 */
 #mobile-menu:not(.hidden) {
-  animation: menu-drop 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: menu-drop 0.26s var(--ease-swift);
 }
 #mobile-menu:not(.hidden) > * {
-  animation: menu-item 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: menu-item 0.3s var(--ease-swift) both;
   animation-delay: calc(var(--i, 0) * 40ms);
 }
 #mobile-menu.is-closing {
@@ -281,15 +284,42 @@ header.site-header:not(.is-scrolled) {
   to   { opacity: 1; transform: none; }
 }
 
-.modal-content-in { animation: content-in-fade 0.28s cubic-bezier(0.16, 1, 0.3, 1); }
+.modal-content-in { animation: content-in-fade 0.28s var(--ease-swift); }
 
-.content-out-next { animation: content-out-next 0.16s cubic-bezier(0.4, 0, 1, 1) forwards; }
-.content-out-prev { animation: content-out-prev 0.16s cubic-bezier(0.4, 0, 1, 1) forwards; }
-.content-out-fade { animation: content-out-fade 0.16s cubic-bezier(0.4, 0, 1, 1) forwards; }
+.content-out-next { animation: content-out-next 0.16s var(--ease-exit) forwards; }
+.content-out-prev { animation: content-out-prev 0.16s var(--ease-exit) forwards; }
+.content-out-fade { animation: content-out-fade 0.16s var(--ease-exit) forwards; }
 
-.content-in-next { animation: content-in-next 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-.content-in-prev { animation: content-in-prev 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-.content-in-fade { animation: content-in-fade 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.content-in-next { animation: content-in-next 0.3s var(--ease-swift); }
+.content-in-prev { animation: content-in-prev 0.3s var(--ease-swift); }
+.content-in-fade { animation: content-in-fade 0.3s var(--ease-swift); }
+
+/* ============================================================
+   View Transitions：弹窗内容真·交叉溶解
+   （旧内容滑出与新内容滑入同时进行，消灭两段式中间的空档；
+     不支持的浏览器回退到上方 .content-in-* 单段淡入）
+   ============================================================ */
+#article-modal-content,
+#project-modal-content {
+  view-transition-name: modal-content;
+}
+::view-transition-old(modal-content),
+::view-transition-new(modal-content) {
+  height: 100%;
+  overflow: clip;
+}
+html.vt-next::view-transition-old(modal-content) { animation: 0.18s var(--ease-exit) both vt-out-next; }
+html.vt-next::view-transition-new(modal-content) { animation: 0.32s var(--ease-swift) both vt-in-next; }
+html.vt-prev::view-transition-old(modal-content) { animation: 0.18s var(--ease-exit) both vt-out-prev; }
+html.vt-prev::view-transition-new(modal-content) { animation: 0.32s var(--ease-swift) both vt-in-prev; }
+html.vt-fade::view-transition-old(modal-content) { animation: 0.16s var(--ease-exit) both vt-out-fade; }
+html.vt-fade::view-transition-new(modal-content) { animation: 0.3s var(--ease-swift) both vt-in-fade; }
+@keyframes vt-out-next { to { opacity: 0; transform: translateX(-24px); } }
+@keyframes vt-in-next { from { opacity: 0; transform: translateX(28px); } }
+@keyframes vt-out-prev { to { opacity: 0; transform: translateX(24px); } }
+@keyframes vt-in-prev { from { opacity: 0; transform: translateX(-28px); } }
+@keyframes vt-out-fade { to { opacity: 0; transform: translateY(-10px); } }
+@keyframes vt-in-fade { from { opacity: 0; transform: translateY(12px); } }
 
 /* 代码块一键复制按钮（代码块固定深色底，明暗主题共用一套样式） */
 .code-copy-btn {
@@ -547,6 +577,11 @@ mark.sj-note {
   .content-in-next,
   .content-in-prev,
   .content-in-fade {
+    animation: none !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
     animation: none !important;
   }
 }

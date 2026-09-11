@@ -634,7 +634,9 @@ function getSiblingList(article) {
   return all.filter(a => !a.section);
 }
 
-// 弹窗内容方向性切换：旧内容按方向滑出(0.18s) → mutate() 换内容 → 新内容从反侧滑入
+// 弹窗内容方向性切换
+// 首选 View Transitions API：新旧快照真·交叉溶解（旧滑出的同时新滑入，无两段式空档）
+// 回退：立即换内容 + 单段淡入
 // dir: 'next' 向左翻页 | 'prev' 向右翻页 | 'fade' 上下交替
 function swapModalContent(el, mutate, dir = 'fade') {
   if (!el || typeof mutate !== 'function') return;
@@ -645,16 +647,22 @@ function swapModalContent(el, mutate, dir = 'fade') {
   }
   if (el._swapTimer) { clearTimeout(el._swapTimer); el._swapTimer = null; }
   const CLS = ['content-out-next', 'content-out-prev', 'content-out-fade', 'content-in-next', 'content-in-prev', 'content-in-fade', 'modal-content-in'];
-  CLS.forEach((c) => el.classList.remove(c));
-  el.classList.add('content-out-' + dir);
-  el._swapTimer = setTimeout(() => {
-    el._swapTimer = null;
-    el.classList.remove('content-out-' + dir);
-    mutate();
-    void el.offsetWidth; // 强制回流，确保入场动画从头播放
-    el.classList.add('content-in-' + dir);
-    setTimeout(() => el.classList.remove('content-in-' + dir), 450);
-  }, 180);
+
+  if (document.startViewTransition) {
+    const apply = () => {
+      CLS.forEach((c) => el.classList.remove(c));
+      mutate();
+    };
+    document.documentElement.classList.add('vt-' + dir);
+    const vt = document.startViewTransition(apply);
+    vt.finished.finally(() => document.documentElement.classList.remove('vt-' + dir));
+    return;
+  }
+
+  mutate();
+  void el.offsetWidth; // 强制回流，确保入场动画从头播放
+  el.classList.add('content-in-' + dir);
+  el._swapTimer = setTimeout(() => el.classList.remove('content-in-' + dir), 450);
 }
 
 window.openArticleModal = function(id, skipUrlSync) {

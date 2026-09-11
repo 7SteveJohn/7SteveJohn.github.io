@@ -133,7 +133,7 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
     title: "GameBoost-DLSSG · 游戏优化与帧生成",
     category: "desktop",
     categoryName: "桌面应用",
-    description: "量身打造的 Windows 游戏优化 + DLSS 帧生成二合一：一键切到适合游戏的状态，还能给 RTX 20/30 系显卡开上 40 系专属的帧生成。实测《赛博朋克 2077》135 → 190 帧。",
+    description: "量身打造的 Windows 游戏优化 + DLSS 帧生成二合一：一键切到适合游戏的状态，还能给 RTX 20/30 系显卡开上官方只给 40/50 系的帧生成。实测《赛博朋克 2077》135 → 190 帧。",
     tags: ["C#", "WinForms", "NVAPI", "DLSS 帧生成", "Inno Setup"],
     image: "assets/images/cover-dlssg.webp",
     downloadUrl: "https://wwblz.lanzouu.com/iDNlG481003c",
@@ -144,7 +144,7 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
     requires: "Windows 10/11 · NVIDIA RTX 20 系及以上（帧生成功能）",
     details: `
 ### 💡 这是什么
-把之前的 GameBoost（游戏优化）和 DLSSG-Tool（帧生成管理）合并重构成的 v2.0：一半是老本行——电源、调度、GPU、网络、内存的全自动游戏优化；另一半是给 **RTX 20/30 系**显卡接上 **NVIDIA 只官方开放给 40 系的 DLSS 帧生成**（基于开源项目 dlssg_for_sm86 的 DLL 代理方案，AI 模型仍是 NVIDIA 原厂）。
+把之前的 GameBoost（游戏优化）和 DLSSG-Tool（帧生成管理）合并重构成的 v2.0：一半是老本行——电源、调度、GPU、网络、内存的全自动游戏优化；另一半是给 **RTX 20/30 系**显卡接上 **NVIDIA 官方只开放给 40/50 系的 DLSS 帧生成**（基于开源项目 dlssg_for_sm86 的 DLL 代理方案，AI 模型仍是 NVIDIA 原厂）。
 
 这是个量身打造的自用软件，就没往 GitHub 放，用得上的朋友直接网盘拿。
 
