@@ -79,9 +79,29 @@ function initTheme() {
     document.documentElement.classList.remove('dark');
   }
 
-  function toggle() {
-    const isDark = document.documentElement.classList.toggle('dark');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  function toggle(e) {
+    const applyNow = () => {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    };
+
+    // 明暗切换：从点击位置圆形扩散开新主题（View Transitions，减少动效时直接切换）
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (document.startViewTransition && !reduce) {
+      const rect = (e && e.currentTarget ? e.currentTarget : themeToggleBtn).getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      const r = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+      const vt = document.startViewTransition(applyNow);
+      vt.ready.then(() => {
+        document.documentElement.animate(
+          { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
+          { duration: 480, easing: 'cubic-bezier(0.32, 0.72, 0, 1)', pseudoElement: '::view-transition-new(root)' }
+        );
+      }).catch(() => {});
+    } else {
+      applyNow();
+    }
     if (window.lucide) window.lucide.createIcons();
   }
 
@@ -1067,7 +1087,22 @@ function initSmoothAnchors() {
     if (!target) return;
     e.preventDefault();
     const y = href === '#home' ? 0 : target.getBoundingClientRect().top + window.scrollY - 64;
-    smoothScrollTo(Math.max(0, y));
+
+    // 页面切换：整页优雅换页（旧页下沉淡出、新页上浮浮现，区块内容随后级联浮现）
+    // 减少动效或不支持 VT 的浏览器回退为缓动滚动
+    const jump = () => {
+      document.documentElement.style.scrollBehavior = 'auto';
+      window.scrollTo(0, Math.max(0, y));
+      document.documentElement.style.scrollBehavior = '';
+    };
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (document.startViewTransition && !reduce) {
+      document.documentElement.classList.add('vt-nav');
+      const vt = document.startViewTransition(jump);
+      vt.finished.finally(() => document.documentElement.classList.remove('vt-nav'));
+    } else {
+      smoothScrollTo(Math.max(0, y));
+    }
     history.pushState(null, '', href);
   });
 }

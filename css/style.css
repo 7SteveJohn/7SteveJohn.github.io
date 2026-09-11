@@ -242,6 +242,31 @@ header.site-header:not(.is-scrolled) {
   pointer-events: none;
 }
 
+/* ============================================================
+   View Transitions（页面级）
+   1. 导航跳转 = 整页换页：旧页下沉淡出，新页上浮浮现
+   2. 明暗切换 = 从点击处圆形扩散开新主题
+   ============================================================ */
+html.vt-nav::view-transition-old(root) {
+  animation: vt-nav-out 0.18s var(--ease-exit) both;
+}
+html.vt-nav::view-transition-new(root) {
+  animation: vt-nav-in 0.42s var(--ease-swift) both;
+}
+@keyframes vt-nav-out {
+  to { opacity: 0; transform: translateY(-14px); }
+}
+@keyframes vt-nav-in {
+  from { opacity: 0; transform: translateY(26px); }
+}
+
+/* 明暗切换的圆形扩散：旧快照保持不动，新快照由 JS 驱动 clip-path 展开 */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
 /* 移动端菜单：展开下拉，收起上滑退出 */
 #mobile-menu:not(.hidden) {
   animation: menu-drop 0.26s var(--ease-swift);
