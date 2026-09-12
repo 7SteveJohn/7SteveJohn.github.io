@@ -136,10 +136,10 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
     description: "量身打造的 Windows 游戏优化 + DLSS 帧生成二合一：一键切到适合游戏的状态，还能给 RTX 20/30 系显卡开上官方只给 40/50 系的帧生成。实测《赛博朋克 2077》135 → 190 帧。",
     tags: ["C#", "WinForms", "NVAPI", "DLSS 帧生成", "Inno Setup"],
     image: "assets/images/cover-dlssg.webp",
-    downloadUrl: "https://wwblz.lanzouu.com/iDNlG481003c",
-    downloadPwd: "cqjh",
+    downloadUrl: "https://wwblz.lanzouu.com/iqQDo484v73i",
+    downloadPwd: "8i8c",
     featured: false,
-    version: "v2.0.2",
+    version: "v2.0.5",
     updated: "2026-09-12",
     requires: "Windows 10/11 · NVIDIA RTX 20 系及以上（帧生成功能）",
     details: `
