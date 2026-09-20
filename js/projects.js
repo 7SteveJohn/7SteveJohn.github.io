@@ -136,17 +136,17 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
     description: "量身打造的 Windows 游戏优化 + DLSS 帧生成二合一：一键切到适合游戏的状态，还能给 RTX 20/30 系显卡开上官方只给 40/50 系的帧生成。实测《赛博朋克 2077》135 → 190 帧。",
     tags: ["C#", "WinForms", "NVAPI", "DLSS 帧生成", "Inno Setup"],
     image: "assets/images/cover-dlssg.webp",
-    downloadUrl: "https://wwblz.lanzouu.com/iqQDo484v73i",
-    downloadPwd: "8i8c",
+    downloadUrl: "https://pan.baidu.com/s/1johUjnwCEfmjpwuz66tqyA?pwd=rw94",
+    downloadPwd: "rw94",
     featured: false,
-    version: "v2.0.5",
-    updated: "2026-09-12",
+    version: "v1.0.0",
+    updated: "2026-09-20",
     requires: "Windows 10/11 · NVIDIA RTX 20 系及以上（帧生成功能）",
     details: `
 ### 💡 这是什么
 把之前的 GameBoost（游戏优化）和 DLSSG-Tool（帧生成管理）合并重构成的 v2.0：一半是老本行——电源、调度、GPU、网络、内存的全自动游戏优化；另一半是给 **RTX 20/30 系**显卡接上 **NVIDIA 官方只开放给 40/50 系的 DLSS 帧生成**（基于开源项目 dlssg_for_sm86 的 DLL 代理方案，AI 模型仍是 NVIDIA 原厂）。
 
-这是个量身打造的自用软件，就没往 GitHub 放，用得上的朋友直接网盘拿。
+这是我的自用工具，这次打包成分享版（v1.0.0）放出来，没往 GitHub 放，用得上的朋友直接网盘拿。
 
 ### ✨ 优化模块（全部真实生效，可一键还原）
 - **电源**：卓越性能计划 + 游戏期联动切档（进游戏切、退出还原，办公零影响）
