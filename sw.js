@@ -6,7 +6,7 @@
  * - 其余同源/静态资源：缓存优先 + 后台更新（stale-while-revalidate）
  * ⚠️ 每次发布改动静态资源后，把 CACHE 版本号 +1，旧缓存会在 activate 阶段自动清理。
  */
-const CACHE = 'sevenjohn-v5';
+const CACHE = 'sevenjohn-v6';
 const CORE = [
   './',
   'index.html',
@@ -116,6 +116,23 @@ self.addEventListener('fetch', (event) => {
         .catch(() => caches.match('./index.html')
           .then((hit) => hit || caches.match('index.html'))
           .then((hit) => hit || offlineFallback('离线：未缓存该页面')))
+    );
+    return;
+  }
+
+  // CSS/JS：网络优先——必须与 HTML 同版本，否则会出现"新 DOM + 旧样式"的裸奔页面；
+  // 离线时回退缓存。其余资源走下方的缓存优先。
+  if (req.destination === 'style' || req.destination === 'script' || /\.(css|js)(\?|$)/.test(req.url)) {
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          if (res && (res.ok || res.type === 'opaque')) {
+            const copy = res.clone();
+            caches.open(CACHE).then((cache) => cache.put(req, copy));
+          }
+          return res;
+        })
+        .catch(() => caches.match(req).then((hit) => hit || offlineFallback('离线：资源未缓存')))
     );
     return;
   }
