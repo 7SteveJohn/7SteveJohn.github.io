@@ -6,7 +6,7 @@
  * - 其余同源/静态资源：缓存优先 + 后台更新（stale-while-revalidate）
  * ⚠️ 每次发布改动静态资源后，把 CACHE 版本号 +1，旧缓存会在 activate 阶段自动清理。
  */
-const CACHE = 'sevenjohn-v4';
+const CACHE = 'sevenjohn-v5';
 const CORE = [
   './',
   'index.html',
@@ -62,9 +62,47 @@ const offlineFallback = (msg) => new Response(msg, {
   headers: { 'Content-Type': 'text/plain; charset=utf-8' }
 });
 
+// 媒体 Range 请求（<audio> 播放/拖进度条）：
+// 缓存里有全量 → 切片返回 206；没有 → 先拉全量入运行时缓存，再切片。
+// （206 部分响应不能直接 cache.put，必须以 200 全量为源）
+// ⚠️ 下载管理器（IDM 等）劫持时会返回空 body 的 200/204：
+//    先读出真实字节，非空才入库——坏响应不缓存，坏缓存可自愈。
+async function handleRange(req) {
+  let buf = null;
+  const cached = await caches.match(req, { ignoreVary: true });
+  if (cached) buf = await cached.arrayBuffer();
+  if (!buf || !buf.byteLength) {
+    const net = await fetch(req.url).catch(() => null);
+    if (!net || !net.ok) return net || offlineFallback('离线：音频未缓存，请联网播放一次');
+    buf = await net.arrayBuffer();
+    if (!buf.byteLength) return net; // 空响应（被劫持）原样透传，不污染缓存
+    const cache = await caches.open(CACHE);
+    await cache.put(req.url, new Response(buf, { headers: net.headers })).catch(() => {});
+  }
+  const m = /bytes=(\d+)-(\d*)/.exec(req.headers.get('range') || '') || [];
+  const start = Number(m[1] || 0);
+  const end = m[2] ? Number(m[2]) : buf.byteLength - 1;
+  const slice = buf.slice(start, end + 1);
+  return new Response(slice, {
+    status: 206,
+    statusText: 'Partial Content',
+    headers: {
+      'Content-Type': 'audio/mpeg',
+      'Content-Range': 'bytes ' + start + '-' + end + '/' + buf.byteLength,
+      'Content-Length': String(slice.byteLength)
+    }
+  });
+}
+
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET' || !req.url.startsWith('http')) return;
+
+  // 媒体 Range 请求交给切片处理（必须先于缓存分支：206 无法 cache.put）
+  if (req.headers.has('range')) {
+    event.respondWith(handleRange(req));
+    return;
+  }
 
   // 页面导航：网络优先，离线回退到缓存的 index.html（深链 ?post= 也由它承载）
   if (req.mode === 'navigate') {
