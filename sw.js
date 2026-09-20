@@ -6,7 +6,7 @@
  * - 其余同源/静态资源：缓存优先 + 后台更新（stale-while-revalidate）
  * ⚠️ 每次发布改动静态资源后，把 CACHE 版本号 +1，旧缓存会在 activate 阶段自动清理。
  */
-const CACHE = 'sevenjohn-v6';
+const CACHE = 'sevenjohn-v7';
 const CORE = [
   './',
   'index.html',
@@ -63,22 +63,14 @@ const offlineFallback = (msg) => new Response(msg, {
 });
 
 // 媒体 Range 请求（<audio> 播放/拖进度条）：
-// 缓存里有全量 → 切片返回 206；没有 → 先拉全量入运行时缓存，再切片。
-// （206 部分响应不能直接 cache.put，必须以 200 全量为源）
-// ⚠️ 下载管理器（IDM 等）劫持时会返回空 body 的 200/204：
-//    先读出真实字节，非空才入库——坏响应不缓存，坏缓存可自愈。
-async function handleRange(req) {
-  let buf = null;
-  const cached = await caches.match(req, { ignoreVary: true });
-  if (cached) buf = await cached.arrayBuffer();
-  if (!buf || !buf.byteLength) {
-    const net = await fetch(req.url).catch(() => null);
-    if (!net || !net.ok) return net || offlineFallback('离线：音频未缓存，请联网播放一次');
-    buf = await net.arrayBuffer();
-    if (!buf.byteLength) return net; // 空响应（被劫持）原样透传，不污染缓存
-    const cache = await caches.open(CACHE);
-    await cache.put(req.url, new Response(buf, { headers: net.headers })).catch(() => {});
-  }
+// 缓存命中 → 本地切片返 206，即时；
+// 未缓存 → 流式秒开（不等待全量），同时后台拉全量入库，下次秒开 + 离线可播。
+// ⚠️ Range 请求绝不能回 200：Chromium 会把 seekable 清零，进度条直接报废——
+//    上游原生 206 原样透传；上游只回 200（如 python http.server）时把 body 流包装成 206。
+// ⚠️ 下载管理器（IDM 等）劫持会返回空 body：空响应不入缓存，坏缓存可自愈。
+const prefetches = new Map(); // url -> Promise（单例去重，防 seek 反复触发全量下载）
+
+function slice206(req, buf, total) {
   const m = /bytes=(\d+)-(\d*)/.exec(req.headers.get('range') || '') || [];
   const start = Number(m[1] || 0);
   const end = m[2] ? Number(m[2]) : buf.byteLength - 1;
@@ -88,10 +80,67 @@ async function handleRange(req) {
     statusText: 'Partial Content',
     headers: {
       'Content-Type': 'audio/mpeg',
-      'Content-Range': 'bytes ' + start + '-' + end + '/' + buf.byteLength,
+      'Content-Range': 'bytes ' + start + '-' + end + '/' + total,
       'Content-Length': String(slice.byteLength)
     }
   });
+}
+
+function prefetch(url) {
+  if (!prefetches.has(url)) {
+    const p = fetch(url).then(async (net) => {
+      if (!net || !net.ok) return;
+      const buf = await net.arrayBuffer();
+      if (!buf.byteLength) return; // 空响应（被劫持）不入库
+      const cache = await caches.open(CACHE);
+      await cache.put(url, new Response(buf, { headers: net.headers })).catch(() => {});
+    }).catch(() => {}).finally(() => prefetches.delete(url));
+    prefetches.set(url, p);
+  }
+  return prefetches.get(url);
+}
+
+async function handleRange(req) {
+  const cached = await caches.match(req, { ignoreVary: true });
+  if (cached) {
+    const buf = await cached.arrayBuffer();
+    if (buf.byteLength) return slice206(req, buf, buf.byteLength); // 空 buf 视为坏缓存，走下方自愈
+  }
+  const start = Number((/bytes=(\d+)/.exec(req.headers.get('range') || '') || [])[1] || 0);
+  const net = await fetch(req).catch(() => null);
+  if (!net) {
+    await prefetch(req.url);
+    const again = await caches.match(req, { ignoreVary: true });
+    if (again) return slice206(req, await again.arrayBuffer(), (await again.arrayBuffer()).byteLength);
+    return offlineFallback('离线：音频未缓存，请联网播放一次');
+  }
+  if (net.status === 206) {
+    prefetch(req.url); // 上游原生支持 Range：原样透传（流式秒开）
+    return net;
+  }
+  const total = Number(net.headers.get('content-length') || 0);
+  if (start === 0 && total && net.body) {
+    prefetch(req.url); // 后台入库
+    // 上游不认 Range（回 200 全量）：把 body 流包装成 206 —— 秒开且 seekable 正常
+    return new Response(net.body, {
+      status: 206,
+      statusText: 'Partial Content',
+      headers: {
+        'Content-Type': net.headers.get('Content-Type') || 'audio/mpeg',
+        'Content-Range': 'bytes 0-' + (total - 1) + '/' + total,
+        'Content-Length': String(total),
+        'Accept-Ranges': 'bytes'
+      }
+    });
+  }
+  // 中段请求但缓存未就绪：等后台全量完成再切片
+  await prefetch(req.url);
+  const again = await caches.match(req, { ignoreVary: true });
+  if (again) {
+    const buf = await again.arrayBuffer();
+    if (buf.byteLength) return slice206(req, buf, buf.byteLength);
+  }
+  return net;
 }
 
 self.addEventListener('fetch', (event) => {
