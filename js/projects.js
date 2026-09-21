@@ -31,12 +31,12 @@ window.PROJECTS_DATA = [
     image: "assets/images/cover-filebutler.webp",
     demoUrl: "https://github.com/7SteveJohn/FileButler/releases",
     githubUrl: "https://github.com/7SteveJohn/FileButler",
-    downloadUrl: "https://wwblz.lanzouu.com/irw4346nqpfa",
-    downloadPwd: "95ak",
+    downloadUrl: "https://wwblz.lanzouu.com/iH09N49fsrcb",
+    downloadPwd: "cens",
     featured: true,
     // ↓ 版本/运行环境/校验码：填上即显示在弹窗里，留空自动隐藏
-    version: "",
-    updated: "",
+    version: "v1.1.6",
+    updated: "2026-09-21",
     requires: "",
     sha256: "",
     details: `
