@@ -180,7 +180,7 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
     requires: "Windows 10/11 · NVIDIA RTX 20 系及以上（帧生成功能）",
     details: `
 <video controls preload="none" poster="assets/images/fluxion-tour-poster.jpg" src="assets/video/fluxion-intro.mp4" style="width:100%;aspect-ratio:16/9;border-radius:10px;background:#000;margin-bottom:6px;"></video>
-<p style="font-size:12px;color:#86868b;margin-top:0;">38 秒介绍片：七个页面各是什么，一个镜头一个镜头看过去。</p>
+<p style="font-size:12px;color:#86868b;margin-top:0;">38 秒介绍片：一镜一件事，讲清它替你做掉哪些活。</p>
 
 ### 💡 这是什么
 继 FileButler 之后我的集大成之作：GameBoost（系统优化）和 DLSSG-Tool（帧生成）合并重构的完整版，七个页面——仪表盘、性能优化、帧生成、游戏库、实时监控、说明、设置。一句话：**一键把系统调到适合游戏的状态，并给 RTX 20/30 系接上 NVIDIA 官方只给 40/50 系的 DLSS 帧生成。**
@@ -198,7 +198,7 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
 - **内存 / 服务 / 输入**：内核不换页（DisablePagingExecutive）、SysMain 禁用、关鼠标加速
 - **后台 / 定时器 / 桌面**：游戏加速包（挂起后台进程 + 内存整理 + 暂停更新下载，退出完整恢复）、游戏期 0.5ms 定时器（仅 FPS 档）、DWM 特效精简
 - **监控**：nvlddmkm 崩溃取证、C 盘守护、网络哨兵、NVIDIA 覆盖层规避
-- **取值细调**：体检表 19 行带 ⚙ 可双击细调——着色器缓存 12 档、DLSS 模型覆盖 / 强制预设、预渲染帧数、HAGS、量子长度等 18 个可调项，默认值 = 改造前行为；状态分四档徽章（已生效 / 未生效 / 待确认 / 需处理）
+- **取值细调**：体检表 19 行可双击细调——着色器缓存 12 档、DLSS 模型覆盖 / 强制预设、预渲染帧数、HAGS、量子长度等 18 个可调项，默认值 = 改造前行为；状态分四档徽章（已生效 / 未生效 / 待确认 / 需处理）
 - **安全底线**：HPET 强制、GPU 中断绑核、MSI 强制转换、rBAR 全局强开这类改错会丢设备的项**只读核验、不给旋钮**；所有修改执行前自动备份
 
 ### 🎮 帧生成（DLSS MFG 0.3.5 · 代理模式，给 RTX 20/30 系）
@@ -216,7 +216,7 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
 ### 📈 实时监控
 - CPU / GPU / 内存实时曲线（最近 90 个采样）+ 与数据目录同步的运行日志
 
-### ⚙️ 设置与其他
+### 🎛️ 设置与其他
 - **场景联动**：进游戏按档位自动切状态（临时电源 / 加速包 / 远控暂停），退出完整还原；竞技网游（CS2 / 无罪契约 / 三角洲）才停远控，二游与 3A 不动你的远控
 - **界面**：浅色 / 深色主题、界面动画开关，Windows 11 下窗口圆角、标题栏随主题深浅
 - **开机自启**：走提权计划任务，登录不弹 UAC；托盘、硬件告警、漂移检测
