@@ -179,8 +179,8 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
     updated: "2026-09-21",
     requires: "Windows 10/11 · NVIDIA RTX 20 系及以上（帧生成功能）",
     details: `
-<video controls preload="none" poster="assets/images/cover-fluxion.webp" src="assets/video/fluxion-tour.mp4" style="width:100%;aspect-ratio:1056/738;border-radius:10px;background:#000;margin-bottom:6px;"></video>
-<p style="font-size:12px;color:#86868b;margin-top:0;">22 秒功能导览：七个页面各是什么（点播放观看）。</p>
+<video controls preload="none" poster="assets/images/fluxion-tour-poster.jpg" src="assets/video/fluxion-intro.mp4" style="width:100%;aspect-ratio:16/9;border-radius:10px;background:#000;margin-bottom:6px;"></video>
+<p style="font-size:12px;color:#86868b;margin-top:0;">38 秒介绍片：七个页面各是什么，一个镜头一个镜头看过去。</p>
 
 ### 💡 这是什么
 继 FileButler 之后我的集大成之作：GameBoost（系统优化）和 DLSSG-Tool（帧生成）合并重构的完整版，七个页面——仪表盘、性能优化、帧生成、游戏库、实时监控、说明、设置。一句话：**一键把系统调到适合游戏的状态，并给 RTX 20/30 系接上 NVIDIA 官方只给 40/50 系的 DLSS 帧生成。**
