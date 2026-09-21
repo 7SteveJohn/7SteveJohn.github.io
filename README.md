@@ -8,7 +8,7 @@
 
 1. **零构建依赖，双击即用**：采用现代标准 HTML5 + Tailwind CSS + 原生 ES6，直接用浏览器双击 `index.html` 即可运行。
 2. **数据与界面解耦**：
-   - 三个旗舰产品（统称**个人工具**）的介绍、下载/仓库链接与提取码统一维护于 [`js/projects.js`](file:///d:/HTML/js/projects.js)——**改链接只改这一个文件**，产品卡片与详情弹窗会在页面加载时自动水合同步；
+   - 全部产品（统称**个人工具**）的介绍、下载/仓库链接与提取码统一维护于 [`js/projects.js`](file:///d:/HTML/js/projects.js)——**改链接只改这一个文件**，产品卡片与详情弹窗会在页面加载时自动水合同步；
    - 全部文字内容（技术手记 / 创作 / 随笔）维护于 [`js/articles.js`](file:///d:/HTML/js/articles.js)，用可选字段 `section` 路由模块，追加数据后界面自动渲染，每篇拥有可分享的独立深链（`?post=文章id`）；某类内容为空时，对应模块与导航入口自动隐藏。
 3. **全功能支持**：
    - 🌓 自动与手动的暗黑/明亮主题切换（配置记忆持久化）；
@@ -37,7 +37,7 @@ npx serve d:/HTML
 
 ## 🛠️ 如何将你自己的项目上传展示？
 
-旗舰作品专栏（`index.html` 中的三个 `<article>`）负责展示文案排版；**下载链接、提取码、GitHub 仓库/Releases 地址请只在 [`js/projects.js`](file:///d:/HTML/js/projects.js) 中维护**——页面加载时 `app.js` 会按 `data-project-id` 自动把这些链接水合到卡片按钮上（HTML 中的初始 href 仅作 JS 失效时的兜底）。
+旗舰作品专栏（`index.html` 中的全部 `<article data-project-id>` 卡片）负责展示文案排版；**下载链接、提取码、GitHub 仓库/Releases 地址请只在 [`js/projects.js`](file:///d:/HTML/js/projects.js) 中维护**——页面加载时 `app.js` 会按 `data-project-id` 自动把这些链接水合到卡片按钮上（HTML 中的初始 href 仅作 JS 失效时的兜底）。
 
 `projects.js` 同时驱动点击「技术规格详情」后的弹窗内容：
 ```javascript
