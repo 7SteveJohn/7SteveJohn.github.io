@@ -40,6 +40,9 @@ window.PROJECTS_DATA = [
     requires: "",
     sha256: "",
     details: `
+<video controls preload="none" poster="assets/images/filebutler-tour-poster.jpg" src="assets/video/filebutler-intro.mp4" style="width:100%;aspect-ratio:16/9;border-radius:10px;background:#000;margin-bottom:6px;"></video>
+<p style="font-size:12px;color:#86868b;margin-top:0;">38 秒介绍片：一镜一件事，讲清它替你做掉哪些活。</p>
+
 ### 💡 这是什么
 文件越堆越乱、想找的东西永远翻不出来——FileButler 就是为这个写的。它是一个**全在你自己电脑上跑**的文件管家 + 知识库问答：AI 用本机 Ollama 的免费模型，**不用申请任何 API Key，文件不会离开这台机器**。
 
