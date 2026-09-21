@@ -144,7 +144,7 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
     requires: "Windows 10/11 · NVIDIA RTX 20/30 系（40 系以上原生支持，无需本工具）",
     details: `
 ### 💡 这是什么
-一个帧生成管理工具的分享版（v1.0.0）：给 **RTX 20/30 系**显卡接上 **NVIDIA 官方只开放给 40/50 系的 DLSS 帧生成**（基于开源项目 dlssg_for_sm86 的 DLL 代理方案，AI 模型仍是 NVIDIA 原厂）。40 系及以上显卡系统原生就有，不用装。
+一个帧生成管理工具的分享版（v1.0.0）：给 **RTX 20/30 系**显卡接上 **NVIDIA 官方只开放给 40/50 系的 DLSS 帧生成**（基于开源项目 dlssg_for_sm86 的 DLL 代理方案）。40 系及以上显卡系统原生就有，不用装。
 
 这是我自用的工具，整理出一份分享版，没往 GitHub 放，用得上的朋友直接网盘拿。
 
@@ -171,7 +171,7 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
     title: "Fluxion · 完整版性能套件",
     category: "desktop",
     categoryName: "桌面应用",
-    description: "我的集大成之作：GameBoost（系统优化）+ DLSSG-Tool（帧生成）合并重构的完整版——51 项体检一键优化、DLSS 帧生成、游戏库、进游戏自动切状态、实时监控，所有改动可一键还原。另有面向外人的分享版（见 GameBoost-DLSSG 卡），只保留了帧生成部分。",
+    description: "GameBoost（系统优化）+ DLSSG-Tool（帧生成）合并重构的完整版——51 项体检一键优化、DLSS 帧生成、游戏库、进游戏自动切状态、实时监控，所有改动可一键还原。另有面向外人的分享版（见 GameBoost-DLSSG 卡），只保留了帧生成部分。",
     tags: ["C#", "WinForms", "51 项体检", "DLSS 帧生成", "游戏联动", "实时监控"],
     image: "assets/images/cover-fluxion.webp",
     featured: true,
@@ -183,7 +183,7 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
 <p style="font-size:12px;color:#86868b;margin-top:0;">38 秒介绍片：一镜一件事，讲清它替你做掉哪些活。</p>
 
 ### 💡 这是什么
-继 FileButler 之后我的集大成之作：GameBoost（系统优化）和 DLSSG-Tool（帧生成）合并重构的完整版，七个页面——仪表盘、性能优化、帧生成、游戏库、实时监控、说明、设置。一句话：**一键把系统调到适合游戏的状态，并给 RTX 20/30 系接上 NVIDIA 官方只给 40/50 系的 DLSS 帧生成。**
+GameBoost（系统优化）和 DLSSG-Tool（帧生成）合并重构的完整版，七个页面——仪表盘、性能优化、帧生成、游戏库、实时监控、说明、设置。一句话：**一键把系统调到适合游戏的状态，并给 RTX 20/30 系接上 NVIDIA 官方只给 40/50 系的 DLSS 帧生成。**
 
 ### 📊 仪表盘
 - 游戏联动状态（远程状态 / 联动 / 场景）+ 实时负载瓦片：CPU / 内存 / GPU / GPU 温度
@@ -202,7 +202,7 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
 - **安全底线**：HPET 强制、GPU 中断绑核、MSI 强制转换、rBAR 全局强开这类改错会丢设备的项**只读核验、不给旋钮**；所有修改执行前自动备份
 
 ### 🎮 帧生成（DLSS MFG 0.3.5 · 代理模式，给 RTX 20/30 系）
-- **方案 B（代理模式）**：接管游戏的 nvngx_dlssg.dll 加载，跑真 DLSS 多帧生成（2X-6X，AI 模型仍是 NVIDIA 原厂）；架构 Router（SM86 / SM75）、内核类型（PTX / Cubin）、光流精度、最大生成帧、日志级别全部可调
+- **方案 B（代理模式）**：接管游戏的 nvngx_dlssg.dll 加载，跑真 DLSS 多帧生成（2X-6X）；架构 Router（SM86 / SM75）、内核类型（PTX / Cubin）、光流精度、最大生成帧、日志级别全部可调
 - **方案 A（OptiScaler 注入）**：把本机显卡伪装成 RTX 5090 让游戏菜单亮出「DLSS 帧生成」，插帧交给 Intel XeSS-FG 引擎或原生 DLSSG——与方案 B 互斥二选一
 - **反作弊游戏自动改用 d3d12 / dxgi 入口**：绝区零 / 鸣潮这类按文件名拦 version.dll 的反作弊，拦不住 DX12 游戏必加载的系统库
 - **运行诊断**：日志 + 进程模块双证据，直接告诉你代理有没有真激活；遗留代理停放、入口巡检、备份与回收（送回收站，最新一份永久保留）
