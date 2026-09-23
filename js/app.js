@@ -1016,7 +1016,11 @@ function initNavScrollState() {
   const backTop = document.getElementById('back-to-top');
   const update = () => {
     const y = window.scrollY;
-    if (header) header.classList.toggle('is-scrolled', y > 12);
+    if (header) {
+      header.classList.toggle('is-scrolled', y > 12);
+      // 深色粒子封面上：强制 dark 配色，滚过封面即还原（见 style.css .on-cover）
+      header.classList.toggle('on-cover', y < window.innerHeight * 0.72);
+    }
     if (backTop) {
       const show = y > 600;
       backTop.classList.toggle('opacity-0', !show);

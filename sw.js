@@ -6,7 +6,7 @@
  * - 其余同源/静态资源：缓存优先 + 后台更新（stale-while-revalidate）
  * ⚠️ 每次发布改动静态资源后，把 CACHE 版本号 +1，旧缓存会在 activate 阶段自动清理。
  */
-const CACHE = 'sevenjohn-v20';
+const CACHE = 'sevenjohn-v24';
 const CORE = [
   './',
   'index.html',
@@ -21,12 +21,14 @@ const CORE = [
   'js/articles.js',
   'js/projects.js',
   'js/particles.js',
+  'js/morph-band.js',
   'js/search.js',
   'js/status.js',
   'assets/fonts/inter.css',
   'assets/fonts/inter-var-latin.woff2',
   'assets/vendor/lucide.min.js',
   'assets/images/avatar.webp',
+  'assets/images/morph-loop-poster.jpg',
   // 项目封面：首屏 preload 会早于 SW 接管，必须进预缓存，否则断网后卡片图全裂
   'assets/images/cover-filebutler.webp',
   'assets/images/cover-netops.webp',
@@ -70,7 +72,7 @@ const offlineFallback = (msg) => new Response(msg, {
 // ⚠️ 下载管理器（IDM 等）劫持会返回空 body：空响应不入缓存，坏缓存可自愈。
 const prefetches = new Map(); // url -> Promise（单例去重，防 seek 反复触发全量下载）
 
-function slice206(req, buf, total) {
+function slice206(req, buf, total, type) {
   const m = /bytes=(\d+)-(\d*)/.exec(req.headers.get('range') || '') || [];
   const start = Number(m[1] || 0);
   const end = m[2] ? Number(m[2]) : buf.byteLength - 1;
@@ -79,7 +81,7 @@ function slice206(req, buf, total) {
     status: 206,
     statusText: 'Partial Content',
     headers: {
-      'Content-Type': 'audio/mpeg',
+      'Content-Type': type || 'audio/mpeg',
       'Content-Range': 'bytes ' + start + '-' + end + '/' + total,
       'Content-Length': String(slice.byteLength)
     }
@@ -104,14 +106,15 @@ async function handleRange(req) {
   const cached = await caches.match(req, { ignoreVary: true });
   if (cached) {
     const buf = await cached.arrayBuffer();
-    if (buf.byteLength) return slice206(req, buf, buf.byteLength); // 空 buf 视为坏缓存，走下方自愈
+    // 空 buf 视为坏缓存，走下方自愈；MIME 用缓存里的真实类型（视频不是 audio/mpeg）
+    if (buf.byteLength) return slice206(req, buf, buf.byteLength, cached.headers.get('Content-Type'));
   }
   const start = Number((/bytes=(\d+)/.exec(req.headers.get('range') || '') || [])[1] || 0);
   const net = await fetch(req).catch(() => null);
   if (!net) {
     await prefetch(req.url);
     const again = await caches.match(req, { ignoreVary: true });
-    if (again) return slice206(req, await again.arrayBuffer(), (await again.arrayBuffer()).byteLength);
+    if (again) return slice206(req, await again.arrayBuffer(), (await again.arrayBuffer()).byteLength, again.headers.get('Content-Type'));
     return offlineFallback('离线：音频未缓存，请联网播放一次');
   }
   if (net.status === 206) {
@@ -138,7 +141,7 @@ async function handleRange(req) {
   const again = await caches.match(req, { ignoreVary: true });
   if (again) {
     const buf = await again.arrayBuffer();
-    if (buf.byteLength) return slice206(req, buf, buf.byteLength);
+    if (buf.byteLength) return slice206(req, buf, buf.byteLength, again.headers.get('Content-Type'));
   }
   return net;
 }

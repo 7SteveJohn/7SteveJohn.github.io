@@ -243,6 +243,171 @@ header.site-header:not(.is-scrolled) {
 }
 
 /* ============================================================
+   首屏 = 全屏粒子封面（仿 igloo.inc 的 cinematic 做法）：
+   画布铺满整个 hero 当舞台、文案浮在上面；hero 恒为深色，
+   两种主题下观感一致。引擎见 js/morph-band.js（由 port-engine.py 生成）。
+   ============================================================ */
+#home {
+  position: relative;
+  min-height: calc(100svh - 48px);   /* 48px = 吸顶导航高度，封面恰好填满首屏 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;   /* 文案靠上，下面 2/3 留给粒子舞台（igloo 式构图） */
+  overflow: hidden;
+  background: #070b14;
+  padding-top: max(5.5rem, 14svh);
+  padding-bottom: 5rem;
+}
+/* 内容压回阅读宽度、浮到画布之上 */
+#home > *:not(.hero-stage):not(.hero-veil):not(.hero-cue):not(.hero-who) {
+  position: relative;
+  z-index: 2;
+  max-width: 56rem;
+}
+/* 深色封面里的文字与按钮：两主题统一成 dark 配色 */
+#home h1 { color: #f5f7fa !important; }
+#home h1 span { color: #93a0b4 !important; }
+#home p { color: #97a2b6 !important; }
+#home .btn-primary { background: #f5f5f7; color: #1d1d1f; }
+#home .btn-primary:hover { background: #ffffff; }
+#home a:not(.btn-primary) { color: #c8d2e2 !important; }
+#home .font-bold { color: #f5f7fa !important; }
+#home .rounded-full { border-color: rgba(255, 255, 255, 0.22) !important; }
+/* 深色封面上：导航强制 dark 配色（无论当前主题），滚过封面即还原 */
+.site-header.on-cover {
+  background: rgba(0, 0, 0, 0.55) !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+}
+.site-header.on-cover a,
+.site-header.on-cover button {
+  color: rgba(232, 237, 245, 0.92) !important;
+}
+.site-header.on-cover a:hover,
+.site-header.on-cover button:hover {
+  color: #ffffff !important;
+}
+.site-header.on-cover .btn-primary {
+  background: #f5f5f7 !important;
+  color: #1d1d1f !important;
+}
+.site-header.on-cover .btn-primary:hover {
+  background: #ffffff !important;
+}
+/* 头像卡挪到左下角：像 igloo 的角标，不占舞台中心 */
+#home .hero-who {
+  position: absolute;
+  left: 26px;
+  bottom: 22px;
+  z-index: 2;
+  margin: 0 !important;
+  padding-top: 0 !important;
+}
+/* 粒子舞台：画布由 JS 注入；poster 是静态降级封面 */
+.hero-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: #070b14;
+}
+.hero-stage canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;   /* 不抢 CTA 的点击；交互事件挂在 #home 上 */
+}
+.morph-poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.8s ease;
+}
+.hero-stage.playing .morph-poster { opacity: 0; }
+/* 文字可读性遮罩：上下压暗，中间留给粒子 */
+.hero-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to bottom,
+    rgba(7, 11, 20, 0.52) 0%, rgba(7, 11, 20, 0.30) 20%,
+    rgba(7, 11, 20, 0.14) 34%, rgba(7, 11, 20, 0) 50%,
+    rgba(7, 11, 20, 0) 60%, rgba(7, 11, 20, 0.40) 84%,
+    rgba(7, 11, 20, 0.88) 100%);
+}
+/* 滚动提示：一根有光点下落的发丝 */
+.hero-cue {
+  position: absolute;
+  bottom: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  animation: cue-in 1s ease 1.8s both;
+}
+.hero-cue i {
+  display: block;
+  width: 1px;
+  height: 44px;
+  background: rgba(200, 215, 235, 0.28);
+  position: relative;
+  overflow: hidden;
+}
+.hero-cue i::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -40%;
+  width: 100%;
+  height: 40%;
+  background: #e8f0fa;
+  animation: cue-drop 2.2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+@keyframes cue-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cue-drop { 0% { top: -40%; } 60%, 100% { top: 110%; } }
+/* 减少动效用户的播放按钮：封面上唯一的交互入口 */
+.morph-play {
+  position: absolute;
+  right: 26px;
+  bottom: 22px;
+  z-index: 3;
+  padding: 7px 14px;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: #e8edf5;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 99px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+.morph-play:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+/* 封面与正文之间的过渡带：深色渐隐进页面底色（两主题通用） */
+.hero-segue {
+  height: 110px;
+  margin-top: -110px;
+  position: relative;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(to bottom, #070b14 0%, rgba(7, 11, 20, 0) 100%);
+}
+@media (max-width: 720px) {
+  #home { padding-top: max(4.5rem, 11svh); padding-bottom: 4.5rem; }
+  #home .hero-who { left: 16px; bottom: 14px; }
+}
+}
+}
+
+/* ============================================================
    View Transitions（页面级）
    1. 导航跳转 = 整页换页：旧页下沉淡出，新页上浮浮现
    2. 明暗切换 = 从点击处圆形扩散开新主题
