@@ -6,7 +6,7 @@
  * - 其余同源/静态资源：缓存优先 + 后台更新（stale-while-revalidate）
  * ⚠️ 每次发布改动静态资源后，把 CACHE 版本号 +1，旧缓存会在 activate 阶段自动清理。
  */
-const CACHE = 'sevenjohn-v24';
+const CACHE = 'sevenjohn-v25';
 const CORE = [
   './',
   'index.html',
@@ -21,7 +21,8 @@ const CORE = [
   'js/articles.js',
   'js/projects.js',
   'js/particles.js',
-  'js/morph-band.js',
+  'js/gl-stage.js',
+  'assets/vendor/three.module.min.js',
   'js/search.js',
   'js/status.js',
   'assets/fonts/inter.css',

@@ -1019,7 +1019,9 @@ function initNavScrollState() {
     if (header) {
       header.classList.toggle('is-scrolled', y > 12);
       // 深色粒子封面上：强制 dark 配色，滚过封面即还原（见 style.css .on-cover）
-      header.classList.toggle('on-cover', y < window.innerHeight * 0.72);
+      // 深色叙事区的终点由 3D 舞台按 DOM 分区算出（见 js/gl-stage.js）
+      const coverEnd = window.__COVER_END || window.innerHeight * 0.72;
+      header.classList.toggle('on-cover', y < coverEnd - window.innerHeight * 0.5);
     }
     if (backTop) {
       const show = y > 600;
