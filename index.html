@@ -924,6 +924,14 @@
   <script src="js/status.js" defer></script>
   <script src="js/app.js" defer></script>
   <script src="js/particles.js" defer></script>
+  <!-- importmap：把 three addons 里的裸导入 'three' 指到自托管副本（必须在任何 module script 之前） -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./assets/vendor/three.module.min.js"
+    }
+  }
+  </script>
   <script type="module" src="js/gl-stage.js"></script>
   <script src="js/search.js" defer></script>
   <script src="js/player.js" defer></script>

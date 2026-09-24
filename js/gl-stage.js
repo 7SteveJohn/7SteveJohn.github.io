@@ -18,6 +18,11 @@
      fps 看门狗：先降 DPR，再降实例密度。
    ============================================================ */
 import * as THREE from '../assets/vendor/three.module.min.js';
+import { RoundedBoxGeometry } from '../assets/vendor/three-addons/geometries/RoundedBoxGeometry.js';
+import { EffectComposer } from '../assets/vendor/three-addons/postprocessing/EffectComposer.js';
+import { RenderPass } from '../assets/vendor/three-addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from '../assets/vendor/three-addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from '../assets/vendor/three-addons/postprocessing/OutputPass.js';
 
 const HOST = document.getElementById('gl-stage');
 if (HOST) {
@@ -83,12 +88,26 @@ if (HOST) {
     renderer.setPixelRatio(DPR);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.06;
+    renderer.toneMappingExposure = 0.92;   // igloo 式金属感靠深暗部：曝光压一档，高光只留小面积
     renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x05070c);
-    scene.fog = new THREE.FogExp2(0x05070c, 0.055);
+    // 氛围渐变背景（motionsites 的 gradient 手法）：纯黑死板是"背景丑"的根源。
+    // 底部近黑衔接地台 → 中部深蓝 → 顶部一抹冷光，与环境贴图、地台光晕同一个色系。
+    scene.background = (function () {
+      const c = document.createElement('canvas'); c.width = 32; c.height = 512;
+      const g = c.getContext('2d');
+      const lg = g.createLinearGradient(0, 0, 0, 512);
+      lg.addColorStop(0.00, '#1c2f55');   // 顶部：冷蓝夜空
+      lg.addColorStop(0.38, '#101b33');
+      lg.addColorStop(0.72, '#070d1a');
+      lg.addColorStop(1.00, '#030509');   // 底部：几乎黑
+      g.fillStyle = lg; g.fillRect(0, 0, 32, 512);
+      const t = new THREE.CanvasTexture(c);
+      t.colorSpace = THREE.SRGBColorSpace;
+      return t;
+    })();
+    scene.fog = new THREE.FogExp2(0x0a1428, 0.055);
 
     const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 200);
     camera.position.set(0, 0.6, 8.2);
@@ -138,28 +157,54 @@ if (HOST) {
     /* ---------- 地台 ---------- */
     const ground = new THREE.Mesh(
       new THREE.CircleGeometry(70, 64),
-      new THREE.MeshStandardMaterial({ color: 0x0e1520, metalness: 0.92, roughness: 0.36, envMapIntensity: 1.1 })
+      new THREE.MeshStandardMaterial({ color: 0x0e1520, metalness: 0.92, roughness: 0.5, envMapIntensity: 0.75 })
     );
     ground.rotation.x = -Math.PI / 2; ground.position.y = -3.1; scene.add(ground);
     (function () {
       const c = document.createElement('canvas'); c.width = c.height = 256;
       const g = c.getContext('2d');
       const rg = g.createRadialGradient(128, 128, 0, 128, 128, 128);
-      rg.addColorStop(0, 'rgba(150,195,255,0.78)');
-      rg.addColorStop(0.42, 'rgba(90,135,215,0.22)');
+      rg.addColorStop(0, 'rgba(150,195,255,0.5)');
+      rg.addColorStop(0.42, 'rgba(90,135,215,0.14)');
       rg.addColorStop(1, 'rgba(0,0,0,0)');
       g.fillStyle = rg; g.fillRect(0, 0, 256, 256);
       const m = new THREE.Mesh(
-        new THREE.PlaneGeometry(36, 36),
+        new THREE.PlaneGeometry(30, 30),
         new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })
       );
       m.rotation.x = -Math.PI / 2; m.position.y = -3.06; m.renderOrder = -1; scene.add(m);
     })();
 
     /* ---------- 材质 ---------- */
-    const steel = new THREE.MeshStandardMaterial({ color: 0xc3cede, metalness: 0.98, roughness: 0.18, envMapIntensity: 1.75 });
-    const darkM = new THREE.MeshStandardMaterial({ color: 0x3d4553, metalness: 0.9, roughness: 0.30, envMapIntensity: 1.1 });
-    const hotM = new THREE.MeshStandardMaterial({ color: 0x11293c, metalness: 0.6, roughness: 0.3, emissive: 0x46b6ff, emissiveIntensity: 2.2 });
+    // 哑光金属：roughness 拉高让高光带变宽变柔——锐利镜面高光打在小碎块上就是"玻璃渣"。
+    // 基色压暗（近白基色会把整机抬成"白瓷"）：暗部深下去，立体感才回来
+    const steel = new THREE.MeshStandardMaterial({ color: 0x9aa6b5, metalness: 0.96, roughness: 0.34, envMapIntensity: 1.2 });
+    const darkM = new THREE.MeshStandardMaterial({ color: 0x333b47, metalness: 0.9, roughness: 0.44, envMapIntensity: 0.9 });
+    const hotM = new THREE.MeshStandardMaterial({ color: 0x11293c, metalness: 0.6, roughness: 0.35, emissive: 0x46b6ff, emissiveIntensity: 2.0 });
+
+    /* ---------- 泛光后处理 ----------
+       EffectComposer + RenderPass + UnrealBloomPass + OutputPass（awwwards 站的标配）。
+       composer 会绕过 WebGL 内建抗锯齿，用 MSAA renderTarget（samples:4）补回。
+       软渲染（SwiftShader/llvmpipe）直接跳过整条链：多 pass 全屏会把它打穿。 */
+    const composer = (function () {
+      // ?gl-bloom=1 = 测试通道：软渲染环境也强制走 composer（回归测试覆盖泛光路径用）
+      const forceBloom = /[?&]gl-bloom=1/.test(location.search);
+      if (!forceBloom && /swiftshader|llvmpipe|software|pixelformer/i.test(GPU_NAME)) return null;
+      try {
+        const size = renderer.getDrawingBufferSize(new THREE.Vector2());
+        const rt = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, samples: small ? 0 : 4 });
+        const cp = new EffectComposer(renderer, rt);
+        cp.setPixelRatio(DPR);
+        cp.setSize(window.innerWidth, window.innerHeight);
+        cp.addPass(new RenderPass(scene, camera));
+        // 克制的辉光：threshold 1.0 = 只有 HDR 超亮像素（发光件）才晕，金属高光不参与；
+        // 更低的 strength 让晕光收紧在光源附近，不形成雾团
+        cp.addPass(new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.36, 0.5, 1.0));
+        cp.addPass(new OutputPass());   // ACES tone mapping + sRGB 转换在这一步生效
+        return cp;
+      } catch (e) { return null; }
+    })();
+    if (composer) renderer.info.autoReset = false;   // composer 一帧多次 render，改手动 reset 否则 state().tris 只剩最后一个 pass
 
     /* ============================================================
        形状：把外形描述成一批小钢板的目标位姿
@@ -202,7 +247,7 @@ if (HOST) {
           const su = fc.hu * 2 / c[4], sv = fc.hv * 2 / c[5];
           const u = -fc.hu + (c[2] + 0.5) * su, v = -fc.hv + (c[3] + 0.5) * sv;
           const fu = su * rnd(0.82, 0.96), fv = sv * rnd(0.82, 0.96);
-          const th = rnd(0.07, 0.12);
+          const th = rnd(0.09, 0.15);
           let p, s2;
           if (fi === 0)      { p = [cx + side * hx, cy + u, cz + v]; s2 = [th, fu, fv]; }
           else if (fi === 1) { p = [cx + u, cy + side * hy, cz + v]; s2 = [fu, th, fv]; }
@@ -228,8 +273,8 @@ if (HOST) {
         const vf = vmin + Math.random() * vspan;
         const p = [cx + x * hx, cy + y * hy, cz + z * hz];
         const s = long
-          ? [rnd(0.42, 0.86) * k, rnd(0.07, 0.13) * k, rnd(0.05, 0.13) * k]
-          : [rnd(0.20, 0.48) * k, rnd(0.12, 0.30) * k, rnd(0.05, 0.10) * k];
+          ? [rnd(0.42, 0.86) * k, rnd(0.08, 0.15) * k, rnd(0.06, 0.14) * k]
+          : [rnd(0.20, 0.48) * k, rnd(0.13, 0.30) * k, rnd(0.06, 0.12) * k];
         s[0] *= vf; s[1] *= 0.7 + vf * 0.4;
         list.push({
           p: p, s: s,
@@ -373,7 +418,9 @@ if (HOST) {
       new THREE.Vector3(0.2, 1, 0.4).normalize(),
       new THREE.Vector3(0.4, 0.2, 1).normalize()
     ];
-    const BOX = new THREE.BoxGeometry(1, 1, 1);
+    // 圆角盒：硬直角边是"棱角分明 / 玻璃渣"观感的直接来源。
+    // 实例矩阵做非均匀缩放：大面圆角被放大（视觉上柔和），薄边方向圆角缩小（依然锋利不糊）。
+    const BOX = new RoundedBoxGeometry(1, 1, 1, 2, 0.11);
     const easeInOut = x => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
     const ZERO = new THREE.Vector3(0, 0, 0);
 
@@ -641,14 +688,14 @@ if (HOST) {
       };
     })();
 
-    /* 核心的内芯（不参与碎片系统） */
+    /* 核心的内芯（不参与碎片系统）：高细分二十面体——八面体的六个尖角太"棱角分明" */
     const coreInner = new THREE.Mesh(
-      new THREE.OctahedronGeometry(0.5, 0),
-      new THREE.MeshStandardMaterial({ color: 0x9fd0ff, metalness: 0.3, roughness: 0.15, emissive: 0x3fa9ff, emissiveIntensity: 1.7 })
+      new THREE.IcosahedronGeometry(0.52, 2),
+      new THREE.MeshStandardMaterial({ color: 0x9fd0ff, metalness: 0.3, roughness: 0.25, emissive: 0x3fa9ff, emissiveIntensity: 1.8 })
     );
     const coreWire = new THREE.Mesh(
-      new THREE.IcosahedronGeometry(1.24, 1),
-      new THREE.MeshBasicMaterial({ color: 0x6fb8ff, wireframe: true, transparent: true, opacity: 0.12 })
+      new THREE.IcosahedronGeometry(1.24, 2),
+      new THREE.MeshBasicMaterial({ color: 0x6fb8ff, wireframe: true, transparent: true, opacity: 0.09 })
     );
     scene.add(coreInner, coreWire);
 
@@ -714,6 +761,7 @@ if (HOST) {
       if (!running) return;
 try {        const dt = Math.min(0.05, clock.getDelta());
         const t = clock.elapsedTime;
+        if (composer) renderer.info.reset();   // autoReset 已关：手动清，统计整帧所有 pass
 
         /* 滚动速度（px/ms，夹紧）：滚得越快 → 实体转得越快、尘埃被掀起、辉光更亮 */
         const sy = window.scrollY;
@@ -796,7 +844,7 @@ try {        const dt = Math.min(0.05, clock.getDelta());
         const op = 1 - Math.min(1, Math.max(0, (window.scrollY - fadeA) / Math.max(1, fadeB - fadeA)));
         if (Math.abs(op - lastOpacity) > 0.004) { canvas.style.opacity = op.toFixed(3); lastOpacity = op; }
 
-        renderer.render(scene, camera);
+        if (composer) composer.render(); else renderer.render(scene, camera);
         if (!firstFrame) { firstFrame = true; HOST.classList.add('ready'); window.__GL.ready = true; }
 
         fpsAcc += dt; fpsN++;
@@ -805,7 +853,7 @@ try {        const dt = Math.min(0.05, clock.getDelta());
           const warm = clock.elapsedTime > 3.5;   // 首屏预热期（PMREM/首帧）帧率天然低，别急着降档
           if (warm && fps < 42 && DPR > 0.85) {   // 连续两轮偏低才降：一次砍到底会"突然糊"
             lowStreak++;
-            if (lowStreak >= 2) { lowStreak = 0; DPR = Math.max(0.85, DPR * 0.85); renderer.setPixelRatio(DPR); renderer.setSize(window.innerWidth, window.innerHeight); }
+            if (lowStreak >= 2) { lowStreak = 0; DPR = Math.max(0.85, DPR * 0.85); renderer.setPixelRatio(DPR); renderer.setSize(window.innerWidth, window.innerHeight); if (composer) { composer.setPixelRatio(DPR); composer.setSize(window.innerWidth, window.innerHeight); } }
           } else if (warm && fps < 34 && COUNT > 0.5) {
             COUNT = 0.5; rebuild();
           } else if (fps >= 42) lowStreak = 0;
@@ -857,6 +905,7 @@ try {        const dt = Math.min(0.05, clock.getDelta());
     function onResize() {
       renderer.setPixelRatio(DPR);
       renderer.setSize(window.innerWidth, window.innerHeight);
+      if (composer) { composer.setPixelRatio(DPR); composer.setSize(window.innerWidth, window.innerHeight); }
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       buildStops();
@@ -887,7 +936,7 @@ try {        const dt = Math.min(0.05, clock.getDelta());
         },
         sv: +sv.toFixed(3), motes: motes.layers.length,
         tris: renderer.info.render.triangles, calls: renderer.info.render.calls,
-        cw: canvas.width, ch: canvas.height, stops: stops.length, gpu: GPU_NAME
+        cw: canvas.width, ch: canvas.height, stops: stops.length, gpu: GPU_NAME, bloom: !!composer
       }),
       impulse: (x, y) => { for (const n in OBJ) if (OBJ[n].morph > 0.3) OBJ[n].impulse(x, y, 8); },
       // 诊断：原点在屏幕上的归一化坐标（-1..1）与相机位置
