@@ -64,6 +64,11 @@ if (HOST) {
     /* ---------- 档位 ---------- */
     const small = Math.min(window.innerWidth, window.innerHeight) < 760;
     let DPR = Math.min(window.devicePixelRatio || 1, small ? 1.25 : 1.6);
+    {   // 像素预算：全屏 PBR + 加法粒子在高分屏上按预算压 DPR（4K≈0.9 / 2K≈1.3），别等卡了才降
+      const BUDGET = 6.3 * 1024 * 1024;
+      const px = window.innerWidth * window.innerHeight;
+      if (px * DPR * DPR > BUDGET) DPR = Math.max(0.85, Math.sqrt(BUDGET / px));
+    }
     let COUNT = small ? 0.45 : 1;
     const clock = new THREE.Clock();
 
@@ -86,12 +91,20 @@ if (HOST) {
       c.width = 512; c.height = 256;
       const g = c.getContext('2d');
       const sky = g.createLinearGradient(0, 0, 0, 256);
-      sky.addColorStop(0.00, '#0a1020');
-      sky.addColorStop(0.42, '#1a2946');
-      sky.addColorStop(0.53, '#24395c');
+      sky.addColorStop(0.00, '#0e1730');
+      sky.addColorStop(0.42, '#22375e');
+      sky.addColorStop(0.53, '#2f4d80');
       sky.addColorStop(1.00, '#05070c');
       g.fillStyle = sky; g.fillRect(0, 0, 512, 256);
-      // 两道条光：金属上会拉出两道高光，是"摄影棚感"的来源
+      // 顶部柔光箱：横贯亮带，金属面上拉出主高光（摄影棚感的来源）
+      {
+        const vg = g.createLinearGradient(0, 12, 0, 74);
+        vg.addColorStop(0, 'rgba(232,242,255,0.95)');
+        vg.addColorStop(0.55, 'rgba(205,226,255,0.40)');
+        vg.addColorStop(1, 'rgba(205,226,255,0)');
+        g.fillStyle = vg; g.fillRect(0, 12, 512, 62);
+      }
+      // 两道竖条光：错开位置制造第二高光
       for (const s of [[120, 26, 0.95], [332, 14, 0.7]]) {
         const x = s[0], w = s[1], a = s[2];
         const lg = g.createLinearGradient(x - w, 0, x + w, 0);
@@ -136,9 +149,9 @@ if (HOST) {
     })();
 
     /* ---------- 材质 ---------- */
-    const steel = new THREE.MeshStandardMaterial({ color: 0xc3cede, metalness: 0.98, roughness: 0.16, envMapIntensity: 1.7 });
-    const darkM = new THREE.MeshStandardMaterial({ color: 0x3d4553, metalness: 0.9, roughness: 0.38, envMapIntensity: 1.1 });
-    const hotM = new THREE.MeshStandardMaterial({ color: 0x11293c, metalness: 0.6, roughness: 0.3, emissive: 0x46b6ff, emissiveIntensity: 3.4 });
+    const steel = new THREE.MeshStandardMaterial({ color: 0xc3cede, metalness: 0.98, roughness: 0.18, envMapIntensity: 1.75 });
+    const darkM = new THREE.MeshStandardMaterial({ color: 0x3d4553, metalness: 0.9, roughness: 0.30, envMapIntensity: 1.1 });
+    const hotM = new THREE.MeshStandardMaterial({ color: 0x11293c, metalness: 0.6, roughness: 0.3, emissive: 0x46b6ff, emissiveIntensity: 2.2 });
 
     /* ============================================================
        形状：把外形描述成一批小钢板的目标位姿
@@ -146,13 +159,55 @@ if (HOST) {
     const rnd = (a, b) => a + Math.random() * (b - a);
 
     // 骨架化的盒体：大片贴在棱与面上（大留白），少量内部碎屑做体积感。
-    // 关键是"少而大 + 贴棱"：小屑一多就糊成一团毛球，结构就没了。
+    // shell=装甲板模式：面划网格、板对格铺放、缝宽一致 —— "造物感"的关键；
+    // 随机撒板的缝宽参差，怎么调都是蓬松的碎块堆。
     function fillBox(list, cx, cy, cz, hx, hy, hz, n, opt) {
       opt = opt || {};
       const w = opt.w === undefined ? 0.8 : opt.w;
       const k = opt.k || 1;
       const vmin = opt.vmin === undefined ? 0.85 : opt.vmin;
       const vspan = opt.vspan === undefined ? 1.05 : opt.vspan;
+      if (opt.shell) {
+        const cell = opt.cell || 0.42;
+        const faces = [                          // 每面：面内两个半尺寸
+          { hu: hy, hv: hz },                    // 法线沿 x
+          { hu: hx, hv: hz },                    // 法线沿 y
+          { hu: hx, hv: hy }                     // 法线沿 z
+        ];
+        const cells = [];
+        for (let fi = 0; fi < 3; fi++) {
+          const fc = faces[fi];
+          const nu = Math.max(1, Math.round(fc.hu * 2 / cell));
+          const nv = Math.max(1, Math.round(fc.hv * 2 / cell));
+          for (const side of [-1, 1])
+            for (let iu = 0; iu < nu; iu++)
+              for (let iv = 0; iv < nv; iv++) cells.push([fi, side, iu, iv, nu, nv]);
+        }
+        for (let i = cells.length - 1; i > 0; i--) {    // 打乱格位，铺满优先
+          const j = (Math.random() * (i + 1)) | 0;
+          const tmp = cells[i]; cells[i] = cells[j]; cells[j] = tmp;
+        }
+        for (let i = 0; i < n; i++) {
+          const c = cells[i % cells.length];
+          const fi = c[0], side = c[1];
+          const fc = faces[fi];
+          const su = fc.hu * 2 / c[4], sv = fc.hv * 2 / c[5];
+          const u = -fc.hu + (c[2] + 0.5) * su, v = -fc.hv + (c[3] + 0.5) * sv;
+          const fu = su * rnd(0.82, 0.96), fv = sv * rnd(0.82, 0.96);
+          const th = rnd(0.07, 0.12);
+          let p, s2;
+          if (fi === 0)      { p = [cx + side * hx, cy + u, cz + v]; s2 = [th, fu, fv]; }
+          else if (fi === 1) { p = [cx + u, cy + side * hy, cz + v]; s2 = [fu, th, fv]; }
+          else               { p = [cx + u, cy + v, cz + side * hz]; s2 = [fu, fv, th]; }
+          list.push({
+            p: p, s: s2,
+            r: [rnd(-0.05, 0.05), rnd(-0.05, 0.05), rnd(-0.05, 0.05)],
+            heavy: !!(opt.heavy && Math.random() < opt.heavy),
+            hot: false
+          });
+        }
+        return;
+      }
       for (let i = 0; i < n; i++) {
         let x = rnd(-1, 1), y = rnd(-1, 1), z = rnd(-1, 1);
         let long = 0;
@@ -162,21 +217,15 @@ if (HOST) {
           else if (f === 1) { y = Math.random() < 0.5 ? -1 : 1; long = 1; }
           else { z = Math.random() < 0.5 ? -1 : 1; long = 0; }
         }
-        if (opt.shell) {                       // 壳板：只趴在面上，不留内部碎屑
-          const f = (Math.random() * 3) | 0;
-          const t = Math.random() < 0.5 ? -1 : 1;
-          if (f === 0) x = t; else if (f === 1) y = t; else z = t;
-          long = f === 1 ? 0 : 1;
-        }
         const vf = vmin + Math.random() * vspan;
         const p = [cx + x * hx, cy + y * hy, cz + z * hz];
         const s = long
-          ? [rnd(0.42, 0.86) * k, rnd(0.05, 0.11) * k, rnd(0.05, 0.13) * k]
-          : [rnd(0.20, 0.48) * k, rnd(0.12, 0.30) * k, rnd(0.04, 0.10) * k];
+          ? [rnd(0.42, 0.86) * k, rnd(0.07, 0.13) * k, rnd(0.05, 0.13) * k]
+          : [rnd(0.20, 0.48) * k, rnd(0.12, 0.30) * k, rnd(0.05, 0.10) * k];
         s[0] *= vf; s[1] *= 0.7 + vf * 0.4;
         list.push({
           p: p, s: s,
-          r: [rnd(-0.16, 0.16), rnd(-0.35, 0.35), rnd(-0.14, 0.14)],
+          r: [rnd(-0.10, 0.10), rnd(-0.22, 0.22), rnd(-0.09, 0.09)],
           heavy: !!(opt.heavy && Math.random() < opt.heavy),
           hot: false
         });
@@ -190,7 +239,7 @@ if (HOST) {
         const t = (i + 0.5) / m;
         list.push({
           p: [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t],
-          s: [s[0] * rnd(0.85, 1.15), s[1] * rnd(0.85, 1.15), s[2]],
+          s: [s[0] * rnd(0.92, 1.08), s[1] * rnd(0.92, 1.08), s[2]],
           r: [0, Math.atan2(b[2] - a[2], b[0] - a[0]), 0],
           heavy: true, hot: false
         });
@@ -208,7 +257,7 @@ if (HOST) {
         parts.push({
           p: [nx * R, ny * R * 0.94, nz * R],
           // 板面沿切向铺开：像冰晶从球面长出来，而不是一堆碎屑
-          s: [rnd(0.5, 0.95), rnd(0.15, 0.32), rnd(0.06, 0.13)],
+          s: [rnd(0.62, 1.05), rnd(0.16, 0.30), rnd(0.07, 0.13)],
           r: [ny * 1.15, th + Math.PI / 2, nz * 0.9],
           heavy: false,
           hot: Math.random() < 0.07
@@ -222,7 +271,7 @@ if (HOST) {
       const parts = [], n = 560;
       const HX = 1.35, HY = 0.66, HZ = 0.14;
       // 散热罩：壳板只趴在上下两个大面上，中间留空给风扇透光
-      fillBox(parts, 0, 0, 0, HX, HY, HZ, Math.round(n * 0.34), { shell: true, k: 2.1, vmin: 0.9, vspan: 1.2 });
+      fillBox(parts, 0, 0, 0, HX, HY, HZ, Math.round(n * 0.26), { shell: true, cell: 0.46 });
       // 背板：整块大板
       fillBox(parts, 0, 0, -0.20, HX * 1.02, HY * 1.02, 0.02, Math.round(n * 0.14), { shell: true, k: 2.4, heavy: 0.85 });
       for (const sx of [-0.62, 0.62]) {
@@ -230,20 +279,22 @@ if (HOST) {
         for (let i = 0; i < blades; i++) {                 // 扇叶：厚叶片，一眼看出是风扇
           const a = (i / blades) * Math.PI * 2;
           parts.push({
-            p: [sx + Math.cos(a) * R * 0.62, Math.sin(a) * R * 0.62, HZ + 0.10],
-            s: [R * 1.15, 0.19, 0.05], r: [0, a, 0.35], heavy: false, hot: i % 3 === 0
+            p: [sx + Math.cos(a) * R * 0.70, Math.sin(a) * R * 0.70, HZ + 0.10],
+            s: [R * 1.2, 0.24, 0.09], r: [0, a, 0.5], heavy: false, hot: false
           });
         }
-        for (let i = 0; i < 18; i++) {                     // 风罩环
-          const a = (i / 18) * Math.PI * 2;
-          parts.push({ p: [sx + Math.cos(a) * R, Math.sin(a) * R, HZ + 0.10], s: [0.30, 0.12, 0.12], r: [0, a, 0], heavy: true, hot: false });
+        for (let i = 0; i < 20; i++) {                     // 风罩环
+          const a = (i / 20) * Math.PI * 2;
+          parts.push({ p: [sx + Math.cos(a) * R, Math.sin(a) * R, HZ + 0.10], s: [0.34, 0.16, 0.16], r: [0, a, 0], heavy: true, hot: false });
         }
         parts.push({ p: [sx, 0, HZ + 0.10], s: [0.22, 0.22, 0.12], r: [0, 0, 0], heavy: true, hot: true });
       }
       // 热管：横贯整卡的粗管
       for (let i = 0; i < 5; i++) parts.push({ p: [0, HY * 0.72 - i * 0.07, HZ + 0.02], s: [HX * 2.0, 0.07, 0.07], r: [0, 0, 0], heavy: true, hot: false });
       // 金手指
-      for (let i = 0; i < 12; i++) parts.push({ p: [rnd(-0.45, 0.45), -HY - 0.05, 0.06], s: [0.12, 0.05, 0.05], r: [0, 0, 0], heavy: true, hot: false });
+      for (let i = 0; i < 10; i++) parts.push({ p: [rnd(-0.45, 0.45), -HY - 0.05, 0.06], s: [0.14, 0.06, 0.06], r: [0, 0, 0], heavy: true, hot: false });
+      // IO 挡板：卡尾一排接口挡片（真显卡的辨识件）
+      for (let i = 0; i < 4; i++) parts.push({ p: [-HX - 0.05, HY * 0.55 - i * 0.28, 0], s: [0.05, 0.20, 0.34], r: [0, 0, 0], heavy: true, hot: false });
       // 边缘桁架：把"卡"的轮廓拉出来
       for (const y of [HY, -HY]) strut(parts, [-HX, y, 0], [HX, y, 0], [0.6, 0.11, 0.12], 4);
       strut(parts, [-HX, -HY, 0], [-HX, HY, 0], [0.11, 0.6, 0.12], 3);
@@ -255,23 +306,24 @@ if (HOST) {
     function buildTruck() {
       const parts = [], n = 520;
       // 车厢：骨架板材 —— 顶/侧/后是整片，中间只留少量填充
-      fillBox(parts, -0.46, 0.46, 0, 0.98, 0.54, 0.54, Math.round(n * 0.40), { shell: true, k: 2.2, vmin: 0.95, vspan: 1.1 });
+      fillBox(parts, -0.46, 0.46, 0, 0.98, 0.54, 0.54, Math.round(n * 0.26), { shell: true, cell: 0.36 });
       // 驾驶室
       fillBox(parts, 0.80, 0.26, 0, 0.34, 0.38, 0.48, Math.round(n * 0.11), { shell: true, k: 1.9 });
       fillBox(parts, 1.02, 0.52, 0, 0.12, 0.10, 0.48, Math.round(n * 0.03), { k: 1.6 });   // 导流罩
+      parts.push({ p: [0.94, 0.44, 0], s: [0.03, 0.15, 0.40], r: [0, 0, -0.35], heavy: false, hot: true });   // 挡风玻璃（发光）
       // 大梁 + 前保险杠
       for (const z of [-0.44, 0.44]) strut(parts, [-1.30, -0.30, z], [1.10, -0.30, z], [0.16, 0.30, 0.14], 6);
       strut(parts, [1.16, -0.10, -0.42], [1.16, -0.10, 0.42], [0.16, 0.34, 0.30], 3);
       // 四轮：环 + 十字辐
       for (const wx of [-0.76, 0.66]) for (const wz of [-0.60, 0.60]) {
-        const R = 0.34, seg = 16;
+        const R = 0.38, seg = 16;
         for (let i = 0; i < seg; i++) {
           const a = (i / seg) * Math.PI * 2;
-          parts.push({ p: [wx + Math.cos(a) * R, -0.70 + Math.sin(a) * R, wz], s: [0.24, 0.17, 0.17], r: [0, a, 0], heavy: false, hot: i === 0 || i === 8 });
+          parts.push({ p: [wx + Math.cos(a) * R, -0.64 + Math.sin(a) * R, wz], s: [0.26, 0.19, 0.19], r: [0, a, 0], heavy: false, hot: i === 0 || i === 8 });
         }
-        for (let i = 0; i < 3; i++) {
-          const a = (i / 3) * Math.PI;
-          parts.push({ p: [wx, -0.70, wz + 0.02], s: [R * 1.7, 0.08, 0.12], r: [0, 0, a], heavy: true, hot: false });
+        for (let i = 0; i < 5; i++) {
+          const a = (i / 5) * Math.PI;
+          parts.push({ p: [wx, -0.64, wz + 0.02], s: [R * 1.9, 0.09, 0.13], r: [0, 0, a], heavy: true, hot: false });
         }
       }
       return { parts: parts };
@@ -283,7 +335,7 @@ if (HOST) {
       const HX = 0.62, HY = 1.5, HZ = 0.40, UNIT = 6;
       // 四根通高立柱：柜子的骨架
       for (const sx of [-HX, HX]) for (const sz of [-HZ, HZ]) {
-        strut(parts, [sx, -HY, sz], [sx, HY, sz], [0.22, 0.36, 0.22], 13);
+        strut(parts, [sx, -HY, sz], [sx, HY, sz], [0.26, 0.5, 0.26], 10);
       }
       // 顶盖 + 底脚
       fillBox(parts, 0, HY + 0.05, 0, HX * 1.02, 0.03, HZ * 1.02, 10, { shell: true, k: 1.8, heavy: 0.4 });
@@ -291,10 +343,10 @@ if (HOST) {
       for (let u = 0; u < UNIT; u++) {
         const yc = HY - (u + 0.5) * (HY * 2 / UNIT);
         // 每一层的面板：整片大板 + 两侧导轨
-        fillBox(parts, 0, yc, HZ * 0.86, HX * 0.86, 0.04, 0.02, 12, { shell: true, k: 2.0, vmin: 1.0, vspan: 0.5 });
+        fillBox(parts, 0, yc, HZ * 0.86, HX * 0.86, 0.04, 0.02, 10, { shell: true, k: 1.5, vmin: 1.0, vspan: 0.5 });
         for (const sx of [-HX * 0.9, HX * 0.9]) parts.push({ p: [sx, yc, HZ * 0.5], s: [0.07, 0.34, 0.62], r: [0, 0, 0], heavy: true, hot: false });
         // 层上的指示灯带
-        for (let i = 0; i < 6; i++) parts.push({ p: [rnd(-HX * 0.7, HX * 0.7), yc + 0.09, HZ * 0.90], s: [0.05, 0.028, 0.03], r: [0, 0, 0], heavy: false, hot: true });
+        for (let i = 0; i < 4; i++) parts.push({ p: [rnd(-HX * 0.7, HX * 0.7), yc + 0.09, HZ * 0.90], s: [0.07, 0.032, 0.03], r: [0, 0, 0], heavy: false, hot: true });
         if (u < UNIT - 1) strut(parts, [-HX * 0.86, yc - HY / UNIT, HZ * 0.9], [HX * 0.86, yc - HY / UNIT, HZ * 0.9], [0.5, 0.07, 0.16], 2);
       }
       // 背后走线槽
@@ -387,7 +439,7 @@ if (HOST) {
       update(t) {
         const mp = this.morph, n = this.n;
         const parked = this.center.distanceToSquared(this.park) < 0.02;
-        const visible = mp > 0.002 || !parked;
+        const visible = mp > 0.03 || !parked;
         for (let g = 0; g < 3; g++) if (this.mesh[g]) this.mesh[g].visible = visible;
         if (!visible) return;
         if (mp === this.lastMp && !this.busy && parked) return;   // 静置时省掉整轮重算
@@ -405,9 +457,10 @@ if (HOST) {
           const arc = this.spin[i] * bel * 0.55;
 
           const sh = 0.045 * e;                   // 成形后的微呼吸：让高光一直在金属面上走
-          const x = (this.cloud[i3] + cx) * (1 - e) + this.tgt[i3] * e + this.off[i3] + arc + Math.sin(t * 0.85 + i * 0.9) * sh;
-          const y = (this.cloud[i3 + 1] + cy) * (1 - e) + this.tgt[i3 + 1] * e + this.off[i3 + 1] + Math.sin(t * 0.9 + i) * bel * 0.22 + Math.cos(t * 0.72 + i * 1.3) * sh;
-          const z = (this.cloud[i3 + 2] + cz) * (1 - e) + this.tgt[i3 + 2] * e + this.off[i3 + 2] + arc * 0.6 + Math.sin(t * 0.63 + i * 0.5) * sh;
+          const cl = Math.min(1, mp / 0.05);      // 退场末段云团收拢成一点，消失得不拖泥带水
+          const x = (this.cloud[i3] * cl + cx) * (1 - e) + this.tgt[i3] * e + this.off[i3] + arc + Math.sin(t * 0.85 + i * 0.9) * sh;
+          const y = (this.cloud[i3 + 1] * cl + cy) * (1 - e) + this.tgt[i3 + 1] * e + this.off[i3 + 1] + Math.sin(t * 0.9 + i) * bel * 0.22 + Math.cos(t * 0.72 + i * 1.3) * sh;
+          const z = (this.cloud[i3 + 2] * cl + cz) * (1 - e) + this.tgt[i3 + 2] * e + this.off[i3 + 2] + arc * 0.6 + Math.sin(t * 0.63 + i * 0.5) * sh;
 
           _qa.set(this.q[i4], this.q[i4 + 1], this.q[i4 + 2], this.q[i4 + 3]);
           _qb.setFromAxisAngle(AXIS[i % 3], (1 - e) * this.spin[i] * Math.PI * 1.25 + t * 0.3 * (1 - e) * this.spin[i]);
@@ -605,7 +658,7 @@ if (HOST) {
     const STOP_DEF = [
       { sel: '#home', obj: 'core', pos: [0, 2.5, 8.4], look: [0, 1.45, 0], fov: 40 },
       { sel: '#metrics', obj: 'core', pos: [2.0, 3.4, 11.6], look: [0, 2.2, 0], fov: 38 },
-      { sel: '#products', obj: 'gpu', items: '#products article', pos: [0, 1.6, 7.4], look: [0, 0.85, 0], fov: 42 },
+      { sel: '#products', obj: 'gpu', items: '#products article', pos: [0, 1.6, 6.9], look: [0, 0.85, 0], fov: 42 },
       { sel: '#philosophy', obj: null, pos: [0, 6.5, 17.5], look: [0, 2.0, -2], fov: 38 }
     ];
     let stops = [], narrativeEnd = 1200;
@@ -622,13 +675,13 @@ if (HOST) {
           const blocks = Array.prototype.slice.call(document.querySelectorAll(d.items));
           blocks.forEach(function (bl, i) {
             const side = i % 2 === 0 ? 1 : -1;                 // +1 = 实体在画面右侧
-            const shift = -1.95 * side;                        // 镜头横向让位
+            const shift = -1.55 * side;                        // 镜头横向让位（1.95 会把实体甩出画面）
             stops.push({
               obj: names[i % names.length],
               y0: bl.offsetTop - 40,
               y1: bl.offsetTop + bl.offsetHeight + 40,
               pos: [shift, d.pos[1], d.pos[2]],
-              look: [shift - 0.35 * side, d.look[1], d.look[2]],
+              look: [shift - 0.25 * side, d.look[1], d.look[2]],
               fov: d.fov
             });
           });
@@ -698,7 +751,7 @@ try {        const dt = Math.min(0.05, clock.getDelta());
           const o = OBJ[name];
           const want = name === activeName ? 1 : 0;
           o.target = want;
-          const rate = want > o.morph ? 2.4 : 3.6;      // 凝聚慢一点，崩解痛快
+          const rate = want > o.morph ? 2.4 : 4.4;      // 凝聚慢一点，崩解痛快
           o.morph += (want - o.morph) * Math.min(1, dt * rate);
           if (Math.abs(want - o.morph) < 0.004) o.morph = want;
           o.center.lerp(want ? ZERO : o.park, Math.min(1, dt * 1.6));
@@ -741,9 +794,10 @@ try {        const dt = Math.min(0.05, clock.getDelta());
         fpsAcc += dt; fpsN++;
         if (fpsAcc > 0.8) {
           fps = fpsN / fpsAcc;
-          if (fps < 42 && DPR > 1) {
-            DPR = 1; renderer.setPixelRatio(1); renderer.setSize(window.innerWidth, window.innerHeight);
-          } else if (fps < 34 && COUNT > 0.5) {
+          const warm = clock.elapsedTime > 3.5;   // 首屏预热期（PMREM/首帧）帧率天然低，别急着降档
+          if (warm && fps < 42 && DPR > 0.85) {   // 阶梯降 DPR：一次砍到底会"突然糊"
+            DPR = Math.max(0.85, DPR * 0.85); renderer.setPixelRatio(DPR); renderer.setSize(window.innerWidth, window.innerHeight);
+          } else if (warm && fps < 34 && COUNT > 0.5) {
             COUNT = 0.5; rebuild();
           }
           fpsAcc = 0; fpsN = 0;
