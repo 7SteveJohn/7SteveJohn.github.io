@@ -120,43 +120,73 @@ if (HOST) {
        ============================================================ */
     const rnd = (a, b) => a + Math.random() * (b - a);
 
-    // 在盒体 hx/hy/hz 内撒 n 片，w 越大越贴棱（轮廓才立得住）
+    // 骨架化的盒体：大片贴在棱与面上（大留白），少量内部碎屑做体积感。
+    // 关键是"少而大 + 贴棱"：小屑一多就糊成一团毛球，结构就没了。
     function fillBox(list, cx, cy, cz, hx, hy, hz, n, opt) {
       opt = opt || {};
-      const w = opt.w === undefined ? 0.55 : opt.w;
+      const w = opt.w === undefined ? 0.8 : opt.w;
       const k = opt.k || 1;
+      const vmin = opt.vmin === undefined ? 0.85 : opt.vmin;
+      const vspan = opt.vspan === undefined ? 1.05 : opt.vspan;
       for (let i = 0; i < n; i++) {
         let x = rnd(-1, 1), y = rnd(-1, 1), z = rnd(-1, 1);
+        let long = 0;
         if (Math.random() < w) {
           const f = (Math.random() * 3) | 0;
-          if (f === 0) x = Math.random() < 0.5 ? -1 : 1;
-          else if (f === 1) y = Math.random() < 0.5 ? -1 : 1;
-          else z = Math.random() < 0.5 ? -1 : 1;
+          if (f === 0) { x = Math.random() < 0.5 ? -1 : 1; long = 1; }
+          else if (f === 1) { y = Math.random() < 0.5 ? -1 : 1; long = 1; }
+          else { z = Math.random() < 0.5 ? -1 : 1; long = 0; }
         }
-        const vf = 0.75 + Math.random() * 1.5;     // 参差：大板与小屑混着来
+        if (opt.shell) {                       // 壳板：只趴在面上，不留内部碎屑
+          const f = (Math.random() * 3) | 0;
+          const t = Math.random() < 0.5 ? -1 : 1;
+          if (f === 0) x = t; else if (f === 1) y = t; else z = t;
+          long = f === 1 ? 0 : 1;
+        }
+        const vf = vmin + Math.random() * vspan;
+        const p = [cx + x * hx, cy + y * hy, cz + z * hz];
+        const s = long
+          ? [rnd(0.42, 0.86) * k, rnd(0.05, 0.11) * k, rnd(0.05, 0.13) * k]
+          : [rnd(0.20, 0.48) * k, rnd(0.12, 0.30) * k, rnd(0.04, 0.10) * k];
+        s[0] *= vf; s[1] *= 0.7 + vf * 0.4;
         list.push({
-          p: [cx + x * hx, cy + y * hy, cz + z * hz],
-          s: [rnd(0.11, 0.22) * k * vf, rnd(0.05, 0.11) * k, rnd(0.03, 0.07) * k],
-          r: [rnd(-0.3, 0.3), rnd(-0.5, 0.5), rnd(-0.25, 0.25)],
+          p: p, s: s,
+          r: [rnd(-0.16, 0.16), rnd(-0.35, 0.35), rnd(-0.14, 0.14)],
           heavy: !!(opt.heavy && Math.random() < opt.heavy),
           hot: false
         });
       }
     }
 
-    /* 首屏：晶体核心 —— 球壳碎片 + 内部发光八面体 */
+    // 两点之间架一片板：这就是"结构感"的来源（面片分离，看得出是构架）
+    function strut(list, a, b, s, frac) {
+      const m = Math.max(1, Math.round(frac || 1));
+      for (let i = 0; i < m; i++) {
+        const t = (i + 0.5) / m;
+        list.push({
+          p: [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t],
+          s: [s[0] * rnd(0.85, 1.15), s[1] * rnd(0.85, 1.15), s[2]],
+          r: [0, Math.atan2(b[2] - a[2], b[0] - a[0]), 0],
+          heavy: true, hot: false
+        });
+      }
+    }
+
+    /* 首屏：晶体核心 —— 球面外长的晶板 + 发光内芯 */
     function buildCore() {
       const parts = [], n = 430;
       const ga = Math.PI * (3 - Math.sqrt(5));
       for (let i = 0; i < n; i++) {
         const y = 1 - (i / n) * 2, r = Math.sqrt(Math.max(0, 1 - y * y)), th = ga * i;
-        const R = 1.42 * (0.93 + Math.random() * 0.14);
+        const R = 1.44 * (0.96 + Math.random() * 0.12);
+        const nx = Math.cos(th) * r, ny = y, nz = Math.sin(th) * r;
         parts.push({
-          p: [Math.cos(th) * r * R, y * R * 0.94, Math.sin(th) * r * R],
-          s: [rnd(0.34, 0.62), rnd(0.09, 0.18), rnd(0.14, 0.30)],
-          r: [rnd(-0.4, 0.4), th, rnd(-0.35, 0.35)],
+          p: [nx * R, ny * R * 0.94, nz * R],
+          // 板面沿切向铺开：像冰晶从球面长出来，而不是一堆碎屑
+          s: [rnd(0.5, 0.95), rnd(0.15, 0.32), rnd(0.06, 0.13)],
+          r: [ny * 1.15, th + Math.PI / 2, nz * 0.9],
           heavy: false,
-          hot: Math.random() < 0.1
+          hot: Math.random() < 0.07
         });
       }
       return { parts: parts, inner: true };
@@ -166,32 +196,57 @@ if (HOST) {
     function buildGpu() {
       const parts = [], n = 560;
       const HX = 1.35, HY = 0.66, HZ = 0.14;
-      fillBox(parts, 0, 0, 0, HX, HY, HZ, Math.round(n * 0.28), { w: 0.85, k: 1.9 });
-      fillBox(parts, 0, 0, -0.10, HX * 0.98, HY * 0.95, 0.03, Math.round(n * 0.2), { w: 0.95, k: 1.5, heavy: 0.9 });
+      // 散热罩：壳板只趴在上下两个大面上，中间留空给风扇透光
+      fillBox(parts, 0, 0, 0, HX, HY, HZ, Math.round(n * 0.34), { shell: true, k: 2.1, vmin: 0.9, vspan: 1.2 });
+      // 背板：整块大板
+      fillBox(parts, 0, 0, -0.20, HX * 1.02, HY * 1.02, 0.02, Math.round(n * 0.14), { shell: true, k: 2.4, heavy: 0.85 });
       for (const sx of [-0.62, 0.62]) {
-        const R = 0.44, seg = 20;
-        for (let i = 0; i < seg; i++) {
-          const a = (i / seg) * Math.PI * 2;
-          parts.push({ p: [sx + Math.cos(a) * R, Math.sin(a) * R, HZ + 0.05], s: [0.26, 0.08, 0.07], r: [0, a, rnd(-0.2, 0.2)], heavy: false, hot: i % 5 === 0 });
+        const R = 0.46, blades = 9;
+        for (let i = 0; i < blades; i++) {                 // 扇叶：厚叶片，一眼看出是风扇
+          const a = (i / blades) * Math.PI * 2;
+          parts.push({
+            p: [sx + Math.cos(a) * R * 0.62, Math.sin(a) * R * 0.62, HZ + 0.10],
+            s: [R * 1.15, 0.19, 0.05], r: [0, a, 0.35], heavy: false, hot: i % 3 === 0
+          });
         }
-        for (let i = 0; i < 5; i++) parts.push({ p: [sx + rnd(-0.05, 0.05), rnd(-0.05, 0.05), HZ + 0.05], s: [0.1, 0.1, 0.06], r: [0, 0, 0], heavy: false, hot: true });
+        for (let i = 0; i < 18; i++) {                     // 风罩环
+          const a = (i / 18) * Math.PI * 2;
+          parts.push({ p: [sx + Math.cos(a) * R, Math.sin(a) * R, HZ + 0.10], s: [0.30, 0.12, 0.12], r: [0, a, 0], heavy: true, hot: false });
+        }
+        parts.push({ p: [sx, 0, HZ + 0.10], s: [0.22, 0.22, 0.12], r: [0, 0, 0], heavy: true, hot: true });
       }
-      for (let i = 0; i < 14; i++) parts.push({ p: [rnd(-HX, HX), HY + 0.08, rnd(-HZ, HZ)], s: [0.34, 0.07, 0.08], r: [0, 0, 0], heavy: false, hot: false });
-      for (let i = 0; i < 10; i++) parts.push({ p: [rnd(-0.42, 0.42), -HY - 0.06, 0.04], s: [0.1, 0.06, 0.05], r: [0, 0, 0], heavy: true, hot: false });
+      // 热管：横贯整卡的粗管
+      for (let i = 0; i < 5; i++) parts.push({ p: [0, HY * 0.72 - i * 0.07, HZ + 0.02], s: [HX * 2.0, 0.07, 0.07], r: [0, 0, 0], heavy: true, hot: false });
+      // 金手指
+      for (let i = 0; i < 12; i++) parts.push({ p: [rnd(-0.45, 0.45), -HY - 0.05, 0.06], s: [0.12, 0.05, 0.05], r: [0, 0, 0], heavy: true, hot: false });
+      // 边缘桁架：把"卡"的轮廓拉出来
+      for (const y of [HY, -HY]) strut(parts, [-HX, y, 0], [HX, y, 0], [0.6, 0.11, 0.12], 4);
+      strut(parts, [-HX, -HY, 0], [-HX, HY, 0], [0.11, 0.6, 0.12], 3);
+      strut(parts, [HX, -HY, 0], [HX, HY, 0], [0.11, 0.6, 0.12], 3);
       return { parts: parts };
     }
 
     /* FileButler：厢式货车 —— 车厢 + 驾驶室 + 四轮 + 大梁 */
     function buildTruck() {
       const parts = [], n = 520;
-      fillBox(parts, -0.42, 0.44, 0, 0.95, 0.52, 0.52, Math.round(n * 0.38), { w: 0.9, k: 1.6 });
-      fillBox(parts, 0.72, 0.24, 0, 0.34, 0.36, 0.46, Math.round(n * 0.18), { w: 0.9, k: 1.6 });
-      fillBox(parts, 0, -0.34, 0, 1.32, 0.06, 0.34, Math.round(n * 0.14), { w: 0.6, heavy: 0.9 });
-      for (const wx of [-0.72, 0.62]) for (const wz of [-0.58, 0.58]) {
-        const R = 0.32, seg = 14;
+      // 车厢：骨架板材 —— 顶/侧/后是整片，中间只留少量填充
+      fillBox(parts, -0.46, 0.46, 0, 0.98, 0.54, 0.54, Math.round(n * 0.40), { shell: true, k: 2.2, vmin: 0.95, vspan: 1.1 });
+      // 驾驶室
+      fillBox(parts, 0.80, 0.26, 0, 0.34, 0.38, 0.48, Math.round(n * 0.11), { shell: true, k: 1.9 });
+      fillBox(parts, 1.02, 0.52, 0, 0.12, 0.10, 0.48, Math.round(n * 0.03), { k: 1.6 });   // 导流罩
+      // 大梁 + 前保险杠
+      for (const z of [-0.44, 0.44]) strut(parts, [-1.30, -0.30, z], [1.10, -0.30, z], [0.16, 0.30, 0.14], 6);
+      strut(parts, [1.16, -0.10, -0.42], [1.16, -0.10, 0.42], [0.16, 0.34, 0.30], 3);
+      // 四轮：环 + 十字辐
+      for (const wx of [-0.76, 0.66]) for (const wz of [-0.60, 0.60]) {
+        const R = 0.34, seg = 16;
         for (let i = 0; i < seg; i++) {
           const a = (i / seg) * Math.PI * 2;
-          parts.push({ p: [wx + Math.cos(a) * R, -0.68 + Math.sin(a) * R, wz], s: [0.19, 0.13, 0.13], r: [0, a, 0], heavy: false, hot: i === 0 });
+          parts.push({ p: [wx + Math.cos(a) * R, -0.70 + Math.sin(a) * R, wz], s: [0.24, 0.17, 0.17], r: [0, a, 0], heavy: false, hot: i === 0 || i === 8 });
+        }
+        for (let i = 0; i < 3; i++) {
+          const a = (i / 3) * Math.PI;
+          parts.push({ p: [wx, -0.70, wz + 0.02], s: [R * 1.7, 0.08, 0.12], r: [0, 0, a], heavy: true, hot: false });
         }
       }
       return { parts: parts };
@@ -201,19 +256,24 @@ if (HOST) {
     function buildRack() {
       const parts = [], n = 500;
       const HX = 0.62, HY = 1.5, HZ = 0.40, UNIT = 6;
+      // 四根通高立柱：柜子的骨架
       for (const sx of [-HX, HX]) for (const sz of [-HZ, HZ]) {
-        for (let i = 0; i < 9; i++) {
-          parts.push({ p: [sx, -HY + (i / 8) * HY * 2, sz], s: [0.19, 0.22, 0.19], r: [0, 0, 0], heavy: true, hot: false });
-        }
+        strut(parts, [sx, -HY, sz], [sx, HY, sz], [0.22, 0.36, 0.22], 13);
       }
+      // 顶盖 + 底脚
+      fillBox(parts, 0, HY + 0.05, 0, HX * 1.02, 0.03, HZ * 1.02, 10, { shell: true, k: 1.8, heavy: 0.4 });
+      fillBox(parts, 0, -HY - 0.04, 0, HX * 1.02, 0.03, HZ * 1.02, 8, { shell: true, k: 1.4, heavy: 0.9 });
       for (let u = 0; u < UNIT; u++) {
         const yc = HY - (u + 0.5) * (HY * 2 / UNIT);
-        fillBox(parts, 0, yc, HZ * 0.55, HX * 0.92, 0.055, 0.06, 22, { w: 0.9, k: 1.5 });
-        for (let i = 0; i < 5; i++) {
-          parts.push({ p: [rnd(-HX * 0.8, HX * 0.8), yc, HZ * 0.66], s: [0.05, 0.03, 0.03], r: [0, 0, 0], heavy: false, hot: true });
-        }
+        // 每一层的面板：整片大板 + 两侧导轨
+        fillBox(parts, 0, yc, HZ * 0.86, HX * 0.86, 0.04, 0.02, 12, { shell: true, k: 2.0, vmin: 1.0, vspan: 0.5 });
+        for (const sx of [-HX * 0.9, HX * 0.9]) parts.push({ p: [sx, yc, HZ * 0.5], s: [0.07, 0.34, 0.62], r: [0, 0, 0], heavy: true, hot: false });
+        // 层上的指示灯带
+        for (let i = 0; i < 6; i++) parts.push({ p: [rnd(-HX * 0.7, HX * 0.7), yc + 0.09, HZ * 0.90], s: [0.05, 0.028, 0.03], r: [0, 0, 0], heavy: false, hot: true });
+        if (u < UNIT - 1) strut(parts, [-HX * 0.86, yc - HY / UNIT, HZ * 0.9], [HX * 0.86, yc - HY / UNIT, HZ * 0.9], [0.5, 0.07, 0.16], 2);
       }
-      fillBox(parts, 0, 0, -HZ * 0.85, HX * 0.85, HY * 0.92, 0.03, Math.round(n * 0.12), { w: 0.8, k: 0.7, heavy: 0.8 });
+      // 背后走线槽
+      fillBox(parts, 0, 0, -HZ * 0.92, HX * 0.8, HY * 0.9, 0.02, Math.round(n * 0.06), { shell: true, k: 0.8, heavy: 0.85 });
       return { parts: parts };
     }
 
@@ -246,13 +306,15 @@ if (HOST) {
         // 三类材质各一个 InstancedMesh，slot 表一次算好（避免每帧 indexOf）
         this.mesh = {};
         this.slot = new Uint8Array(n);            // 0 钢 / 1 深色 / 2 发光
+        this.group = new THREE.Group();           // 整件实体一个组：静置时的自旋与呼吸挂在组上
+        scene.add(this.group);
         const mk = (mat, cnt) => {
           if (!cnt) return null;
           const m = new THREE.InstancedMesh(BOX, mat, cnt);
           m.frustumCulled = false;
           m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
           m.visible = false;
-          scene.add(m);
+          this.group.add(m);
           return m;
         };
         let c0 = 0, c1 = 0, c2 = 0;
@@ -275,6 +337,9 @@ if (HOST) {
         this.park = new THREE.Vector3(opt.park[0], opt.park[1], opt.park[2]);
         this.center = this.park.clone();
         this.morph = 0; this.target = 0; this.lastMp = -1; this.busy = false;
+        this.yaw = Math.random() * Math.PI * 2;
+        this.spinIdle = rnd(0.13, 0.25) * (Math.random() < 0.5 ? -1 : 1);
+        this.ph = Math.random() * 6.283;
 
         const cloudR = opt.cloudR || 9;
         const q = new THREE.Quaternion(), eu = new THREE.Euler();
@@ -314,16 +379,18 @@ if (HOST) {
           const bel = 4 * k * (1 - k);                 // 0→1→0：飞行中段才鼓
           const arc = this.spin[i] * bel * 0.55;
 
-          const x = (this.cloud[i3] + cx) * (1 - e) + this.tgt[i3] * e + this.off[i3] + arc;
-          const y = (this.cloud[i3 + 1] + cy) * (1 - e) + this.tgt[i3 + 1] * e + this.off[i3 + 1] + Math.sin(t * 0.9 + i) * bel * 0.22;
-          const z = (this.cloud[i3 + 2] + cz) * (1 - e) + this.tgt[i3 + 2] * e + this.off[i3 + 2] + arc * 0.6;
+          const sh = 0.045 * e;                   // 成形后的微呼吸：让高光一直在金属面上走
+          const x = (this.cloud[i3] + cx) * (1 - e) + this.tgt[i3] * e + this.off[i3] + arc + Math.sin(t * 0.85 + i * 0.9) * sh;
+          const y = (this.cloud[i3 + 1] + cy) * (1 - e) + this.tgt[i3 + 1] * e + this.off[i3 + 1] + Math.sin(t * 0.9 + i) * bel * 0.22 + Math.cos(t * 0.72 + i * 1.3) * sh;
+          const z = (this.cloud[i3 + 2] + cz) * (1 - e) + this.tgt[i3 + 2] * e + this.off[i3 + 2] + arc * 0.6 + Math.sin(t * 0.63 + i * 0.5) * sh;
 
           _qa.set(this.q[i4], this.q[i4 + 1], this.q[i4 + 2], this.q[i4 + 3]);
           _qb.setFromAxisAngle(AXIS[i % 3], (1 - e) * this.spin[i] * Math.PI * 1.25 + t * 0.3 * (1 - e) * this.spin[i]);
           _qa.multiply(_qb);
 
           _vp.set(x, y, z);
-          _vs.set(this.sc[i3], this.sc[i3 + 1], this.sc[i3 + 2]);
+          const br = 1 + Math.sin(t * 1.15 + i * 0.7) * 0.06 * e;
+          _vs.set(this.sc[i3] * br, this.sc[i3 + 1] * br, this.sc[i3 + 2] * br);
           _m4.compose(_vp, _qa, _vs);
           const kind = this.slot[i];
           if (kind === 0) this.mesh[0].setMatrixAt(this.n0++, _m4);
@@ -331,6 +398,16 @@ if (HOST) {
           else this.mesh[2].setMatrixAt(this.n2++, _m4);
         }
         for (let g = 0; g < 3; g++) if (this.mesh[g]) this.mesh[g].instanceMatrix.needsUpdate = true;
+      }
+
+      /* 静置时也要活着：整件缓慢自旋 + 呼吸起伏；滚得越快转得越快 */
+      idle(t, dt, sv) {
+        const g = this.group, m = this.morph;
+        this.yaw += (this.spinIdle + sv * 0.38) * dt * (0.3 + 0.7 * m);
+        g.rotation.y = this.yaw;
+        g.rotation.x = Math.sin(t * 0.42 + this.ph) * 0.045 * m;
+        g.rotation.z = Math.sin(t * 0.31 + this.ph * 1.7) * 0.03 * m;
+        g.position.y = Math.sin(t * 0.62 + this.ph) * 0.06 * m;
       }
 
       /* 交互：把附近的碎片撞开，再弹回原位 */
@@ -381,6 +458,103 @@ if (HOST) {
       return m;
     })();
 
+    /* ---------- 悬浮尘埃：叙事区里永远在飘的一层 ----------
+       它是"画面没死"的底线：哪怕实体凝聚完毕、镜头也站定了，
+       这层尘埃仍在缓慢上升 + 侧向游走，并被滚动与光标掀起。 */
+    const DOT = (function () {
+      const c = document.createElement('canvas'); c.width = c.height = 64;
+      const g = c.getContext('2d');
+      const rg = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+      rg.addColorStop(0.00, 'rgba(225,238,255,1)');
+      rg.addColorStop(0.34, 'rgba(150,196,255,0.5)');
+      rg.addColorStop(1.00, 'rgba(80,130,210,0)');
+      g.fillStyle = rg; g.fillRect(0, 0, 64, 64);
+      return new THREE.CanvasTexture(c);
+    })();
+    const motes = (function () {
+      const tex = DOT;
+      const layers = [];
+      const mk = (cnt, size, opa) => {
+        if (!cnt) return;
+        const geo = new THREE.BufferGeometry();
+        const pos = new Float32Array(cnt * 3);
+        const seed = new Float32Array(cnt * 3);
+        for (let i = 0; i < cnt; i++) {
+          const i3 = i * 3;
+          pos[i3] = rnd(-34, 34); pos[i3 + 1] = rnd(-15, 15); pos[i3 + 2] = rnd(-34, 14);
+          seed[i3] = Math.random() * 6.283; seed[i3 + 1] = rnd(0.22, 0.8); seed[i3 + 2] = rnd(0.3, 1.5);
+        }
+        geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        const mat = new THREE.PointsMaterial({
+          map: tex, size: size, sizeAttenuation: true, transparent: true, opacity: opa,
+          depthWrite: false, blending: THREE.AdditiveBlending, color: 0xbcd8ff, fog: false
+        });
+        const p = new THREE.Points(geo, mat);
+        p.frustumCulled = false;
+        scene.add(p);
+        layers.push({ pos: pos, seed: seed, cnt: cnt, attr: geo.attributes.position, mat: mat, base: opa });
+      };
+      const N = small ? 430 : 940;
+      mk(Math.round(N * 0.7), 0.13, 0.72);
+      mk(Math.round(N * 0.3), 0.30, 0.45);
+      return {
+        layers: layers,
+        update(t, dt, sv, mxv, myv, vis) {
+          for (let L = 0; L < layers.length; L++) {
+            const o = layers[L], p = o.pos, s = o.seed, n = o.cnt;
+            o.mat.opacity = o.base * vis;
+            for (let i = 0; i < n; i++) {
+              const i3 = i * 3;
+              const ph = s[i3], vy = s[i3 + 1], sw = s[i3 + 2];
+              p[i3] += (Math.sin(t * 0.35 * sw + ph) * 0.30 + mxv * sw * 1.1) * dt;
+              p[i3 + 1] += (vy * 0.45 + sv * 6.5 + myv * 0.6) * dt;
+              if (p[i3 + 1] > 15) p[i3 + 1] -= 30; else if (p[i3 + 1] < -15) p[i3 + 1] += 30;
+              if (p[i3] > 35) p[i3] -= 70; else if (p[i3] < -35) p[i3] += 70;
+            }
+            o.attr.needsUpdate = true;
+          }
+        }
+      };
+    })();
+
+    /* ---------- 环绕火花：绕着当前实体转的一圈光点 ----------
+       igloo 里最有记忆点的就是"物体被一圈流动的光围着"。
+       这圈点整体绕 Y 转（滚得越快转得越快），是画面里最显眼的一处持续运动。 */
+    const halo = (function () {
+      const n = small ? 110 : 230;
+      const geo = new THREE.BufferGeometry();
+      const pos = new Float32Array(n * 3);
+      for (let i = 0; i < n; i++) {
+        const i3 = i * 3;
+        const a = Math.random() * Math.PI * 2;
+        const r = 1.75 + Math.random() * 2.0;
+        pos[i3] = Math.cos(a) * r;
+        pos[i3 + 1] = (Math.random() * 2 - 1) * 1.6;
+        pos[i3 + 2] = Math.sin(a) * r * 0.8;
+      }
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      const mat = new THREE.PointsMaterial({
+        map: DOT, size: 0.08, sizeAttenuation: true, transparent: true, opacity: 0,
+        depthWrite: false, blending: THREE.AdditiveBlending, color: 0x9fd4ff, fog: false
+      });
+      const p = new THREE.Points(geo, mat);
+      p.frustumCulled = false; p.visible = false;
+      scene.add(p);
+      return {
+        p: p,
+        update(t, dt, level, sv, vis) {
+          p.visible = level > 0.02 && vis > 0.02;
+          if (!p.visible) return;
+          mat.opacity = Math.min(0.85, level * 0.75) * vis;
+          p.rotation.y += dt * (0.36 + Math.abs(sv) * 0.55);
+          p.rotation.z = Math.sin(t * 0.22) * 0.24;
+          p.rotation.x = Math.sin(t * 0.16) * 0.14;
+          p.position.y = Math.sin(t * 0.5) * 0.14;
+          p.scale.setScalar(0.92 + level * 0.14 + Math.sin(t * 0.8) * 0.035);
+        }
+      };
+    })();
+
     /* 核心的内芯（不参与碎片系统） */
     const coreInner = new THREE.Mesh(
       new THREE.OctahedronGeometry(0.5, 0),
@@ -404,9 +578,9 @@ if (HOST) {
        镜头时间线：由 DOM 分区驱动
        ============================================================ */
     const STOP_DEF = [
-      { sel: '#home', obj: 'core', pos: [0, 2.5, 9.4], look: [0, 1.45, 0], fov: 42 },
-      { sel: '#metrics', obj: 'core', pos: [2.0, 3.4, 13.6], look: [0, 2.2, 0], fov: 40 },
-      { sel: '#products', obj: 'gpu', items: '#products article', pos: [0, 1.6, 8.6], look: [0, 0.85, 0], fov: 45 },
+      { sel: '#home', obj: 'core', pos: [0, 2.5, 8.4], look: [0, 1.45, 0], fov: 40 },
+      { sel: '#metrics', obj: 'core', pos: [2.0, 3.4, 11.6], look: [0, 2.2, 0], fov: 38 },
+      { sel: '#products', obj: 'gpu', items: '#products article', pos: [0, 1.6, 7.4], look: [0, 0.85, 0], fov: 42 },
       { sel: '#philosophy', obj: null, pos: [0, 6.5, 17.5], look: [0, 2.0, -2], fov: 38 }
     ];
     let stops = [], narrativeEnd = 1200;
@@ -445,6 +619,7 @@ if (HOST) {
     /* ---------- 循环 ---------- */
     const camGoal = new THREE.Vector3(), lookGoal = new THREE.Vector3(), lookNow = new THREE.Vector3(0, 0.35, 0);
     let mouseX = 0, mouseY = 0, mx = 0, my = 0;
+    let lastSy = window.scrollY, sv = 0;
     let raf = 0, running = false, firstFrame = false, lastOpacity = -1;
     let fps = 60, fpsAcc = 0, fpsN = 0;
 
@@ -453,6 +628,12 @@ if (HOST) {
       if (!running) return;
       const dt = Math.min(0.05, clock.getDelta());
       const t = clock.elapsedTime;
+
+      /* 滚动速度（px/ms，夹紧）：滚得越快 → 实体转得越快、尘埃被掀起、辉光更亮 */
+      const sy = window.scrollY;
+      const rawV = (sy - lastSy) / Math.max(dt, 0.001) / 1000;
+      lastSy = sy;
+      sv += (Math.max(-4, Math.min(4, rawV)) - sv) * Math.min(1, dt * 7);
 
       /* 当前区间 + 前后插值 */
       const yMid = window.scrollY + window.innerHeight * 0.5;
@@ -471,13 +652,13 @@ if (HOST) {
 
       // 横向站位不插值：走进哪一块就把镜头摆到哪一侧（切换靠相机自身的缓动吃平）
       camGoal.set(
-        a.pos[0] + mx * 0.9,
-        a.pos[1] + (b.pos[1] - a.pos[1]) * e + my * 0.5 + Math.sin(t * 0.28) * 0.1,
-        a.pos[2] + (b.pos[2] - a.pos[2]) * e
+        a.pos[0] + mx * 0.9 + Math.sin(t * 0.21) * 0.34,
+        a.pos[1] + (b.pos[1] - a.pos[1]) * e + my * 0.5 + Math.sin(t * 0.28) * 0.11 + Math.sin(t * 0.17) * 0.09,
+        a.pos[2] + (b.pos[2] - a.pos[2]) * e + Math.sin(t * 0.13) * 0.24
       );
       camera.position.lerp(camGoal, Math.min(1, dt * 4.2));
       lookGoal.set(
-        a.look[0] + mx * 0.35,
+        a.look[0] + mx * 0.35 + Math.sin(t * 0.19 + 1.2) * 0.12,
         a.look[1] + (b.look[1] - a.look[1]) * e + my * 0.2,
         a.look[2] + (b.look[2] - a.look[2]) * e
       );
@@ -498,22 +679,34 @@ if (HOST) {
         o.center.lerp(want ? ZERO : o.park, Math.min(1, dt * 1.6));
         o.springs(dt);
         o.update(t);
+        o.idle(t, dt, sv);
       }
 
       const anyOn = Math.max(OBJ.core.morph, OBJ.gpu.morph, OBJ.truck.morph, OBJ.rack.morph);
-      glow.material.opacity = Math.max(0, (anyOn - 0.25)) * 0.85;
+      glow.material.opacity = Math.min(1, Math.max(0, anyOn - 0.25) * 0.85 * (1 + Math.min(0.7, Math.abs(sv) * 0.3)));
       glow.scale.setScalar(0.85 + anyOn * 0.35 + Math.sin(t * 0.9) * 0.03);
+
+      /* 叙事区可见度：滚到产品区之后慢慢收，到 about 之前刚好归零。
+         尘埃与光环铺满全站，是"任何位置都有微动"的底线。 */
+      const vis = Math.min(1, Math.max(0, (narrativeEnd + window.innerHeight * 0.95 - window.scrollY) / (window.innerHeight * 0.7)));
+
+      /* 尘埃 + 环境旋转 + 主光游走：任何滚动位置都不会变成静照 */
+      motes.update(t, dt, sv, mx, my, vis);
+      halo.update(t, dt, anyOn, sv, vis);
+      if (scene.environmentRotation) scene.environmentRotation.y += dt * 0.055;
+      key.position.set(5 + Math.sin(t * 0.23) * 2.4, 8, 6 + Math.cos(t * 0.19) * 1.8);
+      back.intensity = 26 + Math.sin(t * 1.25) * 4 + Math.min(14, Math.abs(sv) * 6);
 
       const coreOn = OBJ.core.morph;
       coreInner.visible = coreOn > 0.35;
       coreInner.rotation.set(t * 0.32, t * 0.45, 0);
-      coreInner.scale.setScalar(0.55 + coreOn * 0.6 + Math.sin(t * 1.6) * 0.04);
+      coreInner.scale.setScalar(0.42 + coreOn * 0.46 + Math.sin(t * 1.6) * 0.05);
       coreWire.visible = coreOn > 0.55;
       coreWire.rotation.set(t * 0.08 + 0.3, t * 0.12, t * 0.05);
 
       /* 滚出叙事区 → 画布淡出，交棒给正文 */
       const fadeA = narrativeEnd - window.innerHeight * 0.4;
-      const fadeB = narrativeEnd + window.innerHeight * 0.2;
+      const fadeB = narrativeEnd + window.innerHeight * 0.55;
       const op = 1 - Math.min(1, Math.max(0, (window.scrollY - fadeA) / Math.max(1, fadeB - fadeA)));
       if (Math.abs(op - lastOpacity) > 0.004) { canvas.style.opacity = op.toFixed(3); lastOpacity = op; }
 
@@ -536,7 +729,7 @@ if (HOST) {
     function rebuild() {
       for (const name in OBJ) {
         const o = OBJ[name];
-        for (let g = 0; g < 3; g++) if (o.mesh[g]) scene.remove(o.mesh[g]);
+        scene.remove(o.group);
       }
       const make = (key, build) => { const o = new Assemblage(key, build, { cloudR: key === 'core' ? 7.5 : 8.7, park: PARK[key] }); o.morph = 0; o.lastMp = -1; return o; };
       OBJ.core = make('core', buildCore);
@@ -548,7 +741,7 @@ if (HOST) {
     function start() { if (!raf) { clock.getDelta(); raf = requestAnimationFrame(frame); } }
     function stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
     function gate() {
-      const inRange = window.scrollY < narrativeEnd + window.innerHeight * 0.8;
+      const inRange = window.scrollY < narrativeEnd + window.innerHeight * 1.3;
       const want = inRange && !document.hidden;
       if (want === running) return;
       running = want;
@@ -594,6 +787,7 @@ if (HOST) {
           core: +OBJ.core.morph.toFixed(3), gpu: +OBJ.gpu.morph.toFixed(3),
           truck: +OBJ.truck.morph.toFixed(3), rack: +OBJ.rack.morph.toFixed(3)
         },
+        sv: +sv.toFixed(3), motes: motes.layers.length,
         tris: renderer.info.render.triangles, calls: renderer.info.render.calls,
         cw: canvas.width, ch: canvas.height, stops: stops.length
       }),
