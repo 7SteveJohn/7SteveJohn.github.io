@@ -89,27 +89,44 @@
   // 不用低频均值（那是恒定值，眼睛看不出"律动"）：瞬时能量对比慢速均值，
   // 超过阈值算一拍，冲高立即、回落带衰减 —— 视觉上是"哐→散"的冲击感。
   let actx = null, analyser = null, beatRaf = 0;
-  let beatAvg = 0.001, beatPulse = 0, beatLock = 0;
-  const BEAT_ARR = new Uint8Array(128);   // fftSize 256 → 128 bins
+  let beatPulse = 0, beatLock = 0, beatPrevT = 0, beatSlow = 0, beatPrevE = 0;
+  const BEAT_ARR = new Uint8Array(512);   // fftSize 1024 → 512 bins
   function beatLoop() {
-    beatRaf = requestAnimationFrame(beatLoop);
-    if (!analyser) return;
+    // ❗句柄必须"只在本帧排下一帧"时赋值：早先写成帧首 beatRaf = rAF(...)，
+    // 而切歌/暂停会触发 stopBeat() 把这个句柄 cancel 掉——但此时下一帧其实已经
+    // 排进队列，cancel 的却是"再下一帧"的句柄，于是出现"取消后又复活"的错位；
+    // 反复几次句柄就永久失真，视觉上表现为放歌一段时间后律动整体消失（实测 9s 后归零）。
+    if (!analyser) { beatRaf = 0; return; }
+    const nw = performance.now();
+    const dt = beatPrevT ? Math.min(0.1, (nw - beatPrevT) / 1000) : 0.016;
+    beatPrevT = nw;
     analyser.getByteFrequencyData(BEAT_ARR);
+    // ❗fftSize 要够大：256 时每 bin ≈ 187Hz，最低 6 个 bin 就跨到 1.1kHz，
+    // 里面全是持续伴奏 → 测出的是"段落能量"（实测 22 秒才 24 拍、还夹 2.25 秒空白）。
+    // 1024 时每 bin ≈ 47Hz，最低 8 个 bin 覆盖 0~370Hz —— 正好是底鼓/贝斯的冲击区。
     let sum = 0;
-    const n = Math.max(4, BEAT_ARR.length >> 3);   // 低频段（鼓点/贝斯所在）
+    const n = 8;
     for (let i = 0; i < n; i++) sum += BEAT_ARR[i];
     const energy = sum / n / 255;                  // 0..1
-    beatAvg += (energy - beatAvg) * 0.05;          // 慢速跟随的局部均值（~1s 尺度）
-    // 电子乐低频几乎不歇，靠"不应期"切出离散拍点：一拍后 300ms 内不再触发
-    // （≈200BPM 上限；更短会把持续满格的低频切成连续高亮，又"平"了）
-    const now = performance.now();
-    if (energy > beatAvg * 1.5 && now > beatLock) {
-      beatPulse = Math.min(1, (energy / beatAvg - 0.5) * 1.6);
-      beatLock = now + 300;
+    const now = nw;
+    // ❗判据用「相对上一帧的涨幅」，不要用"与峰值比较"：本机采集下最低几个 bin
+    // 几乎全程高电平（实测 pk 每帧都被当前值顶回去，arm 永远为 0），
+    // 峰值对比法在这个信号上无解。起音的定义就是"突然变响"——比上一帧涨一截即算。
+    // 门槛随慢均值自适应（安静段门槛低、高潮段门槛高），避免弱拍漏掉或强段狂触发。
+    beatSlow += (energy - beatSlow) * 0.05;
+    const rise = energy - beatPrevE;
+    beatPrevE = energy;
+    // 门槛 = 慢均值的 7%（且至少 0.012）：调高一档就漏拍（实测 0.12 倍只有 42BPM
+    // 且大段空白），调太低会把同一拍拆成两下。7% 在本机的采集上落在合适的密度。
+    if (rise > Math.max(0.012, beatSlow * 0.07) && now > beatLock) {
+      beatPulse = 1;
+      beatLock = now + 220;                        // ≈270BPM 上限，只防"同一拍连打两次"
     } else {
-      beatPulse *= 0.88;                           // 拍间回落（~0.4s 落回）
+      beatPulse = Math.max(0, beatPulse - dt * 3.4);   // 落回约 0.3 秒，峰谷对比拉得开
+      if (beatPulse < 0.02) beatPulse = 0;
     }
-    window.__BEAT = { level: Math.min(1, beatPulse) };
+    window.__BEAT = { level: Math.min(1, beatPulse), lv: energy, slow: beatSlow, rise: rise, ctx: actx ? actx.state : '-' };
+    beatRaf = requestAnimationFrame(beatLoop);   // 续帧放帧尾：帧内任何早退都不会留下悬空句柄
   }
   function startBeat() {
     try {
@@ -119,8 +136,8 @@
         actx = new AC();
         const srcNode = actx.createMediaElementSource(audio);   // 只能建一次；建后声音经 analyser 回到扬声器
         analyser = actx.createAnalyser();
-        analyser.fftSize = 256;
-        analyser.smoothingTimeConstant = 0.55;   // 低平滑保瞬态：均值化的数据看不出节拍
+        analyser.fftSize = 1024;                 // 每 bin≈47Hz，低频才有分辨率
+        analyser.smoothingTimeConstant = 0.2;    // 越低越保瞬态（0.55 会把鼓点抹平）
         srcNode.connect(analyser);
         analyser.connect(actx.destination);
       }

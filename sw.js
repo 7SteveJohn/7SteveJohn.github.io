@@ -6,7 +6,7 @@
  * - 其余同源/静态资源：缓存优先 + 后台更新（stale-while-revalidate）
  * ⚠️ 每次发布改动静态资源后，把 CACHE 版本号 +1，旧缓存会在 activate 阶段自动清理。
  */
-const CACHE = 'sevenjohn-v33';
+const CACHE = 'sevenjohn-v34';
 const CORE = [
   './',
   'index.html',
@@ -23,7 +23,6 @@ const CORE = [
   'js/particles.js',
   'js/gl-stage.js',
   'assets/vendor/three.module.min.js',
-  'assets/vendor/three-addons/geometries/RoundedBoxGeometry.js',
   'assets/vendor/three-addons/postprocessing/EffectComposer.js',
   'assets/vendor/three-addons/postprocessing/RenderPass.js',
   'assets/vendor/three-addons/postprocessing/ShaderPass.js',

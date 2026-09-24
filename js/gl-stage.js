@@ -6,10 +6,11 @@
    散场时再崩解回粒子"的真 3D 实体（晶体核心 / 显卡 / 卡车 / 机柜）。
 
    要点
-   · InstancedMesh + 逐实例目标位姿：每件实体由几百块小钢板组成。
-     凝聚 = 从云团位置飞向目标位姿（错峰启程、飞行中翻滚、弧线鼓包），
-     崩解 = 反向。位姿在 CPU 上算（几百个实例，代价可忽略），换来的是
-     完全自由的飞行手感，以及"被撞散再吸回"的交互。
+   · 形态 = 一批曲线：曲线扫出 TubeGeometry 当光带（顶点沿管长排列 →
+     setDrawRange 就是"从头生长到尾"），再撒一批粒子顺着曲线流动。
+     凝聚 = 光带生长 + 粒子从云团归位；崩解 = 反向。粒子在 CPU 上按曲线
+     采样表插值（几千个点，代价可忽略），换来的是完全自由的流动手感。
+   · 音乐律动四路：泛光强度 / 背光与色温 / 冲击波涟漪 + 镜头微推微震 / 实体鼓动。
    · 深色雾 + 程序化环境贴图（画一张 equirect 画布 → PMREM），金属因此
      有真实的高光走向，而不是贴一张假渐变。
    · 镜头时间线由 DOM 分区驱动（取每段的 offsetTop/height），改内容不用
@@ -18,7 +19,6 @@
      fps 看门狗：先降 DPR，再降实例密度。
    ============================================================ */
 import * as THREE from '../assets/vendor/three.module.min.js';
-import { RoundedBoxGeometry } from '../assets/vendor/three-addons/geometries/RoundedBoxGeometry.js';
 import { EffectComposer } from '../assets/vendor/three-addons/postprocessing/EffectComposer.js';
 import { RenderPass } from '../assets/vendor/three-addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from '../assets/vendor/three-addons/postprocessing/UnrealBloomPass.js';
@@ -153,6 +153,7 @@ if (HOST) {
     const key = new THREE.DirectionalLight(0xf2f7ff, 3.0); key.position.set(5, 8, 6); scene.add(key);
     const rim = new THREE.DirectionalLight(0x9cc6ff, 2.0); rim.position.set(-7, 2.5, -5); scene.add(rim);
     const back = new THREE.PointLight(0x4d8dff, 26, 26, 2); back.position.set(0, 0.4, -3.4); scene.add(back);
+    const COOL = new THREE.Color(0x4d8dff), WARM = new THREE.Color(0xdcf2ff);   // 节拍色温：冷蓝 → 青白
 
     /* ---------- 地台 ---------- */
     const ground = new THREE.Mesh(
@@ -175,12 +176,41 @@ if (HOST) {
       m.rotation.x = -Math.PI / 2; m.position.y = -3.06; m.renderOrder = -1; scene.add(m);
     })();
 
-    /* ---------- 材质 ---------- */
-    // 哑光金属：roughness 拉高让高光带变宽变柔——锐利镜面高光打在小碎块上就是"玻璃渣"。
-    // 基色压暗（近白基色会把整机抬成"白瓷"）：暗部深下去，立体感才回来
-    const steel = new THREE.MeshStandardMaterial({ color: 0x9aa6b5, metalness: 0.96, roughness: 0.34, envMapIntensity: 1.2 });
-    const darkM = new THREE.MeshStandardMaterial({ color: 0x333b47, metalness: 0.9, roughness: 0.44, envMapIntensity: 0.9 });
-    const hotM = new THREE.MeshStandardMaterial({ color: 0x11293c, metalness: 0.6, roughness: 0.35, emissive: 0x46b6ff, emissiveIntensity: 2.0 });
+    /* ---------- 柔边光点贴图 ----------
+       粒子、光核、冲击波共用：一张中心亮、边缘空的柔边点。 */
+    const DOT = (function () {
+      const c = document.createElement('canvas'); c.width = c.height = 64;
+      const g = c.getContext('2d');
+      const rg = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+      rg.addColorStop(0.00, 'rgba(255,255,255,1)');
+      rg.addColorStop(0.30, 'rgba(196,228,255,0.62)');
+      rg.addColorStop(1.00, 'rgba(90,140,220,0)');
+      g.fillStyle = rg; g.fillRect(0, 0, 64, 64);
+      return new THREE.CanvasTexture(c);
+    })();
+
+    /* ---------- 材质 ----------
+       形态改成「光带 + 流动粒子」之后不再需要金属材质：两者都是加法混合的
+       发光体。线条要"看得清"而不是糊成光球，靠三件事：
+       ① 色值压到泛光阈值（1.0）以下 —— 不晕开就是一条清楚的光；
+       ② 光带用暗蓝青做底，只有节拍时才提亮到过阈值；
+       ③ 粒子小而亮，负责"流动感"，不跟光带抢亮度。 */
+    function ribbonMat(cool) {
+      return new THREE.MeshBasicMaterial({
+        color: cool.clone().multiplyScalar(0.62),   // 常态在阈值以下：清晰的线
+        transparent: true, opacity: 0.42,
+        blending: THREE.AdditiveBlending, depthWrite: false,
+        side: THREE.DoubleSide, fog: false
+      });
+    }
+    function flowMat(cool) {
+      return new THREE.PointsMaterial({
+        color: cool.clone().multiplyScalar(1.35),
+        map: DOT, size: 0.105, sizeAttenuation: true,
+        transparent: true, opacity: 0.72, depthWrite: false,
+        blending: THREE.AdditiveBlending, fog: false
+      });
+    }
 
     /* ---------- 泛光后处理 ----------
        EffectComposer + RenderPass + UnrealBloomPass + OutputPass（awwwards 站的标配）。
@@ -209,349 +239,275 @@ if (HOST) {
     })();
     if (composer) renderer.info.autoReset = false;   // composer 一帧多次 render，改手动 reset 否则 state().tris 只剩最后一个 pass
 
-    /* ============================================================
-       形状：把外形描述成一批小钢板的目标位姿
-       ============================================================ */
     const rnd = (a, b) => a + Math.random() * (b - a);
 
-    // 骨架化的盒体：大片贴在棱与面上（大留白），少量内部碎屑做体积感。
-    // shell=装甲板模式：面划网格、板对格铺放、缝宽一致 —— "造物感"的关键；
-    // 随机撒板的缝宽参差，怎么调都是蓬松的碎块堆。
-    function fillBox(list, cx, cy, cz, hx, hy, hz, n, opt) {
-      opt = opt || {};
-      const w = opt.w === undefined ? 0.8 : opt.w;
-      const k = opt.k || 1;
-      const vmin = opt.vmin === undefined ? 0.85 : opt.vmin;
-      const vspan = opt.vspan === undefined ? 1.05 : opt.vspan;
-      if (opt.shell) {
-        const cell = opt.cell || 0.42;
-        const faces = [                          // 每面：面内两个半尺寸
-          { hu: hy, hv: hz },                    // 法线沿 x
-          { hu: hx, hv: hz },                    // 法线沿 y
-          { hu: hx, hv: hy }                     // 法线沿 z
-        ];
-        const cells = [];
-        for (let fi = 0; fi < 3; fi++) {
-          const fc = faces[fi];
-          const nu = Math.max(1, Math.round(fc.hu * 2 / cell));
-          const nv = Math.max(1, Math.round(fc.hv * 2 / cell));
-          for (const side of [-1, 1])
-            for (let iu = 0; iu < nu; iu++)
-              for (let iv = 0; iv < nv; iv++) cells.push([fi, side, iu, iv, nu, nv]);
-        }
-        for (let i = cells.length - 1; i > 0; i--) {    // 打乱格位，铺满优先
-          const j = (Math.random() * (i + 1)) | 0;
-          const tmp = cells[i]; cells[i] = cells[j]; cells[j] = tmp;
-        }
-        for (let i = 0; i < n; i++) {
-          const c = cells[i % cells.length];
-          const fi = c[0], side = c[1];
-          const fc = faces[fi];
-          const su = fc.hu * 2 / c[4], sv = fc.hv * 2 / c[5];
-          const u = -fc.hu + (c[2] + 0.5) * su, v = -fc.hv + (c[3] + 0.5) * sv;
-          const fu = su * rnd(0.82, 0.96), fv = sv * rnd(0.82, 0.96);
-          const th = rnd(0.09, 0.15);
-          let p, s2;
-          if (fi === 0)      { p = [cx + side * hx, cy + u, cz + v]; s2 = [th, fu, fv]; }
-          else if (fi === 1) { p = [cx + u, cy + side * hy, cz + v]; s2 = [fu, th, fv]; }
-          else               { p = [cx + u, cy + v, cz + side * hz]; s2 = [fu, fv, th]; }
-          list.push({
-            p: p, s: s2,
-            r: [rnd(-0.05, 0.05), rnd(-0.05, 0.05), rnd(-0.05, 0.05)],
-            heavy: !!(opt.heavy && Math.random() < opt.heavy),
-            hot: false
-          });
-        }
-        return;
-      }
-      for (let i = 0; i < n; i++) {
-        let x = rnd(-1, 1), y = rnd(-1, 1), z = rnd(-1, 1);
-        let long = 0;
-        if (Math.random() < w) {
-          const f = (Math.random() * 3) | 0;
-          if (f === 0) { x = Math.random() < 0.5 ? -1 : 1; long = 1; }
-          else if (f === 1) { y = Math.random() < 0.5 ? -1 : 1; long = 1; }
-          else { z = Math.random() < 0.5 ? -1 : 1; long = 0; }
-        }
-        const vf = vmin + Math.random() * vspan;
-        const p = [cx + x * hx, cy + y * hy, cz + z * hz];
-        const s = long
-          ? [rnd(0.42, 0.86) * k, rnd(0.08, 0.15) * k, rnd(0.06, 0.14) * k]
-          : [rnd(0.20, 0.48) * k, rnd(0.13, 0.30) * k, rnd(0.06, 0.12) * k];
-        s[0] *= vf; s[1] *= 0.7 + vf * 0.4;
-        list.push({
-          p: p, s: s,
-          r: [rnd(-0.10, 0.10), rnd(-0.22, 0.22), rnd(-0.09, 0.09)],
-          heavy: !!(opt.heavy && Math.random() < opt.heavy),
-          hot: false
-        });
-      }
-    }
-
-    // 两点之间架一片板：这就是"结构感"的来源（面片分离，看得出是构架）
-    function strut(list, a, b, s, frac) {
-      const m = Math.max(1, Math.round(frac || 1));
-      for (let i = 0; i < m; i++) {
-        const t = (i + 0.5) / m;
-        list.push({
-          p: [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t],
-          s: [s[0] * rnd(0.92, 1.08), s[1] * rnd(0.92, 1.08), s[2]],
-          r: [0, Math.atan2(b[2] - a[2], b[0] - a[0]), 0],
-          heavy: true, hot: false
-        });
-      }
-    }
-
-    /* 首屏：晶体核心 —— 球面外长的晶板 + 发光内芯 */
-    function buildCore() {
-      const parts = [], n = 430;
-      const ga = Math.PI * (3 - Math.sqrt(5));
-      for (let i = 0; i < n; i++) {
-        const y = 1 - (i / n) * 2, r = Math.sqrt(Math.max(0, 1 - y * y)), th = ga * i;
-        const R = 1.44 * (0.96 + Math.random() * 0.12);
-        const nx = Math.cos(th) * r, ny = y, nz = Math.sin(th) * r;
-        parts.push({
-          p: [nx * R, ny * R * 0.94, nz * R],
-          // 板面沿切向铺开：像冰晶从球面长出来，而不是一堆碎屑
-          s: [rnd(0.62, 1.05), rnd(0.16, 0.30), rnd(0.07, 0.13)],
-          r: [ny * 1.15, th + Math.PI / 2, nz * 0.9],
-          heavy: false,
-          hot: Math.random() < 0.07
-        });
-      }
-      return { parts: parts, inner: true };
-    }
-
-    /* Fluxion：显卡 —— 散热罩 + 双风扇环 + 热管 + 背板 + 金手指 */
-    function buildGpu() {
-      const parts = [], n = 560;
-      const HX = 1.35, HY = 0.66, HZ = 0.14;
-      // 散热罩：壳板只趴在上下两个大面上，中间留空给风扇透光
-      fillBox(parts, 0, 0, 0, HX, HY, HZ, Math.round(n * 0.26), { shell: true, cell: 0.46 });
-      // 背板：整块大板
-      fillBox(parts, 0, 0, -0.20, HX * 1.02, HY * 1.02, 0.02, Math.round(n * 0.14), { shell: true, k: 2.4, heavy: 0.85 });
-      for (const sx of [-0.62, 0.62]) {
-        const R = 0.46, blades = 9;
-        for (let i = 0; i < blades; i++) {                 // 扇叶：厚叶片，一眼看出是风扇
-          const a = (i / blades) * Math.PI * 2;
-          parts.push({
-            p: [sx + Math.cos(a) * R * 0.70, Math.sin(a) * R * 0.70, HZ + 0.10],
-            s: [R * 1.2, 0.24, 0.09], r: [0, a, 0.5], heavy: false, hot: false
-          });
-        }
-        for (let i = 0; i < 20; i++) {                     // 风罩环
-          const a = (i / 20) * Math.PI * 2;
-          parts.push({ p: [sx + Math.cos(a) * R, Math.sin(a) * R, HZ + 0.10], s: [0.34, 0.16, 0.16], r: [0, a, 0], heavy: true, hot: false });
-        }
-        parts.push({ p: [sx, 0, HZ + 0.10], s: [0.22, 0.22, 0.12], r: [0, 0, 0], heavy: true, hot: true });
-      }
-      // 热管：横贯整卡的粗管
-      for (let i = 0; i < 5; i++) parts.push({ p: [0, HY * 0.72 - i * 0.07, HZ + 0.02], s: [HX * 2.0, 0.07, 0.07], r: [0, 0, 0], heavy: true, hot: false });
-      // 金手指
-      for (let i = 0; i < 10; i++) parts.push({ p: [rnd(-0.45, 0.45), -HY - 0.05, 0.06], s: [0.14, 0.06, 0.06], r: [0, 0, 0], heavy: true, hot: false });
-      // IO 挡板：卡尾一排接口挡片（真显卡的辨识件）
-      for (let i = 0; i < 4; i++) parts.push({ p: [-HX - 0.05, HY * 0.55 - i * 0.28, 0], s: [0.05, 0.20, 0.34], r: [0, 0, 0], heavy: true, hot: false });
-      // 边缘桁架：把"卡"的轮廓拉出来
-      for (const y of [HY, -HY]) strut(parts, [-HX, y, 0], [HX, y, 0], [0.6, 0.11, 0.12], 4);
-      strut(parts, [-HX, -HY, 0], [-HX, HY, 0], [0.11, 0.6, 0.12], 3);
-      strut(parts, [HX, -HY, 0], [HX, HY, 0], [0.11, 0.6, 0.12], 3);
-      return { parts: parts };
-    }
-
-    /* FileButler：厢式货车 —— 车厢 + 驾驶室 + 四轮 + 大梁 */
-    function buildTruck() {
-      const parts = [], n = 520;
-      // 车厢：骨架板材 —— 顶/侧/后是整片，中间只留少量填充
-      fillBox(parts, -0.46, 0.46, 0, 0.98, 0.54, 0.54, Math.round(n * 0.26), { shell: true, cell: 0.36 });
-      // 驾驶室
-      fillBox(parts, 0.80, 0.26, 0, 0.34, 0.38, 0.48, Math.round(n * 0.11), { shell: true, k: 1.9 });
-      fillBox(parts, 1.02, 0.52, 0, 0.12, 0.10, 0.48, Math.round(n * 0.03), { k: 1.6 });   // 导流罩
-      parts.push({ p: [0.94, 0.44, 0], s: [0.03, 0.15, 0.40], r: [0, 0, -0.35], heavy: false, hot: true });   // 挡风玻璃（发光）
-      // 大梁 + 前保险杠
-      for (const z of [-0.44, 0.44]) strut(parts, [-1.30, -0.30, z], [1.10, -0.30, z], [0.16, 0.30, 0.14], 6);
-      strut(parts, [1.16, -0.10, -0.42], [1.16, -0.10, 0.42], [0.16, 0.34, 0.30], 3);
-      // 四轮：环 + 十字辐
-      for (const wx of [-0.76, 0.66]) for (const wz of [-0.60, 0.60]) {
-        const R = 0.38, seg = 16;
-        for (let i = 0; i < seg; i++) {
-          const a = (i / seg) * Math.PI * 2;
-          parts.push({ p: [wx + Math.cos(a) * R, -0.64 + Math.sin(a) * R, wz], s: [0.26, 0.19, 0.19], r: [0, a, 0], heavy: false, hot: i === 0 || i === 8 });
-        }
-        for (let i = 0; i < 5; i++) {
-          const a = (i / 5) * Math.PI;
-          parts.push({ p: [wx, -0.64, wz + 0.02], s: [R * 1.9, 0.09, 0.13], r: [0, 0, a], heavy: true, hot: false });
-        }
-      }
-      return { parts: parts };
-    }
-
-    /* NetOps：服务器机柜 —— 四柱 + 六层机架单元 + 背板走线 */
-    function buildRack() {
-      const parts = [], n = 500;
-      const HX = 0.62, HY = 1.5, HZ = 0.40, UNIT = 6;
-      // 四根通高立柱：柜子的骨架
-      for (const sx of [-HX, HX]) for (const sz of [-HZ, HZ]) {
-        strut(parts, [sx, -HY, sz], [sx, HY, sz], [0.26, 0.5, 0.26], 10);
-      }
-      // 顶盖 + 底脚
-      fillBox(parts, 0, HY + 0.05, 0, HX * 1.02, 0.03, HZ * 1.02, 10, { shell: true, k: 1.8, heavy: 0.4 });
-      fillBox(parts, 0, -HY - 0.04, 0, HX * 1.02, 0.03, HZ * 1.02, 8, { shell: true, k: 1.4, heavy: 0.9 });
-      for (let u = 0; u < UNIT; u++) {
-        const yc = HY - (u + 0.5) * (HY * 2 / UNIT);
-        // 每一层的面板：整片大板 + 两侧导轨
-        fillBox(parts, 0, yc, HZ * 0.86, HX * 0.86, 0.04, 0.02, 10, { shell: true, k: 1.5, vmin: 1.0, vspan: 0.5 });
-        for (const sx of [-HX * 0.9, HX * 0.9]) parts.push({ p: [sx, yc, HZ * 0.5], s: [0.07, 0.34, 0.62], r: [0, 0, 0], heavy: true, hot: false });
-        // 层上的指示灯带
-        for (let i = 0; i < 4; i++) parts.push({ p: [rnd(-HX * 0.7, HX * 0.7), yc + 0.09, HZ * 0.90], s: [0.07, 0.032, 0.03], r: [0, 0, 0], heavy: false, hot: true });
-        if (u < UNIT - 1) strut(parts, [-HX * 0.86, yc - HY / UNIT, HZ * 0.9], [HX * 0.86, yc - HY / UNIT, HZ * 0.9], [0.5, 0.07, 0.16], 2);
-      }
-      // 背后走线槽
-      fillBox(parts, 0, 0, -HZ * 0.92, HX * 0.8, HY * 0.9, 0.02, Math.round(n * 0.06), { shell: true, k: 0.8, heavy: 0.85 });
-      return { parts: parts };
-    }
-
     /* ============================================================
-       通用临时量
+       形态：用「光带曲线」描述，不再是一堆方块零件
+       —— 方块实体（显卡/卡车/机柜）跟博客内容没关系，形状也不讨喜；
+          光带 + 粒子流本身就是氛围，四个分区各一种流动姿态。
        ============================================================ */
-    const _m4 = new THREE.Matrix4();
-    const _vp = new THREE.Vector3(), _vs = new THREE.Vector3();
-    const _qa = new THREE.Quaternion(), _qb = new THREE.Quaternion();
-    const AXIS = [
-      new THREE.Vector3(1, 0.3, 0.2).normalize(),
-      new THREE.Vector3(0.2, 1, 0.4).normalize(),
-      new THREE.Vector3(0.4, 0.2, 1).normalize()
-    ];
-    // 圆角盒：硬直角边是"棱角分明 / 玻璃渣"观感的直接来源。
-    // 实例矩阵做非均匀缩放：大面圆角被放大（视觉上柔和），薄边方向圆角缩小（依然锋利不糊）。
-    const BOX = new RoundedBoxGeometry(1, 1, 1, 2, 0.11);
+
+    // 环：半径 R，绕 x 倾斜 tilt，绕 y 偏转 yaw
+    function ringCurve(R, tilt, yaw, cx, cy, cz) {
+      const pts = [], N = 72;
+      for (let i = 0; i < N; i++) {
+        const a = (i / N) * Math.PI * 2;
+        const x = Math.cos(a) * R, y0 = Math.sin(a) * R;
+        const y = y0 * Math.cos(tilt), z0 = y0 * Math.sin(tilt);
+        pts.push([cx + x * Math.cos(yaw) + z0 * Math.sin(yaw), cy + y, cz - x * Math.sin(yaw) + z0 * Math.cos(yaw)]);
+      }
+      return { pts: pts, closed: true };
+    }
+
+    // 呼吸环：同一个圆但每点半径按正弦起伏 —— 一圈静止的圆看着像"箍"，
+    // 起伏之后才像光在流。amp 大一点更好看（0.15 上下）；起止点同相保证闭合。
+    function wobbleRing(R, amp, k, ph, tilt, yaw) {
+      const pts = [], N = 84;
+      for (let i = 0; i < N; i++) {
+        const a = (i / N) * Math.PI * 2;
+        const rr = R * (1 + amp * Math.sin(a * k + ph));
+        const x = Math.cos(a) * rr, y0 = Math.sin(a) * rr;
+        const y = y0 * Math.cos(tilt), z0 = y0 * Math.sin(tilt);
+        pts.push([x * Math.cos(yaw) + z0 * Math.sin(yaw), y, -x * Math.sin(yaw) + z0 * Math.cos(yaw)]);
+      }
+      return { pts: pts, closed: true };
+    }
+
+    // 螺旋：底→顶绕 turns 圈，两端收窄成纺锤（球面收束）。
+    // 相位抖动只能加在 y 上：往 x/z 上抖会让圆变椭圆（球面收束的和谐感就没了）。
+    function helixCurve(R, H, turns, ph) {
+      const pts = [], N = 110;
+      for (let i = 0; i < N; i++) {
+        const u = i / (N - 1);
+        const rr = R * Math.sqrt(Math.max(0.05, 1 - Math.pow(u * 2 - 1, 2)));
+        const a = u * turns * Math.PI * 2 + ph;
+        pts.push([Math.cos(a) * rr, (u - 0.5) * H + Math.sin(u * 7.3 + ph) * H * 0.055, Math.sin(a) * rr]);
+      }
+      return { pts: pts, closed: false };
+    }
+
+    // 竖直光柱：从下到上带一点弧度
+    function columnCurve(x, z, H, bend) {
+      const pts = [], N = 44;
+      for (let i = 0; i < N; i++) {
+        const u = i / (N - 1);
+        pts.push([x + Math.sin(u * Math.PI) * bend, (u - 0.5) * H, z + Math.sin(u * Math.PI) * bend * 0.55]);
+      }
+      return { pts: pts, closed: false };
+    }
+
+    // 首屏核心：三层呼吸环 + 两条球面螺旋 —— 一颗能量球的骨架。
+    // 半径收在 1.3 上下：再大就顶到 hero 的标题与按钮（首屏只有 800px 高）。
+    function buildCore() {
+      const cs = [];
+      cs.push(wobbleRing(1.06, 0.16, 2, 0.0, 0.55, 0.0));
+      cs.push(wobbleRing(1.26, 0.13, 3, 1.7, 0.20, 0.55));
+      cs.push(wobbleRing(0.92, 0.18, 2, 3.1, 1.05, -0.45));
+      cs.push(ringCurve(1.32, 0.05, 0.35, 0, 0, 0));      // 赤道上一圈干净的圆，把散着的环"框"住
+      cs.push(helixCurve(1.00, 2.30, 1.35, 0));
+      cs.push(helixCurve(0.94, 2.30, 1.35, Math.PI));
+      cs[3].w = 0.048; cs[4].w = 0.040; cs[5].w = 0.040;
+      return { curves: cs, hue: 0x8ec5ff, hot: 0xe6f4ff };
+    }
+
+    /* 分区形态一：上升旋涡（三条不同相位螺旋束 + 一圈呼吸环） */
+    function buildGpu() {
+      const cs = [];
+      cs.push(helixCurve(1.16, 2.65, 2.1, 0));
+      cs.push(helixCurve(0.84, 2.35, 2.6, 2.1));
+      cs.push(helixCurve(0.54, 1.95, 3.0, 4.2));
+      cs.push(wobbleRing(1.44, 0.10, 3, 0.8, 1.32, 0.22));
+      cs[3].w = 0.056;
+      return { curves: cs, hue: 0x53d8ff, hot: 0xd6fbff };
+    }
+
+    /* 分区形态二：双环交织（∞ 形）+ 外束螺旋 */
+    function buildTruck() {
+      const cs = [];
+      cs.push(wobbleRing(0.90, 0.10, 2, 0.0, 1.08, 0.34));
+      cs.push(wobbleRing(0.90, 0.10, 2, 3.14, 1.08, 0.34));
+      cs.push(helixCurve(1.48, 1.85, 1.15, 0.6));
+      cs.push(wobbleRing(1.66, 0.14, 3, 1.2, 0.28, -0.42));
+      cs[3].w = 0.052;
+      return { curves: cs, hue: 0x9d8bff, hot: 0xece6ff };
+    }
+
+    /* 分区形态三：光柱阵列 + 上下端环 + 一层外束 */
+    function buildRack() {
+      const cs = [];
+      const R = 0.98;
+      for (let i = 0; i < 5; i++) {
+        const a = (i / 5) * Math.PI * 2 + 0.3;
+        cs.push(columnCurve(Math.cos(a) * R, Math.sin(a) * R, 2.95, 0.30));
+      }
+      cs.push(wobbleRing(R * 1.10, 0.08, 2, 0.4, 0.0, 0.0));   // 端环是水平圆：tilt=0
+      cs.push(wobbleRing(R * 1.10, 0.08, 2, 3.5, 0.0, 0.0));
+      cs.push(helixCurve(R * 1.10, 2.95, 0.85, 0));
+      cs[5].w = 0.052; cs[6].w = 0.052;
+      return { curves: cs, hue: 0x74f0d6, hot: 0xdcfff6 };
+    }
+
     const easeInOut = x => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
     const ZERO = new THREE.Vector3(0, 0, 0);
 
     /* ============================================================
-       Assemblage：一件"碎片实体"
+       Flowform：一件「由光带与流动粒子聚成」的形态
+       ------------------------------------------------------------
+       不是方块零件堆：形态 = 一批曲线。曲线扫出 TubeGeometry 当光带
+       （顶点沿管长顺序生成 → setDrawRange 就是"从头生长到尾"），
+       再撒一批粒子顺着曲线流动。morph 0→1 = 光带生长 + 粒子从云团归位。
        ============================================================ */
-    class Assemblage {
+    class Flowform {
       constructor(name, build, opt) {
         opt = opt || {};
-        const parts = build().parts;
-        const n = this.n = parts.length;
+        const spec = build();
         this.name = name;
-        this.parts = parts;
-
-        // 三类材质各一个 InstancedMesh，slot 表一次算好（避免每帧 indexOf）
-        this.mesh = {};
-        this.slot = new Uint8Array(n);            // 0 钢 / 1 深色 / 2 发光
-        this.group = new THREE.Group();           // 整件实体一个组：静置时的自旋与呼吸挂在组上
+        this.cool = new THREE.Color(spec.hue || 0x8ec5ff).multiplyScalar(0.62);   // 常态：沉下来的冷色（阈值下，线条清晰）
+        this.warm = new THREE.Color(spec.hot || 0xe6f4ff).multiplyScalar(1.12);   // 节拍：刚过阈值晕一下，别全糊成白
+        this.group = new THREE.Group();
         scene.add(this.group);
-        const mk = (mat, cnt) => {
-          if (!cnt) return null;
-          const m = new THREE.InstancedMesh(BOX, mat, cnt);
-          m.frustumCulled = false;
-          m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-          m.visible = false;
-          this.group.add(m);
-          return m;
-        };
-        let c0 = 0, c1 = 0, c2 = 0;
-        for (let i = 0; i < n; i++) {
-          const p = parts[i];
-          if (p.hot) { this.slot[i] = 2; c2++; }
-          else if (p.heavy) { this.slot[i] = 1; c1++; }
-          else { this.slot[i] = 0; c0++; }
-        }
-        this.mesh[0] = mk(steel, c0);
-        this.mesh[1] = mk(darkM, c1);
-        this.mesh[2] = mk(hotM, c2);
-        this.n0 = this.n1 = this.n2 = 0;
 
-        const f = () => new Float32Array(n * 3);
-        this.tgt = f(); this.off = f(); this.offV = f(); this.cloud = f(); this.sc = f();
-        this.spin = new Float32Array(n);
-        this.delay = new Float32Array(n);
-        this.q = new Float32Array(n * 4);
+        const paths = spec.curves.map(function (c) {
+          return new THREE.CatmullRomCurve3(
+            c.pts.map(function (p) { return new THREE.Vector3(p[0], p[1], p[2]); }),
+            !!c.closed, 'catmullrom', 0.5
+          );
+        });
+
+        /* 光带 */
+        this.ribbons = [];
+        const TUB = small ? 84 : 132;
+        for (let i = 0; i < paths.length; i++) {
+          const geo = new THREE.TubeGeometry(paths[i], TUB, spec.curves[i].w || 0.05, 5, !!spec.curves[i].closed);
+          const mat = ribbonMat(this.cool);
+          const m = new THREE.Mesh(geo, mat);
+          m.frustumCulled = false; m.renderOrder = 3; m.visible = false;
+          this.group.add(m);
+          this.ribbons.push({ mesh: m, geo: geo, mat: mat, total: geo.index.count, delay: 0 });
+        }
+        // 每条光带出发时间错开：凝聚时像被逐条点亮，而不是一起亮
+        for (let i = 0; i < this.ribbons.length; i++) this.ribbons[i].delay = (i / this.ribbons.length) * 0.32;
+
+        /* 曲线采样表：粒子位置查表插值，省掉每帧对曲线的求值 */
+        this.S = 128;
+        this.samp = [];
+        for (let p = 0; p < paths.length; p++) {
+          const arr = new Float32Array(this.S * 3);
+          const v = new THREE.Vector3();
+          for (let i = 0; i < this.S; i++) {
+            paths[p].getPoint(i / (this.S - 1), v);
+            arr[i * 3] = v.x; arr[i * 3 + 1] = v.y; arr[i * 3 + 2] = v.z;
+          }
+          this.samp.push(arr);
+        }
+
+        /* 粒子 */
+        const per = Math.max(24, Math.round((small ? 96 : 178) * (COUNT || 1)));
+        const np = this.N = per * spec.curves.length;
+        this.pos = new Float32Array(np * 3);
+        this.pi = new Uint8Array(np);        // 所属曲线
+        this.pu = new Float32Array(np);      // 曲线参数 0..1
+        this.spd = new Float32Array(np);     // 顺着曲线的流动速度
+        this.amp = new Float32Array(np);     // 侧向抖动幅度
+        this.ph = new Float32Array(np);      // 相位
+        this.delay = new Float32Array(np);
+        this.off = new Float32Array(np * 3); this.offV = new Float32Array(np * 3);
+        this.cloud = new Float32Array(np * 3);
+        for (let i = 0; i < np; i++) {
+          const i3 = i * 3;
+          this.pi[i] = i % spec.curves.length;
+          this.pu[i] = Math.random();
+          this.spd[i] = rnd(0.02, 0.085) * (Math.random() < 0.5 ? -1 : 1);
+          this.amp[i] = rnd(0.035, 0.17);
+          this.ph[i] = Math.random() * 6.283;
+          this.delay[i] = Math.random();
+          const th = Math.random() * Math.PI * 2, sph = Math.acos(Math.random() * 2 - 1);
+          const rr = (opt.cloudR || 9) * (0.22 + Math.random() * 0.78);
+          this.cloud[i3] = Math.sin(sph) * Math.cos(th) * rr;
+          this.cloud[i3 + 1] = Math.cos(sph) * rr * 0.8;
+          this.cloud[i3 + 2] = Math.sin(sph) * Math.sin(th) * rr;
+        }
+        const geoP = new THREE.BufferGeometry();
+        this.attr = new THREE.BufferAttribute(this.pos, 3);
+        this.attr.setUsage(THREE.DynamicDrawUsage);
+        geoP.setAttribute('position', this.attr);
+        this.pmat = flowMat(this.cool);
+        this.points = new THREE.Points(geoP, this.pmat);
+        this.points.frustumCulled = false; this.points.renderOrder = 3;
+        this.group.add(this.points);
+
         this.park = new THREE.Vector3(opt.park[0], opt.park[1], opt.park[2]);
         this.center = this.park.clone();
         this.morph = 0; this.target = 0; this.lastMp = -1; this.busy = false;
         this.yaw = Math.random() * Math.PI * 2;
-        this.spinIdle = rnd(0.13, 0.25) * (Math.random() < 0.5 ? -1 : 1);
-        this.ph = Math.random() * 6.283;
-
-        const cloudR = opt.cloudR || 9;
-        const q = new THREE.Quaternion(), eu = new THREE.Euler();
-        for (let i = 0; i < n; i++) {
-          const p = parts[i], i3 = i * 3, i4 = i * 4;
-          this.tgt[i3] = p.p[0]; this.tgt[i3 + 1] = p.p[1]; this.tgt[i3 + 2] = p.p[2];
-          this.sc[i3] = p.s[0]; this.sc[i3 + 1] = p.s[1]; this.sc[i3 + 2] = p.s[2];
-          const th = Math.random() * Math.PI * 2, ph = Math.acos(Math.random() * 2 - 1), rr = cloudR * (0.22 + Math.random() * 0.78);
-          this.cloud[i3] = Math.sin(ph) * Math.cos(th) * rr;
-          this.cloud[i3 + 1] = Math.cos(ph) * rr * 0.8;
-          this.cloud[i3 + 2] = Math.sin(ph) * Math.sin(th) * rr;
-          this.spin[i] = rnd(0.4, 1.5) * (Math.random() < 0.5 ? -1 : 1);
-          this.delay[i] = Math.random();
-          eu.set(p.r[0], p.r[1], p.r[2]); q.setFromEuler(eu);
-          this.q[i4] = q.x; this.q[i4 + 1] = q.y; this.q[i4 + 2] = q.z; this.q[i4 + 3] = q.w;
-        }
+        this.spinIdle = rnd(0.11, 0.22) * (Math.random() < 0.5 ? -1 : 1);
+        this.phs = Math.random() * 6.283;
       }
 
-      /* 把 morph / 云团位移 / 被撞散的偏移推成实例矩阵 */
+      /* 光带生长 + 粒子流动，两者都随 morph 从云团归位 */
       update(t) {
-        const mp = this.morph, n = this.n;
+        const mp = this.morph;
         const parked = this.center.distanceToSquared(this.park) < 0.02;
         const visible = mp > 0.03 || !parked;
-        for (let g = 0; g < 3; g++) if (this.mesh[g]) this.mesh[g].visible = visible;
+        this.group.visible = visible;
         if (!visible) return;
-        if (mp === this.lastMp && !this.busy && parked) return;   // 静置时省掉整轮重算
-        this.lastMp = mp;
+        const beat = beatSm;                 // 律动直接进位置，比只改亮度明显得多
+        const push = 1 + beat * 0.17;        // ④ 实体大幅鼓动（粒子向外撑）
 
-        const cx = this.center.x, cy = this.center.y, cz = this.center.z;
-        this.n0 = this.n1 = this.n2 = 0;
-        for (let i = 0; i < n; i++) {
-          const i3 = i * 3, i4 = i * 4;
-          const d = this.delay[i] * 0.6;
-          let k = (mp - d) / 0.4;
-          k = k < 0 ? 0 : k > 1 ? 1 : k;
+        for (let r = 0; r < this.ribbons.length; r++) {
+          const rb = this.ribbons[r];
+          let k = (mp - rb.delay) / 0.52; k = k < 0 ? 0 : k > 1 ? 1 : k;
           const e = easeInOut(k);
-          const bel = 4 * k * (1 - k);                 // 0→1→0：飞行中段才鼓
-          const arc = this.spin[i] * bel * 0.55;
-
-          const sh = 0.045 * e;                   // 成形后的微呼吸：让高光一直在金属面上走
-          const cl = Math.min(1, mp / 0.05);      // 退场末段云团收拢成一点，消失得不拖泥带水
-          const x = (this.cloud[i3] * cl + cx) * (1 - e) + this.tgt[i3] * e + this.off[i3] + arc + Math.sin(t * 0.85 + i * 0.9) * sh;
-          const y = (this.cloud[i3 + 1] * cl + cy) * (1 - e) + this.tgt[i3 + 1] * e + this.off[i3 + 1] + Math.sin(t * 0.9 + i) * bel * 0.22 + Math.cos(t * 0.72 + i * 1.3) * sh;
-          const z = (this.cloud[i3 + 2] * cl + cz) * (1 - e) + this.tgt[i3 + 2] * e + this.off[i3 + 2] + arc * 0.6 + Math.sin(t * 0.63 + i * 0.5) * sh;
-
-          _qa.set(this.q[i4], this.q[i4 + 1], this.q[i4 + 2], this.q[i4 + 3]);
-          _qb.setFromAxisAngle(AXIS[i % 3], (1 - e) * this.spin[i] * Math.PI * 1.25 + t * 0.3 * (1 - e) * this.spin[i]);
-          _qa.multiply(_qb);
-
-          _vp.set(x, y, z);
-          const br = 1 + Math.sin(t * 1.15 + i * 0.7) * 0.06 * e + beatSm * 0.08 * e;   // 音乐律动加进呼吸：节拍一来整体明显一鼓
-          _vs.set(this.sc[i3] * br, this.sc[i3 + 1] * br, this.sc[i3 + 2] * br);
-          _m4.compose(_vp, _qa, _vs);
-          const kind = this.slot[i];
-          if (kind === 0) this.mesh[0].setMatrixAt(this.n0++, _m4);
-          else if (kind === 1) this.mesh[1].setMatrixAt(this.n1++, _m4);
-          else this.mesh[2].setMatrixAt(this.n2++, _m4);
+          const cnt = Math.floor(rb.total * e / 3) * 3;
+          rb.geo.setDrawRange(0, cnt);
+          rb.mesh.visible = cnt > 0;
+          rb.mat.color.copy(this.cool).lerp(this.warm, beat * 0.9);   // ④ 色温随节拍偏移：冷蓝 → 青白
+          rb.mat.opacity = (0.26 + 0.3 * e) * Math.min(1, mp * 1.5) * (1 + beat * 0.3);
+          rb.mesh.scale.setScalar(push * (1 + Math.sin(t * 0.9 + r) * 0.012));
         }
-        for (let g = 0; g < 3; g++) if (this.mesh[g]) this.mesh[g].instanceMatrix.needsUpdate = true;
+        this.pmat.color.copy(this.cool).lerp(this.warm, beat * 0.9);
+        this.pmat.opacity = 0.6 + beat * 0.35;
+
+        const S = this.S, pos = this.pos, np = this.N;
+        const cx = this.center.x, cy = this.center.y, cz = this.center.z;
+        for (let i = 0; i < np; i++) {
+          const i3 = i * 3;
+          let k = (mp - this.delay[i] * 0.55) / 0.45; k = k < 0 ? 0 : k > 1 ? 1 : k;
+          const e = easeInOut(k);
+          let u = this.pu[i] + t * this.spd[i]; u -= Math.floor(u);
+          const sm = this.samp[this.pi[i]];
+          const f = u * (S - 1), i0 = f | 0, fr = f - i0;
+          const a3 = i0 * 3, b3 = (i0 + 1 < S ? i0 + 1 : i0) * 3;
+          const ph = this.ph[i];
+          const a = this.amp[i] * (0.3 + 0.7 * e) * (1 + beat * 2.1);
+          const px = (sm[a3] + (sm[b3] - sm[a3]) * fr + Math.sin(t * 1.15 + ph) * a) * push;
+          const py = (sm[a3 + 1] + (sm[b3 + 1] - sm[a3 + 1]) * fr + Math.sin(t * 0.93 + ph * 1.7) * a * 1.2) * push;
+          const pz = (sm[a3 + 2] + (sm[b3 + 2] - sm[a3 + 2]) * fr + Math.cos(t * 1.31 + ph * 0.6) * a) * push;
+          const cl = Math.min(1, mp / 0.05);      // 退场末段云团收拢，消失得不拖泥带水
+          pos[i3] = (this.cloud[i3] * cl + cx) * (1 - e) + px * e + this.off[i3];
+          pos[i3 + 1] = (this.cloud[i3 + 1] * cl + cy) * (1 - e) + py * e + this.off[i3 + 1];
+          pos[i3 + 2] = (this.cloud[i3 + 2] * cl + cz) * (1 - e) + pz * e + this.off[i3 + 2];
+        }
+        this.attr.needsUpdate = true;
       }
 
-      /* 静置时也要活着：整件缓慢自旋 + 呼吸起伏；滚得越快转得越快 */
+      /* 静置时也要活着：整件缓慢自旋 + 呼吸；节拍上再整件鼓一下 */
       idle(t, dt, sv) {
         const g = this.group, m = this.morph;
-        this.yaw += (this.spinIdle + sv * 0.38) * dt * (0.3 + 0.7 * m);
+        this.yaw += (this.spinIdle + sv * 0.34) * dt * (0.3 + 0.7 * m);
         g.rotation.y = this.yaw;
-        g.rotation.x = Math.sin(t * 0.42 + this.ph) * 0.045 * m;
-        g.rotation.z = Math.sin(t * 0.31 + this.ph * 1.7) * 0.03 * m;
-        g.position.y = Math.sin(t * 0.62 + this.ph) * 0.06 * m;
+        g.rotation.x = Math.sin(t * 0.42 + this.phs) * 0.05 * m;
+        g.rotation.z = Math.sin(t * 0.31 + this.phs * 1.7) * 0.035 * m;
+        g.position.y = Math.sin(t * 0.62 + this.phs) * 0.07 * m;
+        g.scale.setScalar((0.9 + 0.1 * m) * (1 + beatSm * 0.09 * m) + Math.sin(t * 0.75 + this.phs) * 0.012 * m);
       }
 
-      /* 交互：把附近的碎片撞开，再弹回原位 */
+      /* 交互：把附近的粒子撞开，再弹回原位 */
       impulse(px, py, strength) {
-        const n = this.n;
-        for (let i = 0; i < n; i++) {
+        const np = this.N, pos = this.pos;
+        for (let i = 0; i < np; i++) {
           const i3 = i * 3;
-          const dx = this.tgt[i3] - px, dy = this.tgt[i3 + 1] - py;
+          const dx = pos[i3] - px, dy = pos[i3 + 1] - py;
           const d2 = dx * dx + dy * dy;
           if (d2 > 7) continue;
           const f = (1 - d2 / 7) * strength;
@@ -563,7 +519,7 @@ if (HOST) {
       }
       springs(dt) {
         if (!this.busy) return;
-        const n3 = this.n * 3, damp = Math.pow(0.015, dt);
+        const n3 = this.N * 3, damp = Math.pow(0.015, dt);
         let energy = 0;
         for (let i = 0; i < n3; i++) {
           this.offV[i] += -this.off[i] * 24 * dt;
@@ -572,6 +528,11 @@ if (HOST) {
           energy += Math.abs(this.off[i]) + Math.abs(this.offV[i]);
         }
         if (energy < 0.02) { this.off.fill(0); this.offV.fill(0); this.busy = false; }
+      }
+      dispose() {
+        scene.remove(this.group);
+        for (let i = 0; i < this.ribbons.length; i++) { this.ribbons[i].geo.dispose(); this.ribbons[i].mat.dispose(); }
+        this.points.geometry.dispose(); this.pmat.dispose();
       }
     }
 
@@ -597,16 +558,6 @@ if (HOST) {
     /* ---------- 悬浮尘埃：叙事区里永远在飘的一层 ----------
        它是"画面没死"的底线：哪怕实体凝聚完毕、镜头也站定了，
        这层尘埃仍在缓慢上升 + 侧向游走，并被滚动与光标掀起。 */
-    const DOT = (function () {
-      const c = document.createElement('canvas'); c.width = c.height = 64;
-      const g = c.getContext('2d');
-      const rg = g.createRadialGradient(32, 32, 0, 32, 32, 32);
-      rg.addColorStop(0.00, 'rgba(225,238,255,1)');
-      rg.addColorStop(0.34, 'rgba(150,196,255,0.5)');
-      rg.addColorStop(1.00, 'rgba(80,130,210,0)');
-      g.fillStyle = rg; g.fillRect(0, 0, 64, 64);
-      return new THREE.CanvasTexture(c);
-    })();
     const motes = (function () {
       const tex = DOT;
       const layers = [];
@@ -691,31 +642,78 @@ if (HOST) {
       };
     })();
 
-    /* 核心的内芯（不参与碎片系统）：高细分二十面体——八面体的六个尖角太"棱角分明" */
-    const coreInner = new THREE.Mesh(
-      new THREE.IcosahedronGeometry(0.52, 2),
-      new THREE.MeshStandardMaterial({ color: 0x9fd0ff, metalness: 0.3, roughness: 0.25, emissive: 0x3fa9ff, emissiveIntensity: 1.8 })
-    );
-    const coreWire = new THREE.Mesh(
-      new THREE.IcosahedronGeometry(1.24, 2),
-      new THREE.MeshBasicMaterial({ color: 0x6fb8ff, wireframe: true, transparent: true, opacity: 0.09 })
-    );
-    scene.add(coreInner, coreWire);
+    /* 首屏光核：一枚加法光斑，不是几何体（二十面体的尖角太"棱角分明"） */
+    const coreSpark = (function () {
+      const m = new THREE.Mesh(
+        new THREE.PlaneGeometry(3.2, 3.2),
+        new THREE.MeshBasicMaterial({
+          map: DOT, color: new THREE.Color(0x9fd8ff).multiplyScalar(1.4),
+          transparent: true, opacity: 0, blending: THREE.AdditiveBlending,
+          depthWrite: false, depthTest: false, fog: false
+        })
+      );
+      m.renderOrder = 2; m.frustumCulled = false; m.visible = false;
+      scene.add(m);
+      return m;
+    })();
+
+    /* ---------- 冲击波涟漪 ----------
+       每一拍从当前实体中心放出一圈正对镜头的细环，1.1 秒内扩散并淡出。
+       环带必须很细（0.985~1.0 = 1.5% 宽度）：粗一点就成了一枚 UI 圆环，
+       细 + 快速扩散 + 平方淡出才像"冲击波"。池子只有 4 个，拍密了也不堆积。 */
+    const WAVES = (function () {
+      const pool = [];
+      for (let i = 0; i < 4; i++) {
+        const m = new THREE.Mesh(
+          new THREE.RingGeometry(0.985, 1.0, 128),
+          new THREE.MeshBasicMaterial({
+            color: new THREE.Color(0x9fd8ff).multiplyScalar(1.25), transparent: true, opacity: 0,
+            blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false,
+            side: THREE.DoubleSide, fog: false
+          })
+        );
+        m.visible = false; m.renderOrder = 5; m.frustumCulled = false;
+        scene.add(m);
+        pool.push({ m: m, t: 0, on: false, x: 0, y: 0, z: 0 });
+      }
+      return {
+        pool: pool,
+        live: function () { let c = 0; for (const w of pool) if (w.on) c++; return c; },
+        fire: function (x, y, z) {
+          for (const w of pool) if (!w.on) { w.on = true; w.t = 0; w.x = x; w.y = y; w.z = z; return; }
+        },
+        update: function (dt, cam) {
+          for (const w of pool) {
+            if (!w.on) continue;
+            w.t += dt;
+            const u = w.t / 1.1;
+            if (u >= 1) { w.on = false; w.m.visible = false; continue; }
+            w.m.visible = true;
+            w.m.position.set(w.x, w.y, w.z);
+            w.m.scale.setScalar(0.30 + u * 7.2);
+            w.m.lookAt(cam.position);                    // 正对镜头 = 屏幕上一圈同心涟漪
+            w.m.material.opacity = (1 - u) * (1 - u) * 0.42;
+          }
+        }
+      };
+    })();
 
     const PARK = { core: [0, 18, -14], gpu: [26, -7, -14], truck: [-26, -6, -16], rack: [2, -24, -18] };
     const OBJ = {
-      core: new Assemblage('core', buildCore, { cloudR: 7.5, park: PARK.core }),
-      gpu: new Assemblage('gpu', buildGpu, { cloudR: 8.5, park: PARK.gpu }),
-      truck: new Assemblage('truck', buildTruck, { cloudR: 9.0, park: PARK.truck }),
-      rack: new Assemblage('rack', buildRack, { cloudR: 8.5, park: PARK.rack })
+      core: new Flowform('core', buildCore, { cloudR: 7.5, park: PARK.core }),
+      gpu: new Flowform('gpu', buildGpu, { cloudR: 8.5, park: PARK.gpu }),
+      truck: new Flowform('truck', buildTruck, { cloudR: 9.0, park: PARK.truck }),
+      rack: new Flowform('rack', buildRack, { cloudR: 8.5, park: PARK.rack })
     };
 
     /* ============================================================
        镜头时间线：由 DOM 分区驱动
        ============================================================ */
     const STOP_DEF = [
-      { sel: '#home', obj: 'core', pos: [0, 2.5, 8.4], look: [0, 1.45, 0], fov: 40 },
-      { sel: '#metrics', obj: 'core', pos: [2.0, 3.4, 11.6], look: [0, 2.2, 0], fov: 38 },
+      // 首屏：核心往左下压一档、镜头略微上抬 —— 光带形态本来就铺得开，
+      // 停在画面正中会顶到 hero 的标题与按钮；压下去后上三分之一留给文字。
+      { sel: '#home', obj: 'core', pos: [0.15, 3.3, 9.0], look: [0, 0.70, 0], fov: 40 },
+      { sel: '#metrics', obj: 'core', pos: [1.7, 4.0, 12.2], look: [0, 1.9, 0], fov: 38 },
       { sel: '#products', obj: 'gpu', items: '#products article', pos: [0, 1.6, 6.9], look: [0, 0.85, 0], fov: 42 },
       { sel: '#philosophy', obj: null, pos: [0, 6.5, 17.5], look: [0, 2.0, -2], fov: 38 }
     ];
@@ -753,12 +751,13 @@ if (HOST) {
     }
 
     /* ---------- 循环 ---------- */
-    const camGoal = new THREE.Vector3(), lookGoal = new THREE.Vector3(), lookNow = new THREE.Vector3(0, 0.35, 0);
+    const camGoal = new THREE.Vector3(), lookGoal = new THREE.Vector3(), lookNow = new THREE.Vector3(0, 0.35, 0), _cd = new THREE.Vector3();
     let mouseX = 0, mouseY = 0, mx = 0, my = 0;
     let lastSy = window.scrollY, sv = 0;
     let raf = 0, running = false, firstFrame = false, lastOpacity = -1;
     let fps = 60, fpsAcc = 0, fpsN = 0, lowStreak = 0;
-    let beatSm = 0;   // 音乐律动平滑值：player.js 每帧喂 window.__BEAT.level，这里缓变跟随
+    let beatSm = 0;      // 音乐律动平滑值：player.js 每帧喂 window.__BEAT.level，缓变跟随
+    let punch = 0, beatPrev = 0, beatAt = 0;   // 节拍冲击：冲顶立即 / 0.6s 衰减，驱动涟漪与镜头微推
 
     function frame() {
       raf = 0;
@@ -775,9 +774,6 @@ try {        const dt = Math.min(0.05, clock.getDelta());
 
         /* 音乐律动：player 喂 __BEAT.level（节拍包络 0..1，冲击立即/回落带衰减），
            平滑后驱动辉光/背光/光点/呼吸——幅度要大到"一眼看出在跟节拍" */
-        beatSm += ((window.__BEAT ? window.__BEAT.level : 0) - beatSm) * Math.min(1, dt * 18);
-        if (bloomPass) bloomPass.strength = 0.34 + beatSm * 0.9;
-        back.intensity = 26 + beatSm * 40;
 
         /* 当前区间 + 前后插值 */
         const yMid = window.scrollY + window.innerHeight * 0.5;
@@ -808,11 +804,41 @@ try {        const dt = Math.min(0.05, clock.getDelta());
         );
         lookNow.lerp(lookGoal, Math.min(1, dt * 4.2));
         camera.lookAt(lookNow);
-        const fov = (a.fov || 42) + ((b.fov || a.fov || 42) - (a.fov || 42)) * e;
+        if (punch > 0.002) {                              // ③ 节拍：镜头沿视线微推 + 两下微震
+          _cd.subVectors(lookNow, camera.position).normalize();
+          camera.position.addScaledVector(_cd, punch * 0.5);
+          camera.position.x += Math.sin(t * 41.3) * punch * 0.05;
+          camera.position.y += Math.sin(t * 37.7 + 1.3) * punch * 0.05;
+          camera.rotateZ(Math.sin(t * 33.1) * punch * 0.012);
+        }
+        const fov = (a.fov || 42) + ((b.fov || a.fov || 42) - (a.fov || 42)) * e - punch * 1.5;
         if (Math.abs(camera.fov - fov) > 0.02) { camera.fov = fov; camera.updateProjectionMatrix(); }
 
         /* 实体：该上场的凝聚，其余崩解 */
         const activeName = a.obj;
+        const anyMorph = Math.max(OBJ.core.morph, OBJ.gpu.morph, OBJ.truck.morph, OBJ.rack.morph);
+
+        /* 音乐律动：player.js 每帧喂 __BEAT.level（节拍包络：冲顶立即、回落带衰减）。
+           四路表现同时上 —— ①泛光强度 ②背光与色温 ③冲击波涟漪 + 镜头微推微震
+           ④实体大幅鼓动。幅度都往大里给，"一眼看出在跟节拍"才算数。
+
+           ❗触发判据只看"上一个采样还很暗、这一帧突然亮了"：不要给 bl 设绝对门槛。
+           本机声卡回采电平很低（整段能量常在 0.1 附近），一旦要求 bl>0.3 就一次都
+           触发不了 —— beat 的值域由 audio 输入电平决定，跟"该不该敲一下"无关。
+           帧率也要进判据：软渲染只有 ~20fps，220ms 的间隔放不进一个节拍，
+           不改的话拍点全被吃掉。 */
+        const bl = window.__BEAT ? window.__BEAT.level : 0;
+        const nowMs = performance.now();
+        if (bl - beatPrev > 0.05 && bl > 0.10 && nowMs - beatAt > 300) {
+          beatAt = nowMs;
+          punch = Math.min(1, 0.55 + bl * 0.8);
+          const ac = OBJ[activeName] ? OBJ[activeName].center : ZERO;
+          if (anyMorph > 0.2) WAVES.fire(ac.x, ac.y, ac.z);
+        }
+        beatPrev = bl;
+        punch *= Math.pow(0.012, dt);                     // 微推一下就收回，不留漂移
+        beatSm += (bl - beatSm) * Math.min(1, dt * 18);   // 平滑值喂持续型效果（亮度/色温/呼吸）
+        if (bloomPass) bloomPass.strength = 0.34 + beatSm * 0.95;
         for (const name in OBJ) {
           const o = OBJ[name];
           const want = name === activeName ? 1 : 0;
@@ -826,8 +852,8 @@ try {        const dt = Math.min(0.05, clock.getDelta());
           o.idle(t, dt, sv);
         }
 
-        const anyOn = Math.max(OBJ.core.morph, OBJ.gpu.morph, OBJ.truck.morph, OBJ.rack.morph);
-        glow.material.opacity = Math.min(1, Math.max(0, anyOn - 0.25) * 0.85 * (1 + Math.min(0.7, Math.abs(sv) * 0.3)));
+        const anyOn = anyMorph;
+        glow.material.opacity = Math.min(1, Math.max(0, anyOn - 0.25) * 0.85 * (1 + Math.min(0.7, Math.abs(sv) * 0.3)) * (1 + beatSm * 0.5));
         glow.scale.setScalar(0.85 + anyOn * 0.35 + Math.sin(t * 0.9) * 0.03);
 
         /* 叙事区可见度：滚到产品区之后慢慢收，到 about 之前刚好归零。
@@ -836,17 +862,23 @@ try {        const dt = Math.min(0.05, clock.getDelta());
 
         /* 尘埃 + 环境旋转 + 主光游走：任何滚动位置都不会变成静照 */
         motes.update(t, dt, sv, mx, my, vis);
+        WAVES.update(dt, camera);
         halo.update(t, dt, anyOn, sv, vis);
         if (scene.environmentRotation) scene.environmentRotation.y += dt * 0.055;
         key.position.set(5 + Math.sin(t * 0.23) * 2.4, 8, 6 + Math.cos(t * 0.19) * 1.8);
-        back.intensity = 26 + Math.sin(t * 1.25) * 4 + Math.min(14, Math.abs(sv) * 6);
+        /* ② 背光：强度与色温一起跟节拍走（冷蓝 → 青白）。
+              注意这一行在帧尾，会把帧首那次赋值覆盖掉，所以节拍项必须写在这里。 */
+        back.intensity = 26 + beatSm * 34 + Math.sin(t * 1.25) * 4 + Math.min(14, Math.abs(sv) * 6);
+        back.color.copy(COOL).lerp(WARM, beatSm * 0.8);
 
         const coreOn = OBJ.core.morph;
-        coreInner.visible = coreOn > 0.35;
-        coreInner.rotation.set(t * 0.32, t * 0.45, 0);
-        coreInner.scale.setScalar(0.42 + coreOn * 0.46 + Math.sin(t * 1.6) * 0.05);
-        coreWire.visible = coreOn > 0.55;
-        coreWire.rotation.set(t * 0.08 + 0.3, t * 0.12, t * 0.05);
+        coreSpark.visible = coreOn > 0.22 && vis > 0.02;
+        if (coreSpark.visible) {
+          coreSpark.position.copy(OBJ.core.center).setY(OBJ.core.center.y + 0.55);
+          coreSpark.lookAt(camera.position);
+          coreSpark.scale.setScalar((0.32 + coreOn * 0.40) * (1 + beatSm * 0.6));
+          coreSpark.material.opacity = Math.min(0.85, coreOn * 0.48 * (1 + beatSm * 1.1)) * vis;
+        }
 
         /* 滚出叙事区 → 画布淡出，交棒给正文 */
         const fadeA = narrativeEnd - window.innerHeight * 0.4;
@@ -878,9 +910,9 @@ try {        const dt = Math.min(0.05, clock.getDelta());
     function rebuild() {
       for (const name in OBJ) {
         const o = OBJ[name];
-        scene.remove(o.group);
+        o.dispose();
       }
-      const make = (key, build) => { const o = new Assemblage(key, build, { cloudR: key === 'core' ? 7.5 : 8.7, park: PARK[key] }); o.morph = 0; o.lastMp = -1; return o; };
+      const make = (key, build) => { const o = new Flowform(key, build, { cloudR: key === 'core' ? 7.5 : 8.7, park: PARK[key] }); o.morph = 0; o.lastMp = -1; return o; };
       OBJ.core = make('core', buildCore);
       OBJ.gpu = make('gpu', buildGpu);
       OBJ.truck = make('truck', buildTruck);
@@ -948,7 +980,8 @@ try {        const dt = Math.min(0.05, clock.getDelta());
         },
         sv: +sv.toFixed(3), motes: motes.layers.length,
         tris: renderer.info.render.triangles, calls: renderer.info.render.calls,
-        cw: canvas.width, ch: canvas.height, stops: stops.length, gpu: GPU_NAME, bloom: !!(composer && bloomPass && bloomPass.enabled)
+        cw: canvas.width, ch: canvas.height, stops: stops.length, gpu: GPU_NAME, bloom: !!(composer && bloomPass && bloomPass.enabled),
+        beat: +beatSm.toFixed(3), punch: +punch.toFixed(3), waves: WAVES.live(), parts: OBJ.core.N + OBJ.gpu.N + OBJ.truck.N + OBJ.rack.N
       }),
       impulse: (x, y) => { for (const n in OBJ) if (OBJ[n].morph > 0.3) OBJ[n].impulse(x, y, 8); },
       // 诊断：原点在屏幕上的归一化坐标（-1..1）与相机位置
