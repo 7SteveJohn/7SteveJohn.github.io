@@ -712,7 +712,7 @@ if (HOST) {
     const STOP_DEF = [
       // 首屏：核心往左下压一档、镜头略微上抬 —— 光带形态本来就铺得开，
       // 停在画面正中会顶到 hero 的标题与按钮；压下去后上三分之一留给文字。
-      { sel: '#home', obj: 'core', pos: [0.15, 3.3, 9.0], look: [0, 0.70, 0], fov: 40 },
+      { sel: '#home', obj: 'core', pos: [0.15, 3.5, 9.2], look: [0, 0.55, 0], fov: 40 },
       { sel: '#metrics', obj: 'core', pos: [1.7, 4.0, 12.2], look: [0, 1.9, 0], fov: 38 },
       { sel: '#products', obj: 'gpu', items: '#products article', pos: [0, 1.6, 6.9], look: [0, 0.85, 0], fov: 42 },
       { sel: '#philosophy', obj: null, pos: [0, 6.5, 17.5], look: [0, 2.0, -2], fov: 38 }
