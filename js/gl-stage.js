@@ -186,20 +186,23 @@ if (HOST) {
        EffectComposer + RenderPass + UnrealBloomPass + OutputPass（awwwards 站的标配）。
        composer 会绕过 WebGL 内建抗锯齿，用 MSAA renderTarget（samples:4）补回。
        软渲染（SwiftShader/llvmpipe）直接跳过整条链：多 pass 全屏会把它打穿。 */
+    let bloomPass = null;   // 存引用：看门狗低帧时可整体关掉（少跑 5 个全屏 pass）；律动也驱动它的 strength
     const composer = (function () {
       // ?gl-bloom=1 = 测试通道：软渲染环境也强制走 composer（回归测试覆盖泛光路径用）
       const forceBloom = /[?&]gl-bloom=1/.test(location.search);
       if (!forceBloom && /swiftshader|llvmpipe|software|pixelformer/i.test(GPU_NAME)) return null;
       try {
         const size = renderer.getDrawingBufferSize(new THREE.Vector2());
-        const rt = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, samples: small ? 0 : 4 });
+        // samples 2 而非 4：MSAA 是带宽大头，2x 与 4x 在动场景里肉眼难分
+        const rt = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, samples: small ? 0 : 2 });
         const cp = new EffectComposer(renderer, rt);
         cp.setPixelRatio(DPR);
         cp.setSize(window.innerWidth, window.innerHeight);
         cp.addPass(new RenderPass(scene, camera));
         // 克制的辉光：threshold 1.0 = 只有 HDR 超亮像素（发光件）才晕，金属高光不参与；
         // 更低的 strength 让晕光收紧在光源附近，不形成雾团
-        cp.addPass(new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.36, 0.5, 1.0));
+        bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.36, 0.5, 1.0);
+        cp.addPass(bloomPass);
         cp.addPass(new OutputPass());   // ACES tone mapping + sRGB 转换在这一步生效
         return cp;
       } catch (e) { return null; }
@@ -522,7 +525,7 @@ if (HOST) {
           _qa.multiply(_qb);
 
           _vp.set(x, y, z);
-          const br = 1 + Math.sin(t * 1.15 + i * 0.7) * 0.06 * e;
+          const br = 1 + Math.sin(t * 1.15 + i * 0.7) * 0.06 * e + beatSm * 0.035 * e;   // 音乐律动加进呼吸：节拍一来整体微微鼓
           _vs.set(this.sc[i3] * br, this.sc[i3 + 1] * br, this.sc[i3 + 2] * br);
           _m4.compose(_vp, _qa, _vs);
           const kind = this.slot[i];
@@ -678,7 +681,7 @@ if (HOST) {
         update(t, dt, level, sv, vis) {
           p.visible = level > 0.02 && vis > 0.02;
           if (!p.visible) return;
-          mat.opacity = Math.min(0.85, level * 0.75) * vis;
+          mat.opacity = Math.min(0.85, level * 0.75) * vis * (1 + beatSm * 0.35);
           p.rotation.y += dt * (0.36 + Math.abs(sv) * 0.55);
           p.rotation.z = Math.sin(t * 0.22) * 0.24;
           p.rotation.x = Math.sin(t * 0.16) * 0.14;
@@ -755,6 +758,7 @@ if (HOST) {
     let lastSy = window.scrollY, sv = 0;
     let raf = 0, running = false, firstFrame = false, lastOpacity = -1;
     let fps = 60, fpsAcc = 0, fpsN = 0, lowStreak = 0;
+    let beatSm = 0;   // 音乐律动平滑值：player.js 每帧喂 window.__BEAT.level，这里缓变跟随
 
     function frame() {
       raf = 0;
@@ -768,6 +772,11 @@ try {        const dt = Math.min(0.05, clock.getDelta());
         const rawV = (sy - lastSy) / Math.max(dt, 0.001) / 1000;
         lastSy = sy;
         sv += (Math.max(-4, Math.min(4, rawV)) - sv) * Math.min(1, dt * 7);
+
+        /* 音乐律动：播放器喂 __BEAT.level（低频能量 0..1），平滑后驱动辉光/背光/光点 */
+        beatSm += ((window.__BEAT ? window.__BEAT.level : 0) - beatSm) * Math.min(1, dt * 8);
+        if (bloomPass) bloomPass.strength = 0.36 + beatSm * 0.28;
+        back.intensity = 26 + beatSm * 14;
 
         /* 当前区间 + 前后插值 */
         const yMid = window.scrollY + window.innerHeight * 0.5;
@@ -854,6 +863,8 @@ try {        const dt = Math.min(0.05, clock.getDelta());
           if (warm && fps < 42 && DPR > 0.85) {   // 连续两轮偏低才降：一次砍到底会"突然糊"
             lowStreak++;
             if (lowStreak >= 2) { lowStreak = 0; DPR = Math.max(0.85, DPR * 0.85); renderer.setPixelRatio(DPR); renderer.setSize(window.innerWidth, window.innerHeight); if (composer) { composer.setPixelRatio(DPR); composer.setSize(window.innerWidth, window.innerHeight); } }
+          } else if (warm && fps < 34 && composer && bloomPass && bloomPass.enabled) {
+            bloomPass.enabled = false;   // DPR 已到底仍卡：先甩掉泛光（5 个全屏 pass），别动 COUNT——rebuild 会把凝聚形态重置归零
           } else if (warm && fps < 34 && COUNT > 0.5) {
             COUNT = 0.5; rebuild();
           } else if (fps >= 42) lowStreak = 0;
@@ -936,7 +947,7 @@ try {        const dt = Math.min(0.05, clock.getDelta());
         },
         sv: +sv.toFixed(3), motes: motes.layers.length,
         tris: renderer.info.render.triangles, calls: renderer.info.render.calls,
-        cw: canvas.width, ch: canvas.height, stops: stops.length, gpu: GPU_NAME, bloom: !!composer
+        cw: canvas.width, ch: canvas.height, stops: stops.length, gpu: GPU_NAME, bloom: !!(composer && bloomPass && bloomPass.enabled)
       }),
       impulse: (x, y) => { for (const n in OBJ) if (OBJ[n].morph > 0.3) OBJ[n].impulse(x, y, 8); },
       // 诊断：原点在屏幕上的归一化坐标（-1..1）与相机位置

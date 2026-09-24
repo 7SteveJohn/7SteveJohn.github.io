@@ -4,6 +4,10 @@
  * - 音频不进 SW 预缓存：首次在线播放后由 SW 运行时缓存接管，断网也能复播
  * - localStorage 记住上次听到哪（曲目 + 进度），下次展开自动续上（仍需点击播放）
  * - 歌单改动直接改 SONGS 数组（src 用 ASCII 文件名，title 保留原名）
+ * - 循环模式：顺序循环（默认）/ 单曲循环，模式按钮切换，localStorage 持久化
+ * - 自定义歌曲顺序：歌单每项 ↑↓ 移动，顺序持久化（按 src 记录，新增曲目排尾）
+ * - 音乐律动：AnalyserNode 取低频能量喂 window.__BEAT.level，js/gl-stage.js 每帧读取
+ *   驱动辉光 / 背光 / 光点（同源 mp3 无 CORS 问题；MediaElementSource 对同一元素只能建一次）
  */
 (function () {
   'use strict';
@@ -23,6 +27,8 @@
   ];
 
   const LS_KEY = 'music-resume';
+  const LS_MODE = 'music-mode';
+  const LS_ORDER = 'music-order';
 
   const audio = document.getElementById('music-audio');
   const fab = document.getElementById('music-fab');
@@ -36,9 +42,11 @@
   const prevBtn = document.getElementById('music-prev');
   const nextBtn = document.getElementById('music-next');
   const closeBtn = document.getElementById('music-close');
+  const modeBtn = document.getElementById('music-mode');
 
   let current = 0;      // 当前曲目索引
   let seeking = false;  // 进度条拖动中，暂停 timeupdate 覆盖
+  let mode = 'list';    // 'list' 顺序循环 | 'one' 单曲循环
 
   // —— 工具 ——
   const fmt = (s) => {
@@ -49,9 +57,74 @@
 
   const save = () => {
     try {
-      localStorage.setItem(LS_KEY, JSON.stringify({ i: current, t: audio.currentTime || 0 }));
+      localStorage.setItem(LS_KEY, JSON.stringify({
+        i: current, t: audio.currentTime || 0,
+        src: SONGS[current] ? SONGS[current].src : ''   // 顺序可自定义，恢复按 src 定位更稳
+      }));
     } catch (e) { /* 隐私模式等场景静默跳过 */ }
   };
+
+  // —— 自定义顺序 ——
+  function applyOrder() {
+    try {
+      const order = JSON.parse(localStorage.getItem(LS_ORDER) || 'null');
+      if (Array.isArray(order) && order.length) {
+        const bySrc = new Map(SONGS.map(function (s) { return [s.src, s]; }));
+        const next = [];
+        for (const src of order) {
+          const s = bySrc.get(src);
+          if (s) { next.push(s); bySrc.delete(src); }
+        }
+        for (const s of bySrc.values()) next.push(s);   // 新增曲目排尾
+        SONGS.length = 0;
+        for (const s of next) SONGS.push(s);
+      }
+    } catch (e) { /* 数据损坏则用内置顺序 */ }
+  }
+  const saveOrder = () => {
+    try { localStorage.setItem(LS_ORDER, JSON.stringify(SONGS.map(function (s) { return s.src; }))); } catch (e) {}
+  };
+
+  // —— 音乐律动：低频能量 → window.__BEAT ——
+  let actx = null, analyser = null, beatRaf = 0;
+  const BEAT_ARR = new Uint8Array(128);   // fftSize 256 → 128 bins
+  function beatLoop() {
+    beatRaf = requestAnimationFrame(beatLoop);
+    if (!analyser) return;
+    analyser.getByteFrequencyData(BEAT_ARR);
+    let sum = 0;
+    const n = Math.max(4, BEAT_ARR.length >> 3);   // 低频段（鼓点/贝斯所在）
+    for (let i = 0; i < n; i++) sum += BEAT_ARR[i];
+    window.__BEAT = { level: Math.min(1, (sum / n / 255) * 1.4) };
+  }
+  function startBeat() {
+    try {
+      if (!actx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        actx = new AC();
+        const srcNode = actx.createMediaElementSource(audio);   // 只能建一次；建后声音经 analyser 回到扬声器
+        analyser = actx.createAnalyser();
+        analyser.fftSize = 256;
+        analyser.smoothingTimeConstant = 0.82;
+        srcNode.connect(analyser);
+        analyser.connect(actx.destination);
+      }
+      if (actx.state === 'suspended') actx.resume().catch(function () {});
+      if (!beatRaf) beatRaf = requestAnimationFrame(beatLoop);
+    } catch (e) { /* 建图失败不影响播放本身 */ }
+  }
+  function stopBeat() {
+    if (beatRaf) { cancelAnimationFrame(beatRaf); beatRaf = 0; }
+    window.__BEAT = { level: 0 };
+  }
+
+  // —— 循环模式 ——
+  function applyMode() {
+    audio.loop = (mode === 'one');   // 单曲循环交给浏览器：loop 时 ended 不触发，行为最稳
+    modeBtn.classList.toggle('mode-one', mode === 'one');
+    modeBtn.setAttribute('aria-label', '循环模式：' + (mode === 'one' ? '单曲循环' : '顺序循环'));
+  }
 
   // —— 渲染 ——
   function renderList() {
@@ -63,8 +136,27 @@
       btn.textContent = (i + 1) + '. ' + song.title;
       btn.setAttribute('aria-label', '播放 ' + song.title);
       if (i === current) btn.classList.add('is-current');
-      btn.addEventListener('click', () => { load(i, true); });
+      btn.addEventListener('click', () => { startBeat(); load(i, true); });
       li.appendChild(btn);
+      // 上移/下移：自定义歌单顺序
+      const mk = (dir) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'song-move';
+        b.textContent = dir < 0 ? '↑' : '↓';
+        b.setAttribute('aria-label', (dir < 0 ? '上移' : '下移') + '：' + song.title);
+        b.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          const j = i + dir;
+          if (j < 0 || j >= SONGS.length) return;
+          const tmp = SONGS[i]; SONGS[i] = SONGS[j]; SONGS[j] = tmp;
+          if (current === i) current = j; else if (current === j) current = i;
+          saveOrder(); save(); renderList();
+        });
+        return b;
+      };
+      li.appendChild(mk(-1));
+      li.appendChild(mk(1));
       listEl.appendChild(li);
     });
   }
@@ -101,16 +193,25 @@
   }
 
   function restore() {
+    applyOrder();
+    let pendingSeek = 0;
     try {
       const saved = JSON.parse(localStorage.getItem(LS_KEY) || 'null');
-      if (saved && saved.i >= 0 && saved.i < SONGS.length) {
-        current = saved.i;
-        // 静默载入元数据与上次进度（不播放），展开面板即可看到上次听到哪
-        audio.src = SONGS[current].src;
-        audio.currentTime = saved.t || 0;
+      if (saved) {
+        const bySrc = saved.src ? SONGS.findIndex(s => s.src === saved.src) : -1;
+        if (bySrc >= 0) current = bySrc;
+        else if (saved.i >= 0 && saved.i < SONGS.length) current = saved.i;
+        pendingSeek = saved.t || 0;
       }
     } catch (e) { /* 数据损坏则从头开始 */ }
+    // 预热：页面加载即缓冲首曲，点播放几乎秒出声（SW 运行时缓存随后接管，二次访问零延迟）。
+    // 触屏设备按流量考虑只取元数据。首次访客也能吃到预热——不只限有历史的用户。
+    audio.preload = matchMedia('(pointer: coarse)').matches ? 'metadata' : 'auto';
+    audio.src = SONGS[current].src;
+    if (pendingSeek) audio.currentTime = pendingSeek;   // 元数据到位后浏览器自动 seek
+    try { mode = localStorage.getItem(LS_MODE) === 'one' ? 'one' : 'list'; } catch (e) {}
     titleEl.textContent = SONGS[current].title;
+    applyMode();
     renderList();
     renderMediaSession();
   }
@@ -125,19 +226,28 @@
     fab.setAttribute('aria-expanded', 'false');
   });
 
-  playBtn.addEventListener('click', togglePlay);
-  prevBtn.addEventListener('click', () => { load(current - 1, !audio.paused); });
-  nextBtn.addEventListener('click', () => { load(current + 1, !audio.paused); });
+  playBtn.addEventListener('click', () => { startBeat(); togglePlay(); });   // 点击即建音频图（用户手势内 resume 最稳）
+  prevBtn.addEventListener('click', () => { startBeat(); load(current - 1, !audio.paused); });
+  nextBtn.addEventListener('click', () => { startBeat(); load(current + 1, !audio.paused); });
+  modeBtn.addEventListener('click', () => {
+    mode = mode === 'one' ? 'list' : 'one';
+    try { localStorage.setItem(LS_MODE, mode); } catch (e) {}
+    applyMode();
+  });
 
   audio.addEventListener('play', () => {
     playBtn.classList.add('is-playing');
     fab.classList.add('is-playing');
+    startBeat();   // 兜底（正常路径已在手势里建图）
     renderMediaSession();
   });
   audio.addEventListener('pause', () => {
     playBtn.classList.remove('is-playing');
     fab.classList.remove('is-playing');
+    stopBeat();
   });
+  audio.addEventListener('error', stopBeat);
+  // 单曲循环（mode==='one'）由 audio.loop 处理，ended 只在顺序循环走到这里
   audio.addEventListener('ended', () => { load(current + 1, true); });
   audio.addEventListener('loadedmetadata', () => { durEl.textContent = fmt(audio.duration); });
   audio.addEventListener('timeupdate', () => {
@@ -158,8 +268,8 @@
   });
 
   if ('mediaSession' in navigator) {
-    navigator.mediaSession.setActionHandler('previoustrack', () => { load(current - 1, !audio.paused); });
-    navigator.mediaSession.setActionHandler('nexttrack', () => { load(current + 1, !audio.paused); });
+    navigator.mediaSession.setActionHandler('previoustrack', () => { startBeat(); load(current - 1, !audio.paused); });
+    navigator.mediaSession.setActionHandler('nexttrack', () => { startBeat(); load(current + 1, !audio.paused); });
   }
 
   restore();

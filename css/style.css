@@ -1017,6 +1017,13 @@ mark.sj-note {
 #music-play .music-icon { width: 22px; height: 22px; }
 #music-play .icon-play { margin-left: 2px; } /* 三角形视觉居中 */
 
+/* 循环模式按钮：顺序循环 / 单曲循环 两态切换 */
+#music-mode .icon-mode-one { display: none; }
+#music-mode.mode-one .icon-mode-list { display: none; }
+#music-mode.mode-one .icon-mode-one { display: block; }
+#music-mode.mode-one { color: #0071e3; }
+.dark #music-mode.mode-one { color: #6fb8ff; }
+
 /* 歌单 */
 .music-list {
   max-height: 10.5rem;
@@ -1027,6 +1034,8 @@ mark.sj-note {
   list-style: none;
 }
 .dark .music-list { border-top-color: rgba(255, 255, 255, 0.1); }
+.music-list li { display: flex; align-items: center; gap: 2px; }
+.music-list li > button:first-child { flex: 1; min-width: 0; }
 .music-list button {
   display: block;
   width: 100%;
@@ -1050,6 +1059,19 @@ mark.sj-note {
   font-weight: 600;
 }
 .dark .music-list button.is-current { color: #f5f5f7; }
+/* 上移/下移小按钮：自定义歌单顺序 */
+.music-list .song-move {
+  width: 1.35rem;
+  min-width: 1.35rem;
+  flex: none;
+  padding: 0.2rem 0;
+  text-align: center;
+  font-size: 0.72rem;
+  line-height: 1;
+  color: #b0b0b8;
+}
+.music-list .song-move:hover { color: #1d1d1f; }
+.dark .music-list .song-move:hover { color: #f5f5f7; }
 
 /* 移动端：面板贴边防溢出 */
 @media (max-width: 480px) {
