@@ -6,12 +6,14 @@
  * - 其余同源/静态资源：缓存优先 + 后台更新（stale-while-revalidate）
  * ⚠️ 每次发布改动静态资源后，把 CACHE 版本号 +1，旧缓存会在 activate 阶段自动清理。
  */
-const CACHE = 'sevenjohn-v34';
+const CACHE = 'sevenjohn-v35';
 const CORE = [
   './',
   'index.html',
   '404.html',
   'css/style.css',
+  'css/cosmos.css',
+  'js/cosmos.js',
   // 本地化依赖（原 CDN 已全部下放到 assets/vendor，断网也能完整渲染）
   'assets/vendor/tailwind.css',
   'assets/vendor/marked.min.js',

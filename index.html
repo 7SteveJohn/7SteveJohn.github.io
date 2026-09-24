@@ -86,10 +86,15 @@
 
  <!-- 定制样式-->
   <link rel="stylesheet" href="css/style.css" data-page-node-id="DJZNUKsUQagCUphQLazIKY" />
+  <link rel="stylesheet" href="css/cosmos.css" />
 </head>
 <body class="bg-white text-[#1d1d1f] dark:bg-[#000000] dark:text-[#f5f5f7] min-h-screen transition-colors duration-200 antialiased" data-page-node-id="HMv6yxcstcjkCYNAATJeCG">
 
-  <!-- 背景光粒子画布（js/particles.js 渲染，服务主题不抢主体） -->
+  <!-- 星河背景画布（js/cosmos.js 渲染）：固定铺满视口、压在所有内容之下。
+       页面上下滚动时它不动；星云 / 星尘 / 星辰全部由 JS 噪声实时生成，无贴图无外部图片。 -->
+  <canvas id="cosmos-canvas" aria-hidden="true"></canvas>
+
+  <!-- 背景光粒子画布（js/particles.js 渲染，服务主题不抢主体；星河背景在场时自动让位） -->
   <canvas id="particle-canvas" aria-hidden="true" data-page-node-id="9SmLPF51YM79j7ATE8HasW"></canvas>
 
   <!-- 全站 3D 舞台：固定全屏画布躺在所有内容之下（画在光粒子之上、正文之下），
@@ -922,6 +927,36 @@
     <audio id="music-audio" preload="none"></audio>
   </div>
 
+  <!-- 右下角星河音频控制台（js/cosmos.js 驱动）：本地音乐上传 / 音量 / 重置星河。
+       刻意做小做淡，不与左下角歌单播放器抢星河的视觉重心；折叠后只剩一枚小圆钮。 -->
+  <div id="cosmos-dock" class="cosmos-dock">
+    <div id="cosmos-panel" class="cosmos-panel" role="group" aria-label="星河背景与音频控制">
+      <div class="cosmos-head">
+        <span class="cosmos-title">星河 · 音频</span>
+        <button id="cosmos-fold" type="button" aria-label="收起星河面板" aria-expanded="true" aria-controls="cosmos-body">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+      <div id="cosmos-body" class="cosmos-body">
+        <label class="cosmos-file" title="选一首本地音乐，星河会跟着它流动">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span>本地音乐</span>
+          <input id="cosmos-file" type="file" accept="audio/*" hidden>
+        </label>
+        <div class="cosmos-row">
+          <span class="cosmos-lab">音量</span>
+          <input id="cosmos-vol" class="cosmos-range" type="range" min="0" max="100" step="1" value="70" aria-label="音量">
+        </div>
+        <button id="cosmos-reset" class="cosmos-btn" type="button">重置星河场景</button>
+        <p id="cosmos-state" class="cosmos-state">静音中 · 星河低强度运行</p>
+      </div>
+    </div>
+    <button id="cosmos-chip" class="cosmos-chip" type="button" aria-label="展开星河控制面板" title="星河 · 音频" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18"/><path d="M3 12h18"/><path d="m6 6 12 12"/><path d="m18 6-12 12"/></svg>
+    </button>
+    <audio id="cosmos-audio" preload="none"></audio>
+  </div>
+
   <!-- 引入项目数据与交互脚本（全部 defer：按文档顺序在 DOM 解析完成后执行，不阻塞首屏渲染） -->
   <script src="js/projects.js" defer></script>
   <script src="js/articles.js" defer></script>
@@ -938,6 +973,7 @@
   </script>
   <script type="module" src="js/gl-stage.js"></script>
   <script src="js/search.js" defer></script>
+  <script src="js/cosmos.js" defer></script>
   <script src="js/player.js" defer></script>
 </body>
 </html>

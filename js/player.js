@@ -108,6 +108,14 @@
     const n = 8;
     for (let i = 0; i < n; i++) sum += BEAT_ARR[i];
     const energy = sum / n / 255;                  // 0..1
+    // 中频与高频顺手一起算：星河背景 js/cosmos.js 会读 window.__BEAT.mid / .treble
+    // 去驱动旋臂回旋与流星迸发（复用同一批 bin，不再建第二个 analyser）
+    let sm = 0;
+    for (let i = 10; i < 60; i++) sm += BEAT_ARR[i];
+    const midEnergy = sm / 50 / 255;
+    let st = 0;
+    for (let i = 70; i < 210; i++) st += BEAT_ARR[i];
+    const treEnergy = st / 140 / 255;
     const now = nw;
     // ❗判据用「相对上一帧的涨幅」，不要用"与峰值比较"：本机采集下最低几个 bin
     // 几乎全程高电平（实测 pk 每帧都被当前值顶回去，arm 永远为 0），
@@ -125,7 +133,10 @@
       beatPulse = Math.max(0, beatPulse - dt * 3.4);   // 落回约 0.3 秒，峰谷对比拉得开
       if (beatPulse < 0.02) beatPulse = 0;
     }
-    window.__BEAT = { level: Math.min(1, beatPulse), lv: energy, slow: beatSlow, rise: rise, ctx: actx ? actx.state : '-' };
+    window.__BEAT = {
+      level: Math.min(1, beatPulse), lv: energy, slow: beatSlow, rise: rise,
+      mid: midEnergy, treble: treEnergy, ctx: actx ? actx.state : '-'
+    };
     beatRaf = requestAnimationFrame(beatLoop);   // 续帧放帧尾：帧内任何早退都不会留下悬空句柄
   }
   function startBeat() {

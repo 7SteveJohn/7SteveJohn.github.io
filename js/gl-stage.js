@@ -586,10 +586,10 @@ if (HOST) {
       mk(Math.round(N * 0.3), 0.30, 0.45);
       return {
         layers: layers,
-        update(t, dt, sv, mxv, myv, vis) {
+        update(t, dt, sv, mxv, myv, vis, dim) {
           for (let L = 0; L < layers.length; L++) {
             const o = layers[L], p = o.pos, s = o.seed, n = o.cnt;
-            o.mat.opacity = o.base * vis;
+            o.mat.opacity = o.base * vis * dim;
             for (let i = 0; i < n; i++) {
               const i3 = i * 3;
               const ph = s[i3], vy = s[i3 + 1], sw = s[i3 + 2];
@@ -629,10 +629,10 @@ if (HOST) {
       scene.add(p);
       return {
         p: p,
-        update(t, dt, level, sv, vis) {
-          p.visible = level > 0.02 && vis > 0.02;
+        update(t, dt, level, sv, vis, dim) {
+          p.visible = level > 0.02 && vis > 0.02 && dim > 0.03;
           if (!p.visible) return;
-          mat.opacity = Math.min(0.85, level * 0.75) * vis * (1 + beatSm * 0.8);
+          mat.opacity = Math.min(0.85, level * 0.75) * vis * dim * (1 + beatSm * 0.8);
           p.rotation.y += dt * (0.36 + Math.abs(sv) * 0.55);
           p.rotation.z = Math.sin(t * 0.22) * 0.24;
           p.rotation.x = Math.sin(t * 0.16) * 0.14;
@@ -682,7 +682,7 @@ if (HOST) {
         fire: function (x, y, z) {
           for (const w of pool) if (!w.on) { w.on = true; w.t = 0; w.x = x; w.y = y; w.z = z; return; }
         },
-        update: function (dt, cam) {
+        update: function (dt, cam, dim) {
           for (const w of pool) {
             if (!w.on) continue;
             w.t += dt;
@@ -692,7 +692,7 @@ if (HOST) {
             w.m.position.set(w.x, w.y, w.z);
             w.m.scale.setScalar(0.30 + u * 7.2);
             w.m.lookAt(cam.position);                    // 正对镜头 = 屏幕上一圈同心涟漪
-            w.m.material.opacity = (1 - u) * (1 - u) * 0.42;
+            w.m.material.opacity = (1 - u) * (1 - u) * 0.42 * dim;
           }
         }
       };
@@ -710,9 +710,10 @@ if (HOST) {
        镜头时间线：由 DOM 分区驱动
        ============================================================ */
     const STOP_DEF = [
-      // 首屏：核心往左下压一档、镜头略微上抬 —— 光带形态本来就铺得开，
-      // 停在画面正中会顶到 hero 的标题与按钮；压下去后上三分之一留给文字。
-      { sel: '#home', obj: 'core', pos: [0.15, 3.5, 9.2], look: [0, 0.55, 0], fov: 40 },
+      // 首屏：3D 舞台整体退居背景（强度 ×0.34）——星河背景才是首屏主角，
+      // 两套叙事叠在同一屏只会互相打架（光带还显得像骨架）。核心仍在下三分之一缓缓起伏。
+      { sel: '#home', obj: 'core', dim: 0.34, pos: [0.15, 3.5, 9.2], look: [0, 0.55, 0], fov: 40 },
+      // 数据区：交棒为主体（强度 1.0），从这里往下 3D 与星河明确分工
       { sel: '#metrics', obj: 'core', pos: [1.7, 4.0, 12.2], look: [0, 1.9, 0], fov: 38 },
       { sel: '#products', obj: 'gpu', items: '#products article', pos: [0, 1.6, 6.9], look: [0, 0.85, 0], fov: 42 },
       { sel: '#philosophy', obj: null, pos: [0, 6.5, 17.5], look: [0, 2.0, -2], fov: 38 }
@@ -790,6 +791,12 @@ try {        const dt = Math.min(0.05, clock.getDelta());
         mx += (mouseX - mx) * Math.min(1, dt * 3.2);
         my += (mouseY - my) * Math.min(1, dt * 3.2);
 
+        // 「让位强度」：首屏 0.34（3D 退居背景），滚出首屏后回到 1。用同一个缓动量 e 插值，
+        // 平滑过渡；被它乘上的只有环境件（i.points / i.cloud / i.spark / glow）与画布透明度，
+        // 产品实体（Flowform）不吃这一项 —— 它在首屏本来就还在 park 附近，morph≈0 自然看不见。
+        const dimA = Math.min(1, Math.max(0, (window.scrollY - (stops[1] ? stops[1].y0 - window.innerHeight * 0.55 : 2000)) / Math.max(1, window.innerHeight * 0.65)));
+        const dim = (a.dim === undefined ? 1 : a.dim) + (1 - (a.dim === undefined ? 1 : a.dim)) * dimA;
+
         // 横向站位不插值：走进哪一块就把镜头摆到哪一侧（切换靠相机自身的缓动吃平）
         camGoal.set(
           a.pos[0] + mx * 0.9 + Math.sin(t * 0.21) * 0.34,
@@ -853,7 +860,7 @@ try {        const dt = Math.min(0.05, clock.getDelta());
         }
 
         const anyOn = anyMorph;
-        glow.material.opacity = Math.min(1, Math.max(0, anyOn - 0.25) * 0.85 * (1 + Math.min(0.7, Math.abs(sv) * 0.3)) * (1 + beatSm * 0.5));
+        glow.material.opacity = Math.min(1, Math.max(0, anyOn - 0.25) * 0.85 * (1 + Math.min(0.7, Math.abs(sv) * 0.3)) * (1 + beatSm * 0.5)) * dim;
         glow.scale.setScalar(0.85 + anyOn * 0.35 + Math.sin(t * 0.9) * 0.03);
 
         /* 叙事区可见度：滚到产品区之后慢慢收，到 about 之前刚好归零。
@@ -861,14 +868,15 @@ try {        const dt = Math.min(0.05, clock.getDelta());
         const vis = Math.min(1, Math.max(0, (narrativeEnd + window.innerHeight * 0.95 - window.scrollY) / (window.innerHeight * 0.7)));
 
         /* 尘埃 + 环境旋转 + 主光游走：任何滚动位置都不会变成静照 */
-        motes.update(t, dt, sv, mx, my, vis);
-        WAVES.update(dt, camera);
-        halo.update(t, dt, anyOn, sv, vis);
+        motes.update(t, dt, sv, mx, my, vis, dim);
+        WAVES.update(dt, camera, dim);
+        halo.update(t, dt, anyOn, sv, vis, dim);
         if (scene.environmentRotation) scene.environmentRotation.y += dt * 0.055;
         key.position.set(5 + Math.sin(t * 0.23) * 2.4, 8, 6 + Math.cos(t * 0.19) * 1.8);
         /* ② 背光：强度与色温一起跟节拍走（冷蓝 → 青白）。
-              注意这一行在帧尾，会把帧首那次赋值覆盖掉，所以节拍项必须写在这里。 */
-        back.intensity = 26 + beatSm * 34 + Math.sin(t * 1.25) * 4 + Math.min(14, Math.abs(sv) * 6);
+              注意这一行在帧尾，会把帧首那次赋值覆盖掉，所以节拍项必须写在这里。
+              首屏让位时背光同步收一档，免得整块画布被垫亮、把星河压住。 */
+        back.intensity = (26 + beatSm * 34 + Math.sin(t * 1.25) * 4 + Math.min(14, Math.abs(sv) * 6)) * dim;
         back.color.copy(COOL).lerp(WARM, beatSm * 0.8);
 
         const coreOn = OBJ.core.morph;
@@ -877,13 +885,14 @@ try {        const dt = Math.min(0.05, clock.getDelta());
           coreSpark.position.copy(OBJ.core.center).setY(OBJ.core.center.y + 0.55);
           coreSpark.lookAt(camera.position);
           coreSpark.scale.setScalar((0.32 + coreOn * 0.40) * (1 + beatSm * 0.6));
-          coreSpark.material.opacity = Math.min(0.85, coreOn * 0.48 * (1 + beatSm * 1.1)) * vis;
+          coreSpark.material.opacity = Math.min(0.85, coreOn * 0.48 * (1 + beatSm * 1.1)) * vis * dim;
         }
 
         /* 滚出叙事区 → 画布淡出，交棒给正文 */
         const fadeA = narrativeEnd - window.innerHeight * 0.4;
         const fadeB = narrativeEnd + window.innerHeight * 0.55;
-        const op = 1 - Math.min(1, Math.max(0, (window.scrollY - fadeA) / Math.max(1, fadeB - fadeA)));
+        const op = (1 - Math.min(1, Math.max(0, (window.scrollY - fadeA) / Math.max(1, fadeB - fadeA)))) *
+          (0.34 + 0.66 * dimA);   // 首屏整体只留三成，把画面交回星河背景
         if (Math.abs(op - lastOpacity) > 0.004) { canvas.style.opacity = op.toFixed(3); lastOpacity = op; }
 
         if (composer) composer.render(); else renderer.render(scene, camera);

@@ -1,0 +1,196 @@
+/* ============================================================
+   星河背景层（js/cosmos.js 驱动）
+   ① 画布 position:fixed + inset:0 → 页面上下滚动时星空完全不动；
+   ② z-index 为负 → 压在正文之下、盖住 body 的纯色底色；
+   ③ 右下角一个小型磨砂玻璃悬浮面板：本地音乐 / 音量 / 重置星河。
+      刻意做得很小、颜色很淡，不与左下角歌单播放器抢星河的视觉重心。
+   ============================================================ */
+#cosmos-canvas {
+  position: fixed;
+  inset: 0;
+  display: block;
+  z-index: -2;
+  pointer-events: none;
+}
+
+.cosmos-dock {
+  position: fixed;
+  right: 1.1rem;
+  bottom: 1.1rem;
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.cosmos-panel {
+  width: min(214px, calc(100vw - 2.2rem));
+  padding: 0.7rem 0.75rem;
+  border-radius: 0.85rem;
+  background: rgba(14, 18, 30, 0.62);
+  backdrop-filter: blur(14px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.45);
+  color: #e8eef8;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.cosmos-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.55rem;
+}
+
+.cosmos-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #eaf1ff;
+}
+
+#cosmos-fold {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 0.35rem;
+  background: transparent;
+  color: #93a2bd;
+  cursor: pointer;
+  transition: color 0.18s ease, background 0.18s ease;
+}
+#cosmos-fold:hover {
+  color: #eaf1ff;
+  background: rgba(255, 255, 255, 0.08);
+}
+#cosmos-fold svg { width: 13px; height: 13px; }
+
+.cosmos-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cosmos-file {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: 0.5rem;
+  border: 1px dashed rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.04);
+  color: #cdd9ec;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+.cosmos-file:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.34);
+}
+.cosmos-file svg { width: 13px; height: 13px; flex: 0 0 auto; }
+.cosmos-file span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cosmos-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+.cosmos-lab {
+  flex: 0 0 auto;
+  color: #93a2bd;
+}
+
+.cosmos-range {
+  flex: 1 1 auto;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  outline: none;
+  cursor: pointer;
+}
+.cosmos-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 0;
+  background: #dbe7ff;
+  cursor: pointer;
+}
+.cosmos-range::-moz-range-thumb {
+  width: 11px;
+  height: 11px;
+  border: 0;
+  border-radius: 50%;
+  background: #dbe7ff;
+  cursor: pointer;
+}
+
+.cosmos-btn {
+  padding: 0.42rem 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: #e8eef8;
+  font-size: 0.74rem;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.12s ease;
+}
+.cosmos-btn:hover { background: rgba(255, 255, 255, 0.13); }
+.cosmos-btn:active { transform: scale(0.97); }
+
+.cosmos-state {
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1.45;
+  color: #8d9cb8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cosmos-chip {
+  width: 2.4rem;
+  height: 2.4rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(14, 18, 30, 0.62);
+  backdrop-filter: blur(14px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  color: #cdd9ec;
+  cursor: pointer;
+  transition: color 0.18s ease, background 0.18s ease;
+}
+.cosmos-chip:hover {
+  color: #ffffff;
+  background: rgba(24, 30, 46, 0.72);
+}
+.cosmos-chip svg { width: 15px; height: 15px; }
+
+/* 自定义 display 会盖掉 [hidden] 自带的 display:none，这里必须显式补回来 */
+.cosmos-panel[hidden],
+.cosmos-chip[hidden] { display: none; }
+
+/* 窄屏：面板再缩一档，别压住正文 */
+@media (max-width: 640px) {
+  .cosmos-dock { right: 0.8rem; bottom: 0.8rem; }
+  .cosmos-panel { width: min(190px, calc(100vw - 1.6rem)); }
+}
+
+/* 尊重"减少动效"：面板本身也别再做 hover 位移一类的动画 */
+@media (prefers-reduced-motion: reduce) {
+  .cosmos-btn:active { transform: none; }
+}
