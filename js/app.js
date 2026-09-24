@@ -70,14 +70,10 @@ function initTheme() {
   const themeToggleBtn = document.getElementById('theme-toggle');
   const mobileThemeToggleBtn = document.getElementById('mobile-theme-toggle');
   
-  const savedTheme = localStorage.getItem('theme');
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  
-  if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-    document.documentElement.classList.add('dark');
-  } else {
-    document.documentElement.classList.remove('dark');
-  }
+  // 站点恒深色：hero / 3D 舞台 / 变形带都是深色设计，浅色从未完整做——
+  // 之前允许"跟随系统进浅色"，系统浅色 + 浏览器强制深色（auto dark）会变成黑底深字（2026-09-24 用户截图翻车）。
+  // 切换按钮已隐藏；这里无条件挂 dark，覆盖任何 localStorage 残留。
+  document.documentElement.classList.add('dark');
 
   function toggle(e) {
     const applyNow = () => {
