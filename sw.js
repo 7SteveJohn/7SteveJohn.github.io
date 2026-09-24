@@ -6,7 +6,7 @@
  * - 其余同源/静态资源：缓存优先 + 后台更新（stale-while-revalidate）
  * ⚠️ 每次发布改动静态资源后，把 CACHE 版本号 +1，旧缓存会在 activate 阶段自动清理。
  */
-const CACHE = 'sevenjohn-v26';
+const CACHE = 'sevenjohn-v27';
 const CORE = [
   './',
   'index.html',
@@ -30,6 +30,7 @@ const CORE = [
   'assets/vendor/lucide.min.js',
   'assets/images/avatar.webp',
   'assets/images/morph-loop-poster.jpg',
+  'assets/images/gl-poster.webp',
   // 项目封面：首屏 preload 会早于 SW 接管，必须进预缓存，否则断网后卡片图全裂
   'assets/images/cover-filebutler.webp',
   'assets/images/cover-netops.webp',

@@ -23,7 +23,30 @@ const HOST = document.getElementById('gl-stage');
 if (HOST) {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
   const force = new URLSearchParams(location.search).has('gl');
-  if (!reduce.matches || force) boot();
+  /* 降级要留下"为什么"：原因写进 data-gl 与 __GL_FALLBACK，
+     能重试的（减少动效 / 启动报错）给一枚按钮，点了带 ?gl=1 强制启动。 */
+  const fail = (reason, withRetry) => {
+    HOST.classList.add('no-gl');
+    HOST.dataset.gl = reason;
+    try { window.__GL_FALLBACK = reason; } catch (e) {}
+    if (withRetry) {
+      const btn = document.createElement('button');
+      btn.className = 'gl-retry';
+      btn.type = 'button';
+      btn.setAttribute('aria-label', '播放 3D 场景');
+      btn.textContent = '▶ 播放 3D 场景';
+      btn.addEventListener('click', () => {
+        const u = new URL(location.href);
+        u.searchParams.set('gl', '1');
+        location.replace(u.href);
+      });
+      document.body.appendChild(btn);   // .gl-stage 在 z-index:-1 层里，挂里面会被正文截住点不到
+    }
+  };
+  if (reduce.matches && !force) fail('reduced-motion', true);
+  else {
+    try { boot(); } catch (err) { fail('boot-error', true); }
+  }
 
   function boot() {
     let renderer;
@@ -31,6 +54,8 @@ if (HOST) {
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
     } catch (err) {
       HOST.classList.add('no-gl');
+      HOST.dataset.gl = 'no-webgl';
+      try { window.__GL_FALLBACK = 'no-webgl'; } catch (e) {}
       return;
     }
     const canvas = renderer.domElement;
@@ -626,103 +651,104 @@ if (HOST) {
     function frame() {
       raf = 0;
       if (!running) return;
-      const dt = Math.min(0.05, clock.getDelta());
-      const t = clock.elapsedTime;
+try {        const dt = Math.min(0.05, clock.getDelta());
+        const t = clock.elapsedTime;
 
-      /* 滚动速度（px/ms，夹紧）：滚得越快 → 实体转得越快、尘埃被掀起、辉光更亮 */
-      const sy = window.scrollY;
-      const rawV = (sy - lastSy) / Math.max(dt, 0.001) / 1000;
-      lastSy = sy;
-      sv += (Math.max(-4, Math.min(4, rawV)) - sv) * Math.min(1, dt * 7);
+        /* 滚动速度（px/ms，夹紧）：滚得越快 → 实体转得越快、尘埃被掀起、辉光更亮 */
+        const sy = window.scrollY;
+        const rawV = (sy - lastSy) / Math.max(dt, 0.001) / 1000;
+        lastSy = sy;
+        sv += (Math.max(-4, Math.min(4, rawV)) - sv) * Math.min(1, dt * 7);
 
-      /* 当前区间 + 前后插值 */
-      const yMid = window.scrollY + window.innerHeight * 0.5;
-      let a = stops[0] || { pos: [0, 2.5, 9.4], look: [0, 1.45, 0], fov: 42, obj: 'core' };
-      let b = a, k = 1;
-      for (let i = 0; i < stops.length; i++) {
-        if (yMid <= stops[i].y1 || i === stops.length - 1) {
-          a = stops[i]; b = stops[Math.min(stops.length - 1, i + 1)];
-          k = Math.min(1, Math.max(0, (yMid - a.y0) / Math.max(1, a.y1 - a.y0)));
-          break;
+        /* 当前区间 + 前后插值 */
+        const yMid = window.scrollY + window.innerHeight * 0.5;
+        let a = stops[0] || { pos: [0, 2.5, 9.4], look: [0, 1.45, 0], fov: 42, obj: 'core' };
+        let b = a, k = 1;
+        for (let i = 0; i < stops.length; i++) {
+          if (yMid <= stops[i].y1 || i === stops.length - 1) {
+            a = stops[i]; b = stops[Math.min(stops.length - 1, i + 1)];
+            k = Math.min(1, Math.max(0, (yMid - a.y0) / Math.max(1, a.y1 - a.y0)));
+            break;
+          }
         }
-      }
-      const e = easeInOut(k);
-      mx += (mouseX - mx) * Math.min(1, dt * 3.2);
-      my += (mouseY - my) * Math.min(1, dt * 3.2);
+        const e = easeInOut(k);
+        mx += (mouseX - mx) * Math.min(1, dt * 3.2);
+        my += (mouseY - my) * Math.min(1, dt * 3.2);
 
-      // 横向站位不插值：走进哪一块就把镜头摆到哪一侧（切换靠相机自身的缓动吃平）
-      camGoal.set(
-        a.pos[0] + mx * 0.9 + Math.sin(t * 0.21) * 0.34,
-        a.pos[1] + (b.pos[1] - a.pos[1]) * e + my * 0.5 + Math.sin(t * 0.28) * 0.11 + Math.sin(t * 0.17) * 0.09,
-        a.pos[2] + (b.pos[2] - a.pos[2]) * e + Math.sin(t * 0.13) * 0.24
-      );
-      camera.position.lerp(camGoal, Math.min(1, dt * 4.2));
-      lookGoal.set(
-        a.look[0] + mx * 0.35 + Math.sin(t * 0.19 + 1.2) * 0.12,
-        a.look[1] + (b.look[1] - a.look[1]) * e + my * 0.2,
-        a.look[2] + (b.look[2] - a.look[2]) * e
-      );
-      lookNow.lerp(lookGoal, Math.min(1, dt * 4.2));
-      camera.lookAt(lookNow);
-      const fov = (a.fov || 42) + ((b.fov || a.fov || 42) - (a.fov || 42)) * e;
-      if (Math.abs(camera.fov - fov) > 0.02) { camera.fov = fov; camera.updateProjectionMatrix(); }
+        // 横向站位不插值：走进哪一块就把镜头摆到哪一侧（切换靠相机自身的缓动吃平）
+        camGoal.set(
+          a.pos[0] + mx * 0.9 + Math.sin(t * 0.21) * 0.34,
+          a.pos[1] + (b.pos[1] - a.pos[1]) * e + my * 0.5 + Math.sin(t * 0.28) * 0.11 + Math.sin(t * 0.17) * 0.09,
+          a.pos[2] + (b.pos[2] - a.pos[2]) * e + Math.sin(t * 0.13) * 0.24
+        );
+        camera.position.lerp(camGoal, Math.min(1, dt * 4.2));
+        lookGoal.set(
+          a.look[0] + mx * 0.35 + Math.sin(t * 0.19 + 1.2) * 0.12,
+          a.look[1] + (b.look[1] - a.look[1]) * e + my * 0.2,
+          a.look[2] + (b.look[2] - a.look[2]) * e
+        );
+        lookNow.lerp(lookGoal, Math.min(1, dt * 4.2));
+        camera.lookAt(lookNow);
+        const fov = (a.fov || 42) + ((b.fov || a.fov || 42) - (a.fov || 42)) * e;
+        if (Math.abs(camera.fov - fov) > 0.02) { camera.fov = fov; camera.updateProjectionMatrix(); }
 
-      /* 实体：该上场的凝聚，其余崩解 */
-      const activeName = a.obj;
-      for (const name in OBJ) {
-        const o = OBJ[name];
-        const want = name === activeName ? 1 : 0;
-        o.target = want;
-        const rate = want > o.morph ? 2.4 : 3.6;      // 凝聚慢一点，崩解痛快
-        o.morph += (want - o.morph) * Math.min(1, dt * rate);
-        if (Math.abs(want - o.morph) < 0.004) o.morph = want;
-        o.center.lerp(want ? ZERO : o.park, Math.min(1, dt * 1.6));
-        o.springs(dt);
-        o.update(t);
-        o.idle(t, dt, sv);
-      }
-
-      const anyOn = Math.max(OBJ.core.morph, OBJ.gpu.morph, OBJ.truck.morph, OBJ.rack.morph);
-      glow.material.opacity = Math.min(1, Math.max(0, anyOn - 0.25) * 0.85 * (1 + Math.min(0.7, Math.abs(sv) * 0.3)));
-      glow.scale.setScalar(0.85 + anyOn * 0.35 + Math.sin(t * 0.9) * 0.03);
-
-      /* 叙事区可见度：滚到产品区之后慢慢收，到 about 之前刚好归零。
-         尘埃与光环铺满全站，是"任何位置都有微动"的底线。 */
-      const vis = Math.min(1, Math.max(0, (narrativeEnd + window.innerHeight * 0.95 - window.scrollY) / (window.innerHeight * 0.7)));
-
-      /* 尘埃 + 环境旋转 + 主光游走：任何滚动位置都不会变成静照 */
-      motes.update(t, dt, sv, mx, my, vis);
-      halo.update(t, dt, anyOn, sv, vis);
-      if (scene.environmentRotation) scene.environmentRotation.y += dt * 0.055;
-      key.position.set(5 + Math.sin(t * 0.23) * 2.4, 8, 6 + Math.cos(t * 0.19) * 1.8);
-      back.intensity = 26 + Math.sin(t * 1.25) * 4 + Math.min(14, Math.abs(sv) * 6);
-
-      const coreOn = OBJ.core.morph;
-      coreInner.visible = coreOn > 0.35;
-      coreInner.rotation.set(t * 0.32, t * 0.45, 0);
-      coreInner.scale.setScalar(0.42 + coreOn * 0.46 + Math.sin(t * 1.6) * 0.05);
-      coreWire.visible = coreOn > 0.55;
-      coreWire.rotation.set(t * 0.08 + 0.3, t * 0.12, t * 0.05);
-
-      /* 滚出叙事区 → 画布淡出，交棒给正文 */
-      const fadeA = narrativeEnd - window.innerHeight * 0.4;
-      const fadeB = narrativeEnd + window.innerHeight * 0.55;
-      const op = 1 - Math.min(1, Math.max(0, (window.scrollY - fadeA) / Math.max(1, fadeB - fadeA)));
-      if (Math.abs(op - lastOpacity) > 0.004) { canvas.style.opacity = op.toFixed(3); lastOpacity = op; }
-
-      renderer.render(scene, camera);
-      if (!firstFrame) { firstFrame = true; HOST.classList.add('ready'); window.__GL.ready = true; }
-
-      fpsAcc += dt; fpsN++;
-      if (fpsAcc > 0.8) {
-        fps = fpsN / fpsAcc;
-        if (fps < 42 && DPR > 1) {
-          DPR = 1; renderer.setPixelRatio(1); renderer.setSize(window.innerWidth, window.innerHeight);
-        } else if (fps < 34 && COUNT > 0.5) {
-          COUNT = 0.5; rebuild();
+        /* 实体：该上场的凝聚，其余崩解 */
+        const activeName = a.obj;
+        for (const name in OBJ) {
+          const o = OBJ[name];
+          const want = name === activeName ? 1 : 0;
+          o.target = want;
+          const rate = want > o.morph ? 2.4 : 3.6;      // 凝聚慢一点，崩解痛快
+          o.morph += (want - o.morph) * Math.min(1, dt * rate);
+          if (Math.abs(want - o.morph) < 0.004) o.morph = want;
+          o.center.lerp(want ? ZERO : o.park, Math.min(1, dt * 1.6));
+          o.springs(dt);
+          o.update(t);
+          o.idle(t, dt, sv);
         }
-        fpsAcc = 0; fpsN = 0;
-      }
+
+        const anyOn = Math.max(OBJ.core.morph, OBJ.gpu.morph, OBJ.truck.morph, OBJ.rack.morph);
+        glow.material.opacity = Math.min(1, Math.max(0, anyOn - 0.25) * 0.85 * (1 + Math.min(0.7, Math.abs(sv) * 0.3)));
+        glow.scale.setScalar(0.85 + anyOn * 0.35 + Math.sin(t * 0.9) * 0.03);
+
+        /* 叙事区可见度：滚到产品区之后慢慢收，到 about 之前刚好归零。
+           尘埃与光环铺满全站，是"任何位置都有微动"的底线。 */
+        const vis = Math.min(1, Math.max(0, (narrativeEnd + window.innerHeight * 0.95 - window.scrollY) / (window.innerHeight * 0.7)));
+
+        /* 尘埃 + 环境旋转 + 主光游走：任何滚动位置都不会变成静照 */
+        motes.update(t, dt, sv, mx, my, vis);
+        halo.update(t, dt, anyOn, sv, vis);
+        if (scene.environmentRotation) scene.environmentRotation.y += dt * 0.055;
+        key.position.set(5 + Math.sin(t * 0.23) * 2.4, 8, 6 + Math.cos(t * 0.19) * 1.8);
+        back.intensity = 26 + Math.sin(t * 1.25) * 4 + Math.min(14, Math.abs(sv) * 6);
+
+        const coreOn = OBJ.core.morph;
+        coreInner.visible = coreOn > 0.35;
+        coreInner.rotation.set(t * 0.32, t * 0.45, 0);
+        coreInner.scale.setScalar(0.42 + coreOn * 0.46 + Math.sin(t * 1.6) * 0.05);
+        coreWire.visible = coreOn > 0.55;
+        coreWire.rotation.set(t * 0.08 + 0.3, t * 0.12, t * 0.05);
+
+        /* 滚出叙事区 → 画布淡出，交棒给正文 */
+        const fadeA = narrativeEnd - window.innerHeight * 0.4;
+        const fadeB = narrativeEnd + window.innerHeight * 0.55;
+        const op = 1 - Math.min(1, Math.max(0, (window.scrollY - fadeA) / Math.max(1, fadeB - fadeA)));
+        if (Math.abs(op - lastOpacity) > 0.004) { canvas.style.opacity = op.toFixed(3); lastOpacity = op; }
+
+        renderer.render(scene, camera);
+        if (!firstFrame) { firstFrame = true; HOST.classList.add('ready'); window.__GL.ready = true; }
+
+        fpsAcc += dt; fpsN++;
+        if (fpsAcc > 0.8) {
+          fps = fpsN / fpsAcc;
+          if (fps < 42 && DPR > 1) {
+            DPR = 1; renderer.setPixelRatio(1); renderer.setSize(window.innerWidth, window.innerHeight);
+          } else if (fps < 34 && COUNT > 0.5) {
+            COUNT = 0.5; rebuild();
+          }
+          fpsAcc = 0; fpsN = 0;
+        }
+      } catch (err) { /* 单帧失败不终止动画 */ }
       raf = requestAnimationFrame(frame);
     }
 
@@ -771,7 +797,12 @@ if (HOST) {
     window.addEventListener('resize', onResize);
     window.addEventListener('scroll', gate, { passive: true });
     document.addEventListener('visibilitychange', gate);
-    canvas.addEventListener('webglcontextlost', (ev) => { ev.preventDefault(); stop(); HOST.classList.add('no-gl'); });
+    canvas.addEventListener('webglcontextlost', (ev) => {
+      ev.preventDefault(); stop();
+      HOST.classList.add('no-gl');
+      HOST.dataset.gl = 'context-lost';
+      try { window.__GL_FALLBACK = 'context-lost'; } catch (e) {}
+    });
 
     /* ---------- 探针 ---------- */
     window.__GL = {

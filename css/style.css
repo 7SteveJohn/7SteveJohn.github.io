@@ -269,6 +269,30 @@ header.site-header:not(.is-scrolled) {
 }
 .gl-stage.ready .gl-fallback { opacity: 0; }
 .gl-stage.no-gl .gl-fallback { opacity: 1; }
+/* 降级状态下的"▶ 播放 3D 场景"：挂在 body 上（.gl-stage 在 z-index:-1 层里，内部元素点不到） */
+.gl-retry {
+  position: fixed;
+  left: 50%;
+  bottom: 84px;
+  transform: translateX(-50%);
+  z-index: 80;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.55rem 1.15rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.30);
+  background: rgba(10, 16, 28, 0.62);
+  color: #e8eef8;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.gl-retry:hover {
+  background: rgba(26, 38, 60, 0.82);
+  border-color: rgba(255, 255, 255, 0.5);
+}
 
 /* ============================================================
    首屏：文案靠上、舞台沉在下 2/3（构图与 3D 场景的镜头配合）
