@@ -72,6 +72,14 @@ if (HOST) {
     let COUNT = small ? 0.45 : 1;
     const clock = new THREE.Clock();
 
+    const GPU_NAME = (() => {   // 诊断用：下次用户报"卡"，直接读 state().gpu 判断是不是软渲染
+      try {
+        const gl = renderer.getContext();
+        const ext = gl.getExtension('WEBGL_debug_renderer_info');
+        return String(ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER));
+      } catch (e) { return 'unknown'; }
+    })();
+
     renderer.setPixelRatio(DPR);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -699,7 +707,7 @@ if (HOST) {
     let mouseX = 0, mouseY = 0, mx = 0, my = 0;
     let lastSy = window.scrollY, sv = 0;
     let raf = 0, running = false, firstFrame = false, lastOpacity = -1;
-    let fps = 60, fpsAcc = 0, fpsN = 0;
+    let fps = 60, fpsAcc = 0, fpsN = 0, lowStreak = 0;
 
     function frame() {
       raf = 0;
@@ -795,11 +803,12 @@ try {        const dt = Math.min(0.05, clock.getDelta());
         if (fpsAcc > 0.8) {
           fps = fpsN / fpsAcc;
           const warm = clock.elapsedTime > 3.5;   // 首屏预热期（PMREM/首帧）帧率天然低，别急着降档
-          if (warm && fps < 42 && DPR > 0.85) {   // 阶梯降 DPR：一次砍到底会"突然糊"
-            DPR = Math.max(0.85, DPR * 0.85); renderer.setPixelRatio(DPR); renderer.setSize(window.innerWidth, window.innerHeight);
+          if (warm && fps < 42 && DPR > 0.85) {   // 连续两轮偏低才降：一次砍到底会"突然糊"
+            lowStreak++;
+            if (lowStreak >= 2) { lowStreak = 0; DPR = Math.max(0.85, DPR * 0.85); renderer.setPixelRatio(DPR); renderer.setSize(window.innerWidth, window.innerHeight); }
           } else if (warm && fps < 34 && COUNT > 0.5) {
             COUNT = 0.5; rebuild();
-          }
+          } else if (fps >= 42) lowStreak = 0;
           fpsAcc = 0; fpsN = 0;
         }
       } catch (err) { /* 单帧失败不终止动画 */ }
@@ -821,12 +830,16 @@ try {        const dt = Math.min(0.05, clock.getDelta());
     function start() { if (!raf) { clock.getDelta(); raf = requestAnimationFrame(frame); } }
     function stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
     function gate() {
-      const inRange = window.scrollY < narrativeEnd + window.innerHeight * 1.3;
-      const want = inRange && !document.hidden;
+      const inRange = window.scrollY < narrativeEnd + window.innerHeight * 0.7;
+      const modal = document.getElementById('project-modal');
+      const modalOpen = !!modal && !modal.classList.contains('hidden');   // 弹窗盖着全屏，3D 停渲染把主线程让出来
+      const want = inRange && !document.hidden && !modalOpen;
       if (want === running) return;
       running = want;
       if (want) start(); else stop();
     }
+    const modalEl = document.getElementById('project-modal');
+    if (modalEl) new MutationObserver(gate).observe(modalEl, { attributes: true, attributeFilter: ['class'] });
 
     /* ---------- 交互 ---------- */
     window.addEventListener('pointermove', (ev) => {
@@ -874,7 +887,7 @@ try {        const dt = Math.min(0.05, clock.getDelta());
         },
         sv: +sv.toFixed(3), motes: motes.layers.length,
         tris: renderer.info.render.triangles, calls: renderer.info.render.calls,
-        cw: canvas.width, ch: canvas.height, stops: stops.length
+        cw: canvas.width, ch: canvas.height, stops: stops.length, gpu: GPU_NAME
       }),
       impulse: (x, y) => { for (const n in OBJ) if (OBJ[n].morph > 0.3) OBJ[n].impulse(x, y, 8); },
       // 诊断：原点在屏幕上的归一化坐标（-1..1）与相机位置
