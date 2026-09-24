@@ -525,7 +525,7 @@ if (HOST) {
           _qa.multiply(_qb);
 
           _vp.set(x, y, z);
-          const br = 1 + Math.sin(t * 1.15 + i * 0.7) * 0.06 * e + beatSm * 0.035 * e;   // 音乐律动加进呼吸：节拍一来整体微微鼓
+          const br = 1 + Math.sin(t * 1.15 + i * 0.7) * 0.06 * e + beatSm * 0.08 * e;   // 音乐律动加进呼吸：节拍一来整体明显一鼓
           _vs.set(this.sc[i3] * br, this.sc[i3 + 1] * br, this.sc[i3 + 2] * br);
           _m4.compose(_vp, _qa, _vs);
           const kind = this.slot[i];
@@ -681,7 +681,7 @@ if (HOST) {
         update(t, dt, level, sv, vis) {
           p.visible = level > 0.02 && vis > 0.02;
           if (!p.visible) return;
-          mat.opacity = Math.min(0.85, level * 0.75) * vis * (1 + beatSm * 0.35);
+          mat.opacity = Math.min(0.85, level * 0.75) * vis * (1 + beatSm * 0.8);
           p.rotation.y += dt * (0.36 + Math.abs(sv) * 0.55);
           p.rotation.z = Math.sin(t * 0.22) * 0.24;
           p.rotation.x = Math.sin(t * 0.16) * 0.14;
@@ -773,10 +773,11 @@ try {        const dt = Math.min(0.05, clock.getDelta());
         lastSy = sy;
         sv += (Math.max(-4, Math.min(4, rawV)) - sv) * Math.min(1, dt * 7);
 
-        /* 音乐律动：播放器喂 __BEAT.level（低频能量 0..1），平滑后驱动辉光/背光/光点 */
-        beatSm += ((window.__BEAT ? window.__BEAT.level : 0) - beatSm) * Math.min(1, dt * 8);
-        if (bloomPass) bloomPass.strength = 0.36 + beatSm * 0.28;
-        back.intensity = 26 + beatSm * 14;
+        /* 音乐律动：player 喂 __BEAT.level（节拍包络 0..1，冲击立即/回落带衰减），
+           平滑后驱动辉光/背光/光点/呼吸——幅度要大到"一眼看出在跟节拍" */
+        beatSm += ((window.__BEAT ? window.__BEAT.level : 0) - beatSm) * Math.min(1, dt * 18);
+        if (bloomPass) bloomPass.strength = 0.34 + beatSm * 0.9;
+        back.intensity = 26 + beatSm * 40;
 
         /* 当前区间 + 前后插值 */
         const yMid = window.scrollY + window.innerHeight * 0.5;

@@ -85,8 +85,11 @@
     try { localStorage.setItem(LS_ORDER, JSON.stringify(SONGS.map(function (s) { return s.src; }))); } catch (e) {}
   };
 
-  // —— 音乐律动：低频能量 → window.__BEAT ——
+  // —— 音乐律动：节拍包络 → window.__BEAT ——
+  // 不用低频均值（那是恒定值，眼睛看不出"律动"）：瞬时能量对比慢速均值，
+  // 超过阈值算一拍，冲高立即、回落带衰减 —— 视觉上是"哐→散"的冲击感。
   let actx = null, analyser = null, beatRaf = 0;
+  let beatAvg = 0.001, beatPulse = 0, beatLock = 0;
   const BEAT_ARR = new Uint8Array(128);   // fftSize 256 → 128 bins
   function beatLoop() {
     beatRaf = requestAnimationFrame(beatLoop);
@@ -95,7 +98,18 @@
     let sum = 0;
     const n = Math.max(4, BEAT_ARR.length >> 3);   // 低频段（鼓点/贝斯所在）
     for (let i = 0; i < n; i++) sum += BEAT_ARR[i];
-    window.__BEAT = { level: Math.min(1, (sum / n / 255) * 1.4) };
+    const energy = sum / n / 255;                  // 0..1
+    beatAvg += (energy - beatAvg) * 0.05;          // 慢速跟随的局部均值（~1s 尺度）
+    // 电子乐低频几乎不歇，靠"不应期"切出离散拍点：一拍后 300ms 内不再触发
+    // （≈200BPM 上限；更短会把持续满格的低频切成连续高亮，又"平"了）
+    const now = performance.now();
+    if (energy > beatAvg * 1.5 && now > beatLock) {
+      beatPulse = Math.min(1, (energy / beatAvg - 0.5) * 1.6);
+      beatLock = now + 300;
+    } else {
+      beatPulse *= 0.88;                           // 拍间回落（~0.4s 落回）
+    }
+    window.__BEAT = { level: Math.min(1, beatPulse) };
   }
   function startBeat() {
     try {
@@ -106,7 +120,7 @@
         const srcNode = actx.createMediaElementSource(audio);   // 只能建一次；建后声音经 analyser 回到扬声器
         analyser = actx.createAnalyser();
         analyser.fftSize = 256;
-        analyser.smoothingTimeConstant = 0.82;
+        analyser.smoothingTimeConstant = 0.55;   // 低平滑保瞬态：均值化的数据看不出节拍
         srcNode.connect(analyser);
         analyser.connect(actx.destination);
       }
