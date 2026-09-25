@@ -141,7 +141,7 @@ for (let k = 0; k < 40; k++) {
   await pg.waitForTimeout(70);
 }
 const i2 = await pg.evaluate(() => window.__COSMOS.info());
-ok('低频被吸收', i2.audio.bass > 0.3, JSON.stringify(i2.audio));
+ok('低频被吸收（律动总闸 0.75 后应明显更高）', i2.audio.bass > 0.45, JSON.stringify(i2.audio));
 ok('中频被吸收', i2.audio.mid > 0.25, 'mid=' + i2.audio.mid);
 ok('高频被吸收', i2.audio.treble > 0.2, 'treble=' + i2.audio.treble);
 ok('低频触发环形冲击波', i2.fired.ring > 0, 'fired.ring=' + i2.fired.ring);

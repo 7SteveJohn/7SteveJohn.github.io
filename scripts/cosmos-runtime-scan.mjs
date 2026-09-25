@@ -174,6 +174,16 @@ try {
   const fk2 = await pg.evaluate(() => window.__COSMOS.info().fired);
   ok('空白处点击 → 脉冲 + 涟漪 + 星屑',
     fk2.kick > fk1.kick && fk2.ring > fk1.ring && fk2.spark > fk1.spark, JSON.stringify(fk2));
+  // 不放歌时的交互：快速划过 → 沿轨迹撒星屑；停手后仍保留常驻微搅（pointerFloor）
+  const fs1 = await pg.evaluate(() => window.__COSMOS.info().fired);
+  for (let x = 300; x <= 1020; x += 70) await pg.mouse.move(x, 300 + Math.sin(x / 90) * 60);
+  await pg.waitForTimeout(400);
+  const fs2 = await pg.evaluate(() => window.__COSMOS.info().fired);
+  ok('快速划过 → 沿轨迹撒星屑', fs2.spark > fs1.spark, fs1.spark + ' → ' + fs2.spark);
+  await pg.waitForTimeout(7000);
+  const pl = await pg.evaluate(() => window.__COSMOS.info().pointer);
+  ok('停手后保留常驻微搅（pointerFloor）', pl.live > 0.15, 'live=' + pl.live);
+
   const btn = await pg.locator('#cosmos-reset').boundingBox();
   await pg.mouse.move(btn.x + btn.width / 2, btn.y + btn.height / 2);
   await pg.mouse.down(); await pg.mouse.up();

@@ -39,17 +39,22 @@
       density: 1.0,        // 粒子总量倍率（还会在 buildScene 里按屏幕面积 / 移动端 / 性能档再折算）
       intensity: 1.0,      // 亮度倍率
       motion: 1.0,         // 运动倍率（想更安静就往下调）
-      reactivity: 0.5,     // 【律动总闸】全部音频包络 ×它：外扩/涡流/爆亮/拖尾/星芒/冲击波同比例收敛。
-                           // 1.0 = 规格原始幅度（实测整屏打拍子，被用户打回）；0.5 = 呼吸感
-      pointerStir: 0.6,    // 指针搅动幅度：移动时附近星尘被拖带 + 绕指微涡
-      pointerKick: 1.0,    // 按下脉冲幅度：半径内星体被踹散，归位弹簧拉回
-      pointerRadius: 260,  // 指针影响半径（px）
+    reactivity: 0.75,   // 【律动总闸】全部音频包络 ×它：外扩/涡流/爆亮/拖尾/星芒/冲击波同比例收敛。
+                        // 1.0 = 规格原始幅度（实测整屏打拍子，被用户打回）；0.5 = 只剩呼吸感（也嫌浅）；
+                        // 0.75 = 拍点看得清、又不至于晃得读不了字
+    pointerStir: 0.95,  // 指针搅动幅度：移动时附近星尘被拖带 + 绕指微涡
+    pointerKick: 1.0,   // 按下脉冲幅度：半径内星体被踹散，归位弹簧拉回
+    pointerRadius: 340, // 指针影响半径（px）
+    pointerWake: 1.0,   // 快速划过时沿轨迹撒星屑的密度（0 = 关掉；不放歌时最主要的交互反馈）
+    pointerFloor: 0.30, // 停手渐熄后保留的常驻微搅：光标停在星河里也一直在轻轻搅动（鼠标移出窗口才归零）
     fpsActive: 48,       // 正常每帧预算上限
     fpsBlur: 16,         // 窗口失焦：降到肉眼难察的缓慢演进
     fpsHidden: 5,        // 标签页切后台：几乎停摆
     fpsReduce: 16,       // 系统「减少动效」下：默认停笔，用户主动放歌才按这个帧率随拍微动
     trailQuiet: 0.26,    // 安静时的擦除 alpha：残影短、画面干净好读字
-    trailLoud: 0.075,    // 低频强时的擦除 alpha：残影拉长，拖出流动感
+    trailLoud: 0.095,    // 低频强时的擦除 alpha：残影拉长，拖出流动感（0.075 叠加太久会发亮）
+    trailBass: 0.75,     // 拖尾对低频的响应：最吃亮度的一项（残影叠残影），调大全幅底图跟着发亮
+    trailPulse: 0.45,    // 拖尾对拍点的响应
     bloomEvery: 3,       // 每几帧做一次体积辉光（禁止每帧高斯模糊）
     bloomAlpha: 0.050,   // 辉光回叠强度（0.075 时真机上大光晕叠成一圈圈"炫光"，被用户打回）
     bloomBlur: 1,        // 辉光模糊半径（px，作用在 1/4 分辨率小缓冲上，≈全屏 4px，贴近原版 3px 的紧致度）
@@ -388,9 +393,9 @@
         v.y = v.by + Math.sin(t * v.sp * 1.31 + v.ph * 1.7) * v.wy;
         // 半径与强度由频谱插值：低频让漩涡变大变猛，半径跟着低频一起呼吸
         v.r = v.r0 * (1 + A.bass * 0.22);
-        v.strength = v.base * (0.5 + A.bass * 1.15 + A.pulse * 0.35);
+        v.strength = v.base * (0.5 + A.bass * 1.70 + A.pulse * 0.60);
         v.omega = v.dir * (0.55 + Sound.mid * 1.35) * (1 + A.bass * 0.5);
-        v.radial = 0.28 + A.bass * 1.25 + A.pulse * 0.55;
+        v.radial = 0.28 + A.bass * 1.90 + A.pulse * 0.90;
       }
       return this;
     },
@@ -430,8 +435,10 @@
       tx: -1, ty: -1,         // 目标位置（事件直写）
       x: -9999, y: -9999,     // 平滑后的位置
       vx: 0, vy: 0,           // 平滑后的指针速度（≈60fps 帧位移），用于"拖带"
-      live: 0,                // 活跃度 0..1：动了就升、停手就降
+      live: 0,                // 活跃度 0..1：动了就升、停手降到 CFG.pointerFloor（移出窗口才归零）
       lastMove: 0,
+      wakeAcc: 0,             // 划过的路程累计：够一格就撒一粒星屑
+      out: false,             // 指针是否已移出窗口
 
       init: function () {
         var self = this;
@@ -439,7 +446,10 @@
           self.tx = ev.clientX; self.ty = ev.clientY;
           if (self.x < -999) { self.x = self.tx; self.y = self.ty; }
           self.lastMove = performance.now();
+          self.out = false;
         }, { passive: true });
+        document.addEventListener('mouseleave', function () { self.out = true; }, { passive: true });
+        document.addEventListener('mouseenter', function () { self.out = false; }, { passive: true });
         window.addEventListener('pointerdown', function (ev) {
           if (ev.target && ev.target.closest &&
               ev.target.closest('a,button,input,textarea,select,label,#cosmos-dock,#music-player')) return;
@@ -459,8 +469,18 @@
         this.vy = (ny - this.y) / Math.max(dt, 0.001) * 0.016;
         this.x = nx; this.y = ny;
         var idle = performance.now() - this.lastMove;
-        var want = idle < 4000 ? 1 : Math.max(0, 1 - (idle - 4000) / 2000);   // 停手 4s 后才慢慢熄，交互别"一小会就没"
+        // 停手 4s 后渐熄，但留一格 CFG.pointerFloor 的常驻微搅（不放歌时全靠它撑交互感）；
+        // 只有指针移出窗口才彻底归零，免得在窗口边缘留一个永远在搅的位点
+        var want = this.out ? 0 : (idle < 4000 ? 1 : Math.max(CFG.pointerFloor, 1 - (idle - 4000) / 2000));
         this.live += (want - this.live) * Math.min(1, dt * 3);
+        // 快速划过：沿轨迹撒一串转瞬星屑。不放歌时这是最直观的"我在动它"的反馈
+        if (CFG.pointerWake > 0 && this.live > 0.4) {
+          var sp = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+          if (sp > 5) {
+            this.wakeAcc += sp;
+            if (this.wakeAcc > 24) { this.wakeAcc = 0; popSpark(this.x, this.y, 2); }
+          } else this.wakeAcc = 0;
+        }
       },
 
       // 搅动：拖带（沿指针速度）+ 绕指微涡 + 轻微外推。
@@ -1034,7 +1054,7 @@
       // ④ 低频整体向外扩张（远景层响应最弱，近景最强）
       var rx = p.x - CX, ry = p.y - CY;
       var rd = Math.sqrt(rx * rx + ry * ry) || 1;
-      var push = p.push * (A.bass * 0.55 + A.pulse * 0.75);
+      var push = p.push * (A.bass * 0.90 + A.pulse * 1.25);
       p.vx += (rx / rd) * push * d;
       p.vy += (ry / rd) * push * d;
 
@@ -1094,7 +1114,7 @@
 
   function updateParticles(d, A) {
     // 星盘自转：中频旋律一来，整个旋臂缠绕回旋，静默时回落到基础角速度
-    spin += (0.00055 + Sound.mid * 0.0026 + A.pulse * 0.0009) * d;
+    spin += (0.00055 + Sound.mid * 0.0048 + A.pulse * 0.0018) * d;
     Vortex.update(time, A);
     stepParticles(layer.far, d, A, false);
     stepParticles(layer.fiber, d, A, false);
@@ -1129,8 +1149,8 @@
     }
   }
 
-  function popSpark(x, y) {
-    var n = 5 + ((Math.random() * 5) | 0);
+  function popSpark(x, y, want) {
+    var n = want || (5 + ((Math.random() * 5) | 0));
     for (var i = 0; i < layer.spark.length && n > 0; i++) {
       var s = layer.spark[i];
       if (s.life > 0) continue;
@@ -1200,7 +1220,9 @@
       introXY(p, _pt);
       var n1 = Noise.noise2(_pt.x * 0.0013 + time * 0.045, _pt.y * 0.0013 - time * 0.035);
       var thin = clamp(n1 * 0.5 + 0.62, 0, 1.25);        // 厚薄不均：稀薄处直接淡到看不见 → 空洞缺口
-      alpha = p.a * thin * (0.55 + Sound.bass * 0.35) * ia;
+      // 低频抬亮收紧到 0.24：律动靠"外扩/回旋/拖尾/冲击波"表达，亮度只轻轻跟着呼吸，
+      // 抬太多整片底图会随鼓点忽明忽暗，又变成刚被打回的那种炫光
+      alpha = p.a * thin * (0.55 + Sound.bass * 0.24) * ia;
       if (alpha <= 0) continue;
       var ci = ((p.cs + time * 0.9 + n1 * 2.2) | 0) % STEPS; if (ci < 0) ci += STEPS;
       drawSprite(PAL_FAR[ci], _pt.x, _pt.y, p.r * (1 + A.bass * 0.10 + A.pulse * 0.05), alpha,
@@ -1228,7 +1250,7 @@
       var fine = Noise.noise2(_pt.x * 0.0062 + time * 0.10, _pt.y * 0.0062 - time * 0.08);
       var glow = 0.5 + fine * 0.5;
       alpha = p.a * (0.45 + 0.75 * glow) * ia;
-      if (p.core) alpha *= 1 + Sound.mid * 0.5 + A.pulse * 1.1;   // 云核爆亮：低频瞬间增亮
+      if (p.core) alpha *= 1 + Math.min(0.7, Sound.mid * 0.5 + A.pulse * 1.1);   // 云核爆亮：低频瞬间增亮（封顶，避免叠成炫光）
       if (alpha <= 0) continue;
       var ci = ((p.cs + time * 1.6 + fine * 3.2) | 0) % STEPS; if (ci < 0) ci += STEPS;
       drawSprite(PAL_ARM[ci], _pt.x, _pt.y, p.r * (1 + Sound.bass * 0.12), alpha,
@@ -1421,8 +1443,10 @@
 
       updateParticles(d, A);
 
-      // ① 衰减擦除：禁止 clearRect。低频越强 alpha 越低 → 残影拖尾越长
-      var trail = lerp(CFG.trailQuiet, CFG.trailLoud, clamp(A.bass * 1.1 + A.pulse * 0.5, 0, 1));
+      // ① 衰减擦除：禁止 clearRect。低频越强 alpha 越低 → 残影拖尾越长。
+      // 系数压到 0.75/0.45：拖尾是最吃亮度的那一项（残影叠残影），留一半给拍点就够看，
+      // 全量会把整幅底图推到验收带上限（实测峰值 11.3/255），又滑向刚被打回的炫光
+      var trail = lerp(CFG.trailQuiet, CFG.trailLoud, clamp(A.bass * CFG.trailBass + A.pulse * CFG.trailPulse, 0, 1));
       ctx.globalCompositeOperation = 'source-over';
       ctx.globalAlpha = 1;
       ctx.fillStyle = 'rgba(0,2,7,' + trail.toFixed(3) + ')';
