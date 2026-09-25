@@ -1,0 +1,1959 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>星河随乐而舞 · SevenJohn 的个人小站</title>
+  <meta name="description" content="博客首页底层是一片会听音乐的深空：星云、星尘、旋臂全部由 Simplex 噪声实时程序生成，无任何贴图；上传本地音乐，低频撑开分子云，旋律卷动旋臂，高音坠成流星。" />
+
+  <!-- 首屏前先垫上深空底色，避免 JS 就绪前闪白 -->
+  <style>html{background:#000007}</style>
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23070a14'/%3E%3Ccircle cx='32' cy='32' r='9' fill='%23b9c8ff'/%3E%3Ccircle cx='32' cy='32' r='17' fill='none' stroke='%236a76c8' stroke-opacity='.5'/%3E%3C/svg%3E" />
+
+  <style>
+    /* ============================================================
+       页面样式：博客首页底层背景模式
+       —— canvas 星空 position:fixed 铺满视口压在最底层；
+          正文是浮在它上面的一层层深色磨砂玻璃卡片，滚动时星空不动。
+       ============================================================ */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink:   #f0f2f8;   /* 主文字：浅灰白 */
+      --dim:   #a6acbd;   /* 次级文字 */
+      --faint: #7d8394;   /* 弱化文字 */
+      --line:  rgba(255,255,255,0.09);
+      --card:  rgba(9,12,22,0.60);
+      --card-strong: rgba(9,12,22,0.74);
+      --accent:#9db1ff;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      min-height: 100vh;
+      background: #000007;
+      color: var(--ink);
+      font-family: Inter, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    ::selection { background: rgba(120,140,255,0.35); }
+
+    /* —— 星空画布：fixed 固定，页面滚动时它一动不动 —— */
+    #cosmos-canvas {
+      position: fixed; inset: 0;
+      width: 100vw; height: 100vh;
+      display: block;
+      z-index: 0;
+    }
+
+    /* —— 细滚动条 —— */
+    ::-webkit-scrollbar { width: 10px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); border-radius: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+    /* —— 深色磨砂玻璃卡片：正文全部住在这一层上 —— */
+    .glass {
+      background: var(--card);
+      -webkit-backdrop-filter: blur(16px) saturate(1.15);
+      backdrop-filter: blur(16px) saturate(1.15);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+    }
+
+    /* 正文 / 侧栏卡片改用高不透明度、免磨砂：阅读区对低配 GPU 更友好，
+       压暗到 0.78 之后在深空上的观感与磨砂几乎一致，长时间滚动更省 */
+    .post, .side-card {
+      background: rgba(10,13,22,0.78);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+
+    /* —— 吸顶导航 —— */
+    .site-header {
+      position: sticky; top: 0; z-index: 40;
+      background: rgba(3,4,10,0.55);
+      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .header-inner { height: 48px; display: flex; align-items: center; justify-content: space-between; }
+    .brand {
+      color: var(--ink); text-decoration: none; font-weight: 600; font-size: 14px; letter-spacing: 0.01em;
+      text-shadow: 0 0 14px rgba(180,200,255,0.15);
+    }
+    .brand-sub { color: var(--faint); font-weight: 400; font-size: 12px; margin-left: 6px; }
+    .site-nav { display: flex; align-items: center; gap: 18px; }
+    .site-nav a {
+      color: var(--dim); text-decoration: none; font-size: 12.5px; transition: color .18s ease;
+    }
+    .site-nav a:hover { color: #fff; }
+    .site-nav .gh { color: var(--faint); font-family: ui-monospace, Consolas, monospace; font-size: 11.5px; }
+    @media (max-width: 640px) { .site-nav a:not(.gh) { display: none; } }
+
+    /* —— 专题 Hero：标题 / 导语 / 签名 —— */
+    main { position: relative; z-index: 1; padding-bottom: 26px; }
+    .hero {
+      margin-top: 36px;
+      padding: 52px 28px 44px;
+      text-align: center;
+      border-radius: 22px;
+    }
+    .eyebrow {
+      font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--faint); margin-bottom: 18px;
+    }
+    .hero-title {
+      font-size: clamp(34px, 6vw, 58px);
+      font-weight: 700; letter-spacing: 0.06em; line-height: 1.15;
+      color: #f4f6fc;
+      /* 极轻微的文字外发光：深色星空下保可读，不做刺眼光晕 */
+      text-shadow: 0 0 22px rgba(186,204,255,0.22), 0 0 60px rgba(140,160,255,0.10);
+    }
+    .hero-lead {
+      max-width: 620px; margin: 20px auto 0;
+      font-size: 14.5px; line-height: 1.9; color: var(--dim);
+    }
+    .hero-sign {
+      margin-top: 22px; font-size: 12.5px; color: var(--faint); letter-spacing: 0.12em;
+    }
+    .hero-hint {
+      margin-top: 26px; padding-top: 18px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      font-size: 12px; color: var(--faint);
+    }
+    .hero-hint b { color: var(--dim); font-weight: 500; }
+
+    /* —— 两栏：文章列表 + 导航侧边栏 —— */
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 292px;
+      gap: 22px;
+      align-items: start;
+      margin-top: 26px;
+    }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static !important; }
+    }
+
+    .sec-head { padding: 6px 4px 14px; }
+    .sec-eyebrow {
+      font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--faint); font-weight: 600;
+    }
+    .sec-title {
+      margin-top: 6px; font-size: 21px; font-weight: 700; letter-spacing: 0.02em;
+      text-shadow: 0 0 18px rgba(186,204,255,0.14);
+    }
+
+    .posts { display: flex; flex-direction: column; gap: 14px; }
+
+    .post { padding: 22px 24px 20px; transition: border-color .2s ease, transform .2s ease; }
+    .post:hover { border-color: rgba(255,255,255,0.16); }
+    .post-meta {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+      font-size: 11.5px; color: var(--faint);
+      font-family: ui-monospace, Consolas, monospace;
+    }
+    .post-meta .dot { opacity: 0.5; }
+    .post-title { margin-top: 10px; font-size: 17.5px; font-weight: 650; line-height: 1.5; letter-spacing: 0.01em; }
+    .post-title a { color: var(--ink); text-decoration: none; }
+    .post-title a:hover { color: #cdd7ff; }
+    .post-sum { margin-top: 9px; font-size: 13px; line-height: 1.85; color: var(--dim); }
+    .tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 13px; }
+    .tags span {
+      font-size: 10.5px; padding: 3px 9px; border-radius: 6px;
+      font-family: ui-monospace, Consolas, monospace;
+      color: var(--dim);
+      background: rgba(255,255,255,0.055);
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+
+    /* —— 侧边栏 —— */
+    .sidebar {
+      position: sticky; top: 66px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .side-card { padding: 18px 18px 16px; border-radius: 16px; }
+    .side-card h4 {
+      font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--faint); font-weight: 600; margin-bottom: 12px;
+    }
+    .side-card ul { list-style: none; }
+    .side-card ul li { padding: 6px 0; border-bottom: 1px dashed rgba(255,255,255,0.06); }
+    .side-card ul li:last-child { border-bottom: none; }
+    .side-card ul a {
+      color: var(--dim); text-decoration: none; font-size: 13px; transition: color .18s ease;
+    }
+    .side-card ul a:hover { color: #fff; }
+    .who { display: flex; align-items: center; gap: 12px; }
+    .avatar {
+      width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 19px; color: #dfe6ff;
+      background: radial-gradient(circle at 34% 30%, #3c4a86, #14182c 72%);
+      border: 1px solid rgba(255,255,255,0.14);
+      text-shadow: 0 0 12px rgba(186,204,255,0.4);
+    }
+    .who b { display: block; font-size: 14px; }
+    .who i { display: block; font-style: normal; font-size: 11.5px; color: var(--faint); margin-top: 3px; }
+    .side-card p { font-size: 12.5px; line-height: 1.8; color: var(--dim); margin-top: 12px; }
+    .side-mail a { color: var(--dim); font-size: 12px; text-decoration: none; }
+    .side-mail a:hover { color: #fff; }
+    .cloud span { cursor: default; }
+    .cloud span:hover { color: #dfe6ff; border-color: rgba(255,255,255,0.2); }
+
+    /* —— 页脚 —— */
+    .site-footer {
+      position: relative; z-index: 1;
+      margin-top: 34px; padding: 26px 0 34px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      background: rgba(3,4,10,0.45);
+    }
+    .site-footer p { font-size: 12.5px; color: var(--dim); }
+    .site-footer .fine { margin-top: 8px; font-size: 11px; color: var(--faint); }
+    .site-footer a { color: var(--dim); text-decoration: none; }
+    .site-footer a:hover { color: #fff; }
+
+    /* ============================================================
+       右下角小型悬浮音频面板：做小做淡，不抢星河的视觉重心
+       ============================================================ */
+    #cosmos-dock { position: fixed; right: 16px; bottom: 16px; z-index: 50; }
+
+    .cosmos-chip {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #c6d1f2; cursor: pointer;
+      background: rgba(10,13,24,0.62);
+      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+      transition: border-color .2s ease, color .2s ease;
+    }
+    .cosmos-chip:hover { border-color: rgba(255,255,255,0.25); color: #fff; }
+    .cosmos-chip svg { width: 17px; height: 17px; }
+
+    .cosmos-panel {
+      width: 232px;
+      background: var(--card-strong);
+      -webkit-backdrop-filter: blur(18px) saturate(1.15);
+      backdrop-filter: blur(18px) saturate(1.15);
+      border: 1px solid rgba(255,255,255,0.11);
+      border-radius: 14px;
+      box-shadow: 0 10px 36px rgba(0,0,0,0.5);
+      padding: 10px 12px 11px;
+    }
+    .cosmos-head { display: flex; align-items: center; justify-content: space-between; }
+    .cosmos-title { font-size: 11px; letter-spacing: 0.16em; color: var(--faint); }
+    .cosmos-head button {
+      width: 22px; height: 22px; border: none; border-radius: 6px; cursor: pointer;
+      background: transparent; color: var(--faint);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .cosmos-head button:hover { color: #fff; background: rgba(255,255,255,0.07); }
+    .cosmos-head svg { width: 13px; height: 13px; }
+
+    .cosmos-body { margin-top: 9px; display: flex; flex-direction: column; gap: 9px; }
+    .cosmos-row { display: flex; align-items: center; gap: 8px; }
+
+    .cosmos-file {
+      flex: 1; display: flex; align-items: center; gap: 7px; cursor: pointer;
+      padding: 7px 10px; border-radius: 9px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.045);
+      color: var(--dim); font-size: 12px;
+      transition: border-color .2s ease, color .2s ease;
+      min-width: 0;
+    }
+    .cosmos-file:hover { border-color: rgba(255,255,255,0.26); color: #fff; }
+    .cosmos-file svg { width: 13px; height: 13px; flex-shrink: 0; }
+    .cosmos-file span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .cosmos-play {
+      width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.045);
+      color: var(--dim);
+    }
+    .cosmos-play:not(:disabled):hover { color: #fff; border-color: rgba(255,255,255,0.26); }
+    .cosmos-play:disabled { opacity: 0.35; cursor: default; }
+    .cosmos-play svg { width: 12px; height: 12px; }
+
+    .cosmos-lab { font-size: 11px; color: var(--faint); flex-shrink: 0; }
+    .cosmos-range { flex: 1; height: 3px; accent-color: #8fa5ff; cursor: pointer; }
+
+    .cosmos-btn {
+      padding: 7px 10px; border-radius: 9px; cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: transparent; color: var(--dim); font-size: 12px;
+      transition: border-color .2s ease, color .2s ease;
+    }
+    .cosmos-btn:hover { border-color: rgba(255,255,255,0.26); color: #fff; }
+
+    .cosmos-state { font-size: 10.5px; color: var(--faint); text-align: center; }
+  </style>
+</head>
+<body>
+
+  <!-- 星河背景画布：fixed 固定铺满视口，压在所有内容之下。
+       页面上下滚动时它不动；星云 / 星尘 / 星辰全部由 JS Simplex 噪声实时生成，
+       无贴图、无外部图片。引擎见文件底部内嵌脚本。 -->
+  <canvas id="cosmos-canvas" aria-hidden="true"></canvas>
+
+  <!-- 键盘无障碍跳转 -->
+  <a href="#posts" style="position:absolute;left:-9999px">跳转到文章列表</a>
+
+  <!-- 吸顶导航 -->
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="#top">SevenJohn<span class="brand-sub">· 个人小站</span></a>
+      <nav class="site-nav">
+        <a href="#top">星河</a>
+        <a href="#posts">文章</a>
+        <a href="#side-tags">标签</a>
+        <a href="#side-about">关于</a>
+        <a class="gh" href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer">@7SteveJohn</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap" id="top">
+
+    <!-- 专题 Hero：标题 / 导语 / 签名 -->
+    <section class="hero glass">
+      <p class="eyebrow">SevenJohn · 沉浸式专题</p>
+      <h1 class="hero-title">星河随乐而舞</h1>
+      <p class="hero-lead">
+        脚下这片深空没有用到一张贴图——星云、星尘、旋臂、流星，全部由 Simplex 噪声在浏览器里实时程序生成。
+        上传一首本地音乐：低频撑开分子云，旋律卷动旋臂回旋，高音坠成流星。
+      </p>
+      <p class="hero-sign">—— SevenJohn · 写在深空之下</p>
+      <p class="hero-hint"><b>右下角的小面板</b>可以选歌、调音量、重置整片星河；往下滚动读文章，星空会留在原地。</p>
+    </section>
+
+    <div class="layout">
+
+      <!-- 文章列表 -->
+      <section id="posts" class="posts">
+        <div class="sec-head">
+          <h2 class="sec-eyebrow">技术手记与创作</h2>
+          <p class="sec-title">最近写下的东西</p>
+        </div>
+
+        <article class="post glass">
+          <div class="post-meta"><time>2026-09-25</time><span class="dot">·</span><span>站点手记</span><span class="dot">·</span><span>4 分钟</span></div>
+          <h3 class="post-title"><a href="#top">星河随乐而舞：给博客首页铺一层会听音乐的深空</a></h3>
+          <p class="post-sum">Canvas 2D 不是只能画方块。用 Simplex 噪声长出四层宇宙：远景分子云、中景旋臂、近景星辰、全局星尘，再把 Web Audio 的三频段能量接进涡流力场——让整片星河真的跟着歌在动。</p>
+          <div class="tags"><span>Canvas 2D</span><span>Simplex 噪声</span><span>Web Audio</span></div>
+        </article>
+
+        <article class="post glass">
+          <div class="post-meta"><time>2026-09-09</time><span class="dot">·</span><span>游戏创作</span><span class="dot">·</span><span>6 分钟</span></div>
+          <h3 class="post-title"><a href="#top">像素叙事游戏开发手记：把"说不出口"做成一个能玩的东西</a></h3>
+          <p class="post-sum">在做的像素叙事游戏：2011 年的小城，两个不敢开口的人，七卷七十章，没有战斗没有解谜。聊聊它讲什么、怎么玩、为什么这么做。</p>
+          <div class="tags"><span>像素</span><span>叙事</span><span>Godot</span><span>开发中</span></div>
+        </article>
+
+        <article class="post glass">
+          <div class="post-meta"><time>2026-09-02</time><span class="dot">·</span><span>架构设计</span><span class="dot">·</span><span>6 分钟</span></div>
+          <h3 class="post-title"><a href="#top">端侧智能文件管家：如何在本地实现毫秒级向量检索与零泄密问答</a></h3>
+          <p class="post-sum">剖析 FileButler 将 pywebview、SQLite FTS5 与 Ollama 本地模型结合的技术实现：不依赖任何云端 API，完成自动化知识库构建与安全操作撤销。</p>
+          <div class="tags"><span>Python</span><span>Ollama</span><span>SQLite</span><span>RAG</span></div>
+        </article>
+
+        <article class="post glass">
+          <div class="post-meta"><time>2026-08-20</time><span class="dot">·</span><span>移动开发</span><span class="dot">·</span><span>5 分钟</span></div>
+          <h3 class="post-title"><a href="#top">机房与野外应急场景：打造 100% 零网络权限 Android 离线应用</a></h3>
+          <p class="post-sum">最需要翻查命令字典的时刻，往往是网络已经瘫痪的时刻。复盘 NetOps Handbook 如何在 AndroidManifest 里彻底剔除 INTERNET 权限，还能保持流畅体验。</p>
+          <div class="tags"><span>Android</span><span>WebView</span><span>离线架构</span></div>
+        </article>
+
+        <article class="post glass">
+          <div class="post-meta"><time>2026-08-10</time><span class="dot">·</span><span>系统调优</span><span class="dot">·</span><span>7 分钟</span></div>
+          <h3 class="post-title"><a href="#top">竞技帧率防抖：为什么 1% Low 远比平均帧率更能决定胜负？</a></h3>
+          <p class="post-sum">平均 300 FPS 也会在交火瞬间"咔"一下。从 Windows 定时器分辨率、DPC 中断延迟到核心调度，聊聊 GameBoost 的一键优化与安全回滚。</p>
+          <div class="tags"><span>C#</span><span>Windows</span><span>性能调优</span></div>
+        </article>
+      </section>
+
+      <!-- 导航侧边栏 -->
+      <aside class="sidebar">
+        <div class="side-card glass" id="side-nav">
+          <h4>站内导航</h4>
+          <ul>
+            <li><a href="#top">↑ 星河专题</a></li>
+            <li><a href="#posts">文章列表</a></li>
+            <li><a href="#side-tags">标签云</a></li>
+            <li><a href="#side-about">关于我</a></li>
+            <li><a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer">GitHub @7SteveJohn ↗</a></li>
+          </ul>
+        </div>
+
+        <div class="side-card glass" id="side-about">
+          <h4>关于我</h4>
+          <div class="who">
+            <span class="avatar">S</span>
+            <div>
+              <b>SevenJohn</b>
+              <i>喜欢写代码，也写小说</i>
+            </div>
+          </div>
+          <p>平时写 Python、C# 和 Android。工具都在本地跑，断网也能用；顺手写点小说和随笔。</p>
+          <p class="side-mail"><a href="mailto:sevenksq@163.com">✉ sevenksq@163.com</a></p>
+        </div>
+
+        <div class="side-card glass" id="side-tags">
+          <h4>标签</h4>
+          <div class="tags cloud">
+            <span>Python</span><span>C#</span><span>Android</span><span>Vue 3</span>
+            <span>Ollama</span><span>Godot</span><span>性能调优</span><span>像素叙事</span><span>Canvas</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p><b>SevenJohn</b> · 个人小站，放点自己写的东西</p>
+      <p class="fine">© 2026 SevenJohn · 星空由 Simplex 噪声实时程序生成，无任何贴图 · <a href="#top">回到顶部 ↑</a></p>
+    </div>
+  </footer>
+
+  <!-- ============ 右下角小型音频悬浮面板：本地音乐 / 音量 / 重置星河 ============ -->
+  <div id="cosmos-dock">
+    <div id="cosmos-panel" class="cosmos-panel" role="group" aria-label="星河背景与音频控制" hidden>
+      <div class="cosmos-head">
+        <span class="cosmos-title">星河 · 音频</span>
+        <button id="cosmos-fold" type="button" aria-label="收起面板" aria-expanded="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+      <div class="cosmos-body">
+        <div class="cosmos-row">
+          <label class="cosmos-file" title="选一首本地音乐，星河会跟着它流动">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span id="cosmos-file-name">本地音乐</span>
+            <input id="cosmos-file" type="file" accept="audio/*" hidden />
+          </label>
+          <button id="cosmos-play" class="cosmos-play" type="button" aria-label="播放或暂停" disabled>
+            <svg id="cosmos-ico-play" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            <svg id="cosmos-ico-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></svg>
+          </button>
+        </div>
+        <div class="cosmos-row">
+          <span class="cosmos-lab">音量</span>
+          <input id="cosmos-vol" class="cosmos-range" type="range" min="0" max="100" step="1" value="70" aria-label="音量" />
+        </div>
+        <button id="cosmos-reset" class="cosmos-btn" type="button">重置星河场景</button>
+        <p id="cosmos-state" class="cosmos-state">静音中 · 星河低强度运行</p>
+      </div>
+    </div>
+    <button id="cosmos-chip" class="cosmos-chip" type="button" aria-label="展开星河控制面板" title="星河 · 音频" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M3 12h18"/><path d="m6 6 12 12"/><path d="m18 6-12 12"/></svg>
+    </button>
+    <audio id="cosmos-audio" preload="none"></audio>
+  </div>
+
+  <noscript><style>#cosmos-canvas{background:radial-gradient(ellipse at 50% 42%, #10142a 0%, #000007 68%)}</style></noscript>
+
+  <script>
+  /**
+   * 星河背景引擎（博客首页底层背景模式 · 单页内嵌版）
+   * ============================================================
+   * 定位：Canvas 画布 position:fixed 铺满视口，压在正文之下；页面滚动时它不动。
+   *      作为"读起来不碍事"的背景层，密度 / 亮度 / 运动幅度都按博客背景标准
+   *      往下压（见 CFG.density / intensity / motion，比沉浸式专题页更低）。
+   *
+   * 素材来源：全部由 JS 实时程序生成（Simplex 噪声 + 离屏 Canvas 画的光照精灵），
+   *          不加载任何外部图片与贴图；不使用 WebGL 流体解算，避免低配机卡死。
+   *
+   * 模块索引（注释均为中文）：
+   *   【模块一】噪声采样模块       Simplex 2D 噪声 / fbm 叠层：星云形态与颜色扰动的唯一来源
+   *   【模块二】音频频谱解析模块   三分频段能量 + 起音包络：星河一切律动的指挥棒
+   *   【模块三】涡流力场模块       3~6 个动态漫游漩涡：切向扭转 + 径向排斥 → 卷曲/撕扯/愈合
+   *   【模块四】渲染循环模块       衰减擦除 → 四层天体 → 后处理（辉光/颗粒/暗角/色差）→ 帧率分级
+   *   （另有 流场采样模块：curl noise 疏网格，给云絮、尘埃、星辰提供一致的漂移基准）
+   * ============================================================
+   */
+  (function () {
+    'use strict';
+
+    // ——— 环境检测：画布或 2D 上下文不可用时静默退出，正文照常阅读 ———
+    var probe = document.createElement('canvas');
+    if (!probe.getContext) return;
+    var canvas = document.getElementById('cosmos-canvas');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d', { alpha: false });   // 不透明画布：合成开销更低
+    if (!ctx) return;
+
+    var reduceMotion = false;
+    try { reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+    /* ============================================================
+       0. 配置与通用数学工具
+       博客背景档位：比沉浸式专题页更收敛——密度 0.8、亮度 0.8、运动 0.85，
+       防止动态背景干扰博客正文阅读。
+       ============================================================ */
+    var CFG = {
+      density: 0.8,        // 粒子总量倍率（buildScene 里还会按屏幕面积 / 移动端 / 性能档折算）
+      intensity: 0.9,      // 亮度倍率
+      motion: 0.85,        // 运动倍率（想更安静就往下调）
+      fpsActive: 48,       // 正常帧率上限（背景层不需要 60，省电）
+      fpsBlur: 18,         // 窗口失焦：降到肉眼难察的缓慢演进
+      fpsHidden: 4,        // 标签页切后台：几乎停摆（配合 visibilitychange）
+      trailQuiet: 0.25,    // 安静时的擦除 alpha：残影短、画面干净好读字
+      trailLoud: 0.09,     // 低频强时的擦除 alpha：残影拉长，拖出流动感
+      bloomEvery: 3,       // 每 3 帧做一次体积辉光（明令禁止每帧高斯模糊）
+      bloomAlpha: 0.065,   // 辉光回叠强度
+      caAlpha: 0.028,      // 色差：低分辨率副本左右各偏一点叠回，模拟长焦镜头边缘色散
+      grainAlpha: 0.045,   // 静态胶片颗粒强度：去掉 CG 的塑料顺滑感
+      vignette: 0.90,      // 暗角最深处的衰减（四角亮度自然微弱降低）
+      introMs: 3600        // 入场：星辰自四周汇聚成星河的时长
+    };
+
+    function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+    function lerp(a, b, t) { return a + (b - a) * t; }
+    function easeOut3(t) { var u = 1 - t; return 1 - u * u * u; }
+    function rr(a, b) { return a + Math.random() * (b - a); }
+    function cnt(raw, lo, hi) { return Math.round(clamp(raw, lo, hi)); }
+
+    /* ============================================================
+       【模块一】噪声采样模块
+       经典 2D Simplex 噪声（Gustavson 实现，带可重置种子的排列表），
+       外加 fbm（fractal brownian motion）多倍频叠层。
+       —— 星云的轮廓、厚薄、明暗沟壑、内部稀薄空洞、逐帧色彩扰动全部由它产出，
+          是整个工程唯一的"纹理来源"，没有任何外部贴图：
+          · 大尺度低频采样 → 云团的整体轮廓与隆起（哪些区域浓密、哪些区域消散成空洞）
+          · 高频小尺度采样 → 云内部细碎的丝状电离气流与纤维沟壑
+          · 中等尺度 + 时间轴 → 逐帧色彩扰动，让颜色在紫/靛/洋红之间平滑漂移
+       ============================================================ */
+    var Noise = (function () {
+      var perm = new Uint8Array(512);        // 排列表：把输入坐标哈希到梯度
+      var permMod12 = new Uint8Array(512);
+      // 2D 单形的 12 个梯度方向（平铺成 36 长度，免取模）
+      var GRAD = [1, 1, 0, -1, 1, 0, 1, -1, 0, -1, -1, 0, 1, 0, 1, -1, 0, 1, 1, 0, -1, -1, 0, -1, 0, 1, 1, 0, -1, 1, 0, 1, -1, 0, -1, -1];
+
+      // mulberry32：同一颗种子重排出同一张排列表——「重置星河」时换种子即换星图
+      function seed(seedValue) {
+        var p = new Uint8Array(256), i, j, tmp;
+        for (i = 0; i < 256; i++) p[i] = i;
+        var t = seedValue >>> 0;
+        function rnd() {
+          t = (t + 0x6D2B79F5) >>> 0;
+          var r = Math.imul(t ^ (t >>> 15), t | 1);
+          r ^= r + Math.imul(r ^ (r >>> 7), r | 61);
+          return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+        }
+        for (i = 255; i > 0; i--) { j = (rnd() * (i + 1)) | 0; tmp = p[i]; p[i] = p[j]; p[j] = tmp; }
+        for (i = 0; i < 512; i++) { perm[i] = p[i & 255]; permMod12[i] = perm[i] % 12; }
+      }
+
+      var F2 = 0.5 * (Math.sqrt(3) - 1);     // 单形坐标系的斜切系数
+      var G2 = (3 - Math.sqrt(3)) / 6;
+
+      // 基础 2D 噪声，返回 [-1, 1]。三个角点各贡献一个径向衰减的梯度点积
+      function noise2(xin, yin) {
+        var n0 = 0, n1 = 0, n2 = 0;
+        var s = (xin + yin) * F2;
+        var i = Math.floor(xin + s), j = Math.floor(yin + s);
+        var t = (i + j) * G2;
+        var x0 = xin - (i - t), y0 = yin - (j - t);
+        var i1, j1;
+        if (x0 > y0) { i1 = 1; j1 = 0; } else { i1 = 0; j1 = 1; }
+        var x1 = x0 - i1 + G2, y1 = y0 - j1 + G2;
+        var x2 = x0 - 1 + 2 * G2, y2 = y0 - 1 + 2 * G2;
+        var ii = i & 255, jj = j & 255;
+        var g0 = permMod12[ii + perm[jj]] * 3;
+        var g1 = permMod12[ii + i1 + perm[jj + j1]] * 3;
+        var g2 = permMod12[ii + 1 + perm[jj + 1]] * 3;
+        var t0 = 0.5 - x0 * x0 - y0 * y0;
+        if (t0 > 0) { t0 *= t0; n0 = t0 * t0 * (GRAD[g0] * x0 + GRAD[g0 + 1] * y0); }
+        var t1 = 0.5 - x1 * x1 - y1 * y1;
+        if (t1 > 0) { t1 *= t1; n1 = t1 * t1 * (GRAD[g1] * x1 + GRAD[g1 + 1] * y1); }
+        var t2 = 0.5 - x2 * x2 - y2 * y2;
+        if (t2 > 0) { t2 *= t2; n2 = t2 * t2 * (GRAD[g2] * x2 + GRAD[g2 + 1] * y2); }
+        return 70 * (n0 + n1 + n2);
+      }
+
+      // fbm：多个倍频叠加（振幅减半、频率翻倍），返回 [-1, 1]
+      // 用来一次拿到"大形 + 细节"都有的复合噪声，星云沟壑感的主要来源
+      function fbm2(x, y, oct) {
+        var amp = 0.5, freq = 1, sum = 0, norm = 0;
+        for (var i = 0; i < oct; i++) {
+          sum += amp * noise2(x * freq, y * freq);
+          norm += amp;
+          amp *= 0.5;
+          freq *= 2.03;    // 略偏离整数倍，避免各倍频纹路对齐出网格感
+        }
+        return sum / norm;
+      }
+
+      seed(20260925);
+      return { seed: seed, noise2: noise2, fbm2: fbm2 };
+    })();
+
+    /* ============================================================
+       流场采样模块（curl noise）
+       在"疏网格"上求噪声旋度，得到一幅无散度的向量场：
+         curl = (∂n/∂y, -∂n/∂x)
+       无散度的好处：场里没有源头和汇点，粒子不会被吸成一坨、也不会凭空涌出。
+       网格刻意取粗（56px 一格）+ 双线性插值取样，每 2 帧才更新一次，
+       开销远低于逐粒子求噪声——这是背景层"看起来像流体、算起来很便宜"的关键。
+       ============================================================ */
+    var Flow = {
+      cell: 56,
+      cols: 0, rows: 0, vec: null,
+
+      resize: function (w, h) {
+        this.cols = Math.ceil(w / this.cell) + 2;
+        this.rows = Math.ceil(h / this.cell) + 2;
+        this.vec = new Float32Array(this.cols * this.rows * 2);
+      },
+
+      update: function (time) {
+        var vec = this.vec;
+        if (!vec) return;
+        var FS = 0.00125;        // 噪声空间尺度：越小，涡团越大
+        var e = 14;              // 有限差分步长（像素）
+        var cols = this.cols, rows = this.rows, c = this.cell;
+        var tt = time * 0.055;   // 场自身的演化速度（很慢）
+        for (var iy = 0; iy < rows; iy++) {
+          for (var ix = 0; ix < cols; ix++) {
+            var X = ix * c, Y = iy * c;
+            var up = Noise.fbm2(X * FS + tt, (Y + e) * FS, 2);
+            var dn = Noise.fbm2(X * FS + tt, (Y - e) * FS, 2);
+            var rt = Noise.fbm2((X + e) * FS + tt, Y * FS, 2);
+            var lf = Noise.fbm2((X - e) * FS + tt, Y * FS, 2);
+            var cx = up - dn;
+            var cy = -(rt - lf);
+            var m = Math.sqrt(cx * cx + cy * cy);
+            var k = (iy * cols + ix) * 2;
+            if (m < 1e-5) { vec[k] = 0; vec[k + 1] = 0; }
+            else { vec[k] = cx / m; vec[k + 1] = cy / m; }   // 只留方向，强度在调用处乘
+          }
+        }
+      },
+
+      // 双线性插值取样，结果写入 out（避免每粒子建对象）
+      sample: function (x, y, out) {
+        var vec = this.vec;
+        if (!vec) { out.x = 0; out.y = 0; return out; }
+        var cols = this.cols, rows = this.rows, c = this.cell;
+        var gx = x / c, gy = y / c;
+        if (gx < 0) gx = 0; else if (gx > cols - 2) gx = cols - 2;
+        if (gy < 0) gy = 0; else if (gy > rows - 2) gy = rows - 2;
+        var ix = gx | 0, iy = gy | 0;
+        var fx = gx - ix, fy = gy - iy;
+        var a = (iy * cols + ix) * 2;
+        var b = a + 2;
+        var c2 = ((iy + 1) * cols + ix) * 2;
+        var d2 = c2 + 2;
+        var w00 = (1 - fx) * (1 - fy), w10 = fx * (1 - fy), w01 = (1 - fx) * fy, w11 = fx * fy;
+        out.x = vec[a] * w00 + vec[b] * w10 + vec[c2] * w01 + vec[d2] * w11;
+        out.y = vec[a + 1] * w00 + vec[b + 1] * w10 + vec[c2 + 1] * w01 + vec[d2 + 1] * w11;
+        return out;
+      }
+    };
+
+    /* ============================================================
+       【模块二】音频频谱解析模块
+       ── 数据源：右下角面板上传的本地音乐。
+          <audio> → createMediaElementSource → AnalyserNode(fftSize=1024)
+          每 bin ≈ 43Hz，低频才有分辨力；smoothing=0.2 保留鼓点瞬态。
+       ── 输出四个值（全部 lerp 平滑，攻击快、释放慢，禁止硬跳变）：
+          bass   低频重鼓包络   → 宇宙外扩 / 涡流强度 / 残影拖尾 / 云核爆亮 / 冲击波
+          mid    中频旋律包络   → 旋臂回旋角速度 / 尘埃纤维扭曲 / 星辰呼吸 / 雾霭流速
+          treble 高频亮音包络   → 流星与星屑迸发（只扰动近景层，远景星云几乎不受影响）
+          pulse  低频起音脉冲   → 每一次"哐"的瞬时冲击（Δ上升速率 + 自适应门槛 + 不应期）
+       ── 音乐静默时所有包络自然衰减到 0，星河回到低强度的静谧漂移。
+       ============================================================ */
+    var Sound = {
+      el: null,          // 本地曲目的 <audio>
+      actx: null,
+      analyser: null,
+      arr: null,
+      has: false,        // AnalyserNode 是否已建好
+
+      bass: 0, mid: 0, treble: 0, pulse: 0, loud: 0, trebleEdge: false,
+      _prevRaw: 0, _slowRaw: 0, _lock: 0,
+      _prevTre: 0, _slowTre: 0, _tLock: 0,
+
+      init: function () {
+        this.el = document.getElementById('cosmos-audio');
+      },
+
+      // 建立音频图。注意：同一个 <audio> 元素只允许 createMediaElementSource 一次
+      ensureGraph: function () {
+        if (this.analyser || !this.el) return this.analyser;
+        try {
+          var AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) return null;
+          this.actx = new AC();
+          var src = this.actx.createMediaElementSource(this.el);
+          this.analyser = this.actx.createAnalyser();
+          this.analyser.fftSize = 1024;
+          this.analyser.smoothingTimeConstant = 0.2;
+          src.connect(this.analyser);
+          this.analyser.connect(this.actx.destination);
+          this.arr = new Uint8Array(this.analyser.frequencyBinCount);
+          this.has = true;
+        } catch (e) { this.analyser = null; this.has = false; }
+        return this.analyser;
+      },
+
+      resume: function () {
+        if (this.actx && this.actx.state === 'suspended') this.actx.resume().catch(function () {});
+      },
+
+      // 取 [lo, hi) bin 的平均能量，归一化到 0~1
+      band: function (a, lo, hi) {
+        var s = 0, i;
+        for (i = lo; i < hi; i++) s += a[i];
+        return s / (hi - lo) / 255;
+      },
+
+      // 每帧调用一次：取原始能量 → 平滑包络 → 起音检测
+      read: function (nowMs, d) {
+        var rawB = 0, rawM = 0, rawT = 0;
+
+        if (this.has && this.el && !this.el.paused) {
+          // 本地音乐：自己算三分频段（bin×43Hz ≈ 实际频率）
+          this.analyser.getByteFrequencyData(this.arr);
+          rawB = this.band(this.arr, 1, 8);      // ≈43–345Hz   底鼓 / 贝斯冲击区
+          rawM = this.band(this.arr, 10, 60);    // ≈430Hz–2.6k 主旋律与人声
+          rawT = this.band(this.arr, 70, 210);   // ≈3k–9kHz    细碎高音
+        } else if (window.__BEAT) {
+          // 调试 / 测试后门：手动喂一份频谱，不必真的放歌
+          rawB = window.__BEAT.lv || 0;
+          rawM = window.__BEAT.mid || 0;
+          rawT = window.__BEAT.treble || 0;
+        }
+
+        // 包络：攻击快（0.2~0.34）、释放慢（0.05 左右）——
+        // 既不抖动，也避免"音乐一停画面就塌"
+        this.bass   += (rawB - this.bass)   * (rawB > this.bass ? 0.30 : 0.055);
+        this.mid    += (rawM - this.mid)    * (rawM > this.mid ? 0.22 : 0.045);
+        this.treble += (rawT - this.treble) * (rawT > this.treble ? 0.34 : 0.07);
+
+        // 低频起音检测：能量对慢均值的向上突刺 = 一次重鼓。
+        // rise(Δ上升速率) 超过自适应门槛且过了不应期(220ms)才认定，防同一拍连打两次
+        this._slowRaw += (rawB - this._slowRaw) * 0.05;
+        var rise = rawB - this._prevRaw;
+        this._prevRaw = rawB;
+        if (rise > Math.max(0.012, this._slowRaw * 0.07) && nowMs > this._lock) {
+          this.pulse = 1;
+          this._lock = nowMs + 220;
+        } else {
+          this.pulse = Math.max(0, this.pulse - d * 0.062);   // 冲顶立即、约 0.4s 平滑回落
+        }
+
+        // 高频突起的边沿：只有这一瞬才生成流星与星屑
+        this._slowTre += (rawT - this._slowTre) * 0.06;
+        var tre = rawT - this._prevTre;
+        this._prevTre = rawT;
+        if (tre > Math.max(0.018, this._slowTre * 0.22) && nowMs > this._tLock) {
+          this.trebleEdge = true;
+          this._tLock = nowMs + 130;
+        } else {
+          this.trebleEdge = false;
+        }
+
+        this.loud = Math.max(this.bass, this.mid * 0.7, this.treble * 0.5);
+        return this;
+      },
+
+      playing: function () { return !!(this.el && !this.el.paused); }
+    };
+
+    /* ============================================================
+       【模块三】涡流力场模块
+       画布上同时存在 3~6 个正在缓慢漫游的漩涡源（位置用不同频率的利萨如
+       轨迹走出不闭合的慢路径，绝不是钉死不动的）。
+       每个漩涡对周围粒子施加两个作用：
+         切向扭转  (-dy, dx) * omega  → 把云絮拧成旋涡、把纤维拉弯
+         径向排斥  ( dx, dy) * radial → 低频重鼓时增强，把云团甩开、撕出裂隙
+       两者都随距离二次衰减。强度 / 半径 / 角速度实时读音频频谱插值：
+         低频 → 强度与径向排斥拉高（漩涡向外甩）
+         中频 → 角速度提高（旋臂缠绕回旋）
+         静默 → 全部平滑衰减；被撕开的云絮在"归位弹簧"下缓慢重新聚拢愈合
+       ============================================================ */
+    var Vortex = {
+      list: [],
+
+      build: function (w, h) {
+        var n = 3 + ((Math.random() * 4) | 0);   // 3~6 个
+        this.list.length = 0;
+        for (var i = 0; i < n; i++) {
+          this.list.push({
+            bx: rr(0.12, 0.88) * w,              // 漫游中心
+            by: rr(0.14, 0.86) * h,
+            wx: rr(0.10, 0.26) * w,              // 漫游幅度（位置缓慢移动，不固定）
+            wy: rr(0.10, 0.24) * h,
+            sp: rr(0.035, 0.085),                // 漫游角速度
+            ph: Math.random() * 6.283,
+            base: rr(0.55, 1.0),                 // 基础强度
+            r0: rr(0.22, 0.46) * Math.min(w, h), // 影响半径
+            dir: Math.random() < 0.5 ? -1 : 1,   // 旋转方向
+            x: 0, y: 0, r: 1, omega: 0, radial: 0, strength: 0
+          });
+        }
+        return this;
+      },
+
+      update: function (time, A) {
+        for (var i = 0; i < this.list.length; i++) {
+          var v = this.list[i];
+          // 位置漫游：两个不同频率的正弦，走出一条不闭合的缓慢轨迹
+          v.x = v.bx + Math.cos(time * v.sp + v.ph) * v.wx;
+          v.y = v.by + Math.sin(time * v.sp * 1.31 + v.ph * 1.7) * v.wy;
+          // 半径与强度由频谱插值：低频让漩涡变大变猛，半径跟着低频呼吸
+          v.r = v.r0 * (1 + A.bass * 0.22);
+          v.strength = v.base * (0.5 + A.bass * 1.15 + A.pulse * 0.35);
+          // 角速度：中频旋律一来整个涡场加速回旋；静默时回落到基础值
+          v.omega = v.dir * (0.55 + A.mid * 1.35) * (1 + A.bass * 0.5);
+          // 径向排斥：低频重鼓时化作一次向外的"甩"
+          v.radial = 0.28 + A.bass * 1.25 + A.pulse * 0.55;
+        }
+        return this;
+      },
+
+      // 返回"期望速度"（px/帧）。调用方把它当成转向目标 lerp 进各自速度，
+      // 天然不会越积越快，也不会硬跳变
+      force: function (x, y, out, mul) {
+        var ox = 0, oy = 0;
+        for (var i = 0; i < this.list.length; i++) {
+          var v = this.list[i];
+          var dx = x - v.x, dy = y - v.y;
+          var d2 = dx * dx + dy * dy;
+          if (d2 > v.r * v.r) continue;
+          var d = Math.sqrt(d2) + 0.001;
+          var f = 1 - d / v.r;                 // 距离衰减
+          var ff = f * f * v.strength * mul;
+          ox += (-dy / d) * v.omega * ff;      // 切向：绕着漩涡转
+          oy += ( dx / d) * v.omega * ff;
+          ox += ( dx / d) * v.radial * ff;     // 径向：向外推开
+          oy += ( dy / d) * v.radial * ff;
+        }
+        out.x = ox;
+        out.y = oy;
+        return out;
+      }
+    };
+
+    /* ============================================================
+       1. 画布尺寸 / 光照精灵 / 后处理缓冲
+       所有"发光体"都是离屏 Canvas 预画的多段径向渐变精灵（程序生成，
+       非外部贴图），渲染时只做 drawImage 缩放——这是 2D 画布能铺开
+       上千个柔光粒子的前提。
+       ============================================================ */
+    var W = 0, H = 0, DPR = 1, S = 1;         // S：把光斑半径换算到不同屏幕的统一尺度
+    var CX = 0, CY = 0, DIAG = 1000;          // 画面中心与对角线
+    var bloom = null, bloomCtx = null;        // 低分辨率副本：体积辉光与色差共用
+    var vign = null, grainPat = null;
+    var supportsFilter = false, supportsBlend = false;
+
+    // prof：0=云絮（软核长尾） 1=星点（亮核快收敛） 2=光晕（极柔大范围弥散）
+    function makeSprite(r, g, b, size, prof) {
+      var c = document.createElement('canvas');
+      c.width = c.height = size;
+      var g2 = c.getContext('2d');
+      var half = size / 2;
+      var grd = g2.createRadialGradient(half, half, 0, half, half, half);
+      var col = function (a) { return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')'; };
+      if (prof === 1) {
+        grd.addColorStop(0, col(1));
+        grd.addColorStop(0.10, col(0.62));
+        grd.addColorStop(0.28, col(0.16));
+        grd.addColorStop(0.60, col(0.025));
+        grd.addColorStop(1, col(0));
+      } else if (prof === 2) {
+        grd.addColorStop(0, col(0.62));
+        grd.addColorStop(0.22, col(0.20));
+        grd.addColorStop(0.52, col(0.055));
+        grd.addColorStop(1, col(0));
+      } else {
+        grd.addColorStop(0, col(1));
+        grd.addColorStop(0.16, col(0.60));
+        grd.addColorStop(0.38, col(0.19));
+        grd.addColorStop(0.66, col(0.048));
+        grd.addColorStop(1, col(0));
+      }
+      g2.fillStyle = grd;
+      g2.fillRect(0, 0, size, size);
+      return c;
+    }
+
+    // 调色板：在若干锚点色之间环向取值。运行时给每朵云絮一个连续漂移的索引
+    // （见渲染循环里的 p.cs + time 偏移），颜色就在紫/靛/洋红之间平滑 lerp，
+    // 永远不会生硬跳变
+    function buildPalette(anchors, steps, spriteSize, prof) {
+      var out = [];
+      for (var i = 0; i < steps; i++) {
+        var t = (i / steps) * anchors.length;
+        var i0 = Math.floor(t), i1 = (i0 + 1) % anchors.length;
+        var f = t - i0;
+        var a = anchors[i0], b = anchors[i1];
+        var r = Math.round(lerp(a[0], b[0], f));
+        var g = Math.round(lerp(a[1], b[1], f));
+        var bl = Math.round(lerp(a[2], b[2], f));
+        out.push(makeSprite(r, g, bl, spriteSize, prof));
+      }
+      return out;
+    }
+
+    var PAL_FAR = null;   // 远景分子云：低饱和暗紫罗兰 / 灰靛蓝 / 灰紫青，零星一抹极淡酒红
+    var PAL_ARM = null;   // 中景旋臂：蓝 → 紫 → 洋红
+    var SPR_DUST = null;  // 暗色尘埃带 / 气体纤维：深灰紫（用 source-over 压暗，不是发光）
+    var SPR_STAR = null;  // 星点（三种色温）
+    var SPR_HALO = null;  // 柔和弥散光晕
+    var SPR_MIST = null;  // 冷雾霭
+    var STEPS = 16;
+
+    function buildSprites() {
+      PAL_FAR = buildPalette([
+        [108, 92, 156],    // 暗紫罗兰
+        [82, 104, 158],    // 灰靛蓝
+        [104, 116, 156],   // 灰紫青
+        [126, 88, 118]     // 极淡的酒红倾向
+      ], STEPS, 96, 0);
+      PAL_ARM = buildPalette([
+        [74, 96, 168],     // 靛蓝
+        [110, 88, 168],    // 蓝紫
+        [148, 92, 152],    // 紫洋红
+        [96, 110, 176]     // 收回蓝，闭合出循环渐变
+      ], STEPS, 96, 0);
+      SPR_DUST = buildPalette([[24, 22, 40], [34, 28, 52], [22, 20, 36]], 4, 96, 0);
+      SPR_STAR = [
+        makeSprite(226, 236, 255, 64, 1),   // 冷白蓝
+        makeSprite(255, 255, 255, 64, 1),   // 纯白
+        makeSprite(255, 232, 216, 64, 1)    // 暖白
+      ];
+      SPR_HALO = makeSprite(178, 206, 255, 128, 2);
+      SPR_MIST = makeSprite(84, 116, 172, 128, 2);
+    }
+
+    // 静态胶片颗粒：一张 256 的噪声贴图平铺全屏。随机只发生在离屏贴图上，
+    // 主画布永远不用 clearRect 强清空
+    function buildGrain() {
+      var size = 256;
+      var c = document.createElement('canvas');
+      c.width = c.height = size;
+      var g = c.getContext('2d');
+      var img = g.createImageData(size, size);
+      for (var i = 0; i < size * size; i++) {
+        var v = 128 + ((Math.random() - 0.5) * 46) | 0;
+        var k = i * 4;
+        img.data[k] = v; img.data[k + 1] = v; img.data[k + 2] = v; img.data[k + 3] = 255;
+      }
+      g.putImageData(img, 0, 0);
+      grainPat = ctx.createPattern(c, 'repeat');
+    }
+
+    // 暗角：径向渐变让四角亮度自然微弱衰减，也防止 additive 累积在边缘糊成一片
+    function buildVignette() {
+      var c = document.createElement('canvas');
+      c.width = Math.max(2, Math.round(W));
+      c.height = Math.max(2, Math.round(H));
+      var g = c.getContext('2d');
+      var grd = g.createRadialGradient(
+        c.width * 0.5, c.height * 0.5, Math.min(c.width, c.height) * 0.22,
+        c.width * 0.5, c.height * 0.5, Math.max(c.width, c.height) * 0.78
+      );
+      grd.addColorStop(0, 'rgba(0,0,7,0)');
+      grd.addColorStop(0.62, 'rgba(0,0,7,0.16)');
+      grd.addColorStop(1, 'rgba(0,0,7,' + CFG.vignette + ')');
+      g.fillStyle = grd;
+      g.fillRect(0, 0, c.width, c.height);
+      vign = c;
+    }
+
+    function resizeCanvas() {
+      W = window.innerWidth || document.documentElement.clientWidth || 1024;
+      H = window.innerHeight || document.documentElement.clientHeight || 720;
+      // 像素预算：背景层不需要太高清，超预算就降采样（低配机的主要保护）
+      DPR = Math.min(window.devicePixelRatio || 1, 1.5);
+      var budget = 1800000;
+      var px = W * H * DPR * DPR;
+      if (px > budget) DPR = Math.sqrt(budget / (W * H));
+      canvas.width = Math.round(W * DPR);
+      canvas.height = Math.round(H * DPR);
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      S = Math.min(W, H) / 860;
+      CX = W * 0.5; CY = H * 0.5;
+      DIAG = Math.sqrt(W * W + H * H);
+
+      bloom = document.createElement('canvas');
+      bloom.width = Math.max(2, Math.round(W / 4));
+      bloom.height = Math.max(2, Math.round(H / 4));
+      bloomCtx = bloom.getContext('2d');
+
+      Flow.resize(W, H);
+      buildVignette();
+      supportsFilter = ('filter' in ctx);
+      supportsBlend = (function () {
+        ctx.save();
+        ctx.globalCompositeOperation = 'overlay';
+        var ok = ctx.globalCompositeOperation === 'overlay';
+        ctx.restore();
+        return ok;
+      })();
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#000007';
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    /* ============================================================
+       2. 场景：四层宇宙（远景 → 近景，每层独立采样噪声）
+       ============================================================ */
+    var layer = {
+      far: [],      // 层1 远景巨型分子云
+      fiber: [],    // 层1 内部暗色气体纤维（沟壑）
+      arm: [],      // 层2 旋臂絮团（含发光云核）
+      dust: [],     // 层2 暗色星际尘埃带（切割星云的阻隔条）
+      faint: [],    // 层3① 暗弱背景繁星
+      bright: [],   // 层3② 明亮恒星
+      meteor: [],   // 层3③ 瞬时流星（对象池）
+      spark: [],    // 层3③ 流星尾端星屑（对象池）
+      mote: [],     // 层4 亚像素星际尘埃微粒
+      mist: []      // 层4 冷雾霭团
+    };
+    var rings = [];               // 低频冲击波：环形扩散光晕
+    var quality = 1;              // 性能档（0.55~1，看门狗自动降档）
+    var introStart = 0, introT = 1;
+    var time = 0;
+    var tmpA = { x: 0, y: 0 }, tmpB = { x: 0, y: 0 };
+
+    function baseRand(count) {
+      var arr = [];
+      for (var i = 0; i < count; i++) arr.push({});
+      return arr;
+    }
+
+    // 入场起点：粒子从画面四周之外被"拉"向中央——宇宙缓缓成型的入场效果
+    function seedIntro(p) {
+      var ang = Math.random() * 6.283;
+      var dist = DIAG * rr(0.62, 1.05);
+      p.sx = CX + Math.cos(ang) * dist;
+      p.sy = CY + Math.sin(ang) * dist;
+      p.dy = Math.random() * 0.55;       // 各自错开出发，避免"齐步走"
+    }
+
+    function newHome(x, y) {
+      return { x: x, y: y, vx: 0, vy: 0, hx: x, hy: y, sx: x, sy: y, dy: 0 };
+    }
+
+    /* —— 层1：远景巨型分子星云 ——
+       大块低频噪声决定轮廓厚薄；Alpha 压得极低靠叠加出体积；
+       独立的 fbm 让部分区域稀薄消散成空洞缺口。 */
+    function buildFar(counts) {
+      layer.far.length = 0;
+      layer.fiber.length = 0;
+      var i, p;
+      for (i = 0; i < counts.far; i++) {
+        p = newHome(Math.random() * W, Math.random() * H);
+        p.r = rr(50, 140) * S;                     // 大块头：远景是舒展的巨大面
+        p.a = rr(0.024, 0.058) * CFG.intensity;    // 单层亮度压得很低
+        p.k = rr(0.0055, 0.0110);                  // 归位弹簧：远景偏软，回缩很慢
+        p.flow = rr(0.10, 0.26);                   // 流场牵引（基础移动速度极慢）
+        p.vtx = rr(0.10, 0.26);                    // 涡流对远景只有微弱扰动
+        p.push = rr(0.02, 0.06);                   // 低频外扩响应（远景最弱）
+        p.elong = rr(1.2, 2.4);                    // 顺着气流拉伸 → 不是圆滚滚的一坨
+        p.ang = Math.random() * 6.283;
+        p.cs = Math.random() * STEPS;              // 调色板起点，逐帧偏移做色彩扰动
+        seedIntro(p);
+        layer.far.push(p);
+      }
+      // 内部暗色气体纤维：细长、稀疏，用 source-over 压暗 → 云体内出现沟壑与裂隙
+      for (i = 0; i < counts.fiber; i++) {
+        p = newHome(Math.random() * W, Math.random() * H);
+        p.r = rr(16, 46) * S;
+        p.a = rr(0.030, 0.075) * CFG.intensity;
+        p.k = rr(0.004, 0.009);
+        p.flow = rr(0.16, 0.38);
+        p.vtx = rr(0.16, 0.40);
+        p.push = rr(0.03, 0.09);
+        p.elong = rr(3.0, 7.5);                    // 拉得很长 → 纤维
+        p.ang = Math.random() * 6.283;
+        p.cs = Math.random() * 4;
+        seedIntro(p);
+        layer.fiber.push(p);
+      }
+    }
+
+    /* —— 层2：旋臂絮团 + 暗色尘埃带（画面视觉主体星河）——
+       三条松散对数螺旋臂；大尺度 fbm 决定"这里有没有云絮"（低于门槛留空，
+       所以旋臂是断续絮段拼的，不是平滑带子）；高频噪声刻画内部丝状气流；
+       big>0.2 的位置生成致密发光云核。 */
+    var ARMS = 3;                 // 三条松散旋臂
+    var SPAN = 3.5;               // 每段旋臂覆盖的角度
+    var K_SPIRAL = 0.30;          // 对数螺旋的缠绕系数
+    var R0_BASE = 26;
+    var FLATTEN = 0.62;           // 星盘压扁：像斜看的盘面
+    var ROLL = -0.42;             // 整体滚转角
+    var GCX = 0, GCY = 0, GR = 1; // 星系中心与半径
+    var spin = 0;                 // 星盘自转角（中频驱动）
+
+    function armPoint(armIdx, th, rad) {
+      // 对数螺旋：r = R0 * e^(kθ)，三条旋臂各差一个相位
+      var base = th + armIdx * (6.283 / ARMS);
+      var ux = Math.cos(base), uy = Math.sin(base) * FLATTEN;
+      var cr = Math.cos(ROLL), sr = Math.sin(ROLL);
+      var rx = ux * cr - uy * sr;
+      var ry = ux * sr + uy * cr;
+      return { x: GCX + rx * rad, y: GCY + ry * rad };
+    }
+
+    function buildArms(counts) {
+      layer.arm.length = 0;
+      layer.dust.length = 0;
+      // 构图：核心整体下压并略偏左——避开首屏 Hero 卡片（会把它整个挡住），
+      // 让最亮的星河核落在正文卡片之间的空隙与页边留白里
+      GCX = CX - rr(0.02, 0.10) * W;
+      GCY = CY + rr(0.10, 0.18) * H;
+      // 星盘收得比沉浸版更紧：能量聚拢成一条可辨认的星带，而不是摊在大片黑区里
+      GR = Math.min(W, H) * rr(0.58, 0.74);
+
+      var i = 0, tries = 0, cores = 0, maxCores = cnt(GR / (90 * S), 6, 14);
+      while (i < counts.arm && tries < counts.arm * 8) {
+        tries++;
+        var armIdx = (Math.random() * ARMS) | 0;
+        var th = Math.random() * SPAN;
+        var rad = R0_BASE * Math.exp(K_SPIRAL * th) * rr(0.65, 1.45) * (GR / 520);
+        if (rad > GR * 1.25) continue;
+        // 大尺度 fbm：低于门槛的位置留空 → 断续絮段
+        var dimp = armIdx * 37.1;
+        var big = Noise.fbm2(Math.cos(th) * rad * 0.0055 + dimp, Math.sin(th) * rad * 0.0055, 3);
+        if (big < -0.04) continue;
+        // 高频噪声：絮团内部的明暗 → 细碎丝状电离气流
+        var fine = Noise.noise2(th * 9.1 + dimp, rad * 0.021);
+        var pt = armPoint(armIdx, th, rad);
+        var p = newHome(pt.x, pt.y);
+        p.th = th; p.rad = rad; p.armIdx = armIdx;
+        p.r = rr(7, 26) * S * (0.7 + big * 0.6);
+        p.a = rr(0.038, 0.092) * CFG.intensity * (0.55 + (fine * 0.5 + 0.5) * 0.75);
+        p.k = rr(0.010, 0.024);
+        p.flow = rr(0.10, 0.24);
+        p.vtx = rr(0.55, 1.15);                   // 近的主体层：涡流撕扯最明显
+        p.push = rr(0.05, 0.14);
+        p.elong = rr(1.3, 3.2);
+        p.ang = Math.random() * 6.283;
+        p.cs = Math.random() * STEPS;
+        p.core = false;
+        p._halo = rr(2.6, 4.4);                   // 云核光晕半径（建期定死，不逐帧抖）
+        if (big > 0.20 && cores < maxCores) {     // 致密发光结节：局部高亮云核
+          p.core = true;
+          p.r *= rr(1.5, 2.3);
+          p.a *= rr(1.4, 2.1);
+          cores++;
+        }
+        seedIntro(p);
+        layer.arm.push(p);
+        i++;
+      }
+
+      // 暗色尘埃带：贴着旋臂前后缘，第三方噪声控制疏密。
+      // 半透明深灰紫、source-over 绘制 → 真的"切"进星云里，制造明暗对比。关键细节，不能省。
+      for (i = 0; i < counts.dust; i++) {
+        var armIdx2 = (Math.random() * ARMS) | 0;
+        var th2 = Math.random() * SPAN;
+        var rad2 = R0_BASE * Math.exp(K_SPIRAL * th2) * rr(0.7, 1.4) * (GR / 520);
+        if (rad2 > GR * 1.2) continue;
+        var d2v = Noise.fbm2(Math.cos(th2) * rad2 * 0.0042 + 91.3, Math.sin(th2) * rad2 * 0.0042, 2);
+        if (d2v < -0.10) continue;
+        var off = rr(-1, 1) * (14 + d2v * 40) * S;
+        var pt2 = armPoint(armIdx2, th2, rad2 + off);
+        var q = newHome(pt2.x, pt2.y);
+        q.th = th2; q.rad = rad2 + off; q.armIdx = armIdx2;
+        q.r = rr(10, 34) * S;
+        q.a = rr(0.030, 0.085) * CFG.intensity;
+        q.k = rr(0.008, 0.016);
+        q.flow = rr(0.06, 0.18);
+        q.vtx = rr(0.35, 0.85);
+        q.push = rr(0.06, 0.16);
+        q.elong = rr(2.6, 5.5);
+        q.ang = Math.random() * 6.283;
+        q.cs = Math.random() * 4;
+        seedIntro(q);
+        layer.dust.push(q);
+      }
+    }
+
+    /* —— 层3：星辰三类 —— */
+    function buildStars(counts) {
+      layer.faint.length = 0;
+      layer.bright.length = 0;
+      var i, p;
+      // ① 暗弱背景繁星：数量最多、极小、低亮度；
+      //    闪烁相位与速度完全随机 → 微弱呼吸明暗，绝不同步闪烁
+      for (i = 0; i < counts.faint; i++) {
+        p = newHome(Math.random() * W, Math.random() * H);
+        p.r = rr(0.35, 1.25) * Math.max(0.75, S);
+        p.a = rr(0.12, 0.42) * CFG.intensity;
+        p.k = rr(0.004, 0.010);
+        p.flow = rr(0.02, 0.07);                  // 星辰也被气流轻微拖拽：不是孤立的悬浮点
+        p.vtx = rr(0.04, 0.14);
+        p.push = rr(0.01, 0.05);
+        p.tw = Math.random() * 6.283;             // 相位
+        p.tws = rr(0.004, 0.024);                 // 各自的速度
+        p.spr = (Math.random() * 3) | 0;
+        seedIntro(p);
+        layer.faint.push(p);
+      }
+      // ② 明亮恒星：多层嵌套径向柔化光晕 + 四向弥散微光（柔和光斑拉伸，不是硬十字）
+      for (i = 0; i < counts.bright; i++) {
+        p = newHome(Math.random() * W, Math.random() * H);
+        p.r = rr(1.3, 2.6) * Math.max(0.8, S);
+        p.halo = rr(11, 26) * S;
+        p.a = rr(0.34, 0.62) * CFG.intensity;
+        p.k = rr(0.004, 0.010);
+        p.flow = rr(0.02, 0.06);
+        p.vtx = rr(0.04, 0.12);
+        p.push = rr(0.01, 0.05);
+        p.tw = Math.random() * 6.283;
+        p.tws = rr(0.006, 0.020);
+        p.spr = (Math.random() * 3) | 0;
+        p.rot = Math.random() * 3.14;             // 四向微光的朝向各不相同
+        seedIntro(p);
+        layer.bright.push(p);
+      }
+      // ③ 流星与星屑：对象池，平时空着，高频音符触发才点亮
+      layer.meteor = baseRand(8);
+      for (i = 0; i < 8; i++) layer.meteor[i].life = 0;
+      layer.spark = baseRand(70);
+      for (i = 0; i < 70; i++) layer.spark[i].life = 0;
+    }
+
+    /* —— 层4：全局漂浮超细星际尘埃 + 冷雾霭 —— */
+    function buildMotes(counts) {
+      layer.mote.length = 0;
+      layer.mist.length = 0;
+      var i, p;
+      for (i = 0; i < counts.mote; i++) {
+        p = newHome(Math.random() * W, Math.random() * H);
+        p.r = rr(0.5, 1.7) * Math.max(0.8, S);    // 亚像素~1px：微小半透明微粒
+        p.a = rr(0.05, 0.16) * CFG.intensity;
+        p.k = rr(0.002, 0.006);
+        p.flow = rr(0.14, 0.40);                  // 尘埃主要跟着气流走
+        p.vtx = rr(0.20, 0.55);
+        p.push = rr(0.02, 0.08);
+        p.cs = Math.random() * STEPS;
+        seedIntro(p);
+        layer.mote.push(p);
+      }
+      // 少数几团极淡冷雾：填充深空空隙、柔化星云边缘，兜住整幅画面的空气感
+      for (i = 0; i < 5; i++) {
+        p = newHome(Math.random() * W, Math.random() * H);
+        p.r = rr(180, 340) * S;
+        p.a = rr(0.012, 0.026) * CFG.intensity;
+        p.k = rr(0.0015, 0.004);
+        p.flow = rr(0.10, 0.26);
+        p.vtx = rr(0.10, 0.30);
+        p.push = rr(0.01, 0.04);
+        seedIntro(p);
+        layer.mist.push(p);
+      }
+    }
+
+    // 粒子总数规划：按屏幕面积折算 + 硬上限钳制（严格控制总量，防低配卡顿）
+    function countPlan() {
+      var area = W * H;
+      var mob = W < 720 ? 0.55 : 1;              // 手机端进一步压密度
+      var q = quality * mob * CFG.density;
+      return {
+        far:   cnt(area / 20000 * q, 36, 120),
+        fiber: cnt(area / 34000 * q, 18, 80),
+        arm:   cnt(area / 4400  * q, 110, 450),
+        dust:  cnt(area / 20000 * q, 28, 120),
+        faint: cnt(area / 4800  * q, 140, 460),
+        bright:cnt(area / 90000 * q, 8, 26),
+        mote:  cnt(area / 11000 * q, 60, 200)
+      };
+    }
+
+    function buildScene(freshSeed, keepIntro) {
+      if (freshSeed) Noise.seed((Math.random() * 0xffffffff) >>> 0);
+      var counts = countPlan();
+      buildFar(counts);
+      buildArms(counts);
+      buildStars(counts);
+      buildMotes(counts);
+      Vortex.build(W, H);
+      rings.length = 0;
+      // 只有首启动与「重置星河」才重播"四周汇聚 → 宇宙成型"；
+      // 改窗口尺寸、性能降档属于悄悄重建，直接跳过入场
+      if (keepIntro) { introT = 1; }
+      else { introStart = performance.now(); introT = 0; }
+    }
+
+    /* ============================================================
+       3. 物理步进：所有天体共用一套"流场 + 涡流 + 归位弹簧 + 低频外扩 + 阻尼"
+       每一步都是往"期望速度"上 lerp，没有任何硬跳变。
+       ============================================================ */
+    function stepParticles(list, d, A, useArm) {
+      for (var i = 0; i < list.length; i++) {
+        var p = list[i];
+
+        // 旋臂层：home 位置每帧由 (θ, r) 重新算 → 星盘自转 + 低频整体外扩
+        if (useArm) {
+          var th = p.th + spin;
+          var rad = p.rad * (1 + A.bass * 0.05);
+          var pt = armPoint(p.armIdx, th, rad);
+          p.hx = pt.x;
+          p.hy = pt.y;
+        }
+
+        // ① 流场：速度往"当地气流方向"拉（星辰也顺着星河气流轻微偏移）
+        Flow.sample(p.x, p.y, tmpA);
+        p.vx += (tmpA.x * p.flow - p.vx) * 0.05 * d;
+        p.vy += (tmpA.y * p.flow - p.vy) * 0.05 * d;
+
+        // ② 涡流力场：切向扭转 + 径向排斥，作为"期望速度"注入
+        Vortex.force(p.x, p.y, tmpB, p.vtx);
+        p.vx += (tmpB.x - p.vx) * 0.09 * d;
+        p.vy += (tmpB.y - p.vy) * 0.09 * d;
+
+        // ③ 归位弹簧：被撕开的云絮能缓慢重新聚拢愈合的唯一动力
+        p.vx += (p.hx - p.x) * p.k * d;
+        p.vy += (p.hy - p.y) * p.k * d;
+
+        // ④ 低频整体向外扩张（远景层响应最弱，近景旋臂最强）
+        var rx = p.x - CX, ry = p.y - CY;
+        var rd = Math.sqrt(rx * rx + ry * ry) || 1;
+        var push = p.push * (A.bass * 0.55 + A.pulse * 0.75);
+        p.vx += (rx / rd) * push * d;
+        p.vy += (ry / rd) * push * d;
+
+        // ⑤ 阻尼 + 位移
+        var damp = Math.pow(0.93, d);
+        p.vx *= damp;
+        p.vy *= damp;
+        p.x += p.vx * d;
+        p.y += p.vy * d;
+      }
+    }
+
+    // 入场进度：每个粒子各走一段 easeOutCubic，整体从四周汇聚到中心
+    function introEase(p) {
+      if (introT >= 1) return 1;
+      var span = 1 - p.dy;
+      var local = clamp((introT - p.dy) / (span < 0.05 ? 0.05 : span), 0, 1);
+      return easeOut3(local);
+    }
+
+    function introXY(p, out) {
+      var e = introEase(p);
+      if (e >= 1) { out.x = p.x; out.y = p.y; return out; }
+      out.x = p.sx + (p.x - p.sx) * e;
+      out.y = p.sy + (p.y - p.sy) * e;
+      return out;
+    }
+
+    /* ============================================================
+       【模块四】渲染循环模块
+       帧序严格依赖这条流水线：
+         ① 衰减擦除（永远不用 clearRect：填一层半透明深空底色保留运动残影，
+            trailAlpha 由音频低频能量实时插值——低频越强残影越长）
+         ② 冷蓝环境辉光（深空底色 #000007 之上极微弱的冷色环境光）
+         ③ 层1 暗纤维 → 层1 分子云
+         ④ 层2 尘埃带 → 层2 旋臂云絮 + 云核
+         ⑤ 层3 星辰 / 流星 / 星屑
+         ⑥ 层4 冷雾与星际尘埃
+         ⑦ 低频环形冲击波
+         ⑧ 后处理：体积辉光（每 N 帧）→ 胶片颗粒 → 暗角 → 微弱色差
+       所有发光体用 globalCompositeOperation='lighter' 加法叠加；
+       暗色尘埃带 / 纤维用 source-over 压暗——明暗对比就是这么来的。
+       ============================================================ */
+    var _pt = { x: 0, y: 0 };
+
+    function drawSprite(spr, x, y, r, alpha, ang, elong) {
+      if (alpha <= 0.002 || r <= 0.2) return;
+      ctx.globalAlpha = alpha > 1 ? 1 : alpha;
+      if (elong && elong > 1.05) {
+        // 拉长：把软核 sprite 沿气流方向压成一缕（"纤维/尘埃带"的形状来源）
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(ang);
+        ctx.drawImage(spr, -r * elong, -r, r * 2 * elong, r * 2);
+        ctx.restore();
+      } else {
+        ctx.drawImage(spr, x - r, y - r, r * 2, r * 2);
+      }
+    }
+
+    function updateParticles(d, A) {
+      // 星盘自转：中频旋律一来整个旋臂缠绕回旋，静默时回落到基础角速度
+      spin += (0.00048 + A.mid * 0.0026 + A.pulse * 0.0009) * d;
+      Vortex.update(time, A);
+      stepParticles(layer.far, d, A, false);
+      stepParticles(layer.fiber, d, A, false);
+      stepParticles(layer.arm, d, A, true);
+      stepParticles(layer.dust, d, A, true);
+      stepParticles(layer.faint, d, A, false);
+      stepParticles(layer.bright, d, A, false);
+      stepParticles(layer.mote, d, A, false);
+      stepParticles(layer.mist, d, A, false);
+      updateMeteors(d, A);
+    }
+
+    // 流星：仅由高频音符的边沿触发生成；短生命周期；拖尾加法叠加慢慢淡出
+    function spawnMeteor() {
+      for (var i = 0; i < layer.meteor.length; i++) {
+        var m = layer.meteor[i];
+        if (m.life > 0) continue;
+        var fromLeft = Math.random() < 0.6;
+        m.x = fromLeft ? rr(-0.1, 0.7) * W : rr(0.3, 1.1) * W;
+        m.y = rr(-0.1, 0.55) * H;
+        var ang = rr(0.45, 1.0) * (fromLeft ? 1 : -1) + (fromLeft ? 0 : Math.PI);
+        m.vx = Math.cos(ang) * rr(5.5, 11);
+        m.vy = Math.abs(Math.sin(ang)) * rr(5.5, 11);
+        m.len = rr(26, 70);
+        m.life = 1;
+        m.decay = rr(0.010, 0.022);
+        m.w = rr(0.7, 1.7) * Math.max(0.8, S);
+        return;
+      }
+    }
+
+    // 流星轨迹末端散落一小簇转瞬即逝的闪光星屑
+    function popSpark(x, y) {
+      var n = 5 + ((Math.random() * 5) | 0);
+      for (var i = 0; i < layer.spark.length && n > 0; i++) {
+        var s = layer.spark[i];
+        if (s.life > 0) continue;
+        s.x = x + rr(-8, 8);
+        s.y = y + rr(-8, 8);
+        s.vx = rr(-0.5, 0.5);
+        s.vy = rr(-0.5, 0.5);
+        s.r = rr(0.5, 1.6);
+        s.life = 1;
+        s.decay = rr(0.02, 0.06);
+        n--;
+      }
+    }
+
+    function updateMeteors(d, A) {
+      if (Sound.trebleEdge && Math.random() < 0.55) spawnMeteor();
+      var i, m;
+      for (i = 0; i < layer.meteor.length; i++) {
+        m = layer.meteor[i];
+        if (m.life <= 0) continue;
+        m.x += m.vx * d;
+        m.y += m.vy * d;
+        m.life -= m.decay * d * 60;
+        if (m.life <= 0 || m.y > H + 60 || m.x < -160 || m.x > W + 160) {
+          if (m.life > 0) popSpark(m.x, m.y);
+          m.life = 0;
+        }
+      }
+      for (i = 0; i < layer.spark.length; i++) {
+        var s = layer.spark[i];
+        if (s.life <= 0) continue;
+        s.x += s.vx * d;
+        s.y += s.vy * d;
+        s.life -= s.decay * d * 60;
+      }
+    }
+
+    // 低频冲击波：环形扩散光晕，向外扩散之后衰减消失
+    function spawnRing(A) {
+      if (rings.length > 4) rings.shift();
+      rings.push({ x: CX, y: CY, r: Math.min(W, H) * 0.06, life: 1 });
+    }
+
+    function drawLayer1(A, ia) {
+      var i, p, alpha;
+      // 3.1 暗色气体纤维：先用 source-over 压暗，在残影上犁出明暗沟壑，
+      //     云体内才会出现裂隙感；中频让纤维顺着涡流方向缓慢扭曲拉伸
+      ctx.globalCompositeOperation = 'source-over';
+      for (i = 0; i < layer.fiber.length; i++) {
+        p = layer.fiber[i];
+        introXY(p, _pt);
+        // 独立低频噪声：决定哪些位置稀薄消散成空洞
+        var nv = Noise.noise2(_pt.x * 0.0016 + time * 0.05, _pt.y * 0.0016 - time * 0.04);
+        alpha = p.a * (0.35 + 0.65 * nv) * ia;
+        if (alpha <= 0) continue;
+        drawSprite(SPR_DUST[(p.cs | 0) % 4], _pt.x, _pt.y, p.r * (1 + A.bass * 0.16), alpha,
+          p.ang + time * 0.02, p.elong * (1 + A.mid * 0.35));
+      }
+      // 3.2 远景分子云本体：加法发光；噪声控制厚薄 → 浓密隆起与稀薄消散并存
+      ctx.globalCompositeOperation = 'lighter';
+      for (i = 0; i < layer.far.length; i++) {
+        p = layer.far[i];
+        introXY(p, _pt);
+        var n1 = Noise.noise2(_pt.x * 0.0013 + time * 0.045, _pt.y * 0.0013 - time * 0.035);
+        var thin = clamp(n1 * 0.5 + 0.62, 0, 1.25);   // 厚薄不均：稀薄处淡到看不见 → 空洞缺口
+        alpha = p.a * thin * (0.55 + A.bass * 0.35) * ia;   // 低频：分子云整体外扩、纤维拉伸
+        if (alpha <= 0) continue;
+        // 逐帧色彩扰动：索引随时间与噪声漂移 → 紫/靛/青/酒红之间平滑 lerp
+        var ci = ((p.cs + time * 0.9 + n1 * 2.2) | 0) % STEPS; if (ci < 0) ci += STEPS;
+        drawSprite(PAL_FAR[ci], _pt.x, _pt.y, p.r * (1 + A.bass * 0.10 + A.pulse * 0.05), alpha,
+          p.ang, p.elong * (1 + A.mid * 0.25));       // 高频不进这里：远景几乎不受高音影响
+      }
+    }
+
+    function drawLayer2(A, ia) {
+      var i, p, alpha;
+      // 4.1 暗色星际尘埃带：必须在云絮之前用 source-over 画，才能真的"切"开星云；
+      //     低频时尘埃带被拉扯变形
+      ctx.globalCompositeOperation = 'source-over';
+      for (i = 0; i < layer.dust.length; i++) {
+        p = layer.dust[i];
+        introXY(p, _pt);
+        var nv = Noise.noise2(_pt.x * 0.0022 + time * 0.06, _pt.y * 0.0022);
+        alpha = p.a * (0.45 + 0.55 * (nv * 0.5 + 0.5)) * ia * (1 + A.bass * 0.25);
+        drawSprite(SPR_DUST[(p.cs | 0) % 4], _pt.x, _pt.y, p.r, alpha,
+          p.ang + time * 0.015, p.elong * (1 + A.mid * 0.5 + A.bass * 0.3));
+      }
+      // 4.2 旋臂云絮（大噪声定轮廓在建期；这里用高频噪声刻画内部细碎丝状气流）
+      ctx.globalCompositeOperation = 'lighter';
+      for (i = 0; i < layer.arm.length; i++) {
+        p = layer.arm[i];
+        introXY(p, _pt);
+        var fine = Noise.noise2(_pt.x * 0.0062 + time * 0.10, _pt.y * 0.0062 - time * 0.08);
+        var glow = 0.5 + fine * 0.5;
+        alpha = p.a * (0.45 + 0.75 * glow) * ia;
+        if (p.core) alpha *= 1 + A.mid * 0.5 + A.pulse * 1.1;   // 云核爆亮：鼓点瞬间增亮后平滑回落
+        if (alpha <= 0) continue;
+        var ci = ((p.cs + time * 1.6 + fine * 3.2) | 0) % STEPS; if (ci < 0) ci += STEPS;
+        drawSprite(PAL_ARM[ci], _pt.x, _pt.y, p.r * (1 + A.bass * 0.12), alpha,
+          p.ang, p.elong * (1 + A.mid * 0.4));
+        if (p.core) {
+          // 云核向外的柔和弥散光晕
+          drawSprite(SPR_HALO, _pt.x, _pt.y, p.r * p._halo, alpha * 0.65, 0, 1);
+        }
+      }
+    }
+
+    function drawLayer3(A, ia) {
+      var i, p, alpha;
+      ctx.globalCompositeOperation = 'lighter';
+      // 5.1 暗弱背景繁星：各自独立的相位与速度 → 绝不同步闪烁，微弱呼吸明暗
+      for (i = 0; i < layer.faint.length; i++) {
+        p = layer.faint[i];
+        introXY(p, _pt);
+        p.tw += p.tws * (1 + A.mid * 1.2);            // 中频让所有星辰做缓慢呼吸
+        alpha = p.a * (0.45 + 0.55 * Math.sin(p.tw)) * ia;
+        drawSprite(SPR_STAR[p.spr], _pt.x, _pt.y, p.r, alpha, 0, 1);
+      }
+      // 5.2 明亮恒星：多层嵌套径向柔化光晕 + 四向弥散微光（柔光斑拉伸，不是硬十字星芒）
+      for (i = 0; i < layer.bright.length; i++) {
+        p = layer.bright[i];
+        introXY(p, _pt);
+        p.tw += p.tws * (1 + A.mid * 1.4);
+        var br = 0.6 + 0.4 * Math.sin(p.tw);
+        alpha = p.a * br * ia;
+        var hr = p.halo * (1 + A.pulse * 0.55 + A.bass * 0.22);  // 重鼓瞬间光晕放大、之后平滑回落
+        drawSprite(SPR_HALO, _pt.x, _pt.y, hr, alpha * 0.22, 0, 1);
+        // 四向微光：柔光 sprite 横向/纵向各拉一份，形成柔和弥散式四芒
+        ctx.globalAlpha = alpha * 0.16;
+        ctx.save();
+        ctx.translate(_pt.x, _pt.y);
+        ctx.rotate(p.rot);
+        ctx.drawImage(SPR_HALO, -hr * 2.1, -hr * 0.34, hr * 4.2, hr * 0.68);
+        ctx.drawImage(SPR_HALO, -hr * 0.34, -hr * 2.1, hr * 0.68, hr * 4.2);
+        ctx.restore();
+        // 亮核 + 极轻微色差分离（模拟长焦镜头在高光处的微弱横向色散）
+        drawSprite(SPR_HALO, _pt.x + 0.7, _pt.y, hr * 0.42, alpha * 0.20, 0, 1);
+        drawSprite(SPR_STAR[p.spr], _pt.x, _pt.y, p.r * (1 + A.pulse * 0.35), alpha, 0, 1);
+      }
+      // 5.3 流星：拖尾线性渐变一笔带过，加法叠加；尾端掉的星屑在下面
+      for (i = 0; i < layer.meteor.length; i++) {
+        var m = layer.meteor[i];
+        if (m.life <= 0) continue;
+        var sp = Math.max(1, Math.abs(m.vx) + Math.abs(m.vy));
+        var tx = m.x - m.vx * (m.len / sp);
+        var ty = m.y - m.vy * (m.len / sp);
+        var grd = ctx.createLinearGradient(m.x, m.y, tx, ty);
+        var lf = clamp(m.life, 0, 1);
+        grd.addColorStop(0, 'rgba(226,238,255,' + (0.55 * lf).toFixed(3) + ')');
+        grd.addColorStop(0.45, 'rgba(170,200,255,' + (0.18 * lf).toFixed(3) + ')');
+        grd.addColorStop(1, 'rgba(150,180,255,0)');
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = grd;
+        ctx.lineWidth = m.w;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(m.x, m.y);
+        ctx.lineTo(tx, ty);
+        ctx.stroke();
+        drawSprite(SPR_STAR[1], m.x, m.y, 3.2 * Math.max(0.8, S) * lf, 0.5 * lf, 0, 1);
+      }
+      for (i = 0; i < layer.spark.length; i++) {
+        var s = layer.spark[i];
+        if (s.life <= 0) continue;
+        drawSprite(SPR_STAR[1], s.x, s.y, s.r * s.life, 0.42 * s.life * ia, 0, 1);
+      }
+    }
+
+    function drawLayer4(A, ia) {
+      var i, p, alpha;
+      ctx.globalCompositeOperation = 'lighter';
+      // 6.1 冷雾霭：填充深空空隙、柔化星云边缘；中频让它流得快一点
+      for (i = 0; i < layer.mist.length; i++) {
+        p = layer.mist[i];
+        introXY(p, _pt);
+        alpha = p.a * ia * (1 + A.mid * 0.35);
+        drawSprite(SPR_MIST, _pt.x, _pt.y, p.r, alpha, 0, 1);
+      }
+      // 6.2 亚像素星际尘埃微粒：跟着气流无规则飘荡
+      for (i = 0; i < layer.mote.length; i++) {
+        p = layer.mote[i];
+        introXY(p, _pt);
+        var nv = Noise.noise2(p.x * 0.004 + time * 0.12, p.y * 0.004);
+        alpha = p.a * (0.4 + 0.6 * (nv * 0.5 + 0.5)) * ia * (1 + A.mid * 0.4);
+        var ci = ((p.cs + nv * 3.4 + time * 2.0) | 0) % STEPS; if (ci < 0) ci += STEPS;
+        drawSprite(PAL_ARM[ci], _pt.x, _pt.y, p.r, alpha, 0, 1);
+      }
+    }
+
+    function drawRings(A) {
+      if (!rings.length) return;
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 1;
+      for (var i = 0; i < rings.length; i++) {
+        var r = rings[i];
+        r.r += (Math.min(W, H) * 0.010) + A.bass * 2.2;
+        r.life -= 0.012;
+        if (r.life <= 0) { rings.splice(i, 1); i--; continue; }
+        var a = r.life * r.life * 0.20 * CFG.intensity;
+        ctx.strokeStyle = 'rgba(150,186,255,' + a.toFixed(4) + ')';
+        ctx.lineWidth = Math.max(1, 2.4 * r.life * S);
+        ctx.beginPath();
+        ctx.arc(r.x, r.y, r.r, 0, 6.283);
+        ctx.stroke();
+      }
+    }
+
+    // 后处理：不是每帧高斯模糊，而是每 N 帧把 1/4 分辨率副本柔化后低透明度叠回，
+    // 模拟气态体积辉光；再铺静态颗粒与暗角，叠一层微弱镜头色差。
+    // 性能关键：blur 只做在 1/4 分辨率的小缓冲上（开销约为全屏模糊的 1/16），
+    // 放大叠回时自带的双线性插值正好充当第二级柔化——辉光反而更弥散
+    function postProcess(A, frameId) {
+      if (frameId % CFG.bloomEvery === 0 && bloomCtx) {
+        bloomCtx.setTransform(1, 0, 0, 1, 0, 0);
+        bloomCtx.clearRect(0, 0, bloom.width, bloom.height);   // 只有离屏缓冲允许清空
+        if (supportsFilter) bloomCtx.filter = 'blur(2px)';
+        bloomCtx.drawImage(canvas, 0, 0, bloom.width, bloom.height);
+        if (supportsFilter) bloomCtx.filter = 'none';
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = CFG.bloomAlpha * (1 + A.bass * 0.55);
+        ctx.drawImage(bloom, 0, 0, W, H);
+        // 微弱镜头色差：同一份柔光左右各偏一点点，只在高光边缘留下一丝冷/暖分离
+        ctx.globalAlpha = CFG.caAlpha * (1 + A.bass * 0.4);
+        ctx.drawImage(bloom, -1.2, 0, W, H);
+        ctx.drawImage(bloom, 1.2, 0, W, H);
+      }
+
+      // 静态星际胶片颗粒：一层极低强度噪声，去掉 CG 的塑料顺滑感
+      if (grainPat) {
+        ctx.globalCompositeOperation = supportsBlend ? 'overlay' : 'lighter';
+        ctx.globalAlpha = supportsBlend ? CFG.grainAlpha : CFG.grainAlpha * 0.35;
+        ctx.fillStyle = grainPat;
+        ctx.fillRect(0, 0, W, H);
+      }
+
+      // 暗角：四角亮度自然微弱下降
+      if (vign) {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 1;
+        ctx.drawImage(vign, 0, 0, W, H);
+      }
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    var frameId = 0, lastDraw = 0, lastPulse = 0, focused = true, frameNo = 0;
+    var stopped = false, HIDDEN = false;
+    var hiddenTimer = 0, uiTimer = 0;
+    var budget = { last: 0, sum: 0, n: 0, ready: false };
+
+    function tick(now) {
+      if (!stopped) frameId = requestAnimationFrame(tick);   // 续帧放最前：帧体出错也不停摆
+
+      var target = document.hidden ? CFG.fpsHidden
+        : (reduceMotion ? 24 : (focused ? CFG.fpsActive : CFG.fpsBlur));
+      var minMs = 1000 / target - 1;
+      if (now - lastDraw < minMs) return;
+      var dt = Math.min(0.12, (now - lastDraw) / 1000) || 0.016;
+      lastDraw = now;
+
+      try {
+        // 帧归一化步长：不管实际帧率是 4 还是 60，单位时间内的运动速度一致
+        var d = clamp(dt * 60, 0.3, 3.2) * CFG.motion;
+        time += dt * CFG.motion;
+
+        var A = Sound.read(now, d);
+
+        if (introT < 1) introT = clamp((now - introStart) / CFG.introMs, 0, 1);
+        var ia = easeOut3(introT);                     // 入场期整体亮度渐显（星云逐步生成）
+
+        frameNo++;
+        if (frameNo % 2 === 0) Flow.update(time);      // 流场演化慢，隔帧更新足够
+        if (A.pulse > 0.9 && A.pulse !== lastPulse) { spawnRing(A); lastPulse = A.pulse; }
+        if (A.pulse < 0.5) lastPulse = 0;
+
+        updateParticles(d, A);
+
+        // ① 衰减擦除：明令禁止 clearRect。低频越强 alpha 越低 → 残影拖尾越长；
+        //    音乐安静时 alpha 升高，残影缩短，画面干净好读字
+        var trail = lerp(CFG.trailQuiet, CFG.trailLoud, clamp(A.bass * 1.1 + A.pulse * 0.5, 0, 1));
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = 'rgba(0,2,7,' + trail.toFixed(3) + ')';
+        ctx.fillRect(0, 0, W, H);
+
+        // ② 冷蓝环境辉光：整个深空不是纯漆黑
+        ctx.globalCompositeOperation = 'lighter';
+        drawSprite(SPR_MIST, CX, CY, Math.max(W, H) * 0.72, 0.055 * CFG.intensity * ia, 0, 1);
+
+        drawLayer1(A, ia);      // ③ 层1 远景分子云
+        drawLayer2(A, ia);      // ④ 层2 旋臂与尘埃带
+        drawLayer3(A, ia);      // ⑤ 层3 星辰
+        drawLayer4(A, ia);      // ⑥ 层4 星尘雾霭
+        drawRings(A);           // ⑦ 冲击波
+        postProcess(A, frameNo);  // ⑧ 后处理
+
+        // 性能看门狗：连续偏慢就整体降密度（3.5 秒预热宽限，避开首帧与入场期低帧）
+        if (lastDraw > budget.last) {
+          budget.sum += (lastDraw - budget.last);
+          budget.n++;
+          if (!budget.ready && budget.sum > 3500) budget.ready = true;
+          if (budget.ready && budget.n > 60) {
+            var avg = budget.sum / budget.n;
+            if (avg > 26 && quality > 0.55) {
+              quality = Math.max(0.55, quality - 0.15);
+              buildScene(false, true);
+            }
+            budget.sum = 0; budget.n = 0;
+          }
+        }
+        budget.last = lastDraw;
+      } catch (err) {
+        // 一帧坏了就当没画，下一帧继续；背景层绝不能把正文拖下水
+      }
+    }
+
+    /* ============================================================
+       4. 生命周期：尺寸变化 / 前后台切换 / 性能降级
+       ============================================================ */
+    var resizeTimer = 0;
+    function onResize() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function () {
+        var wasStopped = stopped;
+        if (wasStopped) { stopped = false; lastDraw = 0; }
+        resizeCanvas();
+        buildScene(false, true);
+        if (wasStopped) { tick(performance.now()); stopLoop(); }
+      }, 180);
+    }
+
+    function stopLoop() {
+      stopped = true;
+      if (frameId) { cancelAnimationFrame(frameId); frameId = 0; }
+      if (hiddenTimer) { clearInterval(hiddenTimer); hiddenTimer = 0; }
+    }
+
+    function startLoop() {
+      stopLoop();
+      stopped = false;
+      HIDDEN = document.hidden;
+      if (HIDDEN) {
+        // 标签页切到后台：rAF 会被浏览器节流甚至停掉，这里改成低频定时器压帧率
+        hiddenTimer = setInterval(function () { tick(performance.now()); }, Math.round(1000 / CFG.fpsHidden));
+      } else {
+        lastDraw = 0;
+        frameId = requestAnimationFrame(tick);
+      }
+    }
+
+    // 标签页切后台 / 回前台：必须重新排帧，否则 rAF 被掐掉后不会自己回来
+    function onVisibility() {
+      if (stopped) return;
+      if (document.hidden !== HIDDEN) startLoop();
+    }
+
+    /* ============================================================
+       5. 右下角小型悬浮控制面板（本地音乐 / 播放暂停 / 音量 / 重置星河）
+       ============================================================ */
+    var UI = {
+      panel: null, chip: null, fold: null, fileInput: null, fileNameEl: null,
+      playBtn: null, icoPlay: null, icoPause: null, vol: null, resetBtn: null, state: null,
+      url: '', fileName: '', volValue: 0.7,
+
+      init: function () {
+        this.panel = document.getElementById('cosmos-panel');
+        this.chip = document.getElementById('cosmos-chip');
+        this.fold = document.getElementById('cosmos-fold');
+        this.fileInput = document.getElementById('cosmos-file');
+        this.fileNameEl = document.getElementById('cosmos-file-name');
+        this.playBtn = document.getElementById('cosmos-play');
+        this.icoPlay = document.getElementById('cosmos-ico-play');
+        this.icoPause = document.getElementById('cosmos-ico-pause');
+        this.vol = document.getElementById('cosmos-vol');
+        this.resetBtn = document.getElementById('cosmos-reset');
+        this.state = document.getElementById('cosmos-state');
+        if (!this.panel || !this.chip) { this.panel = null; return; }
+        var self = this;
+
+        this.fold.addEventListener('click', function () { self.setOpen(false); });
+        this.chip.addEventListener('click', function () { self.setOpen(true); });
+
+        // 本地音乐：对象 URL 交给内置 <audio>；change 事件自带用户激活，自动播放不会被拦
+        this.fileInput.addEventListener('change', function (ev) {
+          var f = ev.target.files && ev.target.files[0];
+          if (!f || !Sound.el) return;
+          if (self.url) { try { URL.revokeObjectURL(self.url); } catch (e) {} }
+          self.url = URL.createObjectURL(f);
+          Sound.el.src = self.url;
+          self.fileName = f.name;
+          self.fileNameEl.textContent = f.name;
+          Sound.ensureGraph();
+          Sound.resume();
+          var pr = Sound.el.play();
+          if (pr && pr.catch) pr.catch(function () { self.say('浏览器拦下了自动播放，点一下播放键'); });
+          self.applyVol();
+          self.playBtn.disabled = false;
+          self.syncPlayIcon();
+          self.say('本地曲目：' + self.fileName);
+        });
+
+        this.playBtn.addEventListener('click', function () {
+          if (!Sound.el || !Sound.el.src) return;
+          if (Sound.el.paused) {
+            Sound.resume();
+            var pr = Sound.el.play();
+            if (pr && pr.catch) pr.catch(function () {});
+          } else {
+            Sound.el.pause();
+          }
+        });
+
+        Sound.el.addEventListener('play', function () { self.syncPlayIcon(); self.say('星河随音乐流动 · ' + self.fileName); });
+        Sound.el.addEventListener('pause', function () { self.syncPlayIcon(); });
+        Sound.el.addEventListener('ended', function () { self.syncPlayIcon(); self.say('播放结束 · 星河回归静谧'); });
+
+        this.vol.addEventListener('input', function () { self.applyVol(); });
+
+        this.resetBtn.addEventListener('click', function () {
+          buildScene(true, false);
+          self.say('星河已重置 · 正在重新聚拢');
+        });
+
+        this.setOpen(false);   // 默认折叠成小圆钮：不抢星河与正文的视觉重心
+      },
+
+      setOpen: function (open) {
+        if (!this.panel) return;
+        this.panel.hidden = !open;
+        this.chip.hidden = open;
+        if (this.fold) this.fold.setAttribute('aria-expanded', open ? 'true' : 'false');
+      },
+
+      applyVol: function () {
+        if (this.vol) this.volValue = clamp(this.vol.value / 100, 0, 1);
+        if (Sound.el && Math.abs(Sound.el.volume - this.volValue) > 0.001) Sound.el.volume = this.volValue;
+      },
+
+      syncPlayIcon: function () {
+        var playing = Sound.playing();
+        if (this.icoPlay) this.icoPlay.style.display = playing ? 'none' : '';
+        if (this.icoPause) this.icoPause.style.display = playing ? '' : 'none';
+        if (this.playBtn) this.playBtn.setAttribute('aria-label', playing ? '暂停' : '播放');
+      },
+
+      say: function (msg) { if (this.state) this.state.textContent = msg; },
+
+      tickState: function () {
+        if (!this.state) return;
+        if (Sound.playing()) return this.say('星河随音乐流动 · ' + (this.fileName || '播放中'));
+        if (Sound.el && Sound.el.src && Sound.el.paused && !Sound.el.ended) return this.say('已暂停 · 星河低强度运行');
+        if (Sound.loud > 0.02) return this.say('音频接入中');
+        this.say('静音中 · 星河低强度运行');
+      }
+    };
+
+    /* ============================================================
+       6. 启动
+       ============================================================ */
+    function boot() {
+      buildSprites();
+      buildGrain();
+      resizeCanvas();
+      Sound.init();
+      UI.init();
+      buildScene(true);
+      Flow.update(0);
+
+      if (reduceMotion) {
+        // 尊重"减少动效"：先静默走完入场（星尘真正凝聚成星云），再彻底停笔，
+        // 留下一张"成型后"的静态深空星图
+        stopped = false;
+        lastDraw = 0;
+        var settleAt = performance.now() + CFG.introMs + 400;
+        var still = function () {
+          tick(performance.now());
+          if (performance.now() < settleAt) requestAnimationFrame(still);
+          else stopLoop();
+        };
+        requestAnimationFrame(still);
+      } else {
+        startLoop();
+      }
+
+      window.addEventListener('resize', onResize, { passive: true });
+      window.addEventListener('blur', function () { focused = false; });
+      window.addEventListener('focus', function () { focused = true; });
+      document.addEventListener('visibilitychange', onVisibility);
+
+      uiTimer = setInterval(function () {
+        UI.applyVol();
+        UI.tickState();
+      }, 900);
+
+      // 调试探针：本地验证脚本用（很轻，不影响运行开销）
+      window.__COSMOS = {
+        cfg: CFG,
+        reset: function () { buildScene(true, false); },
+        info: function () {
+          return {
+            w: W, h: H, dpr: +DPR.toFixed(2), quality: quality, intro: +introT.toFixed(3), time: +time.toFixed(1), frame: frameNo,
+            counts: {
+              far: layer.far.length, fiber: layer.fiber.length, arm: layer.arm.length,
+              dust: layer.dust.length, faint: layer.faint.length, bright: layer.bright.length,
+              mote: layer.mote.length, mist: layer.mist.length, ring: rings.length
+            },
+            vortex: Vortex.list.length,
+            audio: { bass: +Sound.bass.toFixed(3), mid: +Sound.mid.toFixed(3), treble: +Sound.treble.toFixed(3), pulse: +Sound.pulse.toFixed(3) },
+            playing: Sound.playing(), spin: +spin.toFixed(5)
+          };
+        },
+        // 给测试用：手动喂一份频谱，省得真的扯音频
+        feed: function (b, m, t) {
+          window.__BEAT = { lv: b, mid: m || 0, treble: t || 0 };
+        }
+      };
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', boot);
+    } else {
+      boot();
+    }
+  })();
+  </script>
+</body>
+</html>
