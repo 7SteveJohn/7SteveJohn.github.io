@@ -184,6 +184,20 @@ try {
   const pl = await pg.evaluate(() => window.__COSMOS.info().pointer);
   ok('停手后保留常驻微搅（pointerFloor）', pl.live > 0.15, 'live=' + pl.live);
 
+  // 滚动视差：真实滚动增量 → probe.scroll 立刻有值，停滚后衰减回 0（实时输入，不是预录动画）
+  await pg.evaluate(() => window.scrollTo(0, 0));
+  await pg.waitForTimeout(1600);
+  const sv0 = await pg.evaluate(() => window.__COSMOS.info().scroll);
+  await pg.evaluate(() => window.scrollBy(0, 900));
+  await pg.waitForTimeout(120);
+  const sv1 = await pg.evaluate(() => window.__COSMOS.info().scroll);
+  await pg.waitForTimeout(2500);
+  const sv2 = await pg.evaluate(() => window.__COSMOS.info().scroll);
+  ok('滚动 → 各层按深度实时视差', Math.abs(sv0) < 0.05 && Math.abs(sv1) > 0.1, sv0 + ' → ' + sv1);
+  ok('停滚后视差速度衰减回 0', Math.abs(sv2) < 0.05, 'scroll=' + sv2);
+  await pg.evaluate(() => window.scrollTo(0, 0));
+  await pg.waitForTimeout(600);
+
   const btn = await pg.locator('#cosmos-reset').boundingBox();
   await pg.mouse.move(btn.x + btn.width / 2, btn.y + btn.height / 2);
   await pg.mouse.down(); await pg.mouse.up();

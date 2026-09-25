@@ -38,14 +38,17 @@
   var CFG = {
       density: 1.0,        // 粒子总量倍率（还会在 buildScene 里按屏幕面积 / 移动端 / 性能档再折算）
       intensity: 1.0,      // 亮度倍率
-      motion: 1.5,         // 运动倍率（不开歌时的"活着"程度；1.0 实测几乎看不出在动）
+      motion: 1.25,        // 运动倍率（不开歌时的"活着"程度；1.0 实测几乎看不出在动，1.5 会糊成一坨）
     reactivity: 0.75,   // 【律动总闸】全部音频包络 ×它：外扩/涡流/爆亮/拖尾/星芒/冲击波同比例收敛。
                         // 1.0 = 规格原始幅度（实测整屏打拍子，被用户打回）；0.5 = 只剩呼吸感（也嫌浅）；
                         // 0.75 = 拍点看得清、又不至于晃得读不了字
-    pointerStir: 0.95,  // 指针搅动幅度：移动时附近星尘被拖带 + 绕指微涡
+    pointerStir: 1.30,  // 指针搅动幅度：移动时附近星尘被拖带 + 绕指微涡
     pointerKick: 1.0,   // 按下脉冲幅度：半径内星体被踹散，归位弹簧拉回
     pointerRadius: 340, // 指针影响半径（px）
-    pointerWake: 1.0,   // 快速划过时沿轨迹撒星屑的密度（0 = 关掉；不放歌时最主要的交互反馈）
+    pointerWake: 1.7,   // 快速划过时沿轨迹撒星屑的密度（0 = 关掉；不放歌时最主要的交互反馈）
+    pointerGlow: 0.5,   // 光标处极淡的冷雾：给"指针泡在星河里"一点实体感（0 = 关掉）
+    pointerLit: 0.8,    // 光标附近的星辰被"照亮"的幅度（实时反馈，0 = 关掉）
+    scrollPar: 1.0,     // 滚动视差总闸：页面上下滚时各层按深度轻微反向漂移（0 = 关掉）
     pointerFloor: 0.30, // 停手渐熄后保留的常驻微搅：光标停在星河里也一直在轻轻搅动（鼠标移出窗口才归零）
     fpsActive: 48,       // 正常每帧预算上限
     fpsBlur: 16,         // 窗口失焦：降到肉眼难察的缓慢演进
@@ -393,8 +396,9 @@
         v.y = v.by + Math.sin(t * v.sp * 1.31 + v.ph * 1.7) * v.wy;
         // 半径与强度由频谱插值：低频让漩涡变大变猛，半径跟着低频一起呼吸
         v.r = v.r0 * (1 + A.bass * 0.22);
-        v.strength = v.base * (0.5 + A.bass * 1.70 + A.pulse * 0.60);
-        v.omega = v.dir * (0.85 + Sound.mid * 1.35) * (1 + A.bass * 0.5);   // 静默时也要看得见在转
+        // 静默时收敛到 0.34：常驻强涡流会把旋臂一直搅成糊状；低频一来才放大到 2 倍以上
+        v.strength = v.base * (0.34 + A.bass * 1.90 + A.pulse * 0.70);
+        v.omega = v.dir * (0.68 + Sound.mid * 1.35) * (1 + A.bass * 0.5);
         v.radial = 0.28 + A.bass * 1.90 + A.pulse * 0.90;
       }
       return this;
@@ -438,6 +442,8 @@
       live: 0,                // 活跃度 0..1：动了就升、停手降到 CFG.pointerFloor（移出窗口才归零）
       lastMove: 0,
       wakeAcc: 0,             // 划过的路程累计：够一格就撒一粒星屑
+      sp: 0,                  // 当前划过速度（px/帧，已归一化到 60fps）
+      meteorLock: 0,          // 划出流星的冷却时间戳
       out: false,             // 指针是否已移出窗口
 
       init: function () {
@@ -468,19 +474,32 @@
         this.vx = (nx - this.x) / Math.max(dt, 0.001) * 0.016;
         this.vy = (ny - this.y) / Math.max(dt, 0.001) * 0.016;
         this.x = nx; this.y = ny;
-        var idle = performance.now() - this.lastMove;
+        this.sp = Math.sqrt(this.vx * this.vx + this.vy * this.vy);   // 划过速度：供渲染层做实时反馈
+        var now = performance.now();
+        var idle = now - this.lastMove;
         // 停手 4s 后渐熄，但留一格 CFG.pointerFloor 的常驻微搅（不放歌时全靠它撑交互感）；
         // 只有指针移出窗口才彻底归零，免得在窗口边缘留一个永远在搅的位点
         var want = this.out ? 0 : (idle < 4000 ? 1 : Math.max(CFG.pointerFloor, 1 - (idle - 4000) / 2000));
         this.live += (want - this.live) * Math.min(1, dt * 3);
         // 快速划过：沿轨迹撒一串转瞬星屑。不放歌时这是最直观的"我在动它"的反馈
         if (CFG.pointerWake > 0 && this.live > 0.4) {
-          var sp = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-          if (sp > 5) {
-            this.wakeAcc += sp;
-            if (this.wakeAcc > 24) { this.wakeAcc = 0; popSpark(this.x, this.y, 2); }
+          if (this.sp > 4) {
+            this.wakeAcc += this.sp;
+            if (this.wakeAcc > 24 / CFG.pointerWake) { this.wakeAcc = 0; popSpark(this.x, this.y, 2); }
+            // 甩得够快再顺手拽一颗流星出来（带 900ms 冷却，免得划一下刷一串）
+            if (this.sp > 15 && now > this.meteorLock) { this.meteorLock = now + 900; spawnMeteor(); }
           } else this.wakeAcc = 0;
         }
+      },
+
+      // 光标近旁的"照亮"强度 0..1：星辰渲染层每帧读它，做实时的明灭反馈（不是预录动画）
+      lit: function (x, y) {
+        if (CFG.pointerLit <= 0 || this.live <= 0.02 || this.x < -999) return 0;
+        var dx = x - this.x, dy = y - this.y, R = CFG.pointerRadius;
+        var d2 = dx * dx + dy * dy;
+        if (d2 > R * R) return 0;
+        var f = 1 - Math.sqrt(d2) / R;
+        return f * f * this.live * CFG.pointerLit;
       },
 
       // 搅动：拖带（沿指针速度）+ 绕指微涡 + 轻微外推。
@@ -518,6 +537,31 @@
         popSpark(kx, ky); popSpark(kx, ky);   // 两簇转瞬星屑
         fired.kick++;
       }
+    };
+
+    /* ============================================================
+       【模块三·三】滚动视差模块
+       —— 页面上下滚动时，各层按"深度"轻微反向漂移：远景几乎不动、近景星尘跟得多一点。
+          这是实时输入（每帧读真实的滚动增量），不是一段预录动画；
+          归位弹簧随后把它们慢慢拉回，所以看着是一层有惯性的视差，而不是整体平移。
+       —— 幅度挂 CFG.scrollPar（0 = 关掉）。
+       ============================================================ */
+    var Scroll = {
+      v: 0,
+      last: 0,
+      init: function () {
+        var self = this;
+        this.last = window.scrollY || 0;
+        window.addEventListener('scroll', function () {
+          var y = window.scrollY || 0;
+          var dy = y - self.last;
+          self.last = y;
+          if (!CFG.scrollPar) return;
+          // 内容往上走 → 背景略微往上带一点（同向但更慢），夹住幅度免得滚快了整屏飞
+          self.v = clamp(self.v - dy * 0.05 * CFG.scrollPar, -2.2, 2.2);
+        }, { passive: true });
+      },
+      update: function (d) { this.v *= Math.pow(0.90, d); if (Math.abs(this.v) < 0.002) this.v = 0; }
     };
 
     /* ============================================================
@@ -752,15 +796,24 @@
     layer.fiber.length = 0;
     var i, p;
     for (i = 0; i < counts.far; i++) {
-      p = newHome(Math.random() * W, Math.random() * H);
-      p.r = rr(58, 165) * S;                     // 大块头：远景是舒展的巨大面，不是一堆碎点
-      p.a = rr(0.020, 0.050) * CFG.intensity;    // 单层亮度压得很低，靠叠加出体积
+      // 大尺度噪声定轮廓：只在"云该在的地方"落粒子 → 成片的舒展分子云，
+      // 而不是全屏均匀撒点（均匀撒出来的是一堆互不相干的暗色碎椭圆，没有结构）
+      var fx = 0, fy = 0, gate = -1, tries = 0;
+      do {
+        fx = Math.random() * W; fy = Math.random() * H;
+        gate = Noise.fbm2(fx * 0.0011 + 7.7, fy * 0.0011 - 3.1, 3);
+        tries++;
+      } while (gate < 0.14 && tries < 30);       // 门槛越高云越抱团
+      p = newHome(fx, fy);
+      p.r = rr(80, 210) * S;                     // 大块头：更大更淡才能融成气体体积（小块头会读成一粒粒暗色土豆）
+      p.a = rr(0.014, 0.036) * CFG.intensity;    // 单层亮度压得很低，靠叠加出体积
       p.k = rr(0.0055, 0.0110);                  // 归位弹簧：远景偏软，回缩很慢
-      p.flow = rr(0.18, 0.46);                   // 流场牵引（基础漂移：慢到看不见就等于静态壁纸）
+      p.flow = rr(0.13, 0.32);                   // 流场牵引（基础漂移：慢到看不见就等于静态壁纸）
       p.vtx = rr(0.10, 0.26);                    // 涡流对远景只有微弱扰动
       p.push = rr(0.02, 0.06);                   // 低频外扩的响应幅度
       p.elong = rr(1.2, 2.4);                    // 顺着气流拉伸 → 不是圆滚滚的一坨
-      p.ang = Math.random() * 6.283;
+      Flow.sample(fx, fy, tmpA);                 // 朝向顺气流：整片云的椭圆一个方向，才有"气流"的结构感
+      p.ang = Math.atan2(tmpA.y, tmpA.x) + rr(-0.35, 0.35);
       p.cs = Math.random() * STEPS;              // 调色板起点，逐帧偏移做色彩扰动
       p.ph = Math.random() * 100;
       seedIntro(p);
@@ -768,15 +821,22 @@
     }
     // 内部暗色气体纤维：稀疏、细长，被 coverage 拉开后 形成 "沟壑" 结构
     for (i = 0; i < counts.fiber; i++) {
-      p = newHome(Math.random() * W, Math.random() * H);
+      var gx2 = 0, gy2 = 0, gate2 = -1, tries2 = 0;
+      do {
+        gx2 = Math.random() * W; gy2 = Math.random() * H;
+        gate2 = Noise.fbm2(gx2 * 0.0011 + 7.7, gy2 * 0.0011 - 3.1, 3);
+        tries2++;
+      } while (gate2 < 0.16 && tries2 < 30);     // 比云体门槛略高：纤维藏在云最厚的地方
+      p = newHome(gx2, gy2);
       p.r = rr(16, 46) * S;
       p.a = rr(0.030, 0.075) * CFG.intensity;
       p.k = rr(0.004, 0.009);
-      p.flow = rr(0.28, 0.66);
+      p.flow = rr(0.20, 0.46);
       p.vtx = rr(0.16, 0.40);
       p.push = rr(0.03, 0.09);
       p.elong = rr(3.0, 7.5);                    // 拉得很长 → 纤维
-      p.ang = Math.random() * 6.283;
+      Flow.sample(gx2, gy2, tmpA);               // 纤维顺气流取向 = 沟壑有了走向
+      p.ang = Math.atan2(tmpA.y, tmpA.x) + rr(-0.25, 0.25);
       p.cs = Math.random() * 4;
       p.ph = Math.random() * 100;
       seedIntro(p);
@@ -788,7 +848,7 @@
   var ARMS = 3;                 // 三条松散旋臂
   var SPAN = 3.5;               // 每段旋臂覆盖的角度
   var K_SPIRAL = 0.30;
-  var R0_BASE = 26;
+  var R0_BASE = 32;
   var FLATTEN = 0.62;           // 星盘压扁：像斜看的盘面
   var ROLL = -0.42;             // 整体滚转角
   var GCX = 0, GCY = 0, GR = 1; // 星系中心与半径
@@ -816,7 +876,7 @@
       tries++;
       var armIdx = (Math.random() * ARMS) | 0;
       var th = Math.random() * SPAN;
-      var rad = R0_BASE * Math.exp(K_SPIRAL * th) * rr(0.65, 1.45) * (GR / 520);
+      var rad = R0_BASE * Math.exp(K_SPIRAL * th) * rr(0.65, 1.45) * (GR / 300);   // /300：星系盘铺到约 0.6 屏，才读得出"星系"
       if (rad > GR * 1.25) continue;
       // 大尺度噪声决定"这里有没有云絮"：低于门槛就留空 → 旋臂是断续的絮段，不是一条平滑带子
       var dimp = armIdx * 37.1;
@@ -831,8 +891,8 @@
       p.armIdx = armIdx;
       p.r = rr(7, 26) * S * (0.7 + big * 0.6);
       p.a = rr(0.024, 0.062) * CFG.intensity * (0.55 + (fine * 0.5 + 0.5) * 0.75);
-      p.k = rr(0.010, 0.024);
-      p.flow = rr(0.18, 0.42);
+      p.k = rr(0.016, 0.034);                    // 弹簧收紧：被涡流撕开后能较快回到旋臂上，旋臂才立得住
+      p.flow = rr(0.09, 0.20);                   // 旋臂絮团：主要靠星盘自转与涡流走位，流场只给一点点游移（流场一强就冲散成一坨）
       p.vtx = rr(0.55, 1.15);                   // 近的主体层：涡流撕扯最明显
       p.push = rr(0.05, 0.14);
       p.elong = rr(1.3, 3.2);
@@ -855,7 +915,7 @@
     for (i = 0; i < counts.dust; i++) {
       var armIdx2 = (Math.random() * ARMS) | 0;
       var th2 = Math.random() * SPAN;
-      var rad2 = R0_BASE * Math.exp(K_SPIRAL * th2) * rr(0.7, 1.4) * (GR / 520);
+      var rad2 = R0_BASE * Math.exp(K_SPIRAL * th2) * rr(0.7, 1.4) * (GR / 300);
       if (rad2 > GR * 1.2) continue;
       var d2v = Noise.fbm2(Math.cos(th2) * rad2 * 0.0042 + 91.3, Math.sin(th2) * rad2 * 0.0042, 2);
       if (d2v < -0.10) continue;
@@ -867,8 +927,8 @@
       q.armIdx = armIdx2;
       q.r = rr(10, 34) * S;
       q.a = rr(0.030, 0.085) * CFG.intensity;
-      q.k = rr(0.008, 0.016);
-      q.flow = rr(0.11, 0.32);
+      q.k = rr(0.012, 0.022);
+      q.flow = rr(0.07, 0.20);
       q.vtx = rr(0.35, 0.85);
       q.push = rr(0.06, 0.16);
       q.elong = rr(2.6, 5.5);
@@ -973,7 +1033,7 @@
       p.r = rr(180, 340) * S;
       p.a = rr(0.008, 0.017) * CFG.intensity;   // 冷雾霭再淡一档：大圆盘太实会读成"炫光圆斑"
       p.k = rr(0.0015, 0.004);
-      p.flow = rr(0.18, 0.46);
+      p.flow = rr(0.13, 0.32);
       p.vtx = rr(0.10, 0.30);
       p.push = rr(0.01, 0.04);
       seedIntro(p);
@@ -1000,6 +1060,7 @@
   function buildScene(freshSeed, keepIntro) {
     if (freshSeed) Noise.seed((Math.random() * 0xffffffff) >>> 0);
     var counts = countPlan();
+    if (!Flow.vec) { Flow.resize(W, H); Flow.update(0); }   // 先备好流场，build 期取样朝向用
     buildFar(counts);
     buildArms(counts);
     buildStars(counts);
@@ -1015,8 +1076,8 @@
   /* ============================================================
      3. 物理步进：所有天体共用一套"引导 + 弹簧 + 涡流 + 阻尼"
      ============================================================ */
-  // fm：流场牵引倍率（层4 专用 —— 中频旋律一来，冷雾霭与尘埃微粒的流动速度加快）
-  function stepParticles(list, d, A, useArm, fm) {
+  // par：滚动视差的深度系数（0 = 这一层不参与）；fm：流场牵引倍率（层4 专用）
+  function stepParticles(list, d, A, useArm, fm, par) {
     for (var i = 0; i < list.length; i++) {
       var p = list[i];
 
@@ -1050,6 +1111,9 @@
       // ③ 归位弹簧：被撕开之后缓慢重新聚拢愈合的唯一动力
       p.vx += (p.hx - p.x) * p.k * d;
       p.vy += (p.hy - p.y) * p.k * d;
+
+      // ④′ 滚动视差：按层深度给一点竖向速度，停滚后由归位弹簧慢慢收回
+      if (par && Scroll.v) p.vy += Scroll.v * par * d;
 
       // ④ 低频整体向外扩张（远景层响应最弱，近景最强）
       var rx = p.x - CX, ry = p.y - CY;
@@ -1116,16 +1180,17 @@
     // 星盘自转：中频旋律一来，整个旋臂缠绕回旋，静默时回落到基础角速度
     spin += (0.00055 + Sound.mid * 0.0048 + A.pulse * 0.0018) * d;
     Vortex.update(time, A);
-    stepParticles(layer.far, d, A, false);
-    stepParticles(layer.fiber, d, A, false);
-    stepParticles(layer.arm, d, A, true);
-    stepParticles(layer.dust, d, A, true);
-    stepParticles(layer.faint, d, A, false);
-    stepParticles(layer.bright, d, A, false);
+    // 末位 = 滚动视差的深度系数：远最沉、近最轻（远 0.10 → 星尘 0.42）
+    stepParticles(layer.far, d, A, false, 0, 0.10);
+    stepParticles(layer.fiber, d, A, false, 0, 0.14);
+    stepParticles(layer.arm, d, A, true, 0, 0.20);
+    stepParticles(layer.dust, d, A, true, 0, 0.18);
+    stepParticles(layer.faint, d, A, false, 0, 0.30);
+    stepParticles(layer.bright, d, A, false, 0, 0.30);
     // 层4 的中频响应：雾霭与尘埃微粒顺着气流加快流动（静默时倍率回到 1，飘荡重新慢下来）
     mistFlow = 1 + Sound.mid * 0.9;
-    stepParticles(layer.mote, d, A, false, mistFlow);
-    stepParticles(layer.mist, d, A, false, mistFlow);
+    stepParticles(layer.mote, d, A, false, mistFlow, 0.42);
+    stepParticles(layer.mist, d, A, false, mistFlow, 0.12);
     updateMeteors(d, A);
   }
 
@@ -1207,7 +1272,7 @@
       p = layer.fiber[i];
       introXY(p, _pt);
       // 一路独立的低频噪声：决定哪些位置稀薄消散成空洞
-      var nv = Noise.noise2(_pt.x * 0.0016 + time * 0.09, _pt.y * 0.0016 - time * 0.07);
+      var nv = Noise.noise2(_pt.x * 0.0016 + time * 0.062, _pt.y * 0.0016 - time * 0.05);
       alpha = p.a * (0.35 + 0.65 * nv) * ia;
       if (alpha <= 0) continue;
       drawSprite(SPR_DUST[(p.cs | 0) % 4], _pt.x, _pt.y, p.r * (1 + A.bass * 0.16), alpha,
@@ -1218,7 +1283,7 @@
     for (i = 0; i < layer.far.length; i++) {
       p = layer.far[i];
       introXY(p, _pt);
-      var n1 = Noise.noise2(_pt.x * 0.0013 + time * 0.08, _pt.y * 0.0013 - time * 0.06);
+      var n1 = Noise.noise2(_pt.x * 0.0013 + time * 0.055, _pt.y * 0.0013 - time * 0.045);
       var thin = clamp(n1 * 0.5 + 0.62, 0, 1.25);        // 厚薄不均：稀薄处直接淡到看不见 → 空洞缺口
       // 低频抬亮收紧到 0.24：律动靠"外扩/回旋/拖尾/冲击波"表达，亮度只轻轻跟着呼吸，
       // 抬太多整片底图会随鼓点忽明忽暗，又变成刚被打回的那种炫光
@@ -1237,7 +1302,7 @@
     for (i = 0; i < layer.dust.length; i++) {
       p = layer.dust[i];
       introXY(p, _pt);
-      var nv = Noise.noise2(_pt.x * 0.0022 + time * 0.11, _pt.y * 0.0022);
+      var nv = Noise.noise2(_pt.x * 0.0022 + time * 0.075, _pt.y * 0.0022);
       alpha = p.a * (0.45 + 0.55 * (nv * 0.5 + 0.5)) * ia * (1 + Sound.bass * 0.25);
       drawSprite(SPR_DUST[(p.cs | 0) % 4], _pt.x, _pt.y, p.r, alpha,
         p.ang + time * 0.015, p.elong * (1 + Sound.mid * 0.5 + Sound.bass * 0.3));
@@ -1247,7 +1312,7 @@
     for (i = 0; i < layer.arm.length; i++) {
       p = layer.arm[i];
       introXY(p, _pt);
-      var fine = Noise.noise2(_pt.x * 0.0062 + time * 0.18, _pt.y * 0.0062 - time * 0.14);
+      var fine = Noise.noise2(_pt.x * 0.0062 + time * 0.125, _pt.y * 0.0062 - time * 0.10);
       var glow = 0.5 + fine * 0.5;
       alpha = p.a * (0.45 + 0.75 * glow) * ia;
       if (p.core) alpha *= 1 + Math.min(0.7, Sound.mid * 0.5 + A.pulse * 1.1);   // 云核爆亮：低频瞬间增亮（封顶，避免叠成炫光）
@@ -1283,7 +1348,9 @@
       introXY(p, _pt);
       p.tw += p.tws * (1 + Sound.mid * 1.2);            // 中频让所有星辰做缓慢呼吸
       alpha = p.a * (0.38 + 0.62 * Math.sin(p.tw)) * ia;   // 明暗摆幅拉大一点：静默时"眨眼"是最容易看见的活气
-      drawSprite(SPR_STAR[p.spr], _pt.x, _pt.y, p.r, alpha, 0, 1);
+      var litf = Pointer.lit(_pt.x, _pt.y);             // 光标近旁实时照亮（实时输入，不是预录动画）
+      if (litf > 0) alpha *= 1 + litf * 1.6;
+      drawSprite(SPR_STAR[p.spr], _pt.x, _pt.y, p.r * (1 + litf * 0.9), alpha, 0, 1);
     }
     // 5.2 明亮恒星：多层嵌套径向柔化光晕 + 四向弥散微光（不是尖锐硬十字）
     for (i = 0; i < layer.bright.length; i++) {
@@ -1292,7 +1359,9 @@
       p.tw += p.tws * (1 + Sound.mid * 1.4);
       var br = 0.6 + 0.4 * Math.sin(p.tw);
       alpha = p.a * br * ia;
-      var hr = p.halo * (1 + A.pulse * 0.55 + Sound.bass * 0.22);  // 重鼓瞬间光晕放大、之后平滑回落
+      var litb = Pointer.lit(_pt.x, _pt.y);             // 亮星被光标掠过时明显亮一下
+      if (litb > 0) alpha *= 1 + litb * 1.3;
+      var hr = p.halo * (1 + A.pulse * 0.55 + Sound.bass * 0.22 + litb * 0.8);  // 重鼓瞬间光晕放大、之后平滑回落
       drawSprite(SPR_HALO, _pt.x, _pt.y, hr, alpha * 0.22, 0, 1);
       // 四向微光：把柔光 sprite 横向 / 纵向各拉一份，形成柔和弥散式四芒
       ctx.globalAlpha = alpha * 0.16;
@@ -1337,6 +1406,10 @@
   function drawLayer4(A, ia) {
     var i, p, alpha;
     ctx.globalCompositeOperation = 'lighter';
+    // 光标处的一小团冷雾：给"指针泡在星河里"一点实体感（极淡，避免又变成炫光）
+    if (CFG.pointerGlow > 0 && Pointer.live > 0.02 && Pointer.x > -999) {
+      drawSprite(SPR_MIST, Pointer.x, Pointer.y, 92 * S, 0.014 * CFG.pointerGlow * Pointer.live * ia, 0, 1);
+    }
     for (i = 0; i < layer.mist.length; i++) {
       p = layer.mist[i];
       introXY(p, _pt);
@@ -1346,7 +1419,7 @@
     for (i = 0; i < layer.mote.length; i++) {
       p = layer.mote[i];
       introXY(p, _pt);
-      var nv = Noise.noise2(p.x * 0.004 + time * 0.22, p.y * 0.004);
+      var nv = Noise.noise2(p.x * 0.004 + time * 0.15, p.y * 0.004);
       alpha = p.a * (0.4 + 0.6 * (nv * 0.5 + 0.5)) * ia * (1 + Sound.mid * 0.4);
       var ci = ((p.cs + nv * 3.4 + time * 2.0) | 0) % STEPS; if (ci < 0) ci += STEPS;
       drawSprite(PAL_ARM[ci], _pt.x, _pt.y, p.r, alpha, 0, 1);
@@ -1430,6 +1503,7 @@
 
       Sound.read(now, d);
       Pointer.update(dt);   // 指针平滑/活跃度：用真实 dt，输入响应不随降帧变钝
+      Scroll.update(d);     // 滚动视差的速度每帧衰减，停滚即收
       var A = Sound;
 
       if (introT < 1) introT = clamp((now - introStart) / CFG.introMs, 0, 1);
@@ -1664,6 +1738,7 @@
       resizeCanvas();
       Sound.init();
       Pointer.init();
+      Scroll.init();
       UI.init();
     buildScene(true);
     Flow.update(0);
@@ -1705,6 +1780,7 @@
           vortex: Vortex.list.length,
           audio: { bass: +Sound.bass.toFixed(3), mid: +Sound.mid.toFixed(3), treble: +Sound.treble.toFixed(3), pulse: +Sound.pulse.toFixed(3) },
           flow: { mist: +mistFlow.toFixed(3) },
+          scroll: +Scroll.v.toFixed(3),
             playing: Sound.playing(), throttle: fpsTarget, spin: spin, dirs: Vortex.list.map(function (v) { return Math.round(v.r); })
         };
       },
