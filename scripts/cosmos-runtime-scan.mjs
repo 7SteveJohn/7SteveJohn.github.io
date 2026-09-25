@@ -64,7 +64,14 @@ try {
   const ctx = await b.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: 'dark' });
   const pg = await ctx.newPage();
   pg.on('pageerror', e => errs.push(String(e)));
-  pg.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text()); });
+  // 同上：第三方访客计数（不蒜子）的 404 是外部依赖问题，不计入本站错误
+  // （404 文案本身不带 URL，得连 console 的来源一起判）
+  pg.on('console', m => {
+    if (m.type() !== 'error') return;
+    const where = (m.location() && m.location().url) || '';
+    if ((m.text() + ' ' + where).includes('busuanzi')) return;
+    errs.push('console: ' + m.text() + (where ? '  @ ' + where : ''));
+  });
   await pg.goto(URL, { waitUntil: 'load' });
   await pg.waitForTimeout(4500);            // 入场走完 + 探针就绪
 

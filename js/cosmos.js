@@ -47,6 +47,7 @@
     fpsActive: 48,       // 正常每帧预算上限
     fpsBlur: 16,         // 窗口失焦：降到肉眼难察的缓慢演进
     fpsHidden: 5,        // 标签页切后台：几乎停摆
+    fpsReduce: 16,       // 系统「减少动效」下：默认停笔，用户主动放歌才按这个帧率随拍微动
     trailQuiet: 0.26,    // 安静时的擦除 alpha：残影短、画面干净好读字
     trailLoud: 0.075,    // 低频强时的擦除 alpha：残影拉长，拖出流动感
     bloomEvery: 3,       // 每几帧做一次体积辉光（禁止每帧高斯模糊）
@@ -1393,7 +1394,7 @@
     if (!stopped) framerId = requestAnimationFrame(tick);   // 续帧放最前：帧体出错也不会停摆
 
     var target = document.hidden ? CFG.fpsHidden
-      : (reduceMotion ? 24 : (focused ? CFG.fpsActive : CFG.fpsBlur));
+      : (reduceMotion ? CFG.fpsReduce : (focused ? CFG.fpsActive : CFG.fpsBlur));
     fpsTarget = target;
     var minMs = 1000 / target - 1;
     if (now - lastDraw < minMs) return;
@@ -1521,6 +1522,27 @@
     requestAnimationFrame(still);
   }
 
+  // 减少动效 × 主动放歌：系统层面要求静止，但"用户点了播放"是一次明确的"我要看律动"
+  // 的交互意图 —— 这时按 CFG.fpsReduce 低帧率恢复，只做随拍响应（不恢复常驻的环境漂移量级）；
+  // 停播 1.5 秒后回到彻底停笔。默认态依旧是一张完全静止的星图，规格不变。
+  var rmResumeUntil = 0;
+  function reduceMotionGate() {
+    if (!reduceMotion) return;
+    if (Sound.playing()) {
+      rmResumeUntil = performance.now() + 1500;
+      if (stopped) { stopped = false; lastDraw = 0; framerId = requestAnimationFrame(tick); }
+    } else if (!stopped && performance.now() > rmResumeUntil) {
+      stopLoop();
+    }
+  }
+
+  // 心跳：万一 rAF 被浏览器丢掉（窗口被遮挡 / 系统休眠唤醒 / 某一帧异常中断），
+  // 超过 2 秒没推进就重新排帧。stopped 为真时不复活 —— 那是"减少动效"下有意的静态星图。
+  setInterval(function () {
+    if (stopped || HIDDEN || document.hidden) return;
+    if (lastDraw && performance.now() - lastDraw > 2000) { lastDraw = 0; startLoop(); }
+  }, 2000);
+
   /* ============================================================
      5. 右下角小型悬浮控制面板（本地音乐 / 音量 / 重置星河）
      ============================================================ */
@@ -1602,6 +1624,8 @@
       var A = Sound;
       if (Sound.ownEl && !Sound.ownEl.paused) return this.say('本地曲目 · ' + (this.fileName || '播放中'));
       if (Sound.siteEl && !Sound.siteEl.paused) return this.say('站点歌单 · 星河随音乐流动');
+      // 自诊断：系统「减少动效」开着时星河是有意停笔的，别让人以为坏了
+      if (reduceMotion && stopped) return this.say('静止中 · 系统开了「减少动效」，放歌才随拍微动');
       if (A.loud > 0.02) return this.say('音频接入中');
       return this.say('静音中 · 星河低强度运行');
     }
@@ -1632,6 +1656,7 @@
     document.addEventListener('visibilitychange', onVisibility);
 
     uiTimer = setInterval(function () {
+      reduceMotionGate();      // 减少动效下：放歌才恢复低帧率律动，停播回到停笔
       UI.applyVol();
       UI.tickState();
     }, 900);
@@ -1643,6 +1668,7 @@
       info: function () {
         return {
           w: W, h: H, dpr: DPR, quality: quality, intro: introT, time: time, frame: frameNo,
+          stopped: stopped, reduceMotion: reduceMotion,
           counts: {
             far: layer.far.length, fiber: layer.fiber.length, arm: layer.arm.length,
             dust: layer.dust.length, faint: layer.faint.length, bright: layer.bright.length,
