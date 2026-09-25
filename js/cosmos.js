@@ -51,9 +51,9 @@
     trailQuiet: 0.26,    // 安静时的擦除 alpha：残影短、画面干净好读字
     trailLoud: 0.075,    // 低频强时的擦除 alpha：残影拉长，拖出流动感
     bloomEvery: 3,       // 每几帧做一次体积辉光（禁止每帧高斯模糊）
-    bloomAlpha: 0.075,   // 辉光回叠强度
+    bloomAlpha: 0.050,   // 辉光回叠强度（0.075 时真机上大光晕叠成一圈圈"炫光"，被用户打回）
     bloomBlur: 1,        // 辉光模糊半径（px，作用在 1/4 分辨率小缓冲上，≈全屏 4px，贴近原版 3px 的紧致度）
-    caAlpha: 0.030,      // 色差：把低分辨率副本左右各偏一点叠回去，模拟长焦镜头的边缘色散
+    caAlpha: 0.016,      // 色差：把低分辨率副本左右各偏一点叠回去（0.030 时两次全屏回叠加重炫光）
     grainAlpha: 0.050,   // 胶片颗粒强度
     vignette: 0.92,      // 暗角最深处的衰减（暗角本体在 CSS 静态层，这里只供强度）
     introMs: 3800        // 入场：星辰自四周汇聚成星河的时长
@@ -951,7 +951,7 @@
     for (i = 0; i < 5; i++) {
       p = newHome(Math.random() * W, Math.random() * H);
       p.r = rr(180, 340) * S;
-      p.a = rr(0.012, 0.026) * CFG.intensity;
+      p.a = rr(0.008, 0.017) * CFG.intensity;   // 冷雾霭再淡一档：大圆盘太实会读成"炫光圆斑"
       p.k = rr(0.0015, 0.004);
       p.flow = rr(0.10, 0.26);
       p.vtx = rr(0.10, 0.30);
@@ -1234,8 +1234,8 @@
       drawSprite(PAL_ARM[ci], _pt.x, _pt.y, p.r * (1 + Sound.bass * 0.12), alpha,
         p.ang, p.elong * (1 + Sound.mid * 0.4));
       if (p.core) {
-        // 云核向外的柔和弥散光晕
-        drawSprite(SPR_HALO, _pt.x, _pt.y, p.r * rr3(2.6, 4.4, p), alpha * 0.55, 0, 1);
+        // 云核向外的柔和弥散光晕（半径与透明度都收过一档：大光晕在真机上会糊成一圈圈炫光）
+        drawSprite(SPR_HALO, _pt.x, _pt.y, p.r * rr3(1.8, 3.0, p), alpha * 0.36, 0, 1);
       }
     }
   }
