@@ -6,7 +6,7 @@
  * - 其余同源/静态资源：缓存优先 + 后台更新（stale-while-revalidate）
  * ⚠️ 每次发布改动静态资源后，把 CACHE 版本号 +1，旧缓存会在 activate 阶段自动清理。
  */
-const CACHE = 'sevenjohn-v39';
+const CACHE = 'sevenjohn-v40';
 const CORE = [
   './',
   'index.html',
@@ -23,19 +23,6 @@ const CORE = [
   'js/articles.js',
   'js/projects.js',
   'js/particles.js',
-  'js/gl-stage.js',
-  'assets/vendor/three.module.min.js',
-  'assets/vendor/three-addons/geometries/RoundedBoxGeometry.js',
-  'assets/vendor/three-addons/postprocessing/EffectComposer.js',
-  'assets/vendor/three-addons/postprocessing/RenderPass.js',
-  'assets/vendor/three-addons/postprocessing/ShaderPass.js',
-  'assets/vendor/three-addons/postprocessing/MaskPass.js',
-  'assets/vendor/three-addons/postprocessing/Pass.js',
-  'assets/vendor/three-addons/postprocessing/UnrealBloomPass.js',
-  'assets/vendor/three-addons/postprocessing/OutputPass.js',
-  'assets/vendor/three-addons/shaders/CopyShader.js',
-  'assets/vendor/three-addons/shaders/LuminosityHighPassShader.js',
-  'assets/vendor/three-addons/shaders/OutputShader.js',
   'js/search.js',
   'js/status.js',
   'assets/fonts/inter.css',
@@ -43,7 +30,6 @@ const CORE = [
   'assets/vendor/lucide.min.js',
   'assets/images/avatar.webp',
   'assets/images/morph-loop-poster.jpg',
-  'assets/images/gl-poster.webp',
   // 项目封面：首屏 preload 会早于 SW 接管，必须进预缓存，否则断网后卡片图全裂
   'assets/images/cover-filebutler.webp',
   'assets/images/cover-netops.webp',

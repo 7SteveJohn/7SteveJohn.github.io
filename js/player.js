@@ -6,8 +6,8 @@
  * - 歌单改动直接改 SONGS 数组（src 用 ASCII 文件名，title 保留原名）
  * - 循环模式：顺序循环（默认）/ 单曲循环，模式按钮切换，localStorage 持久化
  * - 自定义歌曲顺序：歌单每项 ↑↓ 移动，顺序持久化（按 src 记录，新增曲目排尾）
- * - 音乐律动：AnalyserNode 取低频能量喂 window.__BEAT.level，js/gl-stage.js 每帧读取
- *   驱动辉光 / 背光 / 光点（同源 mp3 无 CORS 问题；MediaElementSource 对同一元素只能建一次）
+ * - 音乐律动：AnalyserNode 产出 window.__BEAT（level/lv/mid/treble），js/cosmos.js 星河每帧读取
+ *   驱动外扩 / 涡流 / 云核爆亮 / 流星（同源 mp3 无 CORS 问题；MediaElementSource 对同一元素只能建一次）
  */
 (function () {
   'use strict';

@@ -97,13 +97,6 @@
   <!-- 背景光粒子画布（js/particles.js 渲染，服务主题不抢主体；星河背景在场时自动让位） -->
   <canvas id="particle-canvas" aria-hidden="true" data-page-node-id="9SmLPF51YM79j7ATE8HasW"></canvas>
 
-  <!-- 全站 3D 舞台：固定全屏画布躺在所有内容之下（画在光粒子之上、正文之下），
-       往下滚时镜头在场景里走，各分区对应一件"碎片凝聚成形 / 散场崩解"的实体。
-       见 js/gl-stage.js；下面这张 img 是无 WebGL / 减少动效时的静态封面 -->
-  <div class="gl-stage" id="gl-stage" aria-hidden="true">
-    <img class="gl-fallback" src="assets/images/gl-poster.webp" alt="" decoding="async">
-  </div>
-
   <!-- 键盘无障碍跳转 -->
   <a href="#products" class="skip-link" data-page-node-id="7rZTODvxamOKtwHCuyJAHv">跳转到工具</a>
 
@@ -963,15 +956,6 @@
   <script src="js/status.js" defer></script>
   <script src="js/app.js" defer></script>
   <script src="js/particles.js" defer></script>
-  <!-- importmap：把 three addons 里的裸导入 'three' 指到自托管副本（必须在任何 module script 之前） -->
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "./assets/vendor/three.module.min.js"
-    }
-  }
-  </script>
-  <script type="module" src="js/gl-stage.js"></script>
   <script src="js/search.js" defer></script>
   <script src="js/cosmos.js" defer></script>
   <script src="js/player.js" defer></script>

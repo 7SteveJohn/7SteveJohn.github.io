@@ -1015,7 +1015,7 @@ function initNavScrollState() {
     if (header) {
       header.classList.toggle('is-scrolled', y > 12);
       // 深色粒子封面上：强制 dark 配色，滚过封面即还原（见 style.css .on-cover）
-      // 深色叙事区的终点由 3D 舞台按 DOM 分区算出（见 js/gl-stage.js）
+      // 深色叙事区的终点：随首屏高度走（3D 舞台已移除，背景由星河 canvas 全程接管）
       const coverEnd = window.__COVER_END || window.innerHeight * 0.72;
       header.classList.toggle('on-cover', y < coverEnd - window.innerHeight * 0.5);
     }
