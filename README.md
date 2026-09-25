@@ -115,6 +115,9 @@ node scripts/gen-rss.js
 | `assets/vendor/lucide.min.js` | 自托管 Lucide 图标库 v1.41.0（不依赖 unpkg，大陆访问不阻塞） | 想升级时从官方 UMD 构建替换 |
 | `manifest.json` / `icon-512.png` | PWA 应用清单与安装图标 | 想换 App 名字/图标时替换 |
 | `sw.js` | Service Worker 离线缓存 | ⚠️ 改动静态资源后发布时，把顶部 `CACHE` 版本号 +1，否则老用户可能读到旧缓存 |
+| `js/cosmos.js` / `css/cosmos.css` | 首页底层星河背景（Simplex 噪声实时生成四层宇宙，随乐流动） | 调密度/亮度/运动改 `CFG`；面板见页面右下角 |
+| `scripts/cosmos-motion-scan.mjs` / `cosmos-runtime-scan.mjs` | 星河验收脚本（26+27 项断言：运动量 / 音频链路 / 降帧 / 移动端） | 改星河后跑：`python -m http.server 8327` + `node scripts/cosmos-motion-scan.mjs` |
+| `cosmos-home.html` | 星河单文件演示页（CSS/JS 全内嵌，可独立分享） | 改 `js/cosmos.js` 后如需同步，重跑一次内嵌导出 |
 
 ---
 

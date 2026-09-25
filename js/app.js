@@ -78,7 +78,7 @@ function initTheme() {
   function toggle(e) {
     const applyNow = () => {
       const isDark = document.documentElement.classList.toggle('dark');
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      localStorage.setItem('sj.theme', isDark ? 'dark' : 'light');   // 全站访客本地键统一 sj. 前缀
     };
 
     // 明暗切换：从点击位置圆形扩散开新主题（View Transitions，减少动效时直接切换）

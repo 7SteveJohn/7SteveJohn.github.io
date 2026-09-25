@@ -138,6 +138,12 @@ ok('中频被吸收', i2.audio.mid > 0.25, 'mid=' + i2.audio.mid);
 ok('高频被吸收', i2.audio.treble > 0.2, 'treble=' + i2.audio.treble);
 ok('低频触发环形冲击波', i2.fired.ring > 0, 'fired.ring=' + i2.fired.ring);
 
+// 中频 → 层4（冷雾霭 / 尘埃微粒）流场牵引倍率上升（探针 info().flow.mist 直读）
+await pg.evaluate(() => window.__COSMOS.feed(0, 0.8, 0));
+await pg.waitForTimeout(1800);
+const fmist = await pg.evaluate(() => window.__COSMOS.info().flow.mist);
+ok('中频加快层4雾霭流速', fmist > 1.15, 'flow.mist=' + fmist);
+
 // 高频流星/星屑：脉冲结束后再喂一串纯高频边沿，给流星留出生成窗口
 for (let k = 0; k < 16; k++) {
   await pg.evaluate(k => window.__COSMOS.feed(k % 2 ? 0.1 : 0.05, 0.05, k % 2 ? 0.75 : 0.05), k);
@@ -163,6 +169,8 @@ ok('松手后平滑回落（先降后收，非硬跳）',
   i2.audio.bass + ' → ' + (firstDrop && firstDrop.bass));
 ok('各频段收敛到 < 0.05（软渲染下按轮询等待）', !!settled,
   settled ? JSON.stringify(settled) : '20s 内未收敛');
+const fquiet = await pg.evaluate(() => window.__COSMOS.info().flow.mist);
+ok('静默后雾霭流速回落（无硬跳）', fquiet > 1 && fquiet < 1.06, 'flow.mist=' + fquiet);
 
 // —— 8. 无报错（主上下文）——
 ok('主上下文无 console error / pageerror', errs.length === 0, errs.slice(0, 3).join(' | '));

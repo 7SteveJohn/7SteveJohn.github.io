@@ -26,9 +26,11 @@
     { src: 'music/kami-no-manimani.mp3',   title: '神のまにまに' }
   ];
 
-  const LS_KEY = 'music-resume';
-  const LS_MODE = 'music-mode';
-  const LS_ORDER = 'music-order';
+  // 全站访客本地数据统一 sj. 前缀；这里保留一次旧键回读，老访客的续听/顺序/模式不丢
+  const LS_KEY = 'sj.music-resume';
+  const LS_MODE = 'sj.music-mode';
+  const LS_ORDER = 'sj.music-order';
+  const legacy = (k) => { try { return localStorage.getItem(k.replace('sj.', '')); } catch (e) { return null; } };
 
   const audio = document.getElementById('music-audio');
   const fab = document.getElementById('music-fab');
@@ -67,7 +69,7 @@
   // —— 自定义顺序 ——
   function applyOrder() {
     try {
-      const order = JSON.parse(localStorage.getItem(LS_ORDER) || 'null');
+      const order = JSON.parse(localStorage.getItem(LS_ORDER) || legacy(LS_ORDER) || 'null');
       if (Array.isArray(order) && order.length) {
         const bySrc = new Map(SONGS.map(function (s) { return [s.src, s]; }));
         const next = [];
@@ -238,7 +240,7 @@
     applyOrder();
     let pendingSeek = 0;
     try {
-      const saved = JSON.parse(localStorage.getItem(LS_KEY) || 'null');
+      const saved = JSON.parse(localStorage.getItem(LS_KEY) || legacy(LS_KEY) || 'null');
       if (saved) {
         const bySrc = saved.src ? SONGS.findIndex(s => s.src === saved.src) : -1;
         if (bySrc >= 0) current = bySrc;
@@ -251,7 +253,7 @@
     audio.preload = matchMedia('(pointer: coarse)').matches ? 'metadata' : 'auto';
     audio.src = SONGS[current].src;
     if (pendingSeek) audio.currentTime = pendingSeek;   // 元数据到位后浏览器自动 seek
-    try { mode = localStorage.getItem(LS_MODE) === 'one' ? 'one' : 'list'; } catch (e) {}
+    try { mode = (localStorage.getItem(LS_MODE) || legacy(LS_MODE)) === 'one' ? 'one' : 'list'; } catch (e) {}
     titleEl.textContent = SONGS[current].title;
     applyMode();
     renderList();

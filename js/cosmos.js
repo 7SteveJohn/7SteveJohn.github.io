@@ -696,6 +696,7 @@
   var quality = 1;              // 性能档（0.5~1）
   var introStart = 0, introT = 1;
   var time = 0;
+  var mistFlow = 1;             // 层4 流场牵引倍率：中频越快雾霭飘得越快（探针 info().flow 直读）
     var tmpA = { x: 0, y: 0 }, tmpB = { x: 0, y: 0 }, tmpC = { x: 0, y: 0 };
 
   function baseRand(count) {
@@ -993,7 +994,8 @@
   /* ============================================================
      3. 物理步进：所有天体共用一套"引导 + 弹簧 + 涡流 + 阻尼"
      ============================================================ */
-  function stepParticles(list, d, A, useArm) {
+  // fm：流场牵引倍率（层4 专用 —— 中频旋律一来，冷雾霭与尘埃微粒的流动速度加快）
+  function stepParticles(list, d, A, useArm, fm) {
     for (var i = 0; i < list.length; i++) {
       var p = list[i];
 
@@ -1008,8 +1010,9 @@
 
       // ① 流场：把每个粒子的速度往"当地气流方向"拉（星辰也一样会顺着气流偏移）
       Flow.sample(p.x, p.y, tmpA);
-      p.vx += (tmpA.x * p.flow - p.vx) * 0.05 * d;
-      p.vy += (tmpA.y * p.flow - p.vy) * 0.05 * d;
+      var fl = fm ? p.flow * fm : p.flow;
+      p.vx += (tmpA.x * fl - p.vx) * 0.05 * d;
+      p.vy += (tmpA.y * fl - p.vy) * 0.05 * d;
 
       // ② 涡流：切向扭转 + 径向排斥，作为"期望速度"注入
       Vortex.force(p.x, p.y, tmpB, p.vtx);
@@ -1098,8 +1101,10 @@
     stepParticles(layer.dust, d, A, true);
     stepParticles(layer.faint, d, A, false);
     stepParticles(layer.bright, d, A, false);
-    stepParticles(layer.mote, d, A, false);
-    stepParticles(layer.mist, d, A, false);
+    // 层4 的中频响应：雾霭与尘埃微粒顺着气流加快流动（静默时倍率回到 1，飘荡重新慢下来）
+    mistFlow = 1 + Sound.mid * 0.9;
+    stepParticles(layer.mote, d, A, false, mistFlow);
+    stepParticles(layer.mist, d, A, false, mistFlow);
     updateMeteors(d, A);
   }
 
@@ -1649,6 +1654,7 @@
             pointer: { x: Math.round(Pointer.x), y: Math.round(Pointer.y), live: +Pointer.live.toFixed(2) },
           vortex: Vortex.list.length,
           audio: { bass: +Sound.bass.toFixed(3), mid: +Sound.mid.toFixed(3), treble: +Sound.treble.toFixed(3), pulse: +Sound.pulse.toFixed(3) },
+          flow: { mist: +mistFlow.toFixed(3) },
             playing: Sound.playing(), throttle: fpsTarget, spin: spin, dirs: Vortex.list.map(function (v) { return Math.round(v.r); })
         };
       },
