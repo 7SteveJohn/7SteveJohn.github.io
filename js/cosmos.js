@@ -1224,6 +1224,7 @@
 
   var framerId = 0, hiddenTimer = 0, lastDraw = 0, lastPulse = 0, focused = true, frameNo = 0;
   var stopped = false, HIDDEN = false;   // stopped：整条循环是否被主动停笔（reduce-motion 静态图）
+  var fpsTarget = CFG.fpsActive;         // 当前生效帧率档（探针直读：前台 48 / 失焦 16 / 后台 5）
   var hiTimer = 0, uiTimer = 0;          // 两个后台定时器：低频补帧 / 面板状态刷新
   var budget = { last: 0, sum: 0, n: 0, ready: false };
 
@@ -1232,6 +1233,7 @@
 
     var target = document.hidden ? CFG.fpsHidden
       : (reduceMotion ? 24 : (focused ? CFG.fpsActive : CFG.fpsBlur));
+    fpsTarget = target;
     var minMs = 1000 / target - 1;
     if (now - lastDraw < minMs) return;
     var dt = Math.min(0.12, (now - lastDraw) / 1000) || 0.016;
@@ -1487,7 +1489,7 @@
           fired: { meteor: fired.meteor, spark: fired.spark, ring: fired.ring },
           vortex: Vortex.list.length,
           audio: { bass: +Sound.bass.toFixed(3), mid: +Sound.mid.toFixed(3), treble: +Sound.treble.toFixed(3), pulse: +Sound.pulse.toFixed(3) },
-          playing: Sound.playing(), spin: spin, dirs: Vortex.list.map(function (v) { return Math.round(v.r); })
+            playing: Sound.playing(), throttle: fpsTarget, spin: spin, dirs: Vortex.list.map(function (v) { return Math.round(v.r); })
         };
       },
       // 给测试用：手动喂一份频谱，省得扯 Widow 音频
