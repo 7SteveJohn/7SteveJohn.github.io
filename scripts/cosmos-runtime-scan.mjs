@@ -147,7 +147,27 @@ try {
     document.dispatchEvent(new Event('visibilitychange'));
   });
   await waitThrottle(48, '回前台 → 恢复 fpsActive 48');
-  ok('A/B/C 全程无 console error / pageerror', errs.length === 0, errs.slice(0, 3).join(' | '));
+
+  /* —— C+. 指针交互：搅动跟随 + 点击脉冲 + 交互守卫 —— */
+  await pg.mouse.move(700, 420);
+  await pg.waitForTimeout(700);
+  const pt = await pg.evaluate(() => window.__COSMOS.info().pointer);
+  ok('指针位置平滑跟随', Math.abs(pt.x - 700) < 80 && Math.abs(pt.y - 420) < 80, JSON.stringify(pt));
+  ok('指针活跃度升起', pt.live > 0.3, 'live=' + pt.live);
+  const fk1 = await pg.evaluate(() => window.__COSMOS.info().fired);
+  await pg.mouse.down(); await pg.mouse.up();
+  await pg.waitForTimeout(400);
+  const fk2 = await pg.evaluate(() => window.__COSMOS.info().fired);
+  ok('空白处点击 → 脉冲 + 涟漪 + 星屑',
+    fk2.kick > fk1.kick && fk2.ring > fk1.ring && fk2.spark > fk1.spark, JSON.stringify(fk2));
+  const btn = await pg.locator('#cosmos-reset').boundingBox();
+  await pg.mouse.move(btn.x + btn.width / 2, btn.y + btn.height / 2);
+  await pg.mouse.down(); await pg.mouse.up();
+  await pg.waitForTimeout(300);
+  const fk3 = await pg.evaluate(() => window.__COSMOS.info().fired);
+  ok('点面板按钮不误触脉冲（交互守卫）', fk3.kick === fk2.kick, fk2.kick + ' vs ' + fk3.kick);
+
+  ok('A/B/C/E 全程无 console error / pageerror', errs.length === 0, errs.slice(0, 3).join(' | '));
   await ctx.close();
 
   /* —— D. 移动端视口 390×844 —— */

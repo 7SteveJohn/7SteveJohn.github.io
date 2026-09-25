@@ -12,6 +12,7 @@
  *   【模块一】噪声采样模块       Simplex 2D 噪声 / fbm 叠层，星云形态与颜色扰动的唯一来源
  *   【模块二】流场采样模块       curl noise 疏网格：给云絮、尘埃、星辰提供一致的漂移基准
  *   【模块三】音频频谱解析模块   三分频段能量 + 起音包络；数据源 = 本地上传 或 站点歌单
+ *   【模块三·半】指针交互模块   指针=引力搅棒：移动搅动星尘、点击脉冲踹散再吸回（3D 移除后由星河接棒）
  *   【模块四】涡流力场模块       3~6 个动态漫游漩涡：切向扭转 + 径向排斥 → 卷曲/撕扯/愈合
  *   【模块五】渲染循环模块       衰减擦除 → 四层天体 → 后处理（辉光/颗粒/色差）→ 帧率分级
  *                                （暗角与冷蓝环境辉光在 CSS 静态层 .cosmos-veil，零每帧开销）
@@ -40,6 +41,9 @@
       motion: 1.0,         // 运动倍率（想更安静就往下调）
       reactivity: 0.5,     // 【律动总闸】全部音频包络 ×它：外扩/涡流/爆亮/拖尾/星芒/冲击波同比例收敛。
                            // 1.0 = 规格原始幅度（实测整屏打拍子，被用户打回）；0.5 = 呼吸感
+      pointerStir: 0.6,    // 指针搅动幅度：移动时附近星尘被拖带 + 绕指微涡
+      pointerKick: 1.0,    // 按下脉冲幅度：半径内星体被踹散，归位弹簧拉回
+      pointerRadius: 210,  // 指针影响半径（px）
     fpsActive: 48,       // 正常每帧预算上限
     fpsBlur: 16,         // 窗口失焦：降到肉眼难察的缓慢演进
     fpsHidden: 5,        // 标签页切后台：几乎停摆
@@ -409,8 +413,89 @@
     }
   };
 
-  /* ============================================================
-     1. 画布尺寸 / 精灵表 / 后处理缓冲
+    /* ============================================================
+       【模块三·半】指针交互模块
+       —— 指针是一枚随手的"引力搅棒"（3D 舞台移除后，交互性由星河自己接棒）：
+          · 移动：附近星尘 / 云絮被指针的移动方向拖带 + 绕指微涡，归位弹簧负责复原
+          · 按下：一次脉冲 —— 半径内的星被踹散再吸回 + 一圈涟漪 + 一簇星屑
+            （只在点空白处触发；点链接 / 按钮 / 面板不打扰）
+       幅度全挂 CFG（pointerStir / pointerKick / pointerRadius）；
+       一切都是"期望速度"参与 lerp，无硬跳变；停手 1.6 秒后扰动自然熄灭。
+       ============================================================ */
+    var Pointer = {
+      tx: -1, ty: -1,         // 目标位置（事件直写）
+      x: -9999, y: -9999,     // 平滑后的位置
+      vx: 0, vy: 0,           // 平滑后的指针速度（≈60fps 帧位移），用于"拖带"
+      live: 0,                // 活跃度 0..1：动了就升、停手就降
+      lastMove: 0,
+
+      init: function () {
+        var self = this;
+        window.addEventListener('pointermove', function (ev) {
+          self.tx = ev.clientX; self.ty = ev.clientY;
+          if (self.x < -999) { self.x = self.tx; self.y = self.ty; }
+          self.lastMove = performance.now();
+        }, { passive: true });
+        window.addEventListener('pointerdown', function (ev) {
+          if (ev.target && ev.target.closest &&
+              ev.target.closest('a,button,input,textarea,select,label,#cosmos-dock,#music-player')) return;
+          self.tx = self.x = ev.clientX; self.ty = self.y = ev.clientY;
+          self.lastMove = performance.now();
+          self.kick(ev.clientX, ev.clientY);
+        }, { passive: true });
+      },
+
+      // 每帧：位置 / 速度平滑 + 活跃度衰减（用真实 dt，不乘 motion——输入响应不该被降速）
+      update: function (dt) {
+        if (this.x < -999) return;
+        var k = Math.min(1, dt * 6);
+        var nx = this.x + (this.tx - this.x) * k;
+        var ny = this.y + (this.ty - this.y) * k;
+        this.vx = (nx - this.x) / Math.max(dt, 0.001) * 0.016;
+        this.vy = (ny - this.y) / Math.max(dt, 0.001) * 0.016;
+        this.x = nx; this.y = ny;
+        var idle = performance.now() - this.lastMove;
+        var want = idle < 1600 ? 1 : Math.max(0, 1 - (idle - 1600) / 1200);
+        this.live += (want - this.live) * Math.min(1, dt * 3);
+      },
+
+      // 搅动：拖带（沿指针速度）+ 绕指微涡 + 轻微外推；距离二次衰减
+      force: function (x, y, out) {
+        var dx = x - this.x, dy = y - this.y;
+        var d2 = dx * dx + dy * dy, R = CFG.pointerRadius;
+        if (this.live <= 0.02 || d2 > R * R) { out.x = 0; out.y = 0; return out; }
+        var d = Math.sqrt(d2) + 0.001;
+        var f = (1 - d / R); f = f * f * this.live * CFG.pointerStir;
+        out.x = this.vx * f * 2.2 + (-dy / d) * f * 0.55 + (dx / d) * f * 0.30;
+        out.y = this.vy * f * 2.2 + ( dx / d) * f * 0.55 + (dy / d) * f * 0.30;
+        return out;
+      },
+
+      // 点击脉冲：半径内直接踹一脚速度（近强远弱 + 少许随机方向），弹簧慢慢拉回
+      kick: function (kx, ky) {
+        var R = CFG.pointerRadius * 1.5;
+        var lists = [layer.arm, layer.dust, layer.mote, layer.fiber, layer.faint, layer.bright, layer.far, layer.mist];
+        var mul = [1.15, 1.10, 1.00, 0.90, 0.50, 0.55, 0.35, 0.30];
+        for (var L = 0; L < lists.length; L++) {
+          var list = lists[L], m = mul[L];
+          for (var i = 0; i < list.length; i++) {
+            var p = list[i];
+            var dx = p.x - kx, dy = p.y - ky;
+            var d = Math.sqrt(dx * dx + dy * dy) || 1;
+            if (d > R) continue;
+            var f = (1 - d / R); f = f * f * 3.4 * m * CFG.pointerKick;
+            p.vx += (dx / d) * f + (Math.random() - 0.5) * f * 0.5;
+            p.vy += (dy / d) * f + (Math.random() - 0.5) * f * 0.5;
+          }
+        }
+        spawnRingAt(kx, ky);   // 一圈涟漪
+        popSpark(kx, ky); popSpark(kx, ky);   // 两簇转瞬星屑
+        fired.kick++;
+      }
+    };
+
+    /* ============================================================
+       1. 画布尺寸 / 精灵表 / 后处理缓冲
      ============================================================ */
   var W = 0, H = 0, DPR = 1, S = 1;         // S：把光斑半径换算到不同屏幕的统一尺度
   var CX = 0, CY = 0, DIAG = 1000;          // 画面中心与对角线
@@ -599,11 +684,11 @@
     var rings = [];               // 低频冲击波：环形扩散光晕
     // 累计触发计数（探针用）：流星/星屑这类短命天体在低帧率软渲染下诞生即燃尽，
     // 活体计数永远抓不到，只有累计数能证明"高频确实触发了它们"
-    var fired = { meteor: 0, spark: 0, ring: 0 };
+    var fired = { meteor: 0, spark: 0, ring: 0, kick: 0 };
   var quality = 1;              // 性能档（0.5~1）
   var introStart = 0, introT = 1;
   var time = 0;
-  var tmpA = { x: 0, y: 0 }, tmpB = { x: 0, y: 0 };
+    var tmpA = { x: 0, y: 0 }, tmpB = { x: 0, y: 0 }, tmpC = { x: 0, y: 0 };
 
   function baseRand(count) {
     var arr = [];
@@ -896,6 +981,13 @@
       p.vx += (tmpB.x - p.vx) * 0.09 * d;
       p.vy += (tmpB.y - p.vy) * 0.09 * d;
 
+      // ②′ 指针搅动：同为期望速度注入——鼠标/手指划过时星尘被拖带绕指，停手 1.6s 熄灭
+      if (Pointer.live > 0.02) {
+        Pointer.force(p.x, p.y, tmpC);
+        p.vx += (tmpC.x - p.vx) * 0.10 * d;
+        p.vy += (tmpC.y - p.vy) * 0.10 * d;
+      }
+
       // ③ 归位弹簧：被撕开之后缓慢重新聚拢愈合的唯一动力
       p.vx += (p.hx - p.x) * p.k * d;
       p.vy += (p.hy - p.y) * p.k * d;
@@ -1038,9 +1130,11 @@
     }
   }
 
-  function spawnRing(A) {
-    if (rings.length > 4) rings.shift();
-    rings.push({ x: CX, y: CY, r: Math.min(W, H) * 0.06, life: 1 });
+  function spawnRing(A) { spawnRingAt(CX, CY); }
+  // 涟漪：节拍从星河中心荡开，点击从指尖荡开（同一对象池）
+  function spawnRingAt(x, y) {
+    if (rings.length > 5) rings.shift();
+    rings.push({ x: x, y: y, r: Math.min(W, H) * 0.05, life: 1 });
     fired.ring++;
   }
 
@@ -1263,6 +1357,7 @@
       time += dt * CFG.motion;
 
       Sound.read(now, d);
+      Pointer.update(dt);   // 指针平滑/活跃度：用真实 dt，输入响应不随降帧变钝
       var A = Sound;
 
       if (introT < 1) introT = clamp((now - introStart) / CFG.introMs, 0, 1);
@@ -1469,9 +1564,10 @@
   function boot() {
     buildSprites();
     buildGrain();
-    resizeCanvas();
-    Sound.init();
-    UI.init();
+      resizeCanvas();
+      Sound.init();
+      Pointer.init();
+      UI.init();
     buildScene(true);
     Flow.update(0);
 
@@ -1504,7 +1600,8 @@
             mote: layer.mote.length, mist: layer.mist.length, ring: rings.length,
             meteor: liveCount(layer.meteor), spark: liveCount(layer.spark)
           },
-          fired: { meteor: fired.meteor, spark: fired.spark, ring: fired.ring },
+            fired: { meteor: fired.meteor, spark: fired.spark, ring: fired.ring, kick: fired.kick },
+            pointer: { x: Math.round(Pointer.x), y: Math.round(Pointer.y), live: +Pointer.live.toFixed(2) },
           vortex: Vortex.list.length,
           audio: { bass: +Sound.bass.toFixed(3), mid: +Sound.mid.toFixed(3), treble: +Sound.treble.toFixed(3), pulse: +Sound.pulse.toFixed(3) },
             playing: Sound.playing(), throttle: fpsTarget, spin: spin, dirs: Vortex.list.map(function (v) { return Math.round(v.r); })
@@ -1513,7 +1610,9 @@
       // 给测试用：手动喂一份频谱，省得扯 Widow 音频
       feed: function (b, m, t) {
         window.__BEAT = { level: b, lv: b, mid: m || 0, treble: t || 0, slow: b, rise: 0, ctx: 'fake' };
-      }
+      },
+      // 给测试用：在指定屏幕坐标触发一次点击脉冲（绕过 closest 交互守卫）
+      poke: function (x, y) { Pointer.kick(x, y); }
     };
   }
 
