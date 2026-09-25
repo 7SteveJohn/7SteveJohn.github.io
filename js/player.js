@@ -2,7 +2,7 @@
  * 右下角悬浮背景音乐播放器
  * ----------------------------------------------------
  * - 音频不进 SW 预缓存：首次在线播放后由 SW 运行时缓存接管，断网也能复播
- * - localStorage 记住上次听到哪（曲目 + 进度），下次展开自动续上（仍需点击播放）
+ * - localStorage 只记住上次听的是哪一首（不记播放进度，下次进来从头开始）
  * - 歌单改动直接改 SONGS 数组（src 用 ASCII 文件名，title 保留原名）
  * - 循环模式：顺序循环（默认）/ 单曲循环，模式按钮切换，localStorage 持久化
  * - 自定义歌曲顺序：歌单每项 ↑↓ 移动，顺序持久化（按 src 记录，新增曲目排尾）
@@ -60,8 +60,9 @@
   const save = () => {
     try {
       localStorage.setItem(LS_KEY, JSON.stringify({
-        i: current, t: audio.currentTime || 0,
+        i: current,
         src: SONGS[current] ? SONGS[current].src : ''   // 顺序可自定义，恢复按 src 定位更稳
+        // ❗不再记播放进度：下次进来从上次的那一首开头听起，而不是接着上次的秒数
       }));
     } catch (e) { /* 隐私模式等场景静默跳过 */ }
   };
@@ -238,21 +239,19 @@
 
   function restore() {
     applyOrder();
-    let pendingSeek = 0;
     try {
       const saved = JSON.parse(localStorage.getItem(LS_KEY) || legacy(LS_KEY) || 'null');
       if (saved) {
         const bySrc = saved.src ? SONGS.findIndex(s => s.src === saved.src) : -1;
         if (bySrc >= 0) current = bySrc;
         else if (saved.i >= 0 && saved.i < SONGS.length) current = saved.i;
-        pendingSeek = saved.t || 0;
       }
     } catch (e) { /* 数据损坏则从头开始 */ }
     // 预热：页面加载即缓冲首曲，点播放几乎秒出声（SW 运行时缓存随后接管，二次访问零延迟）。
     // 触屏设备按流量考虑只取元数据。首次访客也能吃到预热——不只限有历史的用户。
     audio.preload = matchMedia('(pointer: coarse)').matches ? 'metadata' : 'auto';
     audio.src = SONGS[current].src;
-    if (pendingSeek) audio.currentTime = pendingSeek;   // 元数据到位后浏览器自动 seek
+    // 不做 seek：恢复的只是"上次听的是哪一首"，播放位置一律从头开始
     try { mode = (localStorage.getItem(LS_MODE) || legacy(LS_MODE)) === 'one' ? 'one' : 'list'; } catch (e) {}
     titleEl.textContent = SONGS[current].title;
     applyMode();

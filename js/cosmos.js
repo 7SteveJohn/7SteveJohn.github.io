@@ -38,7 +38,7 @@
   var CFG = {
       density: 1.0,        // 粒子总量倍率（还会在 buildScene 里按屏幕面积 / 移动端 / 性能档再折算）
       intensity: 1.0,      // 亮度倍率
-      motion: 1.0,         // 运动倍率（想更安静就往下调）
+      motion: 1.5,         // 运动倍率（不开歌时的"活着"程度；1.0 实测几乎看不出在动）
     reactivity: 0.75,   // 【律动总闸】全部音频包络 ×它：外扩/涡流/爆亮/拖尾/星芒/冲击波同比例收敛。
                         // 1.0 = 规格原始幅度（实测整屏打拍子，被用户打回）；0.5 = 只剩呼吸感（也嫌浅）；
                         // 0.75 = 拍点看得清、又不至于晃得读不了字
@@ -394,7 +394,7 @@
         // 半径与强度由频谱插值：低频让漩涡变大变猛，半径跟着低频一起呼吸
         v.r = v.r0 * (1 + A.bass * 0.22);
         v.strength = v.base * (0.5 + A.bass * 1.70 + A.pulse * 0.60);
-        v.omega = v.dir * (0.55 + Sound.mid * 1.35) * (1 + A.bass * 0.5);
+        v.omega = v.dir * (0.85 + Sound.mid * 1.35) * (1 + A.bass * 0.5);   // 静默时也要看得见在转
         v.radial = 0.28 + A.bass * 1.90 + A.pulse * 0.90;
       }
       return this;
@@ -756,7 +756,7 @@
       p.r = rr(58, 165) * S;                     // 大块头：远景是舒展的巨大面，不是一堆碎点
       p.a = rr(0.020, 0.050) * CFG.intensity;    // 单层亮度压得很低，靠叠加出体积
       p.k = rr(0.0055, 0.0110);                  // 归位弹簧：远景偏软，回缩很慢
-      p.flow = rr(0.10, 0.26);                   // 流场牵引（基础移动速度极慢）
+      p.flow = rr(0.18, 0.46);                   // 流场牵引（基础漂移：慢到看不见就等于静态壁纸）
       p.vtx = rr(0.10, 0.26);                    // 涡流对远景只有微弱扰动
       p.push = rr(0.02, 0.06);                   // 低频外扩的响应幅度
       p.elong = rr(1.2, 2.4);                    // 顺着气流拉伸 → 不是圆滚滚的一坨
@@ -772,7 +772,7 @@
       p.r = rr(16, 46) * S;
       p.a = rr(0.030, 0.075) * CFG.intensity;
       p.k = rr(0.004, 0.009);
-      p.flow = rr(0.16, 0.38);
+      p.flow = rr(0.28, 0.66);
       p.vtx = rr(0.16, 0.40);
       p.push = rr(0.03, 0.09);
       p.elong = rr(3.0, 7.5);                    // 拉得很长 → 纤维
@@ -832,7 +832,7 @@
       p.r = rr(7, 26) * S * (0.7 + big * 0.6);
       p.a = rr(0.024, 0.062) * CFG.intensity * (0.55 + (fine * 0.5 + 0.5) * 0.75);
       p.k = rr(0.010, 0.024);
-      p.flow = rr(0.10, 0.24);
+      p.flow = rr(0.18, 0.42);
       p.vtx = rr(0.55, 1.15);                   // 近的主体层：涡流撕扯最明显
       p.push = rr(0.05, 0.14);
       p.elong = rr(1.3, 3.2);
@@ -868,7 +868,7 @@
       q.r = rr(10, 34) * S;
       q.a = rr(0.030, 0.085) * CFG.intensity;
       q.k = rr(0.008, 0.016);
-      q.flow = rr(0.06, 0.18);
+      q.flow = rr(0.11, 0.32);
       q.vtx = rr(0.35, 0.85);
       q.push = rr(0.06, 0.16);
       q.elong = rr(2.6, 5.5);
@@ -892,11 +892,11 @@
       p.r = rr(0.35, 1.25) * Math.max(0.75, S);
       p.a = rr(0.10, 0.34) * CFG.intensity;
       p.k = rr(0.004, 0.010);
-      p.flow = rr(0.02, 0.07);                  // 星辰也被气流轻微拖拽：不是孤立的悬浮点
+      p.flow = rr(0.04, 0.13);                  // 星辰也被气流轻微拖拽：不是孤立的悬浮点
       p.vtx = rr(0.04, 0.14);
       p.push = rr(0.01, 0.05);
       p.tw = Math.random() * 6.283;             // 相位
-      p.tws = rr(0.004, 0.024);                 // 各自的速度 → 微弱呼吸，不同步
+      p.tws = rr(0.014, 0.050);                 // 各自的速度 → 微弱呼吸，不同步（慢到 30 秒一轮会读成"死的"）
       p.spr = (Math.random() * SPR_STAR.length) | 0;
       seedIntro(p);
       layer.faint.push(p);
@@ -915,11 +915,11 @@
         p.r = (lead ? rr(1.4, 2.2) : rr(0.4, 1.0)) * Math.max(0.75, S);
         p.a = (lead ? rr(0.40, 0.60) : rr(0.12, 0.30)) * CFG.intensity;
         p.k = rr(0.004, 0.010);
-        p.flow = rr(0.02, 0.07);
+        p.flow = rr(0.04, 0.13);
         p.vtx = rr(0.04, 0.14);
         p.push = rr(0.01, 0.05);
         p.tw = Math.random() * 6.283;
-        p.tws = rr(0.004, 0.020);
+        p.tws = rr(0.014, 0.046);
         p.spr = (Math.random() * SPR_STAR.length) | 0;
         seedIntro(p);
         layer.faint.push(p);
@@ -933,11 +933,11 @@
       p.halo = rr(11, 26) * S;
       p.a = rr(0.34, 0.62) * CFG.intensity;
       p.k = rr(0.004, 0.010);
-      p.flow = rr(0.02, 0.06);
+      p.flow = rr(0.04, 0.11);
       p.vtx = rr(0.04, 0.12);
       p.push = rr(0.01, 0.05);
       p.tw = Math.random() * 6.283;
-      p.tws = rr(0.006, 0.020);
+      p.tws = rr(0.016, 0.044);
       p.spr = (Math.random() * SPR_STAR.length) | 0;
       p.rot = Math.random() * 3.14;             // 星芒朝向
       seedIntro(p);
@@ -960,7 +960,7 @@
       p.r = rr(0.5, 1.7) * Math.max(0.8, S);
       p.a = rr(0.05, 0.16) * CFG.intensity;
       p.k = rr(0.002, 0.006);
-      p.flow = rr(0.14, 0.40);
+      p.flow = rr(0.25, 0.70);
       p.vtx = rr(0.20, 0.55);
       p.push = rr(0.02, 0.08);
       p.cs = Math.random() * STEPS;
@@ -973,7 +973,7 @@
       p.r = rr(180, 340) * S;
       p.a = rr(0.008, 0.017) * CFG.intensity;   // 冷雾霭再淡一档：大圆盘太实会读成"炫光圆斑"
       p.k = rr(0.0015, 0.004);
-      p.flow = rr(0.10, 0.26);
+      p.flow = rr(0.18, 0.46);
       p.vtx = rr(0.10, 0.30);
       p.push = rr(0.01, 0.04);
       seedIntro(p);
@@ -1207,7 +1207,7 @@
       p = layer.fiber[i];
       introXY(p, _pt);
       // 一路独立的低频噪声：决定哪些位置稀薄消散成空洞
-      var nv = Noise.noise2(_pt.x * 0.0016 + time * 0.05, _pt.y * 0.0016 - time * 0.04);
+      var nv = Noise.noise2(_pt.x * 0.0016 + time * 0.09, _pt.y * 0.0016 - time * 0.07);
       alpha = p.a * (0.35 + 0.65 * nv) * ia;
       if (alpha <= 0) continue;
       drawSprite(SPR_DUST[(p.cs | 0) % 4], _pt.x, _pt.y, p.r * (1 + A.bass * 0.16), alpha,
@@ -1218,7 +1218,7 @@
     for (i = 0; i < layer.far.length; i++) {
       p = layer.far[i];
       introXY(p, _pt);
-      var n1 = Noise.noise2(_pt.x * 0.0013 + time * 0.045, _pt.y * 0.0013 - time * 0.035);
+      var n1 = Noise.noise2(_pt.x * 0.0013 + time * 0.08, _pt.y * 0.0013 - time * 0.06);
       var thin = clamp(n1 * 0.5 + 0.62, 0, 1.25);        // 厚薄不均：稀薄处直接淡到看不见 → 空洞缺口
       // 低频抬亮收紧到 0.24：律动靠"外扩/回旋/拖尾/冲击波"表达，亮度只轻轻跟着呼吸，
       // 抬太多整片底图会随鼓点忽明忽暗，又变成刚被打回的那种炫光
@@ -1237,7 +1237,7 @@
     for (i = 0; i < layer.dust.length; i++) {
       p = layer.dust[i];
       introXY(p, _pt);
-      var nv = Noise.noise2(_pt.x * 0.0022 + time * 0.06, _pt.y * 0.0022);
+      var nv = Noise.noise2(_pt.x * 0.0022 + time * 0.11, _pt.y * 0.0022);
       alpha = p.a * (0.45 + 0.55 * (nv * 0.5 + 0.5)) * ia * (1 + Sound.bass * 0.25);
       drawSprite(SPR_DUST[(p.cs | 0) % 4], _pt.x, _pt.y, p.r, alpha,
         p.ang + time * 0.015, p.elong * (1 + Sound.mid * 0.5 + Sound.bass * 0.3));
@@ -1247,7 +1247,7 @@
     for (i = 0; i < layer.arm.length; i++) {
       p = layer.arm[i];
       introXY(p, _pt);
-      var fine = Noise.noise2(_pt.x * 0.0062 + time * 0.10, _pt.y * 0.0062 - time * 0.08);
+      var fine = Noise.noise2(_pt.x * 0.0062 + time * 0.18, _pt.y * 0.0062 - time * 0.14);
       var glow = 0.5 + fine * 0.5;
       alpha = p.a * (0.45 + 0.75 * glow) * ia;
       if (p.core) alpha *= 1 + Math.min(0.7, Sound.mid * 0.5 + A.pulse * 1.1);   // 云核爆亮：低频瞬间增亮（封顶，避免叠成炫光）
@@ -1282,7 +1282,7 @@
       p = layer.faint[i];
       introXY(p, _pt);
       p.tw += p.tws * (1 + Sound.mid * 1.2);            // 中频让所有星辰做缓慢呼吸
-      alpha = p.a * (0.45 + 0.55 * Math.sin(p.tw)) * ia;
+      alpha = p.a * (0.38 + 0.62 * Math.sin(p.tw)) * ia;   // 明暗摆幅拉大一点：静默时"眨眼"是最容易看见的活气
       drawSprite(SPR_STAR[p.spr], _pt.x, _pt.y, p.r, alpha, 0, 1);
     }
     // 5.2 明亮恒星：多层嵌套径向柔化光晕 + 四向弥散微光（不是尖锐硬十字）
@@ -1346,7 +1346,7 @@
     for (i = 0; i < layer.mote.length; i++) {
       p = layer.mote[i];
       introXY(p, _pt);
-      var nv = Noise.noise2(p.x * 0.004 + time * 0.12, p.y * 0.004);
+      var nv = Noise.noise2(p.x * 0.004 + time * 0.22, p.y * 0.004);
       alpha = p.a * (0.4 + 0.6 * (nv * 0.5 + 0.5)) * ia * (1 + Sound.mid * 0.4);
       var ci = ((p.cs + nv * 3.4 + time * 2.0) | 0) % STEPS; if (ci < 0) ci += STEPS;
       drawSprite(PAL_ARM[ci], _pt.x, _pt.y, p.r, alpha, 0, 1);
