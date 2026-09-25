@@ -43,7 +43,7 @@
                            // 1.0 = 规格原始幅度（实测整屏打拍子，被用户打回）；0.5 = 呼吸感
       pointerStir: 0.6,    // 指针搅动幅度：移动时附近星尘被拖带 + 绕指微涡
       pointerKick: 1.0,    // 按下脉冲幅度：半径内星体被踹散，归位弹簧拉回
-      pointerRadius: 210,  // 指针影响半径（px）
+      pointerRadius: 260,  // 指针影响半径（px）
     fpsActive: 48,       // 正常每帧预算上限
     fpsBlur: 16,         // 窗口失焦：降到肉眼难察的缓慢演进
     fpsHidden: 5,        // 标签页切后台：几乎停摆
@@ -282,10 +282,13 @@
         rawM = this.band(this.arr, 10, 60);    // ≈430Hz–2.6k 主旋律与人声
         rawT = this.band(this.arr, 70, 210);   // ≈3k–9kHz    细碎高音
       } else {
-        // ② 站点歌单：直接用它已经算好的包络（缺哪个频段就按 0 处理）
+        // ② 站点歌单：直接读 player.js 已经算好的包络（缺哪个频段就按 0 处理）。
+        // ⚠️ 拍点必须用 b.level —— player 在自己 60fps 帧率下算好的离散拍包络（冲顶立即/0.4s 回落）。
+        //    曾用 b.lv（连续低频能量）自己二次检测：流行歌能量常年高企 → 包络饱和成"只呼吸不跳"，
+        //    拍还常常踩不中，用户实测"律动老是失效 / 时有时无"。lv 只作老格式回退。
         var b = window.__BEAT;
         if (b) {
-          rawB = b.lv || 0;
+          rawB = (b.level != null) ? b.level : (b.lv || 0);
           rawM = b.mid || 0;
           rawT = b.treble || 0;
         }
@@ -455,19 +458,21 @@
         this.vy = (ny - this.y) / Math.max(dt, 0.001) * 0.016;
         this.x = nx; this.y = ny;
         var idle = performance.now() - this.lastMove;
-        var want = idle < 1600 ? 1 : Math.max(0, 1 - (idle - 1600) / 1200);
+        var want = idle < 4000 ? 1 : Math.max(0, 1 - (idle - 4000) / 2000);   // 停手 4s 后才慢慢熄，交互别"一小会就没"
         this.live += (want - this.live) * Math.min(1, dt * 3);
       },
 
-      // 搅动：拖带（沿指针速度）+ 绕指微涡 + 轻微外推；距离二次衰减
+      // 搅动：拖带（沿指针速度）+ 绕指微涡 + 轻微外推。
+      // 静止悬停也有存在感：微涡不依赖指针速度——光标就是一枚停在星空里的小涡；
+      // 衰减用 ^1.5（比 ^2 铺得开些），交互范围别"一小会就没"
       force: function (x, y, out) {
         var dx = x - this.x, dy = y - this.y;
         var d2 = dx * dx + dy * dy, R = CFG.pointerRadius;
         if (this.live <= 0.02 || d2 > R * R) { out.x = 0; out.y = 0; return out; }
         var d = Math.sqrt(d2) + 0.001;
-        var f = (1 - d / R); f = f * f * this.live * CFG.pointerStir;
-        out.x = this.vx * f * 2.2 + (-dy / d) * f * 0.55 + (dx / d) * f * 0.30;
-        out.y = this.vy * f * 2.2 + ( dx / d) * f * 0.55 + (dy / d) * f * 0.30;
+        var f = Math.pow(1 - d / R, 1.5) * this.live * CFG.pointerStir;
+        out.x = this.vx * f * 2.2 + (-dy / d) * f * 0.85 + (dx / d) * f * 0.22;
+        out.y = this.vy * f * 2.2 + ( dx / d) * f * 0.85 + (dy / d) * f * 0.22;
         return out;
       },
 

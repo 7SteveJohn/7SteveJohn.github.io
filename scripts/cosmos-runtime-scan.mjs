@@ -84,6 +84,13 @@ try {
   ok('① 吸收中频（旋律）', a1.mid > 0.03, 'mid=' + a1.mid);
   ok('① 吸收高频（嚓音）', a1.treble > 0.015, 'treble=' + a1.treble);
 
+  // ①' 拍点格式回归：站点歌单走 player.js 的 b.level（离散拍包络）。
+  // 曾误用 b.lv 连续能量做二次检测——流行歌能量常年高企 → 包络饱和"只呼吸不跳"（用户实测律动失效）
+  await pg.evaluate(() => { window.__BEAT = { level: 0.9, mid: 0.4, treble: 0.3 }; });
+  await pg.waitForTimeout(700);
+  const la = await pg.evaluate(() => window.__COSMOS.info().audio);
+  ok('① 拍点走 b.level（level-only 新格式也响应）', la.bass > 0.25 && la.mid > 0.08, JSON.stringify(la));
+
   await pg.evaluate(wav => {                // 站点歌单开播（player.js 的 play 事件会兜底 startBeat）
     const el = document.getElementById('music-audio');
     el.loop = true;
