@@ -35,9 +35,11 @@
      0. 配置与通用数学工具
      ============================================================ */
   var CFG = {
-    density: 1.0,        // 粒子总量倍率（还会在 buildScene 里按屏幕面积 / 移动端 / 性能档再折算）
-    intensity: 1.0,      // 亮度倍率
-    motion: 1.0,         // 运动倍率（想更安静就往下调）
+      density: 1.0,        // 粒子总量倍率（还会在 buildScene 里按屏幕面积 / 移动端 / 性能档再折算）
+      intensity: 1.0,      // 亮度倍率
+      motion: 1.0,         // 运动倍率（想更安静就往下调）
+      reactivity: 0.5,     // 【律动总闸】全部音频包络 ×它：外扩/涡流/爆亮/拖尾/星芒/冲击波同比例收敛。
+                           // 1.0 = 规格原始幅度（实测整屏打拍子，被用户打回）；0.5 = 呼吸感
     fpsActive: 48,       // 正常每帧预算上限
     fpsBlur: 16,         // 窗口失焦：降到肉眼难察的缓慢演进
     fpsHidden: 5,        // 标签页切后台：几乎停摆
@@ -213,6 +215,7 @@
     ownActive: false,
 
     bass: 0, mid: 0, treble: 0, pulse: 0, loud: 0,
+    _b: 0, _m: 0, _t: 0, _pulse: 0,   // 内部包络（不缩放）；对外的 bass/mid/treble/pulse = 内部 × CFG.reactivity
     _prevRaw: 0, _slowRaw: 0, _lock: 0,
     _prevTre: 0, _slowTre: 0, _tLock: 0,
 
@@ -284,20 +287,21 @@
         }
       }
 
-      // 包络：攻击快、释放慢，避免抖动，也避免"音乐一停画面就塌"
-      this.bass += (rawB - this.bass) * (rawB > this.bass ? 0.30 : 0.055);
-      this.mid += (rawM - this.mid) * (rawM > this.mid ? 0.22 : 0.045);
-      this.treble += (rawT - this.treble) * (rawT > this.treble ? 0.34 : 0.07);
+      // 包络：攻击快、释放慢，避免抖动，也避免"音乐一停画面就塌"。
+      // 内部包络存 _b/_m/_t —— 对外的 bass/mid/treble 在帧尾统一乘 CFG.reactivity
+      this._b += (rawB - this._b) * (rawB > this._b ? 0.30 : 0.055);
+      this._m += (rawM - this._m) * (rawM > this._m ? 0.22 : 0.045);
+      this._t += (rawT - this._t) * (rawT > this._t ? 0.34 : 0.07);
 
       // 起音检测（Δ上升速率 + 自适应门槛）：景象里"哐"一下重鼓
       this._slowRaw += (rawB - this._slowRaw) * 0.05;
       var rise = rawB - this._prevRaw;
       this._prevRaw = rawB;
       if (rise > Math.max(0.012, this._slowRaw * 0.07) && nowMs > this._lock) {
-        this.pulse = 1;
+        this._pulse = 1;
         this._lock = nowMs + 220;                    // 不应期：防同一拍连打两次
       } else {
-        this.pulse = Math.max(0, this.pulse - d * 0.062);
+        this._pulse = Math.max(0, this._pulse - d * 0.062);
       }
 
       // 高频突起的边沿：只有这一瞬才生成流星与星屑
@@ -311,8 +315,15 @@
         this.trebleEdge = false;
       }
 
+      // 【律动总闸】CFG.reactivity：对外包络统一乘它 —— 下游的外扩 / 涡流 / 云核爆亮 /
+      // 拖尾伸缩 / 星芒放大 / 冲击波全部同比例收敛。检测与衰减始终用未缩放的内部值，
+      // 所以收闸不影响"能不能检测到拍"，只影响"画面晃多狠"
+      this.bass = this._b * CFG.reactivity;
+      this.mid = this._m * CFG.reactivity;
+      this.treble = this._t * CFG.reactivity;
+      this.pulse = this._pulse * CFG.reactivity;
       this.loud = Math.max(this.bass, this.mid * 0.7, this.treble * 0.5);
-      return this;
+        return this;
     },
 
     activeEl: function () {
@@ -1184,11 +1195,11 @@
     ctx.globalCompositeOperation = 'lighter';
     ctx.globalAlpha = 1;
     for (var i = 0; i < rings.length; i++) {
-      var r = rings[i];
-      r.r += (Math.min(W, H) * 0.010) + Sound.bass * 2.2;
-      r.life -= 0.012;
-      if (r.life <= 0) { rings.splice(i, 1); i--; continue; }
-      var a = r.life * r.life * 0.20 * CFG.intensity;
+        var r = rings[i];
+        r.r += (Math.min(W, H) * 0.007) + A.bass * 1.1;   // 扩得慢一点：是"涟漪"不是"冲屏"
+        r.life -= 0.012;
+        if (r.life <= 0) { rings.splice(i, 1); i--; continue; }
+        var a = r.life * r.life * 0.10 * CFG.intensity;   // 淡淡一圈：有它就行，不许抢戏
       ctx.strokeStyle = 'rgba(150,186,255,' + a.toFixed(4) + ')';
       ctx.lineWidth = Math.max(1, 2.4 * r.life * S);
       ctx.beginPath();
@@ -1259,8 +1270,9 @@
 
       frameNo++;
       if (frameNo % 2 === 0) Flow.update(time);   // 流场演化很慢，隔帧更新足够
-      if (A.pulse > 0.9 && A.pulse !== lastPulse) { spawnRing(A); lastPulse = A.pulse; }
-      if (A.pulse < 0.5) lastPulse = 0;
+        // 冲击波触发阈值随律动总闸缩放（pulse 对外峰值 = reactivity）
+        if (A.pulse > 0.9 * CFG.reactivity && A.pulse !== lastPulse) { spawnRing(A); lastPulse = A.pulse; }
+        if (A.pulse < 0.5 * CFG.reactivity) lastPulse = 0;
 
       updateParticles(d, A);
 
