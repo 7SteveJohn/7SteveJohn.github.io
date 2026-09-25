@@ -45,7 +45,7 @@
     trailLoud: 0.075,    // 低频强时的擦除 alpha：残影拉长，拖出流动感
     bloomEvery: 3,       // 每几帧做一次体积辉光（禁止每帧高斯模糊）
     bloomAlpha: 0.075,   // 辉光回叠强度
-    bloomBlur: 2,        // 辉光模糊半径（px）——作用在 1/4 分辨率小缓冲上，等效全屏 ~8px
+    bloomBlur: 1,        // 辉光模糊半径（px，作用在 1/4 分辨率小缓冲上，≈全屏 4px，贴近原版 3px 的紧致度）
     caAlpha: 0.030,      // 色差：把低分辨率副本左右各偏一点叠回去，模拟长焦镜头的边缘色散
     grainAlpha: 0.050,   // 胶片颗粒强度
     vignette: 0.92,      // 暗角最深处的衰减（暗角本体在 CSS 静态层，这里只供强度）
@@ -506,9 +506,11 @@
 
   // 暗角 + 冷蓝环境辉光：CSS 静态层（.cosmos-veil），零每帧开销。
   // 以前这两样逐帧画在画布上（一次全屏暗角 drawImage + 一团全屏级雾霭精灵），
-  // 改成 CSS 之后每帧省掉两次全屏级填充，低配机直接受益；渐变用百分比自适应分辨率，
-  // 所以建层一次即可，resize 也不用重建。
-  // 层序：.cosmos-veil 挂在 body 末尾、z-index:-1 —— 盖住画布(-2)与 3D 舞台(-1 但 DOM 更早)，
+  // 改成 CSS 之后每帧省掉两次全屏级填充，低配机直接受益。
+  // ⚠️ 几何必须逐像素复刻旧画布的"圆形"渐变（canvas 的 createRadialGradient 是圆不是椭圆），
+  //    且随 resize 重建——曾经换成百分比椭圆：暗角把上下边缘压得过重、辉光摊得太开，
+  //    真机 GPU 上整片天空发雾、星星全部晕开，被用户一眼识破"效果浮夸"。
+  // 层序：.cosmos-veil 挂在 body 末尾、z-index:-1 —— 盖住画布(-2)与 3D 舞台(-1 且 DOM 更早)，
   // 仍压在全部正文之下；pointer-events:none 不挡任何交互。
   function buildVeil() {
     var v = document.getElementById('cosmos-veil');
@@ -519,11 +521,15 @@
       v.setAttribute('aria-hidden', 'true');
       document.body.appendChild(v);
     }
+    // 环境辉光：复刻旧雾霭精灵的径向轮廓（中心 0.62 峰值快速衰减，到精灵半径处归零）
+    var glowR = Math.round(Math.max(W, H) * 1.44);
+    // 暗角：复刻原画布渐变——内半径 min*0.22，外半径 max*0.78，三段 0 / 0.16 / CFG.vignette
+    var inner = Math.round(Math.min(W, H) * 0.22);
+    var outer = Math.round(Math.max(W, H) * 0.78);
+    var mid = Math.round(inner + (outer - inner) * 0.62);
     v.style.background =
-      // 冷蓝环境辉光：整个深空不是纯漆黑，笼罩一层极微弱的冷色环境光
-      'radial-gradient(ellipse 120% 95% at 50% 44%, rgba(96,128,186,0.085), rgba(96,128,186,0.028) 45%, rgba(96,128,186,0) 72%), ' +
-      // 暗角：四角亮度自然微弱衰减（强度取 CFG.vignette，明令禁止纯黑压边）
-      'radial-gradient(ellipse at 50% 50%, rgba(0,2,7,0) 20%, rgba(0,2,7,0.16) 66%, rgba(0,2,7,' + CFG.vignette + ') 100%)';
+      'radial-gradient(circle ' + glowR + 'px at 50% 50%, rgba(96,128,186,0.10), rgba(96,128,186,0.035) 11%, rgba(96,128,186,0.01) 26%, rgba(96,128,186,0) 50%), ' +
+      'radial-gradient(circle ' + outer + 'px at 50% 50%, rgba(0,2,7,0) ' + inner + 'px, rgba(0,2,7,0.16) ' + mid + 'px, rgba(0,2,7,' + CFG.vignette + ') ' + outer + 'px)';
   }
 
   function resizeCanvas() {
@@ -549,6 +555,7 @@
     bloomCtx = bloom.getContext('2d');
 
     Flow.resize(W, H);
+    buildVeil();
     supportsFilter = ('filter' in ctx);
     supportsBlend = (function () {
       ctx.save();
@@ -1451,7 +1458,6 @@
     buildSprites();
     buildGrain();
     resizeCanvas();
-    buildVeil();
     Sound.init();
     UI.init();
     buildScene(true);
