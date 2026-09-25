@@ -582,7 +582,9 @@
     SPR_STAR = [
       makeSprite(226, 236, 255, 64, 1),
       makeSprite(255, 255, 255, 64, 1),
-      makeSprite(255, 232, 216, 64, 1)
+      makeSprite(255, 232, 216, 64, 1),
+      makeSprite(196, 210, 255, 64, 1),   // 蓝紫
+      makeSprite(255, 214, 170, 64, 1)    // 琥珀
     ];
     SPR_HALO = makeSprite(178, 206, 255, 128, 2);
     SPR_MIST = makeSprite(84, 116, 172, 128, 2);
@@ -684,7 +686,8 @@
     meteor: [],   // 层3 瞬时流星
     spark: [],    // 层3 流星尾端散落的星屑
     mote: [],     // 层4 亚像素尘埃微粒
-    mist: []      // 层4 冷雾霭团
+    mist: [],     // 层4 冷雾霭团
+    cluster: []   // 星团：一群抱团的星 + 一层集体微光（细节层，跟着领队星漂移）
   };
     var rings = [];               // 低频冲击波：环形扩散光晕
     // 累计触发计数（探针用）：流星/星屑这类短命天体在低帧率软渲染下诞生即燃尽，
@@ -855,10 +858,11 @@
     }
   }
 
-  /* —— 层3：星辰三类 —— */
+  /* —— 层3：星辰三类 + 星团（细节层） —— */
   function buildStars(counts) {
     layer.faint.length = 0;
     layer.bright.length = 0;
+    layer.cluster.length = 0;
     var i, p;
     // ① 暗弱背景繁星：数量最多，闪烁相位与速度完全随机，绝不同步
     for (i = 0; i < counts.faint; i++) {
@@ -871,9 +875,34 @@
       p.push = rr(0.01, 0.05);
       p.tw = Math.random() * 6.283;             // 相位
       p.tws = rr(0.004, 0.024);                 // 各自的速度 → 微弱呼吸，不同步
-      p.spr = (Math.random() * 3) | 0;
+      p.spr = (Math.random() * SPR_STAR.length) | 0;
       seedIntro(p);
       layer.faint.push(p);
+    }
+    // ①′ 星团：几颗到十几颗星抱团 + 一位较亮的领队 + 一层集体微光。
+    //    深空实拍里星很少均匀撒——"这里一撮、那里一撮"的成团感是细节的关键来源
+    for (i = 0; i < counts.cluster; i++) {
+      var cx2 = Math.random() * W, cy2 = Math.random() * H;
+      var mem = 6 + ((Math.random() * 7) | 0);
+      var CR = rr(14, 38);
+      for (var mI = 0; mI < mem; mI++) {
+        var lead = mI === 0;
+        var ox = (Math.random() + Math.random() - 1) * CR;   // 双随机叠加：向心聚拢的高斯感
+        var oy = (Math.random() + Math.random() - 1) * CR * 0.8;
+        p = newHome(clamp(cx2 + ox, 0, W), clamp(cy2 + oy, 0, H));
+        p.r = (lead ? rr(1.4, 2.2) : rr(0.4, 1.0)) * Math.max(0.75, S);
+        p.a = (lead ? rr(0.40, 0.60) : rr(0.12, 0.30)) * CFG.intensity;
+        p.k = rr(0.004, 0.010);
+        p.flow = rr(0.02, 0.07);
+        p.vtx = rr(0.04, 0.14);
+        p.push = rr(0.01, 0.05);
+        p.tw = Math.random() * 6.283;
+        p.tws = rr(0.004, 0.020);
+        p.spr = (Math.random() * SPR_STAR.length) | 0;
+        seedIntro(p);
+        layer.faint.push(p);
+        if (lead) layer.cluster.push({ star: p, r: rr(26, 52), a: rr(0.05, 0.09) });   // 微光挂在领队星上
+      }
     }
     // ② 明亮恒星：多层嵌套径向柔化光晕 + 四向弥散微光（不是硬十字）
     for (i = 0; i < counts.bright; i++) {
@@ -887,7 +916,7 @@
       p.push = rr(0.01, 0.05);
       p.tw = Math.random() * 6.283;
       p.tws = rr(0.006, 0.020);
-      p.spr = (Math.random() * 3) | 0;
+      p.spr = (Math.random() * SPR_STAR.length) | 0;
       p.rot = Math.random() * 3.14;             // 星芒朝向
       seedIntro(p);
       layer.bright.push(p);
@@ -936,12 +965,13 @@
     var q = quality * mob * CFG.density;
     return {
       far: cnt(area / 11000 * q, 60, 220),
-      fiber: cnt(area / 26000 * q, 24, 110),
+      fiber: cnt(area / 21000 * q, 24, 130),
       arm: cnt(area / 4200 * q, 150, 620),
-      dust: cnt(area / 14000 * q, 36, 170),
+      dust: cnt(area / 12000 * q, 36, 190),
       faint: cnt(area / 3400 * q, 170, 620),
       bright: cnt(area / 62000 * q, 10, 34),
-      mote: cnt(area / 7000 * q, 80, 320)
+      mote: cnt(area / 7000 * q, 80, 320),
+      cluster: cnt(area / 260000 * q, 6, 14)
     };
   }
 
@@ -1213,6 +1243,12 @@
   function drawLayer3(A, ia) {
     var i, p, alpha;
     ctx.globalCompositeOperation = 'lighter';
+    // 5.0 星团集体微光：挂在各自领队星上漂移，让"一撮星"在视觉上抱成团
+    for (i = 0; i < layer.cluster.length; i++) {
+      var cl = layer.cluster[i];
+      drawSprite(SPR_MIST, cl.star.x, cl.star.y, cl.r * (1 + A.bass * 0.15),
+        cl.a * (0.55 + 0.45 * Math.sin(cl.star.tw)) * ia, 0, 1);
+    }
     // 5.1 暗弱背景繁星：各自独立的相位与速度 → 绝不同步闪烁
     for (i = 0; i < layer.faint.length; i++) {
       p = layer.faint[i];
@@ -1289,22 +1325,25 @@
     }
   }
 
+  // 低频/点击"气浪"：一泓星云色气团从波源荡开，飘一小段就散进星流，配合粒子外推就是波前。
+  // 两个前任都被打回：几何圆描边（"圆圈和星河没关系"）→ 白色 HALO 大晕（几拍叠成白团）。
+  // 现在用旋臂调色板画小气团：星云同色、飘不远、不发白，只是呼吸时"呼出的那口气"
   function drawRings(A) {
     if (!rings.length) return;
     ctx.globalCompositeOperation = 'lighter';
-    ctx.globalAlpha = 1;
+    var maxR = Math.min(W, H) * 0.30;          // 气浪飘不远：散进星流里就没了
     for (var i = 0; i < rings.length; i++) {
-        var r = rings[i];
-        r.r += (Math.min(W, H) * 0.007) + A.bass * 1.1;   // 扩得慢一点：是"涟漪"不是"冲屏"
-        r.life -= 0.012;
-        if (r.life <= 0) { rings.splice(i, 1); i--; continue; }
-        var a = r.life * r.life * 0.10 * CFG.intensity;   // 淡淡一圈：有它就行，不许抢戏
-      ctx.strokeStyle = 'rgba(150,186,255,' + a.toFixed(4) + ')';
-      ctx.lineWidth = Math.max(1, 2.4 * r.life * S);
-      ctx.beginPath();
-      ctx.arc(r.x, r.y, r.r, 0, 6.283);
-      ctx.stroke();
+      var r = rings[i];
+      r.r += (Math.min(W, H) * 0.0045) + A.bass * 0.7;
+      r.life -= 0.013;
+      if (r.life <= 0 || r.r > maxR) { rings.splice(i, 1); i--; continue; }
+      var fade = clamp(1 - r.r / maxR, 0, 1);
+      var a = r.life * r.life * 0.12 * CFG.intensity * fade;
+      var ci = ((r.r * 0.5) | 0) % STEPS; if (ci < 0) ci += STEPS;
+      drawSprite(PAL_ARM[ci], r.x, r.y, r.r * 1.35 + 12, a, 0, 1);
     }
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
   }
 
   // 后处理：不是每帧高斯模糊，而是每 N 帧把低分辨率副本柔化后低透明度叠回原画布。
@@ -1603,6 +1642,7 @@
             far: layer.far.length, fiber: layer.fiber.length, arm: layer.arm.length,
             dust: layer.dust.length, faint: layer.faint.length, bright: layer.bright.length,
             mote: layer.mote.length, mist: layer.mist.length, ring: rings.length,
+            cluster: layer.cluster.length,
             meteor: liveCount(layer.meteor), spark: liveCount(layer.spark)
           },
             fired: { meteor: fired.meteor, spark: fired.spark, ring: fired.ring, kick: fired.kick },
