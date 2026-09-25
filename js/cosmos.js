@@ -13,7 +13,8 @@
  *   【模块二】流场采样模块       curl noise 疏网格：给云絮、尘埃、星辰提供一致的漂移基准
  *   【模块三】音频频谱解析模块   三分频段能量 + 起音包络；数据源 = 本地上传 或 站点歌单
  *   【模块四】涡流力场模块       3~6 个动态漫游漩涡：切向扭转 + 径向排斥 → 卷曲/撕扯/愈合
- *   【模块五】渲染循环模块       衰减擦除 → 四层天体 → 后处理（辉光/颗粒/暗角/色差）→ 帧率分级
+ *   【模块五】渲染循环模块       衰减擦除 → 四层天体 → 后处理（辉光/颗粒/色差）→ 帧率分级
+ *                                （暗角与冷蓝环境辉光在 CSS 静态层 .cosmos-veil，零每帧开销）
  * ============================================================
  */
 (function () {
@@ -44,9 +45,10 @@
     trailLoud: 0.075,    // 低频强时的擦除 alpha：残影拉长，拖出流动感
     bloomEvery: 3,       // 每几帧做一次体积辉光（禁止每帧高斯模糊）
     bloomAlpha: 0.075,   // 辉光回叠强度
+    bloomBlur: 2,        // 辉光模糊半径（px）——作用在 1/4 分辨率小缓冲上，等效全屏 ~8px
     caAlpha: 0.030,      // 色差：把低分辨率副本左右各偏一点叠回去，模拟长焦镜头的边缘色散
     grainAlpha: 0.050,   // 胶片颗粒强度
-    vignette: 0.92,      // 暗角最深处的衰减
+    vignette: 0.92,      // 暗角最深处的衰减（暗角本体在 CSS 静态层，这里只供强度）
     introMs: 3800        // 入场：星辰自四周汇聚成星河的时长
   };
 
@@ -401,8 +403,8 @@
      ============================================================ */
   var W = 0, H = 0, DPR = 1, S = 1;         // S：把光斑半径换算到不同屏幕的统一尺度
   var CX = 0, CY = 0, DIAG = 1000;          // 画面中心与对角线
-  var bloom = null, bloomCtx = null;        // 低分辨率副本，用于体积辉光与色差
-  var vign = null, grainPat = null;
+    var bloom = null, bloomCtx = null;        // 低分辨率副本，用于体积辉光与色差
+    var grainPat = null;
   var supportsFilter = false, supportsBlend = false;
 
   function makeSprite(r, g, b, size, prof) {
@@ -502,22 +504,26 @@
     grainPat = ctx.createPattern(c, 'repeat');
   }
 
-  // 暗角：等比缩放后重画径向渐变。黑色之外的四角亮度自然衰减，防止 additive 累积在边缘糊成一片
-  function buildVignette() {
-    var c = document.createElement('canvas');
-    c.width = Math.max(2, Math.round(W));
-    c.height = Math.max(2, Math.round(H));
-    var g = c.getContext('2d');
-    var grd = g.createRadialGradient(
-      c.width * 0.5, c.height * 0.5, Math.min(c.width, c.height) * 0.22,
-      c.width * 0.5, c.height * 0.5, Math.max(c.width, c.height) * 0.78
-    );
-    grd.addColorStop(0, 'rgba(0,0,7,0)');
-    grd.addColorStop(0.62, 'rgba(0,0,7,0.16)');
-    grd.addColorStop(1, 'rgba(0,0,7,' + CFG.vignette + ')');
-    g.fillStyle = grd;
-    g.fillRect(0, 0, c.width, c.height);
-    vign = c;
+  // 暗角 + 冷蓝环境辉光：CSS 静态层（.cosmos-veil），零每帧开销。
+  // 以前这两样逐帧画在画布上（一次全屏暗角 drawImage + 一团全屏级雾霭精灵），
+  // 改成 CSS 之后每帧省掉两次全屏级填充，低配机直接受益；渐变用百分比自适应分辨率，
+  // 所以建层一次即可，resize 也不用重建。
+  // 层序：.cosmos-veil 挂在 body 末尾、z-index:-1 —— 盖住画布(-2)与 3D 舞台(-1 但 DOM 更早)，
+  // 仍压在全部正文之下；pointer-events:none 不挡任何交互。
+  function buildVeil() {
+    var v = document.getElementById('cosmos-veil');
+    if (!v) {
+      v = document.createElement('div');
+      v.id = 'cosmos-veil';
+      v.className = 'cosmos-veil';
+      v.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(v);
+    }
+    v.style.background =
+      // 冷蓝环境辉光：整个深空不是纯漆黑，笼罩一层极微弱的冷色环境光
+      'radial-gradient(ellipse 120% 95% at 50% 44%, rgba(96,128,186,0.085), rgba(96,128,186,0.028) 45%, rgba(96,128,186,0) 72%), ' +
+      // 暗角：四角亮度自然微弱衰减（强度取 CFG.vignette，明令禁止纯黑压边）
+      'radial-gradient(ellipse at 50% 50%, rgba(0,2,7,0) 20%, rgba(0,2,7,0.16) 66%, rgba(0,2,7,' + CFG.vignette + ') 100%)';
   }
 
   function resizeCanvas() {
@@ -543,7 +549,6 @@
     bloomCtx = bloom.getContext('2d');
 
     Flow.resize(W, H);
-    buildVignette();
     supportsFilter = ('filter' in ctx);
     supportsBlend = (function () {
       ctx.save();
@@ -573,7 +578,10 @@
     mote: [],     // 层4 亚像素尘埃微粒
     mist: []      // 层4 冷雾霭团
   };
-  var rings = [];               // 低频冲击波：环形扩散光晕
+    var rings = [];               // 低频冲击波：环形扩散光晕
+    // 累计触发计数（探针用）：流星/星屑这类短命天体在低帧率软渲染下诞生即燃尽，
+    // 活体计数永远抓不到，只有累计数能证明"高频确实触发了它们"
+    var fired = { meteor: 0, spark: 0, ring: 0 };
   var quality = 1;              // 性能档（0.5~1）
   var introStart = 0, introT = 1;
   var time = 0;
@@ -583,6 +591,13 @@
     var arr = [];
     for (var i = 0; i < count; i++) arr.push({});
     return arr;
+  }
+
+  // 活体计数：对象池里 life>0 的个数（探针按类别统计用）
+  function liveCount(list) {
+    var n = 0;
+    for (var i = 0; i < list.length; i++) if (list[i].life > 0) n++;
+    return n;
   }
 
   // 给粒子写入入场起点：从画面四周之外被"拉"向中央的路途中出现
@@ -903,13 +918,13 @@
      【模块五】渲染循环模块
      帧序严格依赖这条流水线：
        ① 衰减擦除（永远不用 clearRect）
-       ② 冷蓝环境辉光
+       ② 冷蓝环境辉光 —— 在 CSS 静态层 .cosmos-veil，画布内不再画
        ③ 层1 暗纤维 → 层1 分子云
        ④ 层2 尘埃带 → 层2 旋臂云絮 + 云核
        ⑤ 层3 星辰 / 流星 / 星屑
        ⑥ 层4 尘埃及雾霭
        ⑦ 低频环形冲击波
-       ⑧ 后处理：体积辉光（每 N 帧）→ 胶片颗粒 → 暗角 → 微弱色差
+       ⑧ 后处理：体积辉光（每 N 帧）→ 微弱色差 → 胶片颗粒（暗角在 CSS 层）
      ============================================================ */
   var _pt = { x: 0, y: 0 };
 
@@ -958,6 +973,7 @@
       m.life = 1;
       m.decay = rr(0.010, 0.022);
       m.w = rr(0.7, 1.7) * Math.max(0.8, S);
+      fired.meteor++;
       return;
     }
   }
@@ -974,6 +990,7 @@
       s.r = rr(0.5, 1.6);
       s.life = 1;
       s.decay = rr(0.02, 0.06);
+      fired.spark++;
       n--;
     }
   }
@@ -986,11 +1003,13 @@
       if (m.life <= 0) continue;
       m.x += m.vx * d;
       m.y += m.vy * d;
-      m.life -= m.decay * d * 60;
-      if (m.life <= 0 || m.y > H + 60 || m.x < -160 || m.x > W + 160) {
-        if (m.life > 0) popSpark(m.x, m.y);   // 轨迹末端散落一小簇闪光星屑
-        m.life = 0;
-      }
+        m.life -= m.decay * d * 60;
+        var oob = m.y > H + 60 || m.x < -160 || m.x > W + 160;
+        if (m.life <= 0 || oob) {
+          // 轨迹末端散落一小簇闪光星屑（燃尽才撒；飞出画面的不算）
+          if (m.life <= 0 && !oob) popSpark(m.x, m.y);
+          m.life = 0;
+        }
     }
     for (i = 0; i < layer.spark.length; i++) {
       var s = layer.spark[i];
@@ -1004,6 +1023,7 @@
   function spawnRing(A) {
     if (rings.length > 4) rings.shift();
     rings.push({ x: CX, y: CY, r: Math.min(W, H) * 0.06, life: 1 });
+    fired.ring++;
   }
 
   function drawLayer1(A, ia) {
@@ -1170,21 +1190,25 @@
     }
   }
 
-  // 后处理：不是每帧高斯模糊，而是每 N 帧把低分辨率副本柔化后低透明度叠回原画布
+  // 后处理：不是每帧高斯模糊，而是每 N 帧把低分辨率副本柔化后低透明度叠回原画布。
+  // 性能关键：blur 只做在 1/4 分辨率的小缓冲上（开销约为全屏模糊的 1/16），
+  // 放大叠回时自带的双线性插值正好充当第二级柔化——辉光反而更弥散。
+  // 画布侧顺序：体积辉光 → 微弱镜头色差 → 胶片颗粒（色差是镜头光学、颗粒是传感器噪声，
+  // 按物理先后叠放）；暗角与冷蓝环境辉光已上移 CSS 静态层 .cosmos-veil，不在这里画。
   function postProcess(A, frameId) {
     if (frameId % CFG.bloomEvery === 0 && bloomCtx) {
       bloomCtx.setTransform(1, 0, 0, 1, 0, 0);
-      bloomCtx.clearRect(0, 0, bloom.width, bloom.height);      // 只有离屏缓冲可以清空
+      bloomCtx.clearRect(0, 0, bloom.width, bloom.height);      // 只有离屏缓冲允许 clearRect，主画布永远衰减擦除
+      if (supportsFilter) bloomCtx.filter = 'blur(' + CFG.bloomBlur + 'px)';
       bloomCtx.drawImage(canvas, 0, 0, bloom.width, bloom.height);
+      if (supportsFilter) bloomCtx.filter = 'none';
       ctx.globalCompositeOperation = 'lighter';
-      if (supportsFilter) ctx.filter = 'blur(3px)';
-      ctx.globalAlpha = CFG.bloomAlpha * (1 + Sound.bass * 0.55);
+      ctx.globalAlpha = CFG.bloomAlpha * (1 + A.bass * 0.55);
       ctx.drawImage(bloom, 0, 0, W, H);
       // 微弱镜头色差：同一份柔光左右各偏一点点，只在高光边缘留下一丝冷/暖分离
-      ctx.globalAlpha = CFG.caAlpha * (1 + Sound.bass * 0.4);
+      ctx.globalAlpha = CFG.caAlpha * (1 + A.bass * 0.4);
       ctx.drawImage(bloom, -1.2, 0, W, H);
       ctx.drawImage(bloom, 1.2, 0, W, H);
-      if (supportsFilter) ctx.filter = 'none';
     }
 
     // 静态星际胶片颗粒：一层极低强度的噪声，去掉 CG 的塑料顺滑感
@@ -1193,13 +1217,6 @@
       ctx.globalAlpha = supportsBlend ? CFG.grainAlpha : CFG.grainAlpha * 0.35;
       ctx.fillStyle = grainPat;
       ctx.fillRect(0, 0, W, H);
-    }
-
-    // 暗角：四角亮度自然微弱下降
-    if (vign) {
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.globalAlpha = 1;
-      ctx.drawImage(vign, 0, 0, W, H);
     }
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';
@@ -1242,12 +1259,11 @@
       var trail = lerp(CFG.trailQuiet, CFG.trailLoud, clamp(A.bass * 1.1 + A.pulse * 0.5, 0, 1));
       ctx.globalCompositeOperation = 'source-over';
       ctx.globalAlpha = 1;
-      ctx.fillStyle = 'rgba(0,0,7,' + trail.toFixed(3) + ')';
+      ctx.fillStyle = 'rgba(0,2,7,' + trail.toFixed(3) + ')';
       ctx.fillRect(0, 0, W, H);
 
-      // ② 极微弱冷蓝环境辉光：整个深空不是纯漆黑
+      // ② 冷蓝环境辉光 + 暗角：已上移到 CSS 静态层 .cosmos-veil（零每帧开销），画布内不再画
       ctx.globalCompositeOperation = 'lighter';
-      drawSprite(SPR_MIST, CX, CY, Math.max(W, H) * 0.72, 0.045 * CFG.intensity * ia, 0, 1);
 
       drawLayer1(A, ia);      // ③ 层1
       drawLayer2(A, ia);      // ④ 层2
@@ -1321,6 +1337,25 @@
     if (document.hidden !== HIDDEN) startLoop();
   }
 
+  // 尊重"减少动效"：不做长跑动画，但要先把入场那几秒静默走完——让四周汇聚的
+  // 星尘真正凝聚成星河，之后再彻底停笔。停笔留下的是一张"成型后"的静态星图，
+  // 而不是云团还在半路上的半成品（只走到六成就停是错的）。
+  // 停笔之后任何会改变画面的操作（resize / 面板重置）都必须重走一遍本函数。
+  var settleToken = 0;
+  function runStillSettle() {
+    var tok = ++settleToken;
+    stopped = false;
+    lastDraw = 0;
+    var settleAt = performance.now() + CFG.introMs + 400;
+    var still = function () {
+      if (tok !== settleToken) return;    // 有更新的一轮结算接手，旧链路退场
+      tick(performance.now());
+      if (performance.now() < settleAt) requestAnimationFrame(still);
+      else stopLoop();
+    };
+    requestAnimationFrame(still);
+  }
+
   /* ============================================================
      5. 右下角小型悬浮控制面板（本地音乐 / 音量 / 重置星河）
      ============================================================ */
@@ -1365,6 +1400,7 @@
 
       this.bird.addEventListener('click', function () {
         rebuild(true, false);
+        if (reduceMotion) runStillSettle();   // 停笔状态下重置：静默重走一遍入场再停笔
         self.say('星河已重置 · 正在重新聚拢');
       });
 
@@ -1413,24 +1449,14 @@
     buildSprites();
     buildGrain();
     resizeCanvas();
+    buildVeil();
     Sound.init();
     UI.init();
     buildScene(true);
     Flow.update(0);
 
     if (reduceMotion) {
-      // 尊重"减少动效"：不做长跑动画，但要先把入场那 3.8 秒静默走完，
-      // 让四周汇聚的星尘真正凝聚成星云，之后再彻底停笔（stopped 一置，tick 不再续帧）。
-      // 这样留下的是一张"成型后"的静态深空星图，而不是云团还在半路上的半成品。
-      stopped = false;
-      lastDraw = 0;
-      var settleAt = performance.now() + CFG.introMs + 400;
-      var still = function () {
-        tick(performance.now());
-        if (performance.now() < settleAt) requestAnimationFrame(still);
-        else stopLoop();
-      };
-      requestAnimationFrame(still);
+      runStillSettle();
     } else {
       startLoop();
     }
@@ -1455,8 +1481,10 @@
           counts: {
             far: layer.far.length, fiber: layer.fiber.length, arm: layer.arm.length,
             dust: layer.dust.length, faint: layer.faint.length, bright: layer.bright.length,
-            mote: layer.mote.length, mist: layer.mist.length, ring: rings.length
+            mote: layer.mote.length, mist: layer.mist.length, ring: rings.length,
+            meteor: liveCount(layer.meteor), spark: liveCount(layer.spark)
           },
+          fired: { meteor: fired.meteor, spark: fired.spark, ring: fired.ring },
           vortex: Vortex.list.length,
           audio: { bass: +Sound.bass.toFixed(3), mid: +Sound.mid.toFixed(3), treble: +Sound.treble.toFixed(3), pulse: +Sound.pulse.toFixed(3) },
           playing: Sound.playing(), spin: spin, dirs: Vortex.list.map(function (v) { return Math.round(v.r); })

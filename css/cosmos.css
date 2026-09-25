@@ -13,6 +13,16 @@
   pointer-events: none;
 }
 
+/* 暗角 + 冷蓝环境辉光：CSS 静态层（js/cosmos.js 建层，渐变强度取 CFG.vignette）。
+   零每帧开销；挂在 body 末尾、z-index:-1 → 盖住画布(-2)与 3D 舞台(-1 但 DOM 更早)，
+   仍压在全部正文之下；pointer-events:none 不挡任何交互。 */
+.cosmos-veil {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
 .cosmos-dock {
   position: fixed;
   right: 1.1rem;
@@ -190,7 +200,8 @@
   .cosmos-panel { width: min(190px, calc(100vw - 1.6rem)); }
 }
 
-/* 尊重"减少动效"：面板本身也别再做 hover 位移一类的动画 */
+/* 尊重"减少动效"：面板本身也别再做 hover 位移一类的动画，过渡一并关掉 */
 @media (prefers-reduced-motion: reduce) {
   .cosmos-btn:active { transform: none; }
+  #cosmos-fold, .cosmos-file, .cosmos-btn, .cosmos-chip { transition: none; }
 }
