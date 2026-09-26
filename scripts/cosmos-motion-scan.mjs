@@ -86,6 +86,13 @@ ok('入场动画进行中', i0.intro > 0 && i0.intro < 1, i0.intro.toFixed(3));
 await pg.waitForTimeout(4400);
 const i1 = await pg.evaluate(() => window.__COSMOS.info());
 ok('intro 收敛到 1', i1.intro === 1, 'intro=' + i1.intro);
+
+// —— 1′. 宏伟感工单 §9 新增断言：星系出画 + 主轴密度梯度 ——
+const gal = i1.galaxy, mnSide = Math.min(i1.w, i1.h);
+ok('星系盘溢出画面（GR ≥ 1.2×屏短边）', gal.gr >= mnSide * 1.2,
+  'GR=' + gal.gr + ' min=' + mnSide + ' tilt=' + gal.tilt + '° core=(' + gal.gcx + ',' + gal.gcy + ')');
+ok('主轴密度梯度成立（带内 faint ≥ 带外同宽采样条 2 倍）', gal.inBand >= gal.outBand * 2,
+  'inBand=' + gal.inBand + ' outBand=' + gal.outBand);
 const f1 = await pg.evaluate(() => window.__COSMOS.info().frame);
 await pg.waitForTimeout(600);
 const f2 = await pg.evaluate(() => window.__COSMOS.info().frame);

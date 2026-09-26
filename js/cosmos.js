@@ -49,6 +49,9 @@
     pointerGlow: 0.5,   // 光标处极淡的冷雾：给"指针泡在星河里"一点实体感（0 = 关掉）
     pointerLit: 0.8,    // 光标附近的星辰被"照亮"的幅度（实时反馈，0 = 关掉）
     scrollPar: 1.0,     // 滚动视差总闸：页面上下滚时各层按深度轻微反向漂移（0 = 关掉）
+    galaxyScale: 1.0,   // 星系尺度总闸：GR 在"出画"基线上再乘它（宏伟感工单步骤一）
+    axisTilt: 0,        // 银河主轴角（度）：0 = 每次重置随机（横屏 25~65°，竖屏 60~80°，超宽 15~30°）
+    axisOff: 0,         // 银心偏置幅度（屏宽比）：0 = 随机 0.15~0.35（禁止居中）
     pointerFloor: 0.30, // 停手渐熄后保留的常驻微搅：光标停在星河里也一直在轻轻搅动（鼠标移出窗口才归零）
     fpsActive: 48,       // 正常每帧预算上限
     fpsBlur: 16,         // 窗口失焦：降到肉眼难察的缓慢演进
@@ -623,10 +626,13 @@
   }
 
   var PAL_FAR = null;   // 远景分子云：低饱和暗紫罗兰 / 灰靛蓝 / 灰紫青，零星一抹极淡酒红
-  var PAL_ARM = null;   // 中景旋臂：蓝 → 紫 → 洋红
+  var PAL_ARM = null;   // 中景旋臂：方向性调色板——带外冷靛 → 带内灰靛 → 灰紫白过渡 → 银心白里透金
   var SPR_DUST = null;  // 暗色尘埃带：深灰紫
   var SPR_STAR = null;  // 星点（三种色温）
   var SPR_HALO = null;  // 柔和弥散光晕
+  var SPR_HALO_WARM = null; // 银心暖核光晕：暖白金，只给 GR×0.35 内的云核用
+  var SPR_WINE = null;  // 酒红点缀：带内云絮边缘的零星一抹（alpha ≤0.03）
+  var SPR_LANE = null;  // 暗尘埃剪影条：#0A0812，source-over 压暗亮带
   var SPR_MIST = null;  // 冷雾霭
   var STEPS = 16;
 
@@ -637,11 +643,14 @@
       [104, 116, 156],   // 灰紫青
       [126, 88, 118]     // 极淡的酒红倾向
     ], STEPS, 96, 0);
+    // 旋臂方向性调色板（宏伟感工单步骤三）：索引 0 = 带外冷区，索引 15 = 银心暖核。
+    // 粒子的基准色由"离银心多远 / 在不在带内"决定（buildArms），不再是全臂随机循环；
+    // 暖核必须是"白里透金"——禁止橙黄/橘红大火球
     PAL_ARM = buildPalette([
-      [74, 96, 168],     // 靛蓝
-      [110, 88, 168],    // 蓝紫
-      [148, 92, 152],    // 紫洋红
-      [96, 110, 176]     // 收回蓝，闭合出循环渐变
+      [110, 122, 180],   // #6E7AB4 带外冷区：靛蓝（配合带外 ×0.7 压暗）
+      [150, 150, 205],   // #9696CD 带内主色：灰靛
+      [190, 178, 210],   // #BEB2D2 暖核过渡：灰紫白（GR×0.35~0.7，lerp 过去不许有色块边界）
+      [232, 214, 178]    // #E8D6B2 银心暖核：暖白金（仅 GR×0.35 内）
     ], STEPS, 96, 0);
     SPR_DUST = buildPalette([[24, 22, 40], [34, 28, 52], [22, 20, 36]], 4, 96, 0);
     SPR_STAR = [
@@ -652,6 +661,9 @@
       makeSprite(255, 214, 170, 64, 1)    // 琥珀
     ];
     SPR_HALO = makeSprite(178, 206, 255, 128, 2);
+    SPR_HALO_WARM = makeSprite(238, 222, 188, 128, 2);  // 暖白金光晕：白里透金，不是橘黄
+    SPR_WINE = makeSprite(140, 56, 72, 96, 0);          // #8C3848 酒红点缀
+    SPR_LANE = makeSprite(10, 8, 18, 128, 0);           // #0A0812 剪影条
     SPR_MIST = makeSprite(84, 116, 172, 128, 2);
   }
 
@@ -777,13 +789,16 @@
     return n;
   }
 
-  // 给粒子写入入场起点：从画面四周之外被"拉"向中央的路途中出现
+  // 给粒子写入入场起点（宏伟感工单 §5）：汇聚目标从"屏中星系心"改为"屏外银心"——
+  // 起点沿主轴推到两端的画外，越靠轴心的粒子越晚出发 → 絮团沿主轴从两端向中间点亮，
+  // 观感是"银河带被点亮"，不是"圆盘转出来"
   function seedIntro(p) {
-    var ang = Math.random() * 6.283;
-    var dist = DIAG * rr(0.62, 1.05);
-    p.sx = CX + Math.cos(ang) * dist;
-    p.sy = CY + Math.sin(ang) * dist;
-    p.dy = Math.random() * 0.55;                 // 各自错开出发，避免"齐步走"
+    var rel = (p.hx - GCX) * AXX + (p.hy - GCY) * AXY;   // 沿轴投影（带符号）
+    var side = rel >= 0 ? 1 : -1;
+    var push = DIAG * rr(0.45, 0.75);
+    p.sx = p.hx + AXX * side * push + (-AXY) * rr(-0.15, 0.15) * DIAG;
+    p.sy = p.hy + AXY * side * push + ( AXX) * rr(-0.15, 0.15) * DIAG;
+    p.dy = Math.random() * 0.2 + clamp(1 - Math.abs(rel) / (DIAG * 0.55), 0, 1) * 0.35;
   }
 
   function newHome(x, y) {
@@ -803,17 +818,20 @@
         fx = Math.random() * W; fy = Math.random() * H;
         gate = Noise.fbm2(fx * 0.0011 + 7.7, fy * 0.0011 - 3.1, 3);
         tries++;
-      } while (gate < 0.14 && tries < 30);       // 门槛越高云越抱团
+        // 大尺度噪声定轮廓 + 主轴密度场（远景弱化版 floor 0.35：带外留一点稀薄云气呼吸）
+      } while ((gate < 0.14 || Math.random() > axisP(fx, fy, 0.25)) && tries < 30);
       p = newHome(fx, fy);
-      p.r = rr(80, 210) * S;                     // 大块头：更大更淡才能融成气体体积（小块头会读成一粒粒暗色土豆）
+      p.r = rr(70, 170) * S;                     // 大块头：大且淡才能融成气体体积；主轴重排后收到一档，
+                                                 // 带外纯黑背景上 200px 实心圆盘会读成突兀的"飞碟云"
       p.a = rr(0.014, 0.036) * CFG.intensity;    // 单层亮度压得很低，靠叠加出体积
       p.k = rr(0.0055, 0.0110);                  // 归位弹簧：远景偏软，回缩很慢
       p.flow = rr(0.13, 0.32);                   // 流场牵引（基础漂移：慢到看不见就等于静态壁纸）
       p.vtx = rr(0.10, 0.26);                    // 涡流对远景只有微弱扰动
       p.push = rr(0.02, 0.06);                   // 低频外扩的响应幅度
-      p.elong = rr(1.2, 2.4);                    // 顺着气流拉伸 → 不是圆滚滚的一坨
-      Flow.sample(fx, fy, tmpA);                 // 朝向顺气流：整片云的椭圆一个方向，才有"气流"的结构感
-      p.ang = Math.atan2(tmpA.y, tmpA.x) + rr(-0.35, 0.35);
+      // 宏伟感工单：远景云气顺主轴拉成长条雾——主轴重排后圆盘抱团会读成"花椰菜"，
+      // 拉长并同向后融成"沿银河带的弥散雾"，方向性一致才有气流结构感
+      p.elong = rr(2.2, 4.0);
+      p.ang = Math.atan2(AXY, AXX) + rr(-0.30, 0.30);
       p.cs = Math.random() * STEPS;              // 调色板起点，逐帧偏移做色彩扰动
       p.ph = Math.random() * 100;
       seedIntro(p);
@@ -826,7 +844,7 @@
         gx2 = Math.random() * W; gy2 = Math.random() * H;
         gate2 = Noise.fbm2(gx2 * 0.0011 + 7.7, gy2 * 0.0011 - 3.1, 3);
         tries2++;
-      } while (gate2 < 0.16 && tries2 < 30);     // 比云体门槛略高：纤维藏在云最厚的地方
+      } while ((gate2 < 0.16 || Math.random() > axisP(gx2, gy2, 0.35)) && tries2 < 30);
       p = newHome(gx2, gy2);
       p.r = rr(16, 46) * S;
       p.a = rr(0.030, 0.075) * CFG.intensity;
@@ -850,9 +868,97 @@
   var K_SPIRAL = 0.30;
   var R0_BASE = 32;
   var FLATTEN = 0.62;           // 星盘压扁：像斜看的盘面
-  var ROLL = -0.42;             // 整体滚转角
+  var ROLL = -0.42;             // 盘面滚转角（宏伟感工单起：跟随主轴角，旋臂带与银河带同向）
   var GCX = 0, GCY = 0, GR = 1; // 星系中心与半径
   var spin = 0;                 // 星盘自转角
+
+  /* —— 宏伟感工单：主轴构图几何 ——
+     从"看一枚完整星系"改成"身在其中仰望银河"：星系盘溢出画面（GR ≥ 1.4×屏短边），
+     银心沿主轴偏向一侧（禁止居中），主轴随机对角（禁止水平/垂直、禁止恰穿屏心）。
+     galSeed 只在「重置星河」时重 roll；resize 按分数重算像素，构图不变。 */
+  var AXX = 1, AXY = 0;         // 银河主轴方向（单位向量）
+  var AXCX = 0, AXCY = 0;       // 主轴基准点（轴线上一点，与屏心错开）
+  var bandHW = 200;             // 银河带半宽（0.18~0.28 × 屏短边 → 带全宽 ≈0.4~0.55 屏高）
+  var galSeed = null;           // 构图随机量（分数形式，与分辨率无关）
+  var lanes = [];               // 暗尘埃剪影条（步骤四，像素形式）
+
+  function smooth01(t) { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); }
+
+  // 到主轴的垂距
+  function axisDist(x, y) {
+    return Math.abs((x - AXCX) * (-AXY) + (y - AXCY) * AXX);
+  }
+
+  // 主轴密度场（工单步骤二）：p = lerp(3.0, 0.15, smoothstep(dNorm)) 按峰值 3 归一到 ≤1
+  // —— 粒子总量不变，只做空间重分配：带内全收、带外按概率拒绝后重采样。
+  // 归一与带宽挂钩（1.8×bandHW）：剖面是陡不是缓坡，亮带才收束成"河"而不是弥散光雾
+  function axisP(x, y, floor) {
+    var dN = axisDist(x, y) / (bandHW * 1.8);
+    return lerp(1.0, floor || 0.15, smooth01(dN));
+  }
+
+  function setupGalaxy(fresh) {
+    var portrait = H > W;
+    var ultra = !portrait && W / H > 2;
+    if (fresh || !galSeed) {
+      galSeed = {
+        tilt: CFG.axisTilt || (portrait ? rr(60, 80) : (ultra ? rr(15, 30) : rr(25, 65))),
+        sign: Math.random() < 0.5 ? -1 : 1,
+        // GR 基准：横屏/超宽用屏短边（min），竖屏用屏长边（max）——min 在竖屏下太小，会退回小圆盘
+        grF: portrait ? rr(0.9, 1.3) : (ultra ? rr(1.6, 2.2) : rr(1.4, 1.9)),
+        offF: CFG.axisOff || rr(0.15, 0.35),   // 银心偏置：0.15~0.35 屏宽
+        offSign: Math.random() < 0.5 ? -1 : 1,
+        perpF: rr(-0.12, 0.12),                // 主轴相对屏心的法向错开（恰穿正心 = 构图呆板）
+        bandF: rr(0.18, 0.28),
+        rollJ: rr(-0.08, 0.08)
+      };
+      // 剪影条：2~3 条贯通银河带的暗缝；第 1 条贴近主轴 → 必然横切银心亮核半径
+      var nl = 2 + (Math.random() < 0.5 ? 1 : 0);
+      galSeed.lanes = [];
+      for (var li = 0; li < nl; li++) {
+        var prevOff = li > 0 ? galSeed.lanes[li - 1].offF : 0;
+        galSeed.lanes.push({
+          offF: li === 0 ? rr(-0.03, 0.05)
+               : rr(0.06, 0.20) * (li === 1 ? (Math.random() < 0.5 ? -1 : 1) : (prevOff > 0 ? -1 : 1)),
+          wF: rr(0.03, 0.08),          // 每条宽 0.03~0.08 屏高
+          a: rr(0.10, 0.20),
+          jitter: Math.random() * 100
+        });
+      }
+    }
+    var ang = galSeed.tilt * galSeed.sign * Math.PI / 180;
+    AXX = Math.cos(ang); AXY = Math.sin(ang);
+    var mn = Math.min(W, H), mx = Math.max(W, H);
+    GR = (portrait ? mx : mn) * galSeed.grF * CFG.galaxyScale;
+    bandHW = galSeed.bandF * mn;
+    AXCX = CX + (-AXY) * galSeed.perpF * mn;
+    AXCY = CY + ( AXX) * galSeed.perpF * mn;
+    // 银心：沿轴向一侧偏 0.15~0.35 屏宽（禁止居中，允许落在边缘内侧或半出画）；
+    // 竖屏强制偏上方（银河带从上延到下，核心在上）
+    var offSign = galSeed.offSign;
+    if (portrait && AXY !== 0) offSign = AXY > 0 ? -1 : 1;
+    GCX = AXCX + AXX * offSign * galSeed.offF * W;
+    GCY = AXCY + AXY * offSign * galSeed.offF * W;
+    ROLL = Math.atan2(AXY, AXX) + galSeed.rollJ;   // 盘面滚转对齐主轴
+    // 剪影条像素化：沿轴每隔约条宽 0.9 盖一枚拉长软椭圆，法向抖动走出不规则暗缝
+    lanes = [];
+    for (var li2 = 0; li2 < galSeed.lanes.length; li2++) {
+      var L = galSeed.lanes[li2];
+      var lane = { w: L.wF * H, a: L.a, ang: Math.atan2(AXY, AXX), stamps: [] };
+      var step = lane.w * 0.9;
+      for (var t = -DIAG * 0.62; t <= DIAG * 0.62; t += step) {
+        var jit = Noise.noise2(t * 0.004 + L.jitter, L.jitter) * 0.5 * lane.w * 2.2;
+        lane.stamps.push({
+          x: AXCX + AXX * t + (-AXY) * (L.offF * H + jit),
+          y: AXCY + AXY * t + ( AXX) * (L.offF * H + jit),
+          r: lane.w * rr(0.55, 0.8),
+          el: rr(2.6, 4.2),
+          am: rr(0.75, 1.0)
+        });
+      }
+      lanes.push(lane);
+    }
+  }
 
   function armPoint(armIdx, th, rad) {
     // 对数螺旋：r = R0 * e^(kθ)。三条旋臂各差一个相位
@@ -867,12 +973,13 @@
   function buildArms(counts) {
     layer.arm.length = 0;
     layer.dust.length = 0;
-    GCX = CX + rr(-0.06, 0.06) * W;
-    GCY = CY + rr(-0.06, 0.06) * H;
-    GR = Math.min(W, H) * rr(0.72, 0.95);
+    // GCX/GCY/GR/主轴/带宽已在 setupGalaxy 定好（星系盘溢出画面，银心偏一侧）
 
-    var i = 0, tries = 0, cores = 0, maxCores = cnt(GR / (70 * S), 8, 20);
-    while (i < counts.arm && tries < counts.arm * 8) {
+    // 云核上限 20 → 28；且只落在"屏内可见主轴段"±半宽内，画外不浪费配额。
+    // 计数按 min(GR, 1150×S) 封顶：GR 出画后（尤其超宽屏）核数随 GR 线性涨，
+    // 二十几个核带光晕堆在可见段会焊成一团白球
+    var i = 0, tries = 0, cores = 0, maxCores = cnt(Math.min(GR, 1150 * S) / (70 * S), 8, 28);
+    while (i < counts.arm && tries < counts.arm * 14) {
       tries++;
       var armIdx = (Math.random() * ARMS) | 0;
       var th = Math.random() * SPAN;
@@ -882,28 +989,39 @@
       var dimp = armIdx * 37.1;
       var big = Noise.fbm2(Math.cos(th) * rad * 0.0055 + dimp, Math.sin(th) * rad * 0.0055, 3);
       if (big < -0.04) continue;
+      var pt = armPoint(armIdx, th, rad);
+      // 主轴密度场：带外大概率拒绝重采样 —— 粒子总量不变，只做空间重分配（帧预算红线）
+      var inBand = axisDist(pt.x, pt.y) < bandHW;
+      if (Math.random() > axisP(pt.x, pt.y)) continue;
       // 高频噪声决定絮团内部的明暗 → 细碎丝状电离气流
       var fine = Noise.noise2(th * 9.1 + dimp, rad * 0.021);
-      var pt = armPoint(armIdx, th, rad);
       var p = newHome(pt.x, pt.y);
       p.th = th;
       p.rad = rad;
       p.armIdx = armIdx;
-      p.r = rr(7, 26) * S * (0.7 + big * 0.6);
+      p.r = rr(10, 34) * S * (0.7 + big * 0.6);   // 絮团大一档：重叠出绵密气流感，不再是一粒粒孤立团块
       p.a = rr(0.024, 0.062) * CFG.intensity * (0.55 + (fine * 0.5 + 0.5) * 0.75);
+      if (!inBand) p.a *= 0.7;                   // 带外旋臂絮团整体再压暗一档：靠压暗带外造对比，不靠提亮带内
+      p.band = inBand;
       p.k = rr(0.016, 0.034);                    // 弹簧收紧：被涡流撕开后能较快回到旋臂上，旋臂才立得住
       p.flow = rr(0.09, 0.20);                   // 旋臂絮团：主要靠星盘自转与涡流走位，流场只给一点点游移（流场一强就冲散成一坨）
       p.vtx = rr(0.55, 1.15);                   // 近的主体层：涡流撕扯最明显
       p.push = rr(0.05, 0.14);
-      p.elong = rr(1.3, 3.2);
-      p.ang = Math.random() * 6.283;
-      p.cs = Math.random() * STEPS;
+      p.elong = rr(1.8, 3.6);
+      // 絮团长轴顺主轴：絮段沿银河带拖长，视觉上连成一条河，而不是一粒粒孤立团块
+      p.ang = Math.atan2(AXY, AXX) + rr(-0.35, 0.35);
+      // 方向性色彩（步骤三）：基准色由离银心多远决定——银心暖白金 → 盘缘冷靛；带外直接压到冷端。
+      // 映射按 GR×0.7 收敛：GR 出画后 0.35×GR 物理半径仍有数百 px，按 1.1×GR 映射会让半个屏
+      // 全是暖浅色絮团（糊成白团）；收紧后暖核 ~150px、过渡 ~350px，亮度/冷暖重心仍在银心侧
+      p.cs = inBand ? (1 - clamp(rad / (GR * 0.7), 0, 1)) * (STEPS - 1) : rr(0, 2.5);
+      // 酒红点缀：零星、只在带内云絮边缘（big 刚过轮廓门槛的稀薄处），画时 alpha 封顶 0.03
+      p.wine = inBand && big < 0.12 && Math.random() < 0.6;
       p.ph = Math.random() * 100;
       p.core = false;
-      if (big > 0.20 && cores < maxCores) {      // 致密发光结节：局部高亮云核
+      if (big > 0.20 && cores < maxCores && axisDist(pt.x, pt.y) < bandHW * 1.5) {   // 致密发光结节：局部高亮云核
         p.core = true;
-        p.r *= rr(1.5, 2.3);
-        p.a *= rr(1.4, 2.1);
+        p.r *= rr(1.3, 1.8);                   // 加成收一档：核叠核曾在屏上糊成白团
+        p.a *= rr(1.2, 1.6);
         cores++;
       }
       seedIntro(p);
@@ -912,7 +1030,8 @@
     }
 
     // 暗色尘埃带：贴着旋臂前后缘，第三方噪声控制疏密，负责"切割"星云、制造明暗对比
-    for (i = 0; i < counts.dust; i++) {
+    var dtries = 0;
+    for (i = 0; i < counts.dust && dtries < counts.dust * 10; i++, dtries++) {
       var armIdx2 = (Math.random() * ARMS) | 0;
       var th2 = Math.random() * SPAN;
       var rad2 = R0_BASE * Math.exp(K_SPIRAL * th2) * rr(0.7, 1.4) * (GR / 300);
@@ -921,6 +1040,7 @@
       if (d2v < -0.10) continue;
       var off = rr(-1, 1) * (14 + d2v * 40) * S;
       var pt2 = armPoint(armIdx2, th2, rad2 + off);
+      if (Math.random() > axisP(pt2.x, pt2.y)) { i--; continue; }   // 主轴密度场：拒绝则这枚重抽
       var q = newHome(pt2.x, pt2.y);
       q.th = th2;
       q.rad = rad2 + off;
@@ -946,9 +1066,13 @@
     layer.bright.length = 0;
     layer.cluster.length = 0;
     var i, p;
-    // ① 暗弱背景繁星：数量最多，闪烁相位与速度完全随机，绝不同步
+    // ① 暗弱背景繁星：数量最多，闪烁相位与速度完全随机，绝不同步。
+    //    主轴密度场：带内密、带外稀（密度梯度成立），总量不变只重分配
     for (i = 0; i < counts.faint; i++) {
-      p = newHome(Math.random() * W, Math.random() * H);
+      var fx3 = 0, fy3 = 0, tr3 = 0;
+      do { fx3 = Math.random() * W; fy3 = Math.random() * H; tr3++; }
+      while (Math.random() > axisP(fx3, fy3, 0.06) && tr3 < 40);   // 带外狠压：星辰往带内收，河才密
+      p = newHome(fx3, fy3);
       p.r = rr(0.35, 1.25) * Math.max(0.75, S);
       p.a = rr(0.10, 0.34) * CFG.intensity;
       p.k = rr(0.004, 0.010);
@@ -964,7 +1088,9 @@
     // ①′ 星团：几颗到十几颗星抱团 + 一位较亮的领队 + 一层集体微光。
     //    深空实拍里星很少均匀撒——"这里一撮、那里一撮"的成团感是细节的关键来源
     for (i = 0; i < counts.cluster; i++) {
-      var cx2 = Math.random() * W, cy2 = Math.random() * H;
+      var cx2 = 0, cy2 = 0, trc = 0;
+      do { cx2 = Math.random() * W; cy2 = Math.random() * H; trc++; }
+      while (Math.random() > axisP(cx2, cy2, 0.08) && trc < 40);   // 星团也跟着银河带抱团（带内一撮一撮的密星细节）
       var mem = 6 + ((Math.random() * 7) | 0);
       var CR = rr(14, 38);
       for (var mI = 0; mI < mem; mI++) {
@@ -1061,6 +1187,7 @@
     if (freshSeed) Noise.seed((Math.random() * 0xffffffff) >>> 0);
     var counts = countPlan();
     if (!Flow.vec) { Flow.resize(W, H); Flow.update(0); }   // 先备好流场，build 期取样朝向用
+    setupGalaxy(!!freshSeed);                               // 先定主轴/银心/GR，各层落点都靠它
     buildFar(counts);
     buildArms(counts);
     buildStars(counts);
@@ -1297,8 +1424,20 @@
 
   function drawLayer2(A, ia) {
     var i, p, alpha;
-    // 4.1 暗色星际尘埃带：必须在云絮之前用 source-over 画，才能真的"切"开星云
+    // 4.0 暗尘埃剪影条（步骤四）：2~3 条贯通银河带的暗缝，至少一条横切银心亮核——
+    //     亮带被"撕开"的细节。必须 source-over 画在云絮之前，顺序不可动
     ctx.globalCompositeOperation = 'source-over';
+    for (var li = 0; li < lanes.length; li++) {
+      var ln = lanes[li];
+      for (var si = 0; si < ln.stamps.length; si++) {
+        var st = ln.stamps[si];
+        var lnv = Noise.noise2(st.x * 0.002 + time * 0.03 + si * 0.7, st.y * 0.002);
+        var la = ln.a * st.am * (0.8 + 0.2 * lnv) * ia;
+        if (la <= 0.003) continue;
+        drawSprite(SPR_LANE, st.x, st.y, st.r, la, ln.ang, st.el);
+      }
+    }
+    // 4.1 暗色星际尘埃带：必须在云絮之前用 source-over 画，才能真的"切"开星云
     for (i = 0; i < layer.dust.length; i++) {
       p = layer.dust[i];
       introXY(p, _pt);
@@ -1317,12 +1456,22 @@
       alpha = p.a * (0.45 + 0.75 * glow) * ia;
       if (p.core) alpha *= 1 + Math.min(0.7, Sound.mid * 0.5 + A.pulse * 1.1);   // 云核爆亮：低频瞬间增亮（封顶，避免叠成炫光）
       if (alpha <= 0) continue;
-      var ci = ((p.cs + time * 1.6 + fine * 3.2) | 0) % STEPS; if (ci < 0) ci += STEPS;
+      if (p.wine) {
+        // 酒红点缀：带内云絮边缘的零星一抹，alpha 封顶 0.03（多了就是色块）
+        drawSprite(SPR_WINE, _pt.x, _pt.y, p.r * (1 + Sound.bass * 0.12), Math.min(alpha, 0.03),
+          p.ang, p.elong * (1 + Sound.mid * 0.4));
+        continue;
+      }
+      // 方向性色彩：基准色锚定"离银心多远"（build 期写入 p.cs），逐帧只用高频噪声轻轻摆动，
+      // 不再随 time 循环全调色板——色彩重心要一直停在银心那一侧，不许色块硬跳变
+      var ci = clamp((p.cs + fine * 1.4) | 0, 0, STEPS - 1);
       drawSprite(PAL_ARM[ci], _pt.x, _pt.y, p.r * (1 + Sound.bass * 0.12), alpha,
         p.ang, p.elong * (1 + Sound.mid * 0.4));
       if (p.core) {
-        // 云核向外的柔和弥散光晕（半径与透明度都收过一档：大光晕在真机上会糊成一圈圈炫光）
-        drawSprite(SPR_HALO, _pt.x, _pt.y, p.r * rr3(1.8, 3.0, p), alpha * 0.36, 0, 1);
+        // 云核向外的柔和弥散光晕（半径与透明度都收过一档：大光晕在真机上会糊成一圈圈炫光）；
+        // 银心 GR×0.35 内的云核用暖白金光晕（白里透金），外围沿用冷晕
+        drawSprite(p.rad < GR * 0.35 ? SPR_HALO_WARM : SPR_HALO, _pt.x, _pt.y,
+          p.r * rr3(1.8, 3.0, p), alpha * 0.28, 0, 1);
       }
     }
   }
@@ -1422,7 +1571,7 @@
       var nv = Noise.noise2(p.x * 0.004 + time * 0.15, p.y * 0.004);
       alpha = p.a * (0.4 + 0.6 * (nv * 0.5 + 0.5)) * ia * (1 + Sound.mid * 0.4);
       var ci = ((p.cs + nv * 3.4 + time * 2.0) | 0) % STEPS; if (ci < 0) ci += STEPS;
-      drawSprite(PAL_ARM[ci], _pt.x, _pt.y, p.r, alpha, 0, 1);
+      drawSprite(PAL_FAR[ci], _pt.x, _pt.y, p.r, alpha, 0, 1);   // PAL_ARM 已改方向性调色板，循环取色的微粒改用远景板
     }
   }
 
@@ -1441,7 +1590,7 @@
       var fade = clamp(1 - r.r / maxR, 0, 1);
       var a = r.life * r.life * 0.12 * CFG.intensity * fade;
       var ci = ((r.r * 0.5) | 0) % STEPS; if (ci < 0) ci += STEPS;
-      drawSprite(PAL_ARM[ci], r.x, r.y, r.r * 1.35 + 12, a, 0, 1);
+      drawSprite(PAL_FAR[ci], r.x, r.y, r.r * 1.35 + 12, a, 0, 1);   // 同上：气浪取色改用远景板
     }
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';
@@ -1765,6 +1914,13 @@
       cfg: CFG,
       reset: function () { rebuild(true, false); },
       info: function () {
+        // 主轴密度梯度统计（验收断言②）：带内采样条 vs 带外同宽采样条的 faint 星数
+        var mn2 = Math.min(W, H), inB = 0, outB = 0;
+        for (var bi = 0; bi < layer.faint.length; bi++) {
+          var bd = axisDist(layer.faint[bi].hx, layer.faint[bi].hy);
+          if (bd < 0.25 * mn2) inB++;
+          else if (bd > 0.70 * mn2 && bd < 0.95 * mn2) outB++;
+        }
         return {
           w: W, h: H, dpr: DPR, quality: quality, intro: introT, time: time, frame: frameNo,
           stopped: stopped, reduceMotion: reduceMotion,
@@ -1781,7 +1937,12 @@
           audio: { bass: +Sound.bass.toFixed(3), mid: +Sound.mid.toFixed(3), treble: +Sound.treble.toFixed(3), pulse: +Sound.pulse.toFixed(3) },
           flow: { mist: +mistFlow.toFixed(3) },
           scroll: +Scroll.v.toFixed(3),
-            playing: Sound.playing(), throttle: fpsTarget, spin: spin, dirs: Vortex.list.map(function (v) { return Math.round(v.r); })
+            playing: Sound.playing(), throttle: fpsTarget, spin: spin, dirs: Vortex.list.map(function (v) { return Math.round(v.r); }),
+            galaxy: {
+              gr: Math.round(GR), gcx: Math.round(GCX), gcy: Math.round(GCY),
+              tilt: Math.round(Math.atan2(AXY, AXX) * 180 / Math.PI),
+              band: Math.round(bandHW * 2), inBand: inB, outBand: outB
+            }
         };
       },
       // 给测试用：手动喂一份频谱，省得扯 Widow 音频
