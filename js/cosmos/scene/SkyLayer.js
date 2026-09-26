@@ -48,18 +48,21 @@ export class SkyLayer {
       uniforms: this.uniforms, vertexShader: VERT, fragmentShader: FRAG, depthWrite: true
     }));
     this.mesh.position.z = cfg.layers.skyZ;
-    this.mesh.position.y = h * 0.05;   // 母图银河带偏中下，整体上抬 → 落在视口 35~65% 锚点区
+    this.mesh.position.y = h * 0.03;   // 母图银河带轻微上抬，别贴着山根
     this.mesh.renderOrder = 0;
     scene.add(this.mesh);
     this.fitAspect(innerWidth / innerHeight);
   }
   fitAspect(aspect) {
-    // cover 视口 ×1.12 余量：高优先，宽度不够则按图比例反推
+    // cover：宽、高都必须盖住视口×1.12（取最大），超宽母图才不会上下露底
     let ph = this.h * 1.12;
     let pw = ph * this.imgAspect;
     const needW = this.h * aspect * 1.12;
-    if (pw < needW) { pw = needW; ph = pw / this.imgAspect; }
+    if (pw < needW) { pw = needW; }
+    if (ph < pw / this.imgAspect) { ph = pw / this.imgAspect; }
     this.mesh.scale.set(pw, ph, 1);
+    // 超宽母图横向被裁时，右移取景窗让银河核心完整进画（母图核心偏右）
+    this.mesh.position.x = pw > this.h * aspect ? -pw * 0.05 : 0;
   }
   update(t, bass, mid, breathe) {
     this.uniforms.uTime.value = t;

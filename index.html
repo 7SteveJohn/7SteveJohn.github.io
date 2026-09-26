@@ -51,6 +51,11 @@
   <link rel="preload" as="image" href="assets/images/cover-gameboost.webp" type="image/webp" fetchpriority="high" data-page-node-id="QlmDAI6H2v0ICOWeWtYYek" />
   <link rel="preload" as="image" href="assets/images/avatar.webp" type="image/webp" fetchpriority="high" data-page-node-id="ZCNmZpl9ihCiXW9dZYSWYX" />
 
+  <!-- 星河背景并行预载：three 引擎 + 场景脚本 + 银河母图（首次打开不再"等半天"） -->
+  <link rel="modulepreload" href="assets/vendor/three.module.min.js" />
+  <link rel="modulepreload" href="js/cosmos/main.js" />
+  <link rel="preload" as="image" href="assets/cosmos/sky.webp" type="image/webp" />
+
   <!-- Inter 字体（自托管 latin 子集，避免大陆访问 Google Fonts 阻塞） -->
   <link rel="stylesheet" href="assets/fonts/inter.css" data-page-node-id="9EErQatlmHBQHE0mykYO9k" />
 
@@ -221,15 +226,21 @@
         <a href="#products" class="btn-primary px-6 py-2.5 text-sm" data-page-node-id="wtewTutKOwPW5utKD86pR3">
           看看我做了什么
         </a>
-        <a 
-          href="https://github.com/7SteveJohn" 
-          target="_blank" 
-          rel="noopener noreferrer" 
+        <a
+          href="https://github.com/7SteveJohn"
+          target="_blank"
+          rel="noopener noreferrer"
           class="inline-flex items-center gap-1.5 hover:underline underline-offset-2 text-sm font-medium" data-page-node-id="WTHWKeHRVDmC8tmrXX2nwm"
         >
           <span data-page-node-id="imeIQ3vEO0Bb9XxIeBVnmJ">GitHub 上还有更多</span>
           <i data-lucide="chevron-right" class="w-4 h-4" data-page-node-id="TmrGCGCrH0HGqprPlX7rO3"></i>
         </a>
+        <!-- Enter Cosmos（规格书 §5）：点击即放歌，银河开始呼吸（用户手势内解锁 AudioContext） -->
+        <button id="cosmos-enter" type="button"
+          class="btn-secondary px-5 py-2.5 text-sm inline-flex items-center gap-2"
+          title="放首歌——银河会跟着音乐呼吸">
+          <span aria-hidden="true">♫</span><span>放首歌，看看星河</span>
+        </button>
       </div>
 
       <!-- 真实头像与创作者介绍 -->

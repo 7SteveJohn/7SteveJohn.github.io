@@ -25,14 +25,17 @@
 
 .cosmos-dock {
   position: fixed;
-  right: 5.4rem;   /* FAB（3rem+1.5rem 边距）左侧，两个控件底对齐不叠 */
-  bottom: 1.4rem;
+  right: 1.1rem;
+  bottom: 1.1rem;
   z-index: 45;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 0.5rem;
 }
+
+/* 深空底色兜底：3D 场景首帧淡入前不露白 */
+body { background: #030712; }
 
 .cosmos-panel {
   width: min(214px, calc(100vw - 2.2rem));
@@ -194,9 +197,9 @@
 .cosmos-panel[hidden],
 .cosmos-chip[hidden] { display: none; }
 
-/* 窄屏：面板再缩一档，别压住正文；FAB 在右下，dock 挪它正上方 */
+/* 窄屏：面板再缩一档，别压住正文（FAB 已居中，dock 留右下） */
 @media (max-width: 640px) {
-  .cosmos-dock { right: 1rem; bottom: 4.8rem; }
+  .cosmos-dock { right: 0.8rem; bottom: 0.8rem; }
   .cosmos-panel { width: min(190px, calc(100vw - 1.6rem)); }
 }
 

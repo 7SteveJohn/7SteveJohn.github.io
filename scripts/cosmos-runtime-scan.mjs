@@ -56,7 +56,18 @@ const info = (pg) => pg.evaluate(() => window.__COSMOS.info());
   await pg.evaluate(() => window.dispatchEvent(new PointerEvent('pointerleave')));
   await pg.waitForTimeout(2500);
   const sOff2 = (await info(pg)).starMaxOff;
-  assert(sOff2 < 0.05, '星尘弹簧回弹（离场后位移衰减到 ~0）', sOff + ' → ' + sOff2);
+  // 相对判据（排斥力随配置调整，绝对阈值会误判）：离场后回落到起始位移的 10% 以内
+  assert(sOff2 < sOff * 0.1, '星尘弹簧回弹（离场后位移衰减 ≥90%）',
+    sOff + ' → ' + sOff2 + ' (' + (100 - Math.round(sOff2 / sOff * 100)) + '%)');
+
+  // 3.5) 点击天空：星尘从点击点四散一记（kick）
+  await pg.evaluate(() => window.dispatchEvent(new PointerEvent('pointerleave')));
+  await pg.waitForTimeout(1200);
+  const k0 = (await info(pg)).starMaxOff;
+  await pg.mouse.click(720, 250);
+  await pg.waitForTimeout(350);
+  const k1 = (await info(pg)).starMaxOff;
+  assert(k1 > k0 + 0.15, '点击天空 → 星尘四散（kick 位移跳升）', k0 + ' → ' + k1);
 
   // 4) 湖面水波：鼠标在水面区（底部 25%）移动 → ripple 注入；静止后衰减
   for (let k = 0; k < 8; k++) { await pg.mouse.move(400 + k * 70, 800, { steps: 2 }); await pg.waitForTimeout(80); }
@@ -165,6 +176,31 @@ const info = (pg) => pg.evaluate(() => window.__COSMOS.info());
   assert(iM.counts.stars <= 500, '移动端星尘 ≤500 粒子', iM.counts.stars);
   assert(iM.dpr <= 1.5, '移动端 DPR ≤1.5', iM.dpr);
   assert(iM.frame > 10, '移动端正常渲染', iM.frame);
+  await ctx.close();
+}
+
+/* ========== Enter Cosmos 入口（规格书 §5：用户手势后播放） ========== */
+{
+  const ctx = await b.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: 'dark' });
+  const pg = await ctx.newPage();
+  const errs = [];
+  pg.on('pageerror', e => errs.push('pageerror: ' + e));
+  await pg.goto(URL0, { waitUntil: 'load' });
+  await pg.waitForTimeout(3000);
+  const btn = await pg.evaluate(() => !!document.getElementById('cosmos-enter') && !!window.__MUSIC);
+  assert(btn, 'hero「放首歌」入口在位（按钮 + __MUSIC API）');
+  if (btn) {
+    await pg.click('#cosmos-enter');
+    await pg.waitForTimeout(2500);
+    const iE = await info(pg);
+    assert(iE.audio.playing === true && iE.audio.bass > 0.02,
+      '点击入口后银河随站点歌单呼吸（bass>0）', 'bass=' + iE.audio.bass);
+    await pg.click('#cosmos-enter');   // 再点 = 暂停
+    await pg.waitForTimeout(1500);
+    const iE2 = await info(pg);
+    assert(iE2.audio.bass < iE.audio.bass, '再点入口暂停 → 包络回落', iE.audio.bass + ' → ' + iE2.audio.bass);
+  }
+  assert(errs.length === 0, '入口上下文无 pageerror', errs.slice(0, 3).join(' | '));
   await ctx.close();
 }
 

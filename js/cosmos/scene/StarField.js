@@ -5,12 +5,16 @@ import * as THREE from 'three';
 
 const VERT = /* glsl */`
   attribute float aPhase, aSpeed, aSize, aTreble;
-  uniform float uTime, uTreble, uPixel;
+  uniform float uTime, uTreble, uPixel, uGlow;
+  uniform vec3 uCursor;
   varying float vTw;
   void main() {
     vec4 mv = modelViewMatrix * vec4(position, 1.0);
     float tw = 0.68 + 0.32 * sin(uTime * aSpeed + aPhase);   // 各自为政的闪烁
     tw += uTreble * 0.6 * aTreble;                            // 高频只碰少数星
+    // 光标 nearby 提亮：靠近光标的星"被照亮"，远的不搭理
+    float d = distance(position, uCursor);
+    tw += uGlow * smoothstep(2.0, 0.3, d);
     vTw = tw;
     gl_PointSize = aSize * uPixel * (3.5 / -mv.z);
     gl_Position = projectionMatrix * mv;
@@ -79,6 +83,8 @@ export class StarField {
       uTime: { value: 0 },
       uTreble: { value: 0 },
       uPixel: { value: 1.3 },
+      uGlow: { value: 0 },
+      uCursor: { value: new THREE.Vector3(1e9, 1e9, 0) },
       uSprite: { value: softSprite() }
     };
     this.points = new THREE.Points(geo, new THREE.ShaderMaterial({
@@ -92,7 +98,9 @@ export class StarField {
   update(t, treble, mouseWorld, hasMouse) {
     this.uniforms.uTime.value = t;
     this.uniforms.uTreble.value = treble * this.cfg.audio.trebleToStars;
-    const { repulsionRadius, repulsionForce, spring } = this.cfg.stars;
+    this.uniforms.uGlow.value = hasMouse ? this.cfg.stars.cursorGlow : 0;
+    this.uniforms.uCursor.value.copy(hasMouse ? mouseWorld : this.uniforms.uCursor.value.set(1e9, 1e9, 0));
+    const { repulsionRadius, repulsionForce, spring, clickKick } = this.cfg.stars;
     const pos = this.points.geometry.attributes.position.array;
     const r2 = repulsionRadius * repulsionRadius;
     let maxOff = 0;
@@ -123,4 +131,17 @@ export class StarField {
   }
   setPixelScale(v) { this.uniforms.uPixel.value = v; }
   reset() { this.off.fill(0); this.maxOff = 0; }
+  // 点击天空：星尘从点击点四散一记（力随距离衰减，快起慢回交给弹簧）
+  kick(world) {
+    const R = 2.6;
+    for (let i = 0; i < this.count; i++) {
+      const ix = i * 3;
+      const dx = this.home[ix] - world.x, dy = this.home[ix + 1] - world.y;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      if (d > R || d < 1e-4) continue;
+      const f = this.cfg.stars.clickKick * (1 - d / R);
+      this.off[ix] += (dx / d) * f;
+      this.off[ix + 1] += (dy / d) * f;
+    }
+  }
 }

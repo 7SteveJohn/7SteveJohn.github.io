@@ -4,6 +4,7 @@ export class BeatDetector {
   constructor(cfg) {
     this.cfg = cfg;
     this.pulse = 0;
+    this.justBeat = false;   // 脉冲上穿 0.5 的那一帧为 true（供主循环触发涟漪等单次事件）
     this._slow = 0;
     this._lastBeatAt = 0;
   }
@@ -22,8 +23,10 @@ export class BeatDetector {
     }
     const dt = Math.min(dtMs, 100);
     const k = hit > this.pulse ? attack : release;
+    const prev = this.pulse;
     this.pulse += (hit - this.pulse) * Math.min(1, k * dt / 16.7);
     if (this.pulse < 0.001) this.pulse = 0;
+    this.justBeat = prev < 0.5 && this.pulse >= 0.5;
     return this.pulse;
   }
 }

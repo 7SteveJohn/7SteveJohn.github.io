@@ -767,11 +767,13 @@ mark.sj-note {
   background-color: rgba(255, 255, 255, 0.08);
 }
 
-/* ===== 右下角悬浮音乐播放器（js/player.js 驱动；别放左下——会压住 hero 头像卡） ===== */
+/* ===== 底部居中悬浮音乐播放器（js/player.js 驱动；左右下角分别被头像卡/星河控制台占了，
+        且角落按钮不好按——居中是拇指/视线热区） ===== */
 .music-fab {
   position: fixed;
-  right: 1.5rem;
-  bottom: 1.5rem;
+  left: 50%;
+  margin-left: -1.5rem;   /* 宽 3rem 的一半，不用 transform 以免和 hover scale 打架 */
+  bottom: 1.2rem;
   z-index: 40;
   width: 3rem;
   height: 3rem;
@@ -830,11 +832,12 @@ mark.sj-note {
 #music-play.is-playing .icon-play { display: none; }
 #music-play.is-playing .icon-pause { display: block; }
 
-/* 展开面板：FAB 上方弹出 */
+/* 展开面板：FAB 上方弹出（水平居中对齐 FAB） */
 .music-panel {
   position: fixed;
-  right: 1.5rem;
+  left: 50%;
   bottom: 5rem;
+  transform: translate(-50%, 8px);
   z-index: 40;
   width: min(300px, calc(100vw - 2.5rem));
   padding: 0.875rem;
@@ -853,7 +856,7 @@ mark.sj-note {
 .music-panel.music-open {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: translate(-50%, 0);
   pointer-events: auto;
 }
 .dark .music-panel {
@@ -1021,8 +1024,8 @@ mark.sj-note {
 .music-list .song-move:hover { color: #1d1d1f; }
 .dark .music-list .song-move:hover { color: #f5f5f7; }
 
-/* 移动端：面板贴边防溢出 */
+/* 移动端：面板贴底居中防溢出 */
 @media (max-width: 480px) {
-  .music-fab { right: 1rem; bottom: 1rem; }
-  .music-panel { right: 1rem; bottom: 4.5rem; }
+  .music-fab { margin-left: -1.5rem; bottom: 1rem; }
+  .music-panel { bottom: 4.4rem; }
 }

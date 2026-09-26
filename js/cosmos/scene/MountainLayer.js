@@ -4,8 +4,8 @@ import * as THREE from 'three';
 function makePlane(cfg, tex, z, widthAspect) {
   const dist = cfg.camera.zPos - z;
   const viewH = 2 * dist * Math.tan(THREE.MathUtils.degToRad(cfg.camera.fov / 2));
-  // 山体平面占视口底部 ~42%（贴图 ridge 在贴图内偏上），宽 ×1.5 留视差余量
-  const h = viewH * 0.42;
+  // 山体平面占视口底部 ~52%（贴图 ridge 在贴图内偏上），宽 ×1.5 留视差余量
+  const h = viewH * 0.52;
   const w = Math.max(viewH * widthAspect * 1.5, h * (2048 / 560));
   const geo = new THREE.PlaneGeometry(w, h);
   tex.colorSpace = THREE.SRGBColorSpace;   // MeshBasicMaterial 走标准管线，会正确编码

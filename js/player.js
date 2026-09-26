@@ -260,6 +260,10 @@
   }
 
   // —— 事件绑定 ——
+  // 给外部入口用（hero「放首歌，看看星河」按钮）：手势内建图 + 播放/暂停
+  window.__MUSIC = { togglePlay: function () { startBeat(); togglePlay(); } };
+  const enterBtn = document.getElementById('cosmos-enter');
+  if (enterBtn) enterBtn.addEventListener('click', function () { window.__MUSIC.togglePlay(); });
   fab.addEventListener('click', () => {
     const open = panel.classList.toggle('music-open');
     fab.setAttribute('aria-expanded', open ? 'true' : 'false');

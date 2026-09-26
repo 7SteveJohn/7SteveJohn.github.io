@@ -37,6 +37,9 @@ if (!webglOK()) {
 
 function boot() {
   const canvas = document.getElementById('cosmos-canvas');
+  // 首帧前压住画布：素材/引擎就绪后随首帧淡入，黑屏感 → 平滑显影
+  canvas.style.opacity = '0';
+  canvas.style.transition = 'opacity 1.1s ease';
   const renderer = new THREE.WebGLRenderer({
     canvas, antialias: false, alpha: false, powerPreference: 'low-power'
   });
@@ -65,6 +68,15 @@ function boot() {
     const beat = new BeatDetector(CFG);
     const interaction = new InteractionManager(CFG, camera, canvas);
 
+    // 点击交互：点湖面 → 一记大水波；点天空 → 星尘四散
+    addEventListener('pointerdown', (e) => {
+      if (e.target.closest('a,button,input,textarea,select,label,#cosmos-dock,#music-player')) return;
+      const hit = interaction.pick(e, water.mesh, CFG.layers.starZ);
+      if (!hit) return;
+      if (hit.uv) water.splash(hit.uv);
+      else if (hit.world) stars.kick(hit.world);
+    }, { passive: true });
+
     // ---- 主循环（规格书 §10）----
     let rafId = 0, frameNo = 0, last = performance.now();
     let sceneT = 0;                    // 场景时间（timeScale 缩放，驱动一切环境微动态）
@@ -90,6 +102,8 @@ function boot() {
       interaction.update(dtMs, water.mesh, CFG.layers.starZ);
       const a = audio.update(dtMs);
       const pulse = beat.update(a, dtMs, now);
+      // Beat → 湖心荡开涟漪（拍子看得见，不只是 FOV 数字）；justBeat = 脉冲上穿 0.5 的那一帧
+      if (beat.justBeat) { water.beatRipple(); beat.justBeat = false; }
 
       // Camera：damped 视差 + 滚动纵深 + Beat 极轻微 FOV 脉冲（观察角度变化，不是图片滑动）
       camera.position.x = interaction.mouse.x * CFG.camera.parallaxStrengthX;
@@ -110,6 +124,9 @@ function boot() {
       water.setMouseUV(interaction.waterUV, interaction.waterActive);
       water.update(sceneT, a.bass);
       stars.update(sceneT, a.treble, interaction.mouseWorld, interaction.hasMouse);
+
+      // 首帧落画布：淡入（黑屏感 → 平滑显影）
+      if (frameNo === 1) { canvas.style.opacity = '1'; }
 
       renderer.render(scene, camera);
     }

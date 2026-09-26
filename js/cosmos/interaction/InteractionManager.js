@@ -57,4 +57,15 @@ export class InteractionManager {
       this.waterActive = false;
     }
   }
+  // 点击拾取：返回 {uv}（水面命中）或 {world}（星层平面命中）或 null
+  pick(e, waterMesh, starZ) {
+    this._ndc.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+    this._ray.setFromCamera(this._ndc, this.camera);
+    const hit = this._ray.intersectObject(waterMesh, false);
+    if (hit.length && hit[0].uv) return { uv: hit[0].uv.clone() };
+    const o = this._ray.ray.origin, dir = this._ray.ray.direction;
+    const t = (starZ - o.z) / dir.z;
+    if (isFinite(t) && t > 0) return { world: new THREE.Vector3(o.x + dir.x * t, o.y + dir.y * t, starZ) };
+    return null;
+  }
 }
