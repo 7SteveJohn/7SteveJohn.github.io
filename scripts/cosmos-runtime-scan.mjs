@@ -38,9 +38,10 @@ function makeDrumWav() {
     let v = 0;
     if (tb < 0.35) v += Math.sin(2 * Math.PI * 55 * tb) * 0.9 * Math.exp(-tb / 0.10);       // 底鼓
     const th = (t + 0.25) % 0.5;
-    if (th < 0.05) v += (Math.random() * 2 - 1) * 0.30 * Math.exp(-th / 0.012);             // 嚓音
+    // 嚓音窗口放宽 + 振幅加大：软渲染整页 ~3fps，0.05s 的窄窗会被采样整窗跳过 → 高频偶发读 0
+    if (th < 0.09) v += (Math.random() * 2 - 1) * 0.45 * Math.exp(-th / 0.02);              // 嚓音
     const te = t % 0.25, f = [330, 440, 550][Math.floor(t / 0.25) % 3];
-    if (te < 0.2) v += Math.sin(2 * Math.PI * f * te) * 0.18 * Math.exp(-te / 0.09);        // 旋律
+    if (te < 0.22) v += Math.sin(2 * Math.PI * f * te) * 0.30 * Math.exp(-te / 0.14);       // 旋律（加大振幅，抗低帧率采样漏读）
     data.writeInt16LE(Math.max(-32767, Math.min(32767, Math.round(v * 26000))), i * 2);
   }
   const hdr = Buffer.alloc(44);
@@ -130,7 +131,7 @@ try {
   }
   ok('看门狗自动降档（quality < 1）', q < 1, 'quality=' + q);
   const rc = await pg.evaluate(() => window.__COSMOS.info().counts);
-  ok('降档重建后八层仍齐', [rc.far, rc.fiber, rc.arm, rc.dust, rc.faint, rc.bright, rc.mote, rc.mist].every(v => v > 0));
+  ok('降档后五类场景件仍齐', [rc.far, rc.disc, rc.bright, rc.nebula, rc.dust].every(v => v > 0));
 
   /* —— C. 降帧机制：throttle 探针直读帧率档 —— */
   const waitThrottle = async (expect, label) => {
@@ -184,14 +185,15 @@ try {
   const pl = await pg.evaluate(() => window.__COSMOS.info().pointer);
   ok('停手后保留常驻微搅（pointerFloor）', pl.live > 0.15, 'live=' + pl.live);
 
-  // 滚动视差：真实滚动增量 → probe.scroll 立刻有值，停滚后衰减回 0（实时输入，不是预录动画）
+  // 滚动视差：真实滚动增量 → probe.scroll 立刻有值，停滚后衰减回 0（实时输入，不是预录动画）。
+  // 软渲染主线程繁忙时 scroll 事件派发会晚到一两百 ms，读数窗口放宽到 500ms
   await pg.evaluate(() => window.scrollTo(0, 0));
   await pg.waitForTimeout(1600);
   const sv0 = await pg.evaluate(() => window.__COSMOS.info().scroll);
   await pg.evaluate(() => window.scrollBy(0, 900));
-  await pg.waitForTimeout(120);
+  await pg.waitForTimeout(500);
   const sv1 = await pg.evaluate(() => window.__COSMOS.info().scroll);
-  await pg.waitForTimeout(2500);
+  await pg.waitForTimeout(4000);
   const sv2 = await pg.evaluate(() => window.__COSMOS.info().scroll);
   ok('滚动 → 各层按深度实时视差', Math.abs(sv0) < 0.05 && Math.abs(sv1) > 0.1, sv0 + ' → ' + sv1);
   ok('停滚后视差速度衰减回 0', Math.abs(sv2) < 0.05, 'scroll=' + sv2);
@@ -217,7 +219,7 @@ try {
   await mp.waitForTimeout(4500);
   const mi = await mp.evaluate(() => window.__COSMOS.info());
   ok('移动端密度自动折算（总粒子少于桌面）',
-    mi.counts.faint < dcounts.faint, 'mobile faint=' + mi.counts.faint + ' desktop=' + dcounts.faint);
+    mi.counts.disc < dcounts.disc, 'mobile disc=' + mi.counts.disc + ' desktop=' + dcounts.disc);
   const pw = await mp.evaluate(() => parseFloat(getComputedStyle(document.getElementById('cosmos-panel')).width));
   ok('面板窄屏缩一档（≈190px，不压正文）', pw > 180 && pw <= 196, 'width=' + pw);
   await mp.evaluate(() => window.scrollTo(0, 99999));

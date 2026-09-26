@@ -6,14 +6,16 @@
  * - 其余同源/静态资源：缓存优先 + 后台更新（stale-while-revalidate）
  * ⚠️ 每次发布改动静态资源后，把 CACHE 版本号 +1，旧缓存会在 activate 阶段自动清理。
  */
-const CACHE = 'sevenjohn-v50';
+const CACHE = 'sevenjohn-v51';
 const CORE = [
   './',
   'index.html',
   '404.html',
   'css/style.css',
   'css/cosmos.css',
-  'js/cosmos.js',
+  'js/cosmos.js',        // 3D 版不可用时的 2D 回退（cosmos3d.js 内部按需加载）
+  'js/cosmos3d.js',      // 3D 星河主渲染（WebGL / three.js 自托管）
+  'assets/vendor/three.module.min.js',
   'js/player.js',   // 站点歌单播放器：星河的音频来源之一（__BEAT），断网也要能起来
   // 本地化依赖（原 CDN 已全部下放到 assets/vendor，断网也能完整渲染）
   'assets/vendor/tailwind.css',

@@ -957,7 +957,16 @@
   <script src="js/app.js" defer></script>
   <script src="js/particles.js" defer></script>
   <script src="js/search.js" defer></script>
-  <script src="js/cosmos.js" defer></script>
+  <!-- importmap：把 three 的裸导入指到自托管副本（必须在任何 module script 之前）。
+       3D 星河（js/cosmos3d.js）为 module；无 WebGL 时它内部自动回退加载 2D 版 js/cosmos.js -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./assets/vendor/three.module.min.js"
+    }
+  }
+  </script>
+  <script type="module" src="js/cosmos3d.js"></script>
   <script src="js/player.js" defer></script>
 </body>
 </html>
