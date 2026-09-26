@@ -767,10 +767,10 @@ mark.sj-note {
   background-color: rgba(255, 255, 255, 0.08);
 }
 
-/* ===== 左下角悬浮音乐播放器（js/player.js 驱动） ===== */
+/* ===== 右下角悬浮音乐播放器（js/player.js 驱动；别放左下——会压住 hero 头像卡） ===== */
 .music-fab {
   position: fixed;
-  left: 1.5rem;
+  right: 1.5rem;
   bottom: 1.5rem;
   z-index: 40;
   width: 3rem;
@@ -833,7 +833,7 @@ mark.sj-note {
 /* 展开面板：FAB 上方弹出 */
 .music-panel {
   position: fixed;
-  left: 1.5rem;
+  right: 1.5rem;
   bottom: 5rem;
   z-index: 40;
   width: min(300px, calc(100vw - 2.5rem));
@@ -1023,6 +1023,6 @@ mark.sj-note {
 
 /* 移动端：面板贴边防溢出 */
 @media (max-width: 480px) {
-  .music-fab { left: 1rem; bottom: 1rem; }
-  .music-panel { left: 1rem; bottom: 4.5rem; }
+  .music-fab { right: 1rem; bottom: 1rem; }
+  .music-panel { right: 1rem; bottom: 4.5rem; }
 }
