@@ -774,6 +774,9 @@ mark.sj-note {
   left: 50%;
   margin-left: -1.5rem;   /* 宽 3rem 的一半，不用 transform 以免和 hover scale 打架 */
   bottom: 1.2rem;
+  touch-action: none;      /* 拖拽换位：不让触摸当成滚动 */
+  cursor: grab;            /* js/player.js 拖拽时提示可抓取 */
+  user-select: none;
   z-index: 40;
   width: 3rem;
   height: 3rem;

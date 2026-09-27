@@ -264,7 +264,53 @@
   window.__MUSIC = { togglePlay: function () { startBeat(); togglePlay(); } };
   const enterBtn = document.getElementById('cosmos-enter');
   if (enterBtn) enterBtn.addEventListener('click', function () { window.__MUSIC.togglePlay(); });
+  // —— FAB 拖拽换位（无极定位，位置持久化；拖完松手的那次 click 不触发开合）——
+  const FAB_KEY = 'sj.music-fab-pos';
+  let drag = null, dragMoved = false;
+  function applyFabPos(x, y) {
+    const w = fab.offsetWidth, h = fab.offsetHeight;
+    x = Math.min(Math.max(8, x), innerWidth - w - 8);
+    y = Math.min(Math.max(8, y), innerHeight - h - 8);
+    fab.style.left = x + 'px';
+    fab.style.top = y + 'px';
+    fab.style.right = 'auto';
+    fab.style.bottom = 'auto';
+    fab.style.marginLeft = '0';
+    // 面板跟随 FAB 上方弹出（水平 clamp 防溢出）
+    const cx = Math.min(Math.max(165, x + w / 2), innerWidth - 165);
+    panel.style.left = cx + 'px';
+    panel.style.bottom = (innerHeight - y + 12) + 'px';
+    panel.style.right = 'auto';
+  }
+  try {
+    const savedPos = JSON.parse(localStorage.getItem(FAB_KEY) || 'null');
+    if (savedPos) applyFabPos(savedPos.x, savedPos.y);
+  } catch (e) {}
+  fab.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    const r = fab.getBoundingClientRect();
+    drag = { dx: e.clientX - r.left, dy: e.clientY - r.top };
+    dragMoved = false;
+    try { fab.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+  fab.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    if (!dragMoved && Math.abs(e.movementX) + Math.abs(e.movementY) < 2) return;
+    dragMoved = true;
+    applyFabPos(e.clientX - drag.dx, e.clientY - drag.dy);
+  });
+  const endDrag = () => {
+    if (drag && dragMoved) {
+      try {
+        localStorage.setItem(FAB_KEY, JSON.stringify({ x: parseFloat(fab.style.left), y: parseFloat(fab.style.top) }));
+      } catch (err) {}
+    }
+    drag = null;
+  };
+  fab.addEventListener('pointerup', endDrag);
+  fab.addEventListener('pointercancel', endDrag);
   fab.addEventListener('click', () => {
+    if (dragMoved) { dragMoved = false; return; }
     const open = panel.classList.toggle('music-open');
     fab.setAttribute('aria-expanded', open ? 'true' : 'false');
   });

@@ -5,7 +5,7 @@ import * as THREE from 'three';
 
 const VERT = /* glsl */`
   attribute float aPhase, aSpeed, aSize, aTreble;
-  uniform float uTime, uTreble, uPixel, uGlow;
+  uniform float uTime, uTreble, uPixel, uGlow, uForm;
   uniform vec3 uCursor;
   varying float vTw;
   void main() {
@@ -16,7 +16,8 @@ const VERT = /* glsl */`
     float d = distance(position, uCursor);
     tw += uGlow * smoothstep(2.0, 0.3, d);
     vTw = tw;
-    gl_PointSize = aSize * uPixel * (3.5 / -mv.z);
+    // 聚拢成形时粒子放大（形状可辨的关键：只变亮不够）
+    gl_PointSize = aSize * uPixel * (3.5 / -mv.z) * (1.0 + uForm * 0.9);
     gl_Position = projectionMatrix * mv;
   }
 `;
@@ -30,6 +31,41 @@ const FRAG = /* glsl */`
     gl_FragColor = vec4(vec3(0.82, 0.86, 1.0) * s.rgb, s.a) * vTw * (0.85 + 0.55 * uForm);
   }
 `;
+
+// —— 形状 mask：方块冰屋（视频同款：圆顶方块堆 + 门洞 + 散落方块）——
+function drawIglooMask(g, w, h) {
+  const cx = w / 2, base = h * 0.86, r = h * 0.62;
+  g.fillStyle = '#fff';
+  g.beginPath();
+  g.arc(cx, base, r, Math.PI, 0);
+  g.closePath();
+  g.fill();
+  // 门洞
+  g.globalCompositeOperation = 'destination-out';
+  g.fillRect(cx - r * 0.16, base - r * 0.42, r * 0.32, r * 0.55);
+  // 方块缝：随机短线挖出"方块堆"质感
+  for (let k = 0; k < 30; k++) {
+    const a = Math.PI + Math.random() * Math.PI;
+    const rr = r * (0.25 + Math.random() * 0.75);
+    const x = cx + Math.cos(a) * rr, y = base + Math.sin(a) * rr;
+    g.fillRect(x - 2, y - 2, 3 + Math.random() * 3, 2.5);
+  }
+  g.globalCompositeOperation = 'source-over';
+  // 周围散落方块
+  for (let k = 0; k < 9; k++) {
+    const x = cx + (Math.random() * 2 - 1) * w * 0.42;
+    const y = base - Math.random() * h * 0.10;
+    g.fillRect(x, y, 6 + Math.random() * 6, 4 + Math.random() * 3);
+  }
+}
+// —— 形状 mask：站名文字 ——
+function drawTextMask(g, w, h) {
+  g.fillStyle = '#fff';
+  g.font = 'bold ' + Math.floor(h * 0.40) + 'px Consolas, "Courier New", monospace';
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText('sevenjohn', w / 2, h / 2);
+}
 
 function softSprite() {
   const c = document.createElement('canvas');
@@ -104,6 +140,33 @@ export class StarField {
       this.off[i * 3] = Math.cos(ang) * r;
       this.off[i * 3 + 1] = Math.sin(ang) * r * 0.6;
     }
+    // 形状目标库：0 方块冰屋（位图采样）1 文字 sevenjohn（位图采样）2 球壳（程序化）
+    this.shapePts = [this._sampleMask(drawIglooMask), this._sampleMask(drawTextMask), null];
+  }
+  // 从离屏画布 mask 采样目标点云（聚拢时可辨认的具体形状，不是抽象球壳）
+  _sampleMask(draw) {
+    const w = 240, h = 120;
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const g = c.getContext('2d');
+    draw(g, w, h);
+    const data = g.getImageData(0, 0, w, h).data;
+    const pts = [];
+    for (let y = 0; y < h; y += 2) {
+      for (let x = 0; x < w; x += 2) {
+        if (data[(y * w + x) * 4 + 3] > 120) {
+          pts.push([(x / w - 0.5) * 5.6, (0.5 - y / h) * 2.5]);
+        }
+      }
+    }
+    if (!pts.length) return null;
+    const out = new Float32Array(this.count * 2);
+    for (let i = 0; i < this.count; i++) {
+      const p = pts[(Math.random() * pts.length) | 0];
+      out[i * 2] = p[0] + (Math.random() - 0.5) * 0.05;
+      out[i * 2 + 1] = p[1] + (Math.random() - 0.5) * 0.05;
+    }
+    return out;
   }
   update(t, treble, mouseWorld, hasMouse, dtMs = 16.7) {
     this.uniforms.uTime.value = t;
@@ -147,21 +210,16 @@ export class StarField {
       this.off[ix] = ox; this.off[ix + 1] = oy;
       let px = hx + ox, py = hy + oy;
       if (form > 0.001) {
-        // 目标形状点（x/y 平面；z 保持 home 深度，视差保留）
+        // 目标形状点：优先用位图采样的可辨形状（冰屋/文字），轮换到球壳用程序化
         let tx, ty;
         const fr = i / this.count;
-        if (kind === 0) {          // 球壳轮廓：golden angle 均匀绕圆，缓慢自转
+        const mask = this.shapePts[kind];
+        if (mask) {
+          tx = mask[ix]; ty = mask[ix + 1];
+        } else {                   // 球壳轮廓：golden angle 均匀绕圆，缓慢自转
           const a = i * 2.399963 + t * 0.06;
           const rr = 1.55 + 0.5 * Math.sin(i * 12.9898);
           tx = Math.cos(a) * rr; ty = Math.sin(a) * rr * 0.72;
-        } else if (kind === 1) {   // 波浪原：一条起伏的粒子地平线
-          tx = (fr - 0.5) * 6.4;
-          ty = -0.55 + Math.sin(tx * 1.4 + t * 0.35) * 0.16 + Math.sin(fr * 40.0) * 0.03;
-        } else {                   // 双环：外环 + 内环反向转
-          const inner = i % 2 === 0;
-          const a = i * (inner ? -0.41 : 0.29) + t * (inner ? -0.12 : 0.07);
-          const rr = inner ? 0.85 : 2.05;
-          tx = Math.cos(a) * rr; ty = Math.sin(a) * rr * 0.6;
         }
         const k = form * (0.92 + 0.08 * Math.sin(t * 0.7 + i));   // 成形后仍有微呼吸，不是冻结
         px = hx + (tx - hx) * k + ox * (1 - form * 0.75);
