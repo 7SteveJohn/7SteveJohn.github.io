@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { CONFIG } from './config.js';
 import { SkyLayer } from './scene/SkyLayer.js';
 import { MountainLayer } from './scene/MountainLayer.js';
-import { WaterLayer } from './scene/WaterLayer.js';
+import { GroundFog } from './scene/GroundFog.js';
 import { StarField } from './scene/StarField.js';
 import { AudioManager } from './audio/AudioManager.js';
 import { BeatDetector } from './audio/BeatDetector.js';
@@ -55,26 +55,24 @@ function boot() {
   const loader = new THREE.TextureLoader();
   const loadTex = (url) => new Promise((res, rej) => loader.load(url, res, undefined, rej));
 
-  Promise.all([loadTex(CFG.assets.sky), loadTex(CFG.assets.mountainsFar), loadTex(CFG.assets.mountainsNear)])
-    .then(([skyTex, farTex, nearTex]) => start(skyTex, farTex, nearTex))
+  Promise.all([loadTex(CFG.assets.mountainsFar), loadTex(CFG.assets.mountainsNear)])
+    .then(([farTex, nearTex]) => start(farTex, nearTex))
     .catch(() => fallback2d());   // 素材加载失败也回退 2D，不白屏
 
-  function start(skyTex, farTex, nearTex) {
-    const sky = new SkyLayer(scene, CFG, skyTex);
+  function start(farTex, nearTex) {
+    const sky = new SkyLayer(scene, CFG);
     const mts = new MountainLayer(scene, CFG, farTex, nearTex);
-    const water = new WaterLayer(scene, CFG, skyTex);
+    const ground = new GroundFog(scene, CFG);
     const stars = new StarField(scene, CFG, isMobile);
     const audio = new AudioManager(CFG);
     const beat = new BeatDetector(CFG);
     const interaction = new InteractionManager(CFG, camera, canvas);
 
-    // 点击交互：点湖面 → 一记大水波；点天空 → 星尘四散
+    // 点击交互：星尘/雾原任意处点击 → 粒子从点击点四散一记
     addEventListener('pointerdown', (e) => {
       if (e.target.closest('a,button,input,textarea,select,label,#cosmos-dock,#music-player')) return;
-      const hit = interaction.pick(e, water.mesh, CFG.layers.starZ);
-      if (!hit) return;
-      if (hit.uv) water.splash(hit.uv);
-      else if (hit.world) stars.kick(hit.world);
+      const world = interaction.pick(e, CFG.layers.starZ);
+      if (world) stars.kick(world);
     }, { passive: true });
 
     // ---- 主循环（规格书 §10）----
@@ -99,11 +97,11 @@ function boot() {
       sceneT += (dtMs / 1000) * timeScale;
       frameNo++;
 
-      interaction.update(dtMs, water.mesh, CFG.layers.starZ);
+      interaction.update(dtMs, CFG.layers.starZ);
       const a = audio.update(dtMs);
       const pulse = beat.update(a, dtMs, now);
-      // Beat → 湖心荡开涟漪（拍子看得见，不只是 FOV 数字）；justBeat = 脉冲上穿 0.5 的那一帧
-      if (beat.justBeat) { water.beatRipple(); beat.justBeat = false; }
+      // Beat → 粒子群一记聚拢脉冲（拍子看得见，不只是 FOV 数字）
+      if (beat.justBeat) { stars.kickPulse(); beat.justBeat = false; }
 
       // Camera：damped 视差 + 滚动纵深 + Beat 极轻微 FOV 脉冲（观察角度变化，不是图片滑动）
       camera.position.x = interaction.mouse.x * CFG.camera.parallaxStrengthX;
@@ -121,8 +119,7 @@ function boot() {
       const breathe = CFG.motion.breatheAmp * Math.sin(sceneT * Math.PI * 2 * CFG.motion.breatheHz);
 
       sky.update(sceneT, a.bass, a.mid, breathe);
-      water.setMouseUV(interaction.waterUV, interaction.waterActive);
-      water.update(sceneT, a.bass);
+      ground.update(sceneT, a.bass);
       stars.update(sceneT, a.treble, interaction.mouseWorld, interaction.hasMouse, dtMs);
       mts.update(sceneT);
 
@@ -234,9 +231,8 @@ function boot() {
         mouse: { x: +interaction.mouse.x.toFixed(4), y: +interaction.mouse.y.toFixed(4), has: interaction.hasMouse },
         scroll: +interaction.scroll.toFixed(4),
         starMaxOff: +stars.maxOff.toFixed(4),
-        ripple: +water.ripple.toFixed(4),
-        waterUV: { x: +water.uniforms.uMouseUV.value.x.toFixed(3), y: +water.uniforms.uMouseUV.value.y.toFixed(3) },
-        uBass: +water.uniforms.uBass.value.toFixed(3),
+        form: +stars.form.toFixed(3),
+        skyU: +sky.uniforms.uBass.value.toFixed(3),
         frame: frameNo,
         sceneT: +sceneT.toFixed(2),
         timeScale, reduceMotion, isMobile, hidden, contextLost,

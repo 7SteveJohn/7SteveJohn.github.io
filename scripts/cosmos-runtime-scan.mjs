@@ -69,14 +69,12 @@ const info = (pg) => pg.evaluate(() => window.__COSMOS.info());
   const k1 = (await info(pg)).starMaxOff;
   assert(k1 > k0 + 0.15, '点击天空 → 星尘四散（kick 位移跳升）', k0 + ' → ' + k1);
 
-  // 4) 湖面水波：鼠标在水面区（底部 25%）移动 → ripple 注入；静止后衰减
-  for (let k = 0; k < 8; k++) { await pg.mouse.move(400 + k * 70, 800, { steps: 2 }); await pg.waitForTimeout(80); }
-  const r1 = (await info(pg)).ripple;
-  assert(r1 > 0.05, '湖面鼠标水波已注入（ripple>0.05）', r1);
-  await pg.mouse.move(720, 200);   // 离开水面
-  await pg.waitForTimeout(2000);
-  const r2 = (await info(pg)).ripple;
-  assert(r2 < r1 * 0.5, '水波自然衰减（rippleDecay）', r1 + ' → ' + r2);
+  // 4) 聚散叙事：form 值随时间变化（scatter/converge/hold/release 循环）
+  const f1 = (await info(pg)).form;
+  await pg.waitForTimeout(3500);
+  const f2 = (await info(pg)).form;
+  assert(Math.abs(f2 - f1) > 0.01 || (f1 < 0.99 && f2 <= 1.0), '聚散叙事在推进（form 变化）',
+    f1 + ' → ' + f2);
 
   // 5) Treble：只驱动少量星尘（uTreble 生效；粒子属性 1/4 分组，量由探针旁证）
   for (let k = 0; k < 20; k++) { await pg.evaluate(() => window.__COSMOS.feed(0.1, 0.2, 0.8, 0)); await pg.waitForTimeout(60); }

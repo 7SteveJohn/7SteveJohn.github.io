@@ -120,7 +120,7 @@ const info = (pg) => pg.evaluate(() => window.__COSMOS.info());
   for (let k = 0; k < 25; k++) { await pg.evaluate(() => window.__COSMOS.feed(0.8, 0.3, 0.2, 0)); await pg.waitForTimeout(60); }
   const iB = await info(pg);
   assert(iB.audio.bass > 0.5, 'Bass 包络被吸收', iB.audio.bass);
-  assert(iB.uBass > 0.3, 'Bass 驱动湖面反射（uBass）', iB.uBass);
+  assert(iB.skyU > 0.5, 'Bass 驱动天空地平线亮度（skyU）', iB.skyU);
   assert(iB.cam.fov <= 60.5, '无 Beat 时 FOV 不动（律动克制）', iB.cam.fov);
 
   // Beat：pulse 触发极轻微 FOV 脉冲（60→≤60.35）
@@ -159,7 +159,7 @@ const info = (pg) => pg.evaluate(() => window.__COSMOS.info());
   // 放歌（feed）→ 视觉仍响应
   for (let k = 0; k < 20; k++) { await pg.evaluate(() => window.__COSMOS.feed(0.8, 0.3, 0.2, 0.5)); await pg.waitForTimeout(60); }
   const iF = await info(pg);
-  assert(iF.audio.bass > 0.4 && iF.uBass > 0.2, '减少动效下放歌仍随拍呼吸', 'bass=' + iF.audio.bass + ' uBass=' + iF.uBass);
+  assert(iF.audio.bass > 0.4 && iF.skyU > 0.5, '减少动效下放歌仍随拍呼吸', 'bass=' + iF.audio.bass + ' skyU=' + iF.skyU);
   assert(errs.length === 0, 'reduce-motion 上下文无报错', errs.slice(0, 4).join(' | '));
   await ctx.close();
 }

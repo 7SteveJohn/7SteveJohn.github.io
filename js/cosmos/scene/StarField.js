@@ -22,10 +22,12 @@ const VERT = /* glsl */`
 `;
 const FRAG = /* glsl */`
   uniform sampler2D uSprite;
+  uniform float uForm;
   varying float vTw;
   void main() {
     vec4 s = texture2D(uSprite, gl_PointCoord);
-    gl_FragColor = vec4(vec3(0.82, 0.86, 1.0) * s.rgb, s.a) * vTw;
+    // 聚拢成形时粒子群更亮（IGLOO 成形段的"点亮"感）
+    gl_FragColor = vec4(vec3(0.82, 0.86, 1.0) * s.rgb, s.a) * vTw * (0.85 + 0.55 * uForm);
   }
 `;
 
@@ -84,6 +86,7 @@ export class StarField {
       uTreble: { value: 0 },
       uPixel: { value: 1.3 },
       uGlow: { value: 0 },
+      uForm: { value: 0 },
       uCursor: { value: new THREE.Vector3(1e9, 1e9, 0) },
       uSprite: { value: softSprite() }
     };
@@ -110,6 +113,18 @@ export class StarField {
     const { repulsionRadius, repulsionForce, spring, clickKick } = this.cfg.stars;
     // 回弹按墙钟指数衰减（帧率无关：3fps 的测试环境和 60fps 的真机收敛速度一致）
     const decay = Math.exp(-spring * Math.min(dtMs, 100) / 16.7);
+    // —— 聚散叙事（IGLOO 式"粒子成形"）：scatter → converge → hold → release 循环 ——
+    // m: 0=散布(home) 1=成形(target)；形状每轮轮换；t 是 sceneT，reduce-motion 下随 timeScale 慢放
+    const N = this.cfg.narr;
+    const ct = t % N.cycle;
+    const ss = (x) => { x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 * x); };
+    let form;
+    if (ct < N.tConv) form = ss(ct / N.tConv);
+    else if (ct < N.tConv + N.tHold) form = 1;
+    else form = 1 - ss((ct - N.tConv - N.tHold) / (N.cycle - N.tConv - N.tHold));
+    this.form = form;
+    this.uniforms.uForm.value = form;
+    const kind = Math.floor(t / N.cycle) % 3;   // 0 球壳 1 波浪原 2 双环
     const pos = this.points.geometry.attributes.position.array;
     const r2 = repulsionRadius * repulsionRadius;
     let maxOff = 0;
@@ -118,8 +133,7 @@ export class StarField {
       const ix = i * 3;
       let ox = this.off[ix], oy = this.off[ix + 1];
       const hx = this.home[ix], hy = this.home[ix + 1];
-      const px = hx + ox, py = hy + oy;
-      const dx = px - mx, dy = py - my;
+      const dx = hx + ox - mx, dy = hy + oy - my;
       const d2 = dx * dx + dy * dy;
       if (d2 < r2 && d2 > 1e-6) {
         const d = Math.sqrt(d2);
@@ -131,15 +145,41 @@ export class StarField {
       ox *= decay;
       oy *= decay;
       this.off[ix] = ox; this.off[ix + 1] = oy;
-      const m = Math.abs(ox) + Math.abs(oy);
-      if (m > maxOff) maxOff = m;
-      pos[ix] = hx + ox; pos[ix + 1] = hy + oy;
+      let px = hx + ox, py = hy + oy;
+      if (form > 0.001) {
+        // 目标形状点（x/y 平面；z 保持 home 深度，视差保留）
+        let tx, ty;
+        const fr = i / this.count;
+        if (kind === 0) {          // 球壳轮廓：golden angle 均匀绕圆，缓慢自转
+          const a = i * 2.399963 + t * 0.06;
+          const rr = 1.55 + 0.5 * Math.sin(i * 12.9898);
+          tx = Math.cos(a) * rr; ty = Math.sin(a) * rr * 0.72;
+        } else if (kind === 1) {   // 波浪原：一条起伏的粒子地平线
+          tx = (fr - 0.5) * 6.4;
+          ty = -0.55 + Math.sin(tx * 1.4 + t * 0.35) * 0.16 + Math.sin(fr * 40.0) * 0.03;
+        } else {                   // 双环：外环 + 内环反向转
+          const inner = i % 2 === 0;
+          const a = i * (inner ? -0.41 : 0.29) + t * (inner ? -0.12 : 0.07);
+          const rr = inner ? 0.85 : 2.05;
+          tx = Math.cos(a) * rr; ty = Math.sin(a) * rr * 0.6;
+        }
+        const k = form * (0.92 + 0.08 * Math.sin(t * 0.7 + i));   // 成形后仍有微呼吸，不是冻结
+        px = hx + (tx - hx) * k + ox * (1 - form * 0.75);
+        py = hy + (ty - hy) * k + oy * (1 - form * 0.75);
+      }
+      const mo = Math.abs(ox) + Math.abs(oy);
+      if (mo > maxOff) maxOff = mo;
+      pos[ix] = px; pos[ix + 1] = py;
     }
     this.maxOff = maxOff;
     this.points.geometry.attributes.position.needsUpdate = true;
   }
   setPixelScale(v) { this.uniforms.uPixel.value = v; }
   reset() { this.off.fill(0); this.maxOff = 0; }
+  // Beat → 全体粒子向 home/形状位一记收拢（呼吸式脉冲，比 kick 温柔得多）
+  kickPulse() {
+    for (let i = 0; i < this.off.length; i++) this.off[i] *= 0.45;
+  }
   // 点击天空：星尘从点击点四散一记（力随距离衰减，快起慢回交给弹簧）
   kick(world) {
     const R = 2.6;

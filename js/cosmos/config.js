@@ -16,7 +16,10 @@ export const CONFIG = {
     spring: 0.03,                                  // 回弹稍慢一点，看得见过程
     trebleRatio: 0.25,                             // 只有 1/4 星尘响应高频，禁止全屏同步闪
     cursorGlow: 0.5,                               // 光标附近星尘提亮（近者亮，远者不搭理）
-    clickKick: 0.55                                // 点击天空：星尘从点击点四散
+    clickKick: 0.55                                // 点击：星尘从点击点四散
+  },
+  narr: {                                          // 聚散叙事（IGLOO 式"粒子成形"）
+    cycle: 26, tConv: 5, tHold: 7                  // 散(其余) → 聚5s → 定7s → 散，形状每轮轮换
   },
   audio: {
     attack: 0.4, release: 0.055,   // 包络：攻击快、释放慢（墙钟 dt）
@@ -29,14 +32,6 @@ export const CONFIG = {
     attack: 0.5, release: 0.07,    // pulse 包络
     lakeRipple: 0.55               // Beat → 湖心荡开一圈涟漪
   },
-  water: {
-    waveSpeed: 1.8, rippleDecay: 0.94,
-    rippleBoost: 0.85,             // 鼠标划过时注入的涟漪强度
-    clickSplash: 1.6,              // 点击湖面：一记大水波
-    bassToReflect: 0.25,           // Bass → 反射强度变化
-    bassToWave: 0.6,               // Bass → 波纹起伏幅度（湖面跟着鼓点荡）
-    heightFrac: 0.25               // 湖面占视口底部 25%
-  },
   motion: {
     timeScale: 1,
     timeScaleReduce: 0.12,         // 减少动效 = 极慢连续动，不再停笔
@@ -44,7 +39,6 @@ export const CONFIG = {
   },
   perf: { dprMax: 2, dprMaxMobile: 1.5 },
   assets: {
-    sky: 'assets/cosmos/sky.webp',
     mountainsFar: 'assets/cosmos/mountains_far.png',
     mountainsNear: 'assets/cosmos/mountains_near.png'
   }

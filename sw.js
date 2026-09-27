@@ -6,7 +6,7 @@
  * - 其余同源/静态资源：缓存优先 + 后台更新（stale-while-revalidate）
  * ⚠️ 每次发布改动静态资源后，把 CACHE 版本号 +1，旧缓存会在 activate 阶段自动清理。
  */
-const CACHE = 'sevenjohn-v54';
+const CACHE = 'sevenjohn-v55';
 const CORE = [
   './',
   'index.html',
@@ -18,12 +18,11 @@ const CORE = [
   'js/cosmos/main.js',   // 2.5D 银河湖泊场景主渲染（规格书架构，WebGL / three.js 自托管）
   'js/cosmos/scene/SkyLayer.js',
   'js/cosmos/scene/MountainLayer.js',
-  'js/cosmos/scene/WaterLayer.js',
+  'js/cosmos/scene/GroundFog.js',
   'js/cosmos/scene/StarField.js',
   'js/cosmos/audio/AudioManager.js',
   'js/cosmos/audio/BeatDetector.js',
   'js/cosmos/interaction/InteractionManager.js',
-  'assets/cosmos/sky.webp',
   'assets/cosmos/mountains_far.png',
   'assets/cosmos/mountains_near.png',
   'assets/vendor/three.module.min.js',
