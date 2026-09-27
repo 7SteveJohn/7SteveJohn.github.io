@@ -61,7 +61,7 @@ function boot() {
 
   function start(skyTex, farTex, nearTex) {
     const sky = new SkyLayer(scene, CFG, skyTex);
-    new MountainLayer(scene, CFG, farTex, nearTex);
+    const mts = new MountainLayer(scene, CFG, farTex, nearTex);
     const water = new WaterLayer(scene, CFG, skyTex);
     const stars = new StarField(scene, CFG, isMobile);
     const audio = new AudioManager(CFG);
@@ -123,7 +123,8 @@ function boot() {
       sky.update(sceneT, a.bass, a.mid, breathe);
       water.setMouseUV(interaction.waterUV, interaction.waterActive);
       water.update(sceneT, a.bass);
-      stars.update(sceneT, a.treble, interaction.mouseWorld, interaction.hasMouse);
+      stars.update(sceneT, a.treble, interaction.mouseWorld, interaction.hasMouse, dtMs);
+      mts.update(sceneT);
 
       // 首帧落画布：淡入（黑屏感 → 平滑显影）
       if (frameNo === 1) { canvas.style.opacity = '1'; }

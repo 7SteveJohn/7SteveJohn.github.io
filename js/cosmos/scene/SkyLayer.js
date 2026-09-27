@@ -17,6 +17,8 @@ const FRAG = /* glsl */`
     float coreBrightness = 1.0 + uBass * 0.25 + uBreathe;
     vec3 c = tex.rgb * coreBrightness;
     c += vec3(0.05, 0.02, 0.08) * uMid * nebulaMask;
+    // IGLOO 式冷灰 grade：轻降饱和 + 微偏冷蓝（幅度小，保持真实摄影质感）；lum 上面已算过
+    c = mix(c, vec3(lum) * vec3(0.90, 0.97, 1.10), 0.16);
     gl_FragColor = vec4(c, 1.0);
   }
 `;

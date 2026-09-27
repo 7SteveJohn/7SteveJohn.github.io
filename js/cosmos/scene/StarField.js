@@ -94,13 +94,22 @@ export class StarField {
     this.points.renderOrder = 4;
     scene.add(this.points);
     this.maxOff = 0;   // 探针用：当前最大排斥位移
+    // 入场：粒子从雾中四散 → 弹簧聚拢成形（IGLOO 式"粒子成形"开场，物理复用排斥的回位机制）
+    for (let i = 0; i < count; i++) {
+      const ang = Math.random() * Math.PI * 2;
+      const r = 2.5 + Math.random() * 3.5;
+      this.off[i * 3] = Math.cos(ang) * r;
+      this.off[i * 3 + 1] = Math.sin(ang) * r * 0.6;
+    }
   }
-  update(t, treble, mouseWorld, hasMouse) {
+  update(t, treble, mouseWorld, hasMouse, dtMs = 16.7) {
     this.uniforms.uTime.value = t;
     this.uniforms.uTreble.value = treble * this.cfg.audio.trebleToStars;
     this.uniforms.uGlow.value = hasMouse ? this.cfg.stars.cursorGlow : 0;
     this.uniforms.uCursor.value.copy(hasMouse ? mouseWorld : this.uniforms.uCursor.value.set(1e9, 1e9, 0));
     const { repulsionRadius, repulsionForce, spring, clickKick } = this.cfg.stars;
+    // 回弹按墙钟指数衰减（帧率无关：3fps 的测试环境和 60fps 的真机收敛速度一致）
+    const decay = Math.exp(-spring * Math.min(dtMs, 100) / 16.7);
     const pos = this.points.geometry.attributes.position.array;
     const r2 = repulsionRadius * repulsionRadius;
     let maxOff = 0;
@@ -118,9 +127,9 @@ export class StarField {
         ox += (dx / d) * f;
         oy += (dy / d) * f;
       }
-      // 弹簧回弹（缓慢，不瞬回）
-      ox -= ox * spring;
-      oy -= oy * spring;
+      // 弹簧回弹（缓慢，不瞬回；帧率无关）
+      ox *= decay;
+      oy *= decay;
       this.off[ix] = ox; this.off[ix + 1] = oy;
       const m = Math.abs(ox) + Math.abs(oy);
       if (m > maxOff) maxOff = m;

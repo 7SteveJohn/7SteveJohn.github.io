@@ -208,3 +208,21 @@ body { background: #030712; }
   .cosmos-btn:active { transform: none; }
   #cosmos-fold, .cosmos-file, .cosmos-btn, .cosmos-chip { transition: none; }
 }
+
+/* ===== IGLOO 式 HUD 角标：等宽小字，纯装饰，不拦截任何交互 ===== */
+.cosmos-hud {
+  position: fixed;
+  z-index: 1;
+  pointer-events: none;
+  font-family: ui-monospace, Consolas, "Courier New", monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(158, 176, 202, 0.40);
+  user-select: none;
+}
+.cosmos-hud.tl { left: 18px; top: 64px; }
+.cosmos-hud.tr { right: 18px; top: 64px; text-align: right; }
+@media (max-width: 640px) {
+  .cosmos-hud { display: none; }   /* 手机上别抢地方 */
+}
