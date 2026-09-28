@@ -109,7 +109,7 @@ function boot() {
         lastFov = fov;
       }
 
-      field.update(sceneT, a, interaction.mouseWorld, interaction.hasMouse, dtMs);
+      field.update(sceneT, a, interaction.mouseWorld, interaction.hasMouse, dtMs, beat.pulse);
 
       // 首帧落画布：淡入（黑屏感 → 平滑显影）
       if (frameNo === 1) { canvas.style.opacity = '1'; }

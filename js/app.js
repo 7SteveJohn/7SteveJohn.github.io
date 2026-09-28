@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initNavigation();
   initNavScrollState();
   initSmoothAnchors();
+  initScrollSpy();
 
  // 5. 滚动浮现编排（ section reveal，含错峰）
   observeReveals();
@@ -109,11 +110,10 @@ function initTheme() {
    2. 项目作品集模块 (Projects)
    ============================================================ */
 /* 将 projects.js 数据水合到首页产品卡片（下载/仓库/Releases 链接与提取码单一数据源） */
-/* 项目「我的角色 / 周期 / 技术难点」三行：数据只写在 projects.js，卡片与详情弹窗共用同一份 */
+/* 项目「角色 / 技术难点」两行：数据只写在 projects.js，卡片与详情弹窗共用同一份 */
 function buildProjectFacts(project) {
   return [
-    ['我的角色', project.role],
-    ['周期', project.period],
+    ['角色', project.role],
     ['技术难点', project.challenge]
   ]
     .filter(([, value]) => value)
@@ -130,7 +130,7 @@ function hydrateProductLinks() {
     const project = (window.PROJECTS_DATA || []).find(p => p.id === card.dataset.projectId);
     if (!project) return;
 
-    // 卡片上的三行署名信息（容器在 index.html 里是空壳，没数据就保持隐藏）
+    // 卡片上的两行署名信息（容器在 index.html 里是空壳，没数据就保持隐藏）
     const facts = card.querySelector('[data-facts]');
     const factsHtml = buildProjectFacts(project);
     if (facts && factsHtml) {
@@ -194,7 +194,7 @@ window.openProjectModal = function(id) {
       </div>
 
       ${factsHtml ? `
-      <!-- 我的角色 / 周期 / 技术难点与解法 -->
+      <!-- 角色 / 技术难点与解法 -->
       <div class="project-facts">${factsHtml}</div>
       ` : ''}
 
@@ -1079,6 +1079,47 @@ function initNavScrollState() {
   }
 }
 
+// ScrollSpy：滚动时高亮当前区块对应的导航链接（产品页式"你在哪一节"）
+// 判据：视口 38% 高度这条线落在哪个区块内（短区块也能命中，IO 阈值法会漏）
+function initScrollSpy() {
+  const navLinks = [...document.querySelectorAll('header.site-header nav a[href^="#"]')];
+  if (!navLinks.length) return;
+  const byId = {};
+  navLinks.forEach((a) => { byId[a.getAttribute('href').slice(1)] = a; });
+  const sections = Object.keys(byId)
+    .map((id) => document.getElementById(id))
+    .filter((s) => s && s.offsetHeight > 0);   // 空模块被 display:none 隐藏，rect.top=0 会抢高亮，剔除
+  if (!sections.length) return;
+  // 按 DOM 顺序判"当前在哪节"（导航顺序 ≠ 文档顺序：手记在理念/关于后面）
+  sections.sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
+
+  const setActive = (id) => {
+    navLinks.forEach((a) => a.classList.toggle('nav-active', a === byId[id]));
+  };
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const line = window.scrollY + window.innerHeight * 0.38;
+    let cur = sections[0].id;
+    for (const s of sections) {
+      const top = s.getBoundingClientRect().top + window.scrollY;
+      if (top <= line) cur = s.id;
+    }
+    // 滚到页底：点亮最后一个导航区块（尾部长内容不抢高亮）
+    if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2) {
+      cur = sections[sections.length - 1].id;
+    }
+    setActive(cur);
+  };
+  window.addEventListener('scroll', () => {
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
+  }, { passive: true });
+  window.addEventListener('resize', () => {
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
+  }, { passive: true });
+  update();
+}
+
 // 锚点滚动：替换浏览器原生 smooth，改用 easeOutQuint 缓动（快起长滑），滚轮/触摸可随时打断
 let smoothScrollTo = function (targetY) {
   window.scrollTo(0, targetY);
@@ -1133,22 +1174,8 @@ function initSmoothAnchors() {
     if (!target) return;
     e.preventDefault();
     const y = href === '#home' ? 0 : target.getBoundingClientRect().top + window.scrollY - 64;
-
-    // 页面切换：整页优雅换页（旧页下沉淡出、新页上浮浮现，区块内容随后级联浮现）
-    // 减少动效或不支持 VT 的浏览器回退为缓动滚动
-    const jump = () => {
-      document.documentElement.style.scrollBehavior = 'auto';
-      window.scrollTo(0, Math.max(0, y));
-      document.documentElement.style.scrollBehavior = '';
-    };
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (document.startViewTransition && !reduce) {
-      document.documentElement.classList.add('vt-nav');
-      const vt = document.startViewTransition(jump);
-      vt.finished.finally(() => document.documentElement.classList.remove('vt-nav'));
-    } else {
-      smoothScrollTo(Math.max(0, y));
-    }
+    // 产品页式切换：缓动滑到目标区块，区块内容由 reveal 级联浮现
+    smoothScrollTo(Math.max(0, y));
     history.pushState(null, '', href);
   });
 }

@@ -298,6 +298,14 @@ html:not(.dark) .bento-card:hover {
   transform: scale(1);
 }
 
+/* 项目卡封面统一排版：五张卡同一比例（1298:667 实拍比例）、同一裁切，高度不再随图飘 */
+.cover-img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1298 / 667;
+  object-fit: cover;
+}
+
 /* 导航滚动状态：顶部无边框，下滑后浮现边框 */
 header.site-header {
   transition: border-color 0.3s ease, background-color 0.3s ease;
@@ -412,6 +420,17 @@ header.site-header:not(.is-scrolled) {
 .site-header.on-cover button:hover { color: #ffffff !important; }
 .site-header.on-cover .btn-primary { background: #f5f5f7 !important; color: #1d1d1f !important; }
 .site-header.on-cover .btn-primary:hover { background: #ffffff !important; }
+
+/* ScrollSpy：当前区块对应的导航链接高亮（下划线不占布局，随主题/封面配色） */
+header.site-header nav a.nav-active {
+  color: #1d1d1f !important;
+  text-decoration: underline;
+  text-underline-offset: 6px;
+  text-decoration-thickness: 1px;
+}
+html.dark header.site-header nav a.nav-active {
+  color: #ffffff !important;
+}
 @media (max-width: 720px) {
   #home { padding-top: max(4.5rem, 11svh); padding-bottom: 4.5rem; }
   #home .hero-who { left: 16px; bottom: 14px; }
@@ -419,21 +438,8 @@ header.site-header:not(.is-scrolled) {
 
 /* ============================================================
    View Transitions（页面级）
-   1. 导航跳转 = 整页换页：旧页下沉淡出，新页上浮浮现
-   2. 明暗切换 = 从点击处圆形扩散开新主题
+   1. 明暗切换 = 从点击处圆形扩散开新主题
    ============================================================ */
-html.vt-nav::view-transition-old(root) {
-  animation: vt-nav-out 0.18s var(--ease-exit) both;
-}
-html.vt-nav::view-transition-new(root) {
-  animation: vt-nav-in 0.42s var(--ease-swift) both;
-}
-@keyframes vt-nav-out {
-  to { opacity: 0; transform: translateY(-14px); }
-}
-@keyframes vt-nav-in {
-  from { opacity: 0; transform: translateY(26px); }
-}
 
 /* 明暗切换的圆形扩散：旧快照保持不动，新快照由 JS 驱动 clip-path 展开 */
 ::view-transition-old(root),

@@ -7,7 +7,7 @@ export const CONFIG = {
     parallaxStrengthY: 0.24,
     damping: 0.05,
     scrollStrength: 0.55,      // 滚动一屏带来的纵深偏移
-    beatFovPulse: 0.3          // Beat → FOV 60.0→60.3，"空间在呼吸"不是"网页在震动"
+    beatFovPulse: 0.8          // Beat → FOV 60.0→60.8，"空间在呼吸"不是"网页在震动"
   },
   // 交互拾取平面（射线与哪一层求交）：取场的中部
   layers: { fieldZ: -2.5 },
@@ -29,7 +29,8 @@ export const CONFIG = {
   },
   edges: {
     base: 0.11,                // 连边底亮（暗到能当背景，又看得见结构）
-    bassGain: 0.6,             // Bass → 连边底亮
+    bassGain: 2.4,             // Bass → 连边底亮（要肉眼可见，不是若有若无）
+    beatGain: 0.9,             // Beat 瞬间连边整体提亮（随 pulse 包络起落）
     heatGain: 1.25,            // 脉冲经过的余温亮度
     heatTau: 0.16,             // 余温衰减时间常数（秒）
     cursorGain: 0.22           // 光标邻近连边提亮
@@ -37,10 +38,10 @@ export const CONFIG = {
   pulses: {
     count: 34, countMobile: 15,
     size: 3.4,
-    speed: 0.5,                // 归一化边长的推进速度（静默态也在跑）
-    midGain: 1.0,              // Mid → 脉冲速度
-    waveSpeed: 1.1,            // Beat 前传波扫过全程的速度
-    beatBurst: 6               // Beat 一次从输入层放几记
+    speed: 0.55,               // 归一化边长的推进速度（静默态也在跑）
+    midGain: 2.2,              // Mid → 脉冲速度（音乐中频一起，脉冲明显加速）
+    waveSpeed: 1.6,            // Beat 前传波扫过全程的速度
+    beatBurst: 14              // Beat 一次从输入层放几记（肉眼要看得见"一波"）
   },
   ambient: {
     count: 3,                  // 极暗的加色辉光面，免得纯黑发死
@@ -48,9 +49,7 @@ export const CONFIG = {
   },
   audio: {
     attack: 0.4, release: 0.055,   // 包络：攻击快、释放慢（墙钟 dt）
-    bassToBrightness: 0.25,        // Bass → 连边/辉光亮度
-    midToNebula: 0.6,              // Mid → 脉冲速度（见 pulses.midGain）
-    trebleToStars: 0.6             // Treble → 少量节点亮度
+    trebleToStars: 1.3             // Treble → 少量节点亮度
   },
   beat: {
     rise: 0.07, minGap: 220,       // 能量涨幅判据 + 不应期（无 __BEAT 时自检）

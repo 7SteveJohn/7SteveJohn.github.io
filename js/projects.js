@@ -17,8 +17,7 @@
  * - downloadUrl: 下载地址（如蓝奏云网盘链接，若暂无则不填该字段）
  * - downloadPwd: 下载提取码/密码（与 downloadUrl 配套，若无密码则不填）
  * - featured: 是否推荐在醒目位置展示 (true / false)
- * - role: 我的角色（独立开发 / 一个人负责哪些部分）
- * - period: 开发周期（YYYY.MM – YYYY.MM）
+ * - role: 我在项目里担任的角色（只写当了什么，别强调独立/一个人）
  * - challenge: 技术难点与解法（写清「难在哪 + 怎么解的」，别写成功能介绍）
  * - details: 点击查看详情时的完整介绍（支持 Markdown 或文字排版）
  */
@@ -37,8 +36,7 @@ window.PROJECTS_DATA = [
     downloadUrl: "https://wwblz.lanzouu.com/iH09N49fsrcb",
     downloadPwd: "cens",
     featured: true,
-    role: "独立开发 · 后端管线与桌面界面都是我一个人做的",
-    period: "2026.03 – 2026.09",
+    role: "开发",
     challenge: "难点是「搜得快」和「撤得回」互相打架：几万份文件要秒级出结果，但整理动作必须能反悔。解法是分两条索引——文件名与长文本走 SQLite FTS5 倒排（毫秒级），语义问答交给 bge-m3 向量库在后台空闲时慢慢建；所有移动都先生成方案、勾选确认后才执行，每一步写事务日志，出错按批次整体回滚。",
     // ↓ 版本/运行环境/校验码：填上即显示在弹窗里，留空自动隐藏
     version: "v1.1.6",
@@ -79,8 +77,7 @@ window.PROJECTS_DATA = [
     downloadUrl: "https://wwblz.lanzouu.com/iTcqo46ntzy",
     downloadPwd: "9uma",
     featured: true,
-    role: "独立开发 · 内容整理、单页前端和 Android 壳层都是我一个人做的",
-    period: "2026.05 – 2026.08",
+    role: "开发",
     challenge: "难点是「断网也要能翻」这条硬约束把所有常规方案都否掉了：CDN、在线搜索、远端更新全不能用。解法是把 58 个模块编译进单个 HTML 文件随包带走，导航栈自己写（file:// 下浏览器 history 行为不可靠），图形样式全部内联；Android 端索性不申明 INTERNET 权限，从系统层面断掉联网可能，而不是靠自觉。",
     // ↓ 版本/运行环境/校验码：填上即显示在弹窗里，留空自动隐藏
     version: "",
@@ -118,8 +115,7 @@ NetOps 是一本**能装进口袋的离线网络小册子**。断网、没信号
     downloadUrl: "https://wwblz.lanzouu.com/i1XLQ47ddyhe",
     downloadPwd: "8uz7",
     featured: false,
-    role: "独立开发 · 优化项调研、实现与回滚逻辑都是我一个人做的",
-    period: "2026.03 – 2026.04",
+    role: "开发",
     challenge: "难点不是「能不能改」，是「改错了怎么救回来」——电源计划、定时器分辨率、注册表这些动错了系统就废。解法是执行前统一导出备份快照（backup/），每一项都能单独关、整体一键还原。踩过的坑：单实例锁用的是局部 Mutex，被 .NET 垃圾回收后锁失效，能同时开好几个窗口，改成静态持有后修掉。",
     // ↓ 版本/运行环境/校验码：填上即显示在弹窗里，留空自动隐藏
     version: "",
@@ -154,8 +150,7 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
     downloadUrl: "https://pan.baidu.com/s/1johUjnwCEfmjpwuz66tqyA?pwd=rw94",
     downloadPwd: "rw94",
     featured: false,
-    role: "独立开发 · 自用工具整理出的分享版",
-    period: "2026.07 – 2026.09",
+    role: "开发",
     challenge: "难点是「注入完没法判断到底生效没有」：DLL 被加载进进程，不等于被调用。解法是不再靠猜——用日志文件加目标进程已加载模块列表双证据判定代理是否真激活；没激活就自动换下一个入口 DLL 重试（《赛博朋克 2077》对 version.dll 只加载不调用，换 winmm.dll 后才真正生效）。",
     version: "v1.0.0",
     updated: "2026-09-20",
@@ -193,8 +188,7 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
     tags: ["C#", "WinForms", "51 项体检", "DLSS 帧生成", "游戏联动", "实时监控"],
     image: "assets/images/cover-fluxion.webp",
     featured: true,
-    role: "独立开发 · 把两个自用工具合并重构，一个人做完",
-    period: "2026.06 – 2026.09",
+    role: "开发",
     challenge: "两件事最难：一是 51 项系统改动要「真的生效」且能一键还原，二是 20/30 系帧生成代理经常「加载了但没激活」。解法分别是：每项执行前先备份并把状态分成已生效 / 未生效 / 待确认 / 需处理四档，HPET 强制、MSI 强制转换这类改错会丢设备的项只核验不给旋钮；代理是否激活用日志 + 进程模块双证据判定，失败自动换入口 DLL 重试。",
     version: "v1.6.7",
     updated: "2026-09-21",

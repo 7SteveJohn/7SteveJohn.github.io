@@ -6,7 +6,7 @@ import * as THREE from 'three';
 
 const NODE_VERT = /* glsl */`
   attribute float aSize, aPhase, aSpeed, aTreble, aDepth;
-  uniform float uTime, uTreble, uPixel, uGlow, uWave, uWavePos;
+  uniform float uTime, uTreble, uPixel, uGlow, uWave, uWavePos, uBeat;
   uniform vec3 uCursor;
   varying float vTw;
   varying float vD;
@@ -14,11 +14,12 @@ const NODE_VERT = /* glsl */`
     vec4 mv = modelViewMatrix * vec4(position, 1.0);
     float tw = 0.62 + 0.38 * sin(uTime * aSpeed + aPhase);   // 各节点独立闪烁，禁止同步
     tw += uTreble * 0.7 * aTreble;                            // 高频只碰少数节点
+    tw += uBeat * 0.55;                                       // Beat → 全场节点一起抬一下
     float d = distance(position.xy, uCursor.xy);
     tw += uGlow * smoothstep(1.6, 0.25, d);
     // 前传波：激活沿着层依次点亮（aDepth 0=输入层 → 1=输出层）
     float w = smoothstep(0.22, 0.0, abs(aDepth - uWavePos));
-    tw += uWave * w * 0.9;
+    tw += uWave * w * 1.6;
     vTw = tw;
     vD = aDepth;
     // 透视衰减做压缩（不是标准 1/z）：远层节点也得有 2~3px，否则整层缩成看不见的针尖
@@ -57,7 +58,7 @@ const PULSE_FRAG = /* glsl */`
   void main() {
     vec4 s = texture2D(uSprite, gl_PointCoord);
     vec3 c = mix(vec3(0.45, 0.95, 1.0), vec3(0.85, 1.0, 0.95), uBass);
-    gl_FragColor = vec4(c * s.rgb, s.a) * vA * (1.2 + uBass * 0.8);
+    gl_FragColor = vec4(c * s.rgb, s.a) * vA * (1.2 + uBass * 1.8);
   }
 `;
 
@@ -167,6 +168,7 @@ export class NeuralField {
     this.nodeUniforms = {
       uTime: { value: 0 }, uTreble: { value: 0 }, uPixel: { value: 1.3 },
       uGlow: { value: 0 }, uWave: { value: 0 }, uWavePos: { value: -0.3 },
+      uBeat: { value: 0 },
       uCursor: { value: new THREE.Vector3(1e9, 1e9, 0) },
       uSprite: { value: softSprite(0.32) }
     };
@@ -305,7 +307,7 @@ export class NeuralField {
   }
 
   /* ---------- 每帧更新 ---------- */
-  update(t, audio, mouseWorld, hasMouse, dtMs = 16.7) {
+  update(t, audio, mouseWorld, hasMouse, dtMs = 16.7, beatPulse = 0) {
     const F = this.cfg.field, E = this.cfg.edges, P = this.cfg.pulses;
     const dt = Math.min(dtMs, 100) / 1000;
     const bass = audio.bass || 0, mid = audio.mid || 0, treble = audio.treble || 0;
@@ -313,6 +315,7 @@ export class NeuralField {
 
     this.nodeUniforms.uTime.value = t;
     this.nodeUniforms.uTreble.value = treble * this.cfg.audio.trebleToStars;
+    this.nodeUniforms.uBeat.value = beatPulse;
     this.nodeUniforms.uGlow.value = hasMouse ? F.cursorGlow : 0;
     if (hasMouse) this.nodeUniforms.uCursor.value.copy(mouseWorld);
     else this.nodeUniforms.uCursor.value.set(1e9, 1e9, 0);
@@ -378,7 +381,7 @@ export class NeuralField {
       const cxp = (ax + bx) * 0.5, cyp = (ay + by) * 0.5;
       const dc = Math.hypot(cxp - mx, cyp - my);
       const cur = hasMouse ? E.cursorGain * Math.max(0, 1 - dc / F.cursorRadius) : 0;
-      const lum = base + h * E.heatGain + cur;
+      const lum = base + h * E.heatGain + cur + beatPulse * E.beatGain;
       // 远层偏冷蓝、近层偏青白，深度上做区分
       const f = this.depthOf[a];
       const r = lum * (0.35 + 0.35 * f), g2 = lum * (0.7 + 0.25 * f), bl = lum;
@@ -389,11 +392,11 @@ export class NeuralField {
     this.edgeMesh.geometry.attributes.position.needsUpdate = true;
     this.edgeMesh.geometry.attributes.color.needsUpdate = true;
 
-    // 环境辉光缓慢漂移 + 随低频呼吸
+    // 环境辉光缓慢漂移 + 随低频呼吸（呼吸幅度要肉眼可见）
     for (const g of this.glows) {
       g.mesh.position.x = g.px + Math.sin(t * g.sp) * 1.6;
       g.mesh.position.y = g.py + Math.cos(t * g.sp * 0.8) * 0.8;
-      g.mesh.material.opacity = this.cfg.ambient.opacity * (0.7 + bass * 0.6);
+      g.mesh.material.opacity = this.cfg.ambient.opacity * (0.7 + bass * 1.4 + beatPulse * 0.8);
     }
 
     // 整场极缓慢摆动：静默时也有"活着"的位移

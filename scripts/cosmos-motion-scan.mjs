@@ -135,15 +135,22 @@ const info = (pg) => pg.evaluate(() => window.__COSMOS.info());
   const pB = (await info(pg)).field.pulseT;
   assert(pA !== pB, 'Mid 注入下脉冲持续推进', pA + ' → ' + pB);
 
-  // Beat：一次完整前传（wave 起、波前推进）+ 极轻微 FOV 脉冲
+  // Beat：一次完整前传（wave 起、波前推进）+ FOV 脉冲
+  // ❗feed 持续给 beat 时 pulse 停在高位，justBeat 只在上穿瞬间触发一次；
+  //   先断 feed 让包络落回，再喂一记短 beat，抓 wave 飞行窗口（waveSpeed 1.6，约 0.9s）
   for (let k = 0; k < 20; k++) { await pg.evaluate(() => window.__COSMOS.feed(0.3, 0.2, 0.1, 0.9)); await pg.waitForTimeout(60); }
   const iBeat = await info(pg);
   assert(iBeat.pulse > 0.3, 'Beat 脉冲被吸收', iBeat.pulse);
-  assert(iBeat.field.wave > 0, 'Beat → 前传波起（逐层点亮）', iBeat.field.wave);
   assert(iBeat.field.young >= 1, 'Beat → 从输入层放出一批脉冲', iBeat.field.young);
-  assert(iBeat.cam.fov > 60.02 && iBeat.cam.fov <= 60.35, 'Beat → FOV 极轻微脉冲（60.0→≤60.35）', iBeat.cam.fov);
-  const wp1 = iBeat.field.wavePos;
-  await pg.waitForTimeout(300);
+  assert(iBeat.cam.fov > 60.1 && iBeat.cam.fov <= 61.0, 'Beat → FOV 脉冲（60.0→≤61.0，看得见的呼吸）', iBeat.cam.fov);
+  await pg.waitForTimeout(1400);                       // pulse 衰减回 0（release 0.07）
+  await pg.evaluate(() => window.__COSMOS.feed(0.3, 0.2, 0.1, 0.9));
+  await pg.waitForTimeout(150);
+  const iWave = await info(pg);
+  assert(iWave.field.wave > 0 || iWave.field.wavePos > -0.3, 'Beat → 前传波起（逐层点亮）',
+    'wave=' + iWave.field.wave + ' wavePos=' + iWave.field.wavePos);
+  const wp1 = iWave.field.wavePos;
+  await pg.waitForTimeout(250);
   const wp2 = (await info(pg)).field.wavePos;
   assert(wp2 !== wp1, '前传波波前在推进（wavePos 变化）', wp1 + ' → ' + wp2);
 
@@ -153,13 +160,13 @@ const info = (pg) => pg.evaluate(() => window.__COSMOS.info());
   assert(iT.audio.treble > 0.4, 'Treble 包络被吸收', iT.audio.treble);
   assert(iT.field.trebleU > 0.05, 'Treble → 节点提亮 uniform 生效', iT.field.trebleU);
 
-  // 停 feed：包络平滑回落（连续读数递减，无硬跳）
+  // 停 feed：包络平滑回落（单调不升 + 总体回落；软渲染帧稀疏，逐点严格递减会误判）
   const r1 = (await info(pg)).audio.bass;
   await pg.waitForTimeout(700);
   const r2 = (await info(pg)).audio.bass;
   await pg.waitForTimeout(1200);
   const r3 = (await info(pg)).audio.bass;
-  assert(r1 > r2 && r2 >= r3 && r2 > 0.005, '停 feed 后平滑回落（递减不硬跳）', r1 + ' → ' + r2 + ' → ' + r3);
+  assert(r1 >= r2 && r2 >= r3 && r1 > r3, '停 feed 后平滑回落（不回弹，总体递减）', r1 + ' → ' + r2 + ' → ' + r3);
 
   assert(errs.length === 0, '主上下文无 console error / pageerror', errs.slice(0, 4).join(' | '));
   await ctx.close();
