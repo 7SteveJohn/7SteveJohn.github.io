@@ -1,7 +1,8 @@
 /**
- * 星河背景层 (js/cosmos.js)
+ * 背景层 · 2D 回退 (js/cosmos.js)
  * ============================================================
- * 定位：博客首页的最底层背景。画布 position:fixed 铺满视口，页面上下滚动时它不动。
+ * 定位：无 WebGL / 3D 初始化失败时的 2D 回退背景（主场景是 js/cosmos/ 的本地推理场）。
+ *      画布 position:fixed 铺满视口，页面上下滚动时它不动。
  *      正文章之上；既是"看见就想读"的氛围，也是"读起来不碍事"的底噪——
  *      所以密度、亮度、运动幅度都按背景标准往下压（见 CFG.density / intensity / motion）。
  *
@@ -1835,7 +1836,7 @@
       this.bird.addEventListener('click', function () {
         rebuild(true, false);
         if (reduceMotion) runStillSettle();   // 停笔状态下重置：静默重走一遍入场再停笔
-        self.say('星河已重置 · 正在重新聚拢');
+        self.say('背景已重置 · 正在重新聚拢');
       });
 
       this.volValue = this.vol ? this.vol.value / 100 : 0.7;
@@ -1870,11 +1871,11 @@
       if (!this.state) return;
       var A = Sound;
       if (Sound.ownEl && !Sound.ownEl.paused) return this.say('本地曲目 · ' + (this.fileName || '播放中'));
-      if (Sound.siteEl && !Sound.siteEl.paused) return this.say('站点歌单 · 星河随音乐流动');
+      if (Sound.siteEl && !Sound.siteEl.paused) return this.say('站点歌单 · 背景随音乐流动');
       // 自诊断：系统「减少动效」开着时星河是有意停笔的，别让人以为坏了
       if (reduceMotion && stopped) return this.say('静止中 · 系统开了「减少动效」，放歌才随拍微动');
       if (A.loud > 0.02) return this.say('音频接入中');
-      return this.say('静音中 · 星河低强度运行');
+      return this.say('静音中 · 背景低强度运行');
     }
   };
 
