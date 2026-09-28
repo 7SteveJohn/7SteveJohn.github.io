@@ -51,7 +51,7 @@
   <link rel="preload" as="image" href="assets/images/cover-gameboost.webp" type="image/webp" fetchpriority="high" data-page-node-id="QlmDAI6H2v0ICOWeWtYYek" />
   <link rel="preload" as="image" href="assets/images/avatar.webp" type="image/webp" fetchpriority="high" data-page-node-id="ZCNmZpl9ihCiXW9dZYSWYX" />
 
-  <!-- 星河背景并行预载：three 引擎 + 场景脚本（场景已程序化，无母图） -->
+  <!-- 推理场背景并行预载：three 引擎 + 场景脚本（全程序化，无贴图） -->
   <link rel="modulepreload" href="assets/vendor/three.module.min.js" />
   <link rel="modulepreload" href="js/cosmos/main.js" />
 
@@ -94,16 +94,17 @@
 </head>
 <body class="bg-white text-[#1d1d1f] dark:bg-[#000000] dark:text-[#f5f5f7] min-h-screen transition-colors duration-200 antialiased" data-page-node-id="HMv6yxcstcjkCYNAATJeCG">
 
-  <!-- 星河背景画布（js/cosmos/main.js 渲染 2.5D 银河湖泊；无 WebGL 回退 js/cosmos.js 2D 版）：
+  <!-- 背景画布（js/cosmos/main.js 渲染「本地推理场」：分层节点网 + 沿边前传的脉冲；
+       无 WebGL / 初始化失败时回退 js/cosmos.js 2D 版）：
        固定铺满视口、压在所有内容之下，页面滚动时它不动 -->
   <canvas id="cosmos-canvas" aria-hidden="true"></canvas>
   <!-- 暗角 + 冷蓝环境辉光：CSS 静态层（cosmos.css .cosmos-veil），两版引擎共用 -->
   <div id="cosmos-veil" class="cosmos-veil" aria-hidden="true"></div>
   <!-- IGLOO 式 HUD 角标（纯装饰，等宽小字，不拦交互，手机上隐藏） -->
   <div class="cosmos-hud tl" aria-hidden="true">// sevenjohn</div>
-  <div class="cosmos-hud tr" aria-hidden="true">///// notes &amp; tools</div>
+  <div class="cosmos-hud tr" aria-hidden="true">///// local inference</div>
 
-  <!-- 背景光粒子画布（js/particles.js 渲染，服务主题不抢主体；星河背景在场时自动让位） -->
+  <!-- 背景光粒子画布（js/particles.js 渲染，服务主题不抢主体；3D 背景在场时自动让位） -->
   <canvas id="particle-canvas" aria-hidden="true" data-page-node-id="9SmLPF51YM79j7ATE8HasW"></canvas>
 
   <!-- 键盘无障碍跳转 -->
@@ -244,11 +245,11 @@
           <span data-page-node-id="imeIQ3vEO0Bb9XxIeBVnmJ">GitHub 上还有更多</span>
           <i data-lucide="chevron-right" class="w-4 h-4" data-page-node-id="TmrGCGCrH0HGqprPlX7rO3"></i>
         </a>
-        <!-- Enter Cosmos（规格书 §5）：点击即放歌，银河开始呼吸（用户手势内解锁 AudioContext） -->
+        <!-- 推理场入口：点击即放歌，脉冲跟着音乐跑（用户手势内解锁 AudioContext） -->
         <button id="cosmos-enter" type="button"
           class="btn-secondary px-5 py-2.5 text-sm inline-flex items-center gap-2"
-          title="放首歌——银河会跟着音乐呼吸">
-          <span aria-hidden="true">♫</span><span>放首歌，看看星河</span>
+          title="放首歌——推理场的脉冲会跟着音乐跑">
+          <span aria-hidden="true">♫</span><span>放首歌，看脉冲跑起来</span>
         </button>
       </div>
 
@@ -952,18 +953,18 @@
     <audio id="music-audio" preload="none"></audio>
   </div>
 
-  <!-- 右下角星河音频控制台（js/cosmos.js 驱动）：本地音乐上传 / 音量 / 重置星河。
-       刻意做小做淡，不与左下角歌单播放器抢星河的视觉重心；折叠后只剩一枚小圆钮。 -->
+  <!-- 右下角推理场音频控制台（js/cosmos/main.js 驱动）：本地音乐上传 / 音量 / 重置推理场。
+       刻意做小做淡，不与左下角歌单播放器抢视觉重心；折叠后只剩一枚小圆钮。 -->
   <div id="cosmos-dock" class="cosmos-dock">
-    <div id="cosmos-panel" class="cosmos-panel" role="group" aria-label="星河背景与音频控制">
+    <div id="cosmos-panel" class="cosmos-panel" role="group" aria-label="本地推理场背景与音频控制">
       <div class="cosmos-head">
-        <span class="cosmos-title">星河 · 音频</span>
-        <button id="cosmos-fold" type="button" aria-label="收起星河面板" aria-expanded="true" aria-controls="cosmos-body">
+        <span class="cosmos-title">推理场 · 音频</span>
+        <button id="cosmos-fold" type="button" aria-label="收起推理场面板" aria-expanded="true" aria-controls="cosmos-body">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </button>
       </div>
       <div id="cosmos-body" class="cosmos-body">
-        <label class="cosmos-file" title="选一首本地音乐，星河会跟着它流动">
+        <label class="cosmos-file" title="选一首本地音乐，推理场的脉冲会跟着它跑">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           <span>本地音乐</span>
           <input id="cosmos-file" type="file" accept="audio/*" hidden>
@@ -972,11 +973,11 @@
           <span class="cosmos-lab">音量</span>
           <input id="cosmos-vol" class="cosmos-range" type="range" min="0" max="100" step="1" value="70" aria-label="音量">
         </div>
-        <button id="cosmos-reset" class="cosmos-btn" type="button">重置星河场景</button>
-        <p id="cosmos-state" class="cosmos-state">静音中 · 星河低强度运行</p>
+        <button id="cosmos-reset" class="cosmos-btn" type="button">重置推理场</button>
+        <p id="cosmos-state" class="cosmos-state">静音中 · 推理场低频运行</p>
       </div>
     </div>
-    <button id="cosmos-chip" class="cosmos-chip" type="button" aria-label="展开星河控制面板" title="星河 · 音频" hidden>
+    <button id="cosmos-chip" class="cosmos-chip" type="button" aria-label="展开推理场控制面板" title="推理场 · 音频" hidden>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18"/><path d="M3 12h18"/><path d="m6 6 12 12"/><path d="m18 6-12 12"/></svg>
     </button>
     <audio id="cosmos-audio" preload="none"></audio>
@@ -990,8 +991,8 @@
   <script src="js/particles.js" defer></script>
   <script src="js/search.js" defer></script>
   <!-- importmap：把 three 的裸导入指到自托管副本（必须在任何 module script 之前）。
-       2.5D 银河湖泊场景（js/cosmos/main.js，规格书架构 Sky/Mountain/Water/StarField）；
-       无 WebGL 或素材加载失败时它内部自动回退加载 2D 版 js/cosmos.js -->
+       本地推理场场景（js/cosmos/main.js：分层节点网 + 沿边前传的脉冲）；
+       无 WebGL 或初始化失败时它内部自动回退加载 2D 版 js/cosmos.js -->
   <script type="importmap">
   {
     "imports": {

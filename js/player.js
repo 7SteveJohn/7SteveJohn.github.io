@@ -6,7 +6,7 @@
  * - 歌单改动直接改 SONGS 数组（src 用 ASCII 文件名，title 保留原名）
  * - 循环模式：顺序循环（默认）/ 单曲循环，模式按钮切换，localStorage 持久化
  * - 自定义歌曲顺序：歌单每项 ↑↓ 移动，顺序持久化（按 src 记录，新增曲目排尾）
- * - 音乐律动：AnalyserNode 产出 window.__BEAT（level/lv/mid/treble），js/cosmos.js 星河每帧读取
+ * - 音乐律动：AnalyserNode 产出 window.__BEAT（level/lv/mid/treble），js/cosmos/ 推理场每帧读取
  *   驱动外扩 / 涡流 / 云核爆亮 / 流星（同源 mp3 无 CORS 问题；MediaElementSource 对同一元素只能建一次）
  */
 (function () {
@@ -111,7 +111,7 @@
     const n = 8;
     for (let i = 0; i < n; i++) sum += BEAT_ARR[i];
     const energy = sum / n / 255;                  // 0..1
-    // 中频与高频顺手一起算：星河背景 js/cosmos.js 会读 window.__BEAT.mid / .treble
+    // 中频与高频顺手一起算：背景推理场 js/cosmos/ 会读 window.__BEAT.mid / .treble
     // 去驱动旋臂回旋与流星迸发（复用同一批 bin，不再建第二个 analyser）
     let sm = 0;
     for (let i = 10; i < 60; i++) sm += BEAT_ARR[i];
@@ -260,7 +260,7 @@
   }
 
   // —— 事件绑定 ——
-  // 给外部入口用（hero「放首歌，看看星河」按钮）：手势内建图 + 播放/暂停
+  // 给外部入口用（hero「放首歌」按钮）：手势内建图 + 播放/暂停
   window.__MUSIC = { togglePlay: function () { startBeat(); togglePlay(); } };
   const enterBtn = document.getElementById('cosmos-enter');
   if (enterBtn) enterBtn.addEventListener('click', function () { window.__MUSIC.togglePlay(); });

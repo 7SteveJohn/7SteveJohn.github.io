@@ -6,27 +6,22 @@
  * - 其余同源/静态资源：缓存优先 + 后台更新（stale-while-revalidate）
  * ⚠️ 每次发布改动静态资源后，把 CACHE 版本号 +1，旧缓存会在 activate 阶段自动清理。
  */
-const CACHE = 'sevenjohn-v56';
+const CACHE = 'sevenjohn-v57';
 const CORE = [
   './',
   'index.html',
   '404.html',
   'css/style.css',
   'css/cosmos.css',
-  'js/cosmos.js',        // 2.5D 版不可用时的 2D 回退（js/cosmos/main.js 内部按需加载）
+  'js/cosmos.js',        // 无 WebGL / 初始化失败时的 2D 回退（js/cosmos/main.js 内部按需加载）
   'js/cosmos/config.js',
-  'js/cosmos/main.js',   // 2.5D 银河湖泊场景主渲染（规格书架构，WebGL / three.js 自托管）
-  'js/cosmos/scene/SkyLayer.js',
-  'js/cosmos/scene/MountainLayer.js',
-  'js/cosmos/scene/GroundFog.js',
-  'js/cosmos/scene/StarField.js',
+  'js/cosmos/main.js',   // 推理场场景主渲染（分层节点网 + 脉冲，WebGL / three.js 自托管）
+  'js/cosmos/scene/NeuralField.js',
   'js/cosmos/audio/AudioManager.js',
   'js/cosmos/audio/BeatDetector.js',
   'js/cosmos/interaction/InteractionManager.js',
-  'assets/cosmos/mountains_far.png',
-  'assets/cosmos/mountains_near.png',
   'assets/vendor/three.module.min.js',
-  'js/player.js',   // 站点歌单播放器：星河的音频来源之一（__BEAT），断网也要能起来
+  'js/player.js',   // 站点歌单播放器：推理场的音频来源之一（__BEAT），断网也要能起来
   // 本地化依赖（原 CDN 已全部下放到 assets/vendor，断网也能完整渲染）
   'assets/vendor/tailwind.css',
   'assets/vendor/marked.min.js',

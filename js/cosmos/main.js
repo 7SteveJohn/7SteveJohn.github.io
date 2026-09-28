@@ -1,12 +1,9 @@
-// Interactive Cosmic Blog · main.js（规格书 §9/§10/§12）
-// 只负责初始化、模块连接、生命周期、主循环；业务在各模块
-// 主循环：interaction.update → audio.update → camera → sky → water → stars → render
+// Interactive Cosmic Blog · main.js
+// 只负责初始化、模块连接、生命周期、主循环；场景在 js/cosmos/scene/NeuralField.js
+// 主循环：interaction.update → audio.update → beat → camera → field.update → render
 import * as THREE from 'three';
 import { CONFIG } from './config.js';
-import { SkyLayer } from './scene/SkyLayer.js';
-import { MountainLayer } from './scene/MountainLayer.js';
-import { GroundFog } from './scene/GroundFog.js';
-import { StarField } from './scene/StarField.js';
+import { NeuralField } from './scene/NeuralField.js';
 import { AudioManager } from './audio/AudioManager.js';
 import { BeatDetector } from './audio/BeatDetector.js';
 import { InteractionManager } from './interaction/InteractionManager.js';
@@ -37,7 +34,7 @@ if (!webglOK()) {
 
 function boot() {
   const canvas = document.getElementById('cosmos-canvas');
-  // 首帧前压住画布：素材/引擎就绪后随首帧淡入，黑屏感 → 平滑显影
+  // 首帧前压住画布：场景就绪后随首帧淡入，黑屏感 → 平滑显影
   canvas.style.opacity = '0';
   canvas.style.transition = 'opacity 1.1s ease';
   const renderer = new THREE.WebGLRenderer({
@@ -46,36 +43,33 @@ function boot() {
   const dprCap = isMobile ? CFG.perf.dprMaxMobile : CFG.perf.dprMax;
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, dprCap));
   renderer.setSize(innerWidth, innerHeight);
-  renderer.setClearColor(0x030712, 1);
+  renderer.setClearColor(0x03060e, 1);
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(CFG.camera.fov, innerWidth / innerHeight, CFG.camera.near, CFG.camera.far);
   camera.position.set(0, 0, CFG.camera.zPos);
 
-  const loader = new THREE.TextureLoader();
-  const loadTex = (url) => new Promise((res, rej) => loader.load(url, res, undefined, rej));
+  try {
+    start();
+  } catch (e) {
+    console.error('[cosmos] 场景初始化失败，回退 2D', e);
+    fallback2d();
+  }
 
-  Promise.all([loadTex(CFG.assets.mountainsFar), loadTex(CFG.assets.mountainsNear)])
-    .then(([farTex, nearTex]) => start(farTex, nearTex))
-    .catch(() => fallback2d());   // 素材加载失败也回退 2D，不白屏
-
-  function start(farTex, nearTex) {
-    const sky = new SkyLayer(scene, CFG);
-    const mts = new MountainLayer(scene, CFG, farTex, nearTex);
-    const ground = new GroundFog(scene, CFG);
-    const stars = new StarField(scene, CFG, isMobile);
+  function start() {
+    const field = new NeuralField(scene, CFG, isMobile, innerWidth / innerHeight);
     const audio = new AudioManager(CFG);
     const beat = new BeatDetector(CFG);
     const interaction = new InteractionManager(CFG, camera, canvas);
 
-    // 点击交互：星尘/雾原任意处点击 → 粒子从点击点四散一记
+    // 点击交互：点哪就从最近的节点放一记推理脉冲
     addEventListener('pointerdown', (e) => {
       if (e.target.closest('a,button,input,textarea,select,label,#cosmos-dock,#music-player')) return;
-      const world = interaction.pick(e, CFG.layers.starZ);
-      if (world) stars.kick(world);
+      const world = interaction.pick(e, CFG.layers.fieldZ);
+      if (world) field.kick(world);
     }, { passive: true });
 
-    // ---- 主循环（规格书 §10）----
+    // ---- 主循环 ----
     let rafId = 0, frameNo = 0, last = performance.now();
     let sceneT = 0;                    // 场景时间（timeScale 缩放，驱动一切环境微动态）
     let running = true, hidden = false, contextLost = false;
@@ -97,17 +91,17 @@ function boot() {
       sceneT += (dtMs / 1000) * timeScale;
       frameNo++;
 
-      interaction.update(dtMs, CFG.layers.starZ);
+      interaction.update(dtMs, CFG.layers.fieldZ);
       const a = audio.update(dtMs);
       const pulse = beat.update(a, dtMs, now);
-      // Beat → 粒子群一记聚拢脉冲（拍子看得见，不只是 FOV 数字）
-      if (beat.justBeat) { stars.kickPulse(); beat.justBeat = false; }
+      // Beat → 从输入层放一批脉冲，逐层点亮（一次"前向推理"）
+      if (beat.justBeat) { field.kickPulse(); beat.justBeat = false; }
 
       // Camera：damped 视差 + 滚动纵深 + Beat 极轻微 FOV 脉冲（观察角度变化，不是图片滑动）
       camera.position.x = interaction.mouse.x * CFG.camera.parallaxStrengthX;
       camera.position.y = interaction.mouse.y * CFG.camera.parallaxStrengthY
                         - interaction.scroll * CFG.camera.scrollStrength;
-      camera.lookAt(0, camera.position.y * 0.4, CFG.layers.mountainFarZ);
+      camera.lookAt(0, camera.position.y * 0.4, CFG.layers.fieldZ);
       const fov = CFG.camera.fov + pulse * CFG.camera.beatFovPulse;
       if (Math.abs(fov - lastFov) > 0.0005) {
         camera.fov = fov;
@@ -115,13 +109,7 @@ function boot() {
         lastFov = fov;
       }
 
-      // 静默态银河呼吸（振幅 3%、周期 ~12.5s）——安静但永远活着
-      const breathe = CFG.motion.breatheAmp * Math.sin(sceneT * Math.PI * 2 * CFG.motion.breatheHz);
-
-      sky.update(sceneT, a.bass, a.mid, breathe);
-      ground.update(sceneT, a.bass);
-      stars.update(sceneT, a.treble, interaction.mouseWorld, interaction.hasMouse, dtMs);
-      mts.update(sceneT);
+      field.update(sceneT, a, interaction.mouseWorld, interaction.hasMouse, dtMs);
 
       // 首帧落画布：淡入（黑屏感 → 平滑显影）
       if (frameNo === 1) { canvas.style.opacity = '1'; }
@@ -130,7 +118,7 @@ function boot() {
     }
     rafId = requestAnimationFrame(tick);
 
-    // ---- 容灾（规格书 §12）----
+    // ---- 容灾 ----
     document.addEventListener('visibilitychange', () => {
       hidden = document.hidden;
       if (!hidden) { last = performance.now(); }   // 回来别吞一帧大 dt
@@ -147,12 +135,12 @@ function boot() {
       camera.aspect = innerWidth / innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(innerWidth, innerHeight);
-      sky.fitAspect(camera.aspect);
-      stars.setPixelScale(renderer.getPixelRatio() * (innerHeight / 900) * 1.3);
+      field.fitAspect(camera.aspect);
+      field.setPixelScale(renderer.getPixelRatio() * (innerHeight / 900) * 1.3);
     });
-    stars.setPixelScale(renderer.getPixelRatio() * (innerHeight / 900) * 1.3);
+    field.setPixelScale(renderer.getPixelRatio() * (innerHeight / 900) * 1.3);
 
-    // ---- 右下角星河音频控制台：本地音乐上传 / 音量 / 折叠 / 重置 ----
+    // ---- 右下角音频控制台：本地音乐上传 / 音量 / 折叠 / 重置 ----
     const dockState = document.getElementById('cosmos-state');
     let dockFileName = '', dockUrl = null;
     const say = (m) => { if (dockState) dockState.textContent = m; };
@@ -192,32 +180,31 @@ function boot() {
       });
       if (resetBtn) resetBtn.addEventListener('click', () => {
         window.__COSMOS.reset();
-        say('星河已重置');
+        say('推理场已重置');
       });
     })();
     setInterval(() => {
       if (!dockState) return;
       if (audio.ownEl && !audio.ownEl.paused) return say('本地曲目 · ' + (dockFileName || '播放中'));
-      if (audio.siteEl && !audio.siteEl.paused) return say('站点歌单 · 银河随音乐呼吸');
+      if (audio.siteEl && !audio.siteEl.paused) return say('站点歌单 · 脉冲跟着音乐跑');
       if (reduceMotion) return say('慢速运行 · 系统开了「减少动效」');
-      return say('静音中 · 银河缓慢流动');
+      return say('静音中 · 网络仍在低频推理');
     }, 1200);
 
     // ---- 测试探针 ----
     window.__COSMOS = {
       cfg: CFG,
-      engine: 'spec-2.5d',
+      engine: 'neural-field',
       feed: (b, m, t, beat) => audio.feed(b, m, t, beat),
       reset: () => {
         interaction.target.x = interaction.target.y = 0;
         interaction.scrollTarget = 0;
-        stars.reset();
-        water.reset();
+        field.reset();
         audio.feed(0, 0, 0, 0);
       },
       info: () => ({
-        engine: 'spec-2.5d',
-        counts: { stars: stars.count },
+        engine: 'neural-field',
+        field: field.info(),
         audio: {
           bass: +audio.bass.toFixed(3), mid: +audio.mid.toFixed(3),
           treble: +audio.treble.toFixed(3), beat: +audio.beatEnv.toFixed(3),
@@ -230,9 +217,6 @@ function boot() {
         },
         mouse: { x: +interaction.mouse.x.toFixed(4), y: +interaction.mouse.y.toFixed(4), has: interaction.hasMouse },
         scroll: +interaction.scroll.toFixed(4),
-        starMaxOff: +stars.maxOff.toFixed(4),
-        form: +stars.form.toFixed(3),
-        skyU: +sky.uniforms.uBass.value.toFixed(3),
         frame: frameNo,
         sceneT: +sceneT.toFixed(2),
         timeScale, reduceMotion, isMobile, hidden, contextLost,

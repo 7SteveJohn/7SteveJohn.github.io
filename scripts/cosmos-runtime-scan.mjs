@@ -1,6 +1,6 @@
-/* 2.5D 规格书场景 · 交互/容灾验收（替代原星系盘版）
-   覆盖规格书 §16 交互/工程项：视差 damping、星尘排斥回弹、湖面水波、滚动视差、
-   后台休眠、WebGL context 恢复、移动端降级、真实音频链路
+/* 本地推理场（neural-field）· 交互/容灾验收
+   覆盖：视差 damping、光标邻近提亮、点击触发局部推理、后台休眠、WebGL context 恢复、
+   移动端降级、真实音频链路、hero 入口
    跑法：python -m http.server 8327 → node scripts/cosmos-runtime-scan.mjs http://localhost:8327/index.html */
 import { createRequire } from 'module';
 const require = createRequire('C:/Users/SevenJohn/.workbuddy/binaries/node/workspace/index.js');
@@ -13,7 +13,7 @@ const bad = (name, extra) => { fail++; console.log('FAIL ', name, extra || ''); 
 const assert = (cond, name, extra) => cond ? ok(name, extra) : bad(name, extra);
 
 const b = await chromium.launch({
-  channel: 'msedge',
+  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
   args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--ignore-gpu-blocklist',
          '--autoplay-policy=no-user-gesture-required']
 });
@@ -46,43 +46,36 @@ const info = (pg) => pg.evaluate(() => window.__COSMOS.info());
   const c3 = (await info(pg)).cam;
   assert(c3.x > 0.15, '视差收敛到目标方向（鼠标右侧 → cam.x>0）', c3.x);
 
-  // 2) 星尘排斥：鼠标划过星层 → starMaxOff 抬升
-  for (let k = 0; k < 8; k++) { await pg.mouse.move(400 + k * 80, 300, { steps: 2 }); await pg.waitForTimeout(90); }
-  const sOff = (await info(pg)).starMaxOff;
-  assert(sOff > 0.03, '星尘受鼠标排斥（maxOff 抬升）', sOff);
-
-  // 3) 回弹：鼠标真正离场（hasMouse=false）后弹簧衰减到 ~0
-  //    （鼠标停在星层上是"按住"状态，位移有平衡值，不会回落 —— 那不是回弹失败）
+  // 2) 光标邻近提亮：uGlow 只在指针在场时生效
+  const g1 = (await info(pg)).field.glowU;
+  assert(g1 > 0, '指针在场 → 节点邻近提亮生效', g1);
   await pg.evaluate(() => window.dispatchEvent(new PointerEvent('pointerleave')));
-  await pg.waitForTimeout(2500);
-  const sOff2 = (await info(pg)).starMaxOff;
-  // 相对判据（排斥力随配置调整，绝对阈值会误判）：离场后回落到起始位移的 10% 以内
-  assert(sOff2 < sOff * 0.1, '星尘弹簧回弹（离场后位移衰减 ≥90%）',
-    sOff + ' → ' + sOff2 + ' (' + (100 - Math.round(sOff2 / sOff * 100)) + '%)');
+  await pg.waitForTimeout(500);
+  const g2 = (await info(pg)).field.glowU;
+  assert(g2 === 0, '指针离场 → 邻近提亮归零（不残留高亮）', g2);
 
-  // 3.5) 点击天空：星尘从点击点四散一记（kick）
-  await pg.evaluate(() => window.dispatchEvent(new PointerEvent('pointerleave')));
-  await pg.waitForTimeout(1200);
-  const k0 = (await info(pg)).starMaxOff;
-  await pg.mouse.click(720, 250);
-  await pg.waitForTimeout(350);
-  const k1 = (await info(pg)).starMaxOff;
-  assert(k1 > k0 + 0.15, '点击天空 → 星尘四散（kick 位移跳升）', k0 + ' → ' + k1);
+  // 3) 点击 → 从最近节点放一记局部推理（young 脉冲数跳升）
+  await pg.mouse.move(700, 500);
+  await pg.waitForTimeout(400);
+  const y0 = (await info(pg)).field.young;
+  await pg.mouse.click(700, 500);
+  let kicked = true;
+  try {
+    await pg.waitForFunction((v) => window.__COSMOS.info().field.young > v, y0, { timeout: 6000 });
+  } catch (e) { kicked = false; }
+  const y1 = (await info(pg)).field.young;
+  assert(kicked && y1 > y0, '点击 → 局部放出推理脉冲（young 跳升）', y0 + ' → ' + y1);
 
-  // 4) 聚散叙事：form 值随时间变化（scatter/converge/hold/release 循环）
-  const f1 = (await info(pg)).form;
-  await pg.waitForTimeout(3500);
-  const f2 = (await info(pg)).form;
-  assert(Math.abs(f2 - f1) > 0.01 || (f1 < 0.99 && f2 <= 1.0), '聚散叙事在推进（form 变化）',
-    f1 + ' → ' + f2);
+  // 4) 脉冲始终在跑：轮询等 pulseT 变化（软渲染帧率极低，别用固定等待）
+  const t1 = (await info(pg)).field.pulseT;
+  let moved = true;
+  try {
+    await pg.waitForFunction((v) => window.__COSMOS.info().field.pulseT !== v, t1, { timeout: 9000 });
+  } catch (e) { moved = false; }
+  const t2 = (await info(pg)).field.pulseT;
+  assert(moved && t1 !== t2, '静默下脉冲仍在推进（不停摆）', t1 + ' → ' + t2);
 
-  // 5) Treble：只驱动少量星尘（uTreble 生效；粒子属性 1/4 分组，量由探针旁证）
-  for (let k = 0; k < 20; k++) { await pg.evaluate(() => window.__COSMOS.feed(0.1, 0.2, 0.8, 0)); await pg.waitForTimeout(60); }
-  const iT = await info(pg);
-  assert(iT.audio.treble > 0.4, 'Treble 包络被吸收', iT.audio.treble);
-  await pg.evaluate(() => window.__COSMOS.feed(0, 0, 0, 0));
-
-  // 6) 后台休眠：emulate hidden → frame 停止；恢复 → 继续（规格书 §12 页面不可见暂停）
+  // 5) 后台休眠：emulate hidden → frame 冻结；恢复 → 继续
   await pg.evaluate(() => {
     Object.defineProperty(document, 'hidden', { value: true, configurable: true });
     document.dispatchEvent(new Event('visibilitychange'));
@@ -96,13 +89,17 @@ const info = (pg) => pg.evaluate(() => window.__COSMOS.info());
     Object.defineProperty(document, 'hidden', { value: false, configurable: true });
     document.dispatchEvent(new Event('visibilitychange'));
   });
-  await pg.waitForTimeout(800);
+  // 软渲染下帧率极低（个位），用轮询等"帧号真的往前走"，别用固定等待赌运气
+  let resumed = false;
+  try {
+    await pg.waitForFunction((f) => window.__COSMOS.info().frame > f, h2, { timeout: 9000 });
+    resumed = true;
+  } catch (e) {}
   const h3 = (await info(pg)).frame;
-  assert(h3 > h2, '页面恢复可见后继续渲染', h2 + ' → ' + h3);
+  assert(resumed && h3 > h2, '页面恢复可见后继续渲染', h2 + ' → ' + h3);
 
-  // 7) WebGL context lost / restored
-  // ❗ ext 引用必须跨步骤挂在 window 上：context 丢失后 getExtension 返回 null，
-  //    第二次 evaluate 重新取 ext 会拿到 null（restore 静默不执行）
+  // 6) WebGL context lost / restored
+  // ❗ ext 引用必须跨步骤挂在 window 上：context 丢失后 getExtension 返回 null
   await pg.evaluate(() => {
     const c = document.getElementById('cosmos-canvas');
     const gl = c.getContext('webgl2') || c.getContext('webgl');
@@ -113,7 +110,6 @@ const info = (pg) => pg.evaluate(() => window.__COSMOS.info());
   const l1 = await info(pg);
   assert(l1.contextLost === true, 'webglcontextlost 被捕获（停帧防白屏）', l1.contextLost);
   await pg.evaluate(() => { if (window.__loseExt) window.__loseExt.restoreContext(); });
-  // restore 是异步的（软渲染下更慢），轮询等事件落地
   let restored = false;
   try {
     await pg.waitForFunction(() => window.__COSMOS.info().contextLost === false, null, { timeout: 9000 });
@@ -121,9 +117,9 @@ const info = (pg) => pg.evaluate(() => window.__COSMOS.info());
   } catch (e) {}
   assert(restored, 'webglcontextrestored 后恢复渲染', restored);
 
-  // 8) 星河控制台 DOM 在位（本地音乐入口不丢）
+  // 7) 推理场控制台 DOM 在位
   const dock = await pg.evaluate(() => !!(document.getElementById('cosmos-file') && document.getElementById('cosmos-vol')));
-  assert(dock, '星河音频控制台在位（本地音乐/音量）');
+  assert(dock, '推理场音频控制台在位（本地音乐/音量）');
   assert(errs.length === 0, '交互上下文无 console error', errs.slice(0, 4).join(' | '));
   await ctx.close();
 }
@@ -154,11 +150,10 @@ const info = (pg) => pg.evaluate(() => window.__COSMOS.info());
   await pg.setInputFiles('#cosmos-file', { name: 'scan-beat.wav', mimeType: 'audio/wav', buffer: wav });
   await pg.waitForTimeout(3000);
   const iA = await info(pg);
-  assert(iA.audio.playing === true, '本地音乐上传后真实播放（playing 事件）', iA.audio.playing);
+  assert(iA.audio.playing === true, '本地音乐上传后真实播放（playing）', iA.audio.playing);
   assert(iA.audio.bass > 0.05, 'Analyser FFT → Bass 包络（真实链路，非 feed 后门）', iA.audio.bass);
   assert(iA.audio.mid > 0.05, 'Analyser FFT → Mid 包络', iA.audio.mid);
-  const pulseSeen = iA.pulse > 0.05 || iA.audio.beat > 0.02 || iA.audio.bass > 0.15;
-  assert(pulseSeen, '鼓点被频段吸收（bass/pulse 有响应）', 'bass=' + iA.audio.bass + ' pulse=' + iA.pulse);
+  assert(iA.field.edgeLum > 0.11, '真实音乐 → 连边底亮抬升', iA.field.edgeLum);
   await pg.evaluate(() => { const el = document.getElementById('cosmos-audio'); if (el) el.pause(); });
   assert(errs.length === 0, '音频上下文无 pageerror', errs.slice(0, 4).join(' | '));
   await ctx.close();
@@ -171,13 +166,14 @@ const info = (pg) => pg.evaluate(() => window.__COSMOS.info());
   await pg.goto(URL0, { waitUntil: 'load' });
   await pg.waitForTimeout(4000);
   const iM = await info(pg);
-  assert(iM.counts.stars <= 500, '移动端星尘 ≤500 粒子', iM.counts.stars);
+  assert(iM.field.nodes <= 200, '移动端节点降级 ≤200', iM.field.nodes);
+  assert(iM.field.pulses <= 20, '移动端脉冲降级 ≤20', iM.field.pulses);
   assert(iM.dpr <= 1.5, '移动端 DPR ≤1.5', iM.dpr);
   assert(iM.frame > 10, '移动端正常渲染', iM.frame);
   await ctx.close();
 }
 
-/* ========== Enter Cosmos 入口（规格书 §5：用户手势后播放） ========== */
+/* ========== hero「放首歌」入口 ========== */
 {
   const ctx = await b.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: 'dark' });
   const pg = await ctx.newPage();
@@ -192,7 +188,7 @@ const info = (pg) => pg.evaluate(() => window.__COSMOS.info());
     await pg.waitForTimeout(2500);
     const iE = await info(pg);
     assert(iE.audio.playing === true && iE.audio.bass > 0.02,
-      '点击入口后银河随站点歌单呼吸（bass>0）', 'bass=' + iE.audio.bass);
+      '点击入口后推理场随站点歌单运行（bass>0）', 'bass=' + iE.audio.bass);
     await pg.click('#cosmos-enter');   // 再点 = 暂停
     await pg.waitForTimeout(1500);
     const iE2 = await info(pg);

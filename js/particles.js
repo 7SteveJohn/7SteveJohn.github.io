@@ -11,7 +11,7 @@
 (function () {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-  // 星河背景（js/cosmos.js）在场时自动让位：两层环境光点叠着跑只是白烧 CPU
+  // 3D 背景（js/cosmos/main.js）在场时自动让位：两层环境光点叠着跑只是白烧 CPU
   if (document.getElementById('cosmos-canvas')) return;
 
   const canvas = document.getElementById('particle-canvas');

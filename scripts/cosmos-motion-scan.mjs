@@ -1,5 +1,5 @@
-/* 2.5D 规格书场景 · 视觉/运动验收（替代原星系盘版）
-   覆盖规格书 §16 视觉/音乐项 + 用户回归：静默永远微动态（不停笔）、律动克制
+/* 本地推理场（neural-field）· 视觉/运动验收
+   覆盖：静默永不停笔、脉冲沿边推进、前传波、律动克制、减少动效慢动不停
    跑法：python -m http.server 8327 → node scripts/cosmos-motion-scan.mjs http://localhost:8327/index.html */
 import { createRequire } from 'module';
 import fs from 'fs';
@@ -14,7 +14,7 @@ const bad = (name, extra) => { fail++; console.log('FAIL ', name, extra || ''); 
 const assert = (cond, name, extra) => cond ? ok(name, extra) : bad(name, extra);
 
 const b = await chromium.launch({
-  channel: 'msedge',
+  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
   args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--ignore-gpu-blocklist',
          '--autoplay-policy=no-user-gesture-required']
 });
@@ -64,9 +64,8 @@ async function canvasShot(pg, path) {
     const W = o.width, H = o.height;
     return {
       all: zone(0, 0, W, H),
-      top: zone(0, 0, W, H * 0.3),
-      band: zone(0, H * 0.35, W, H * 0.62),
-      lake: zone(0, H * 0.8, W, H)
+      top: zone(0, 0, W, H * 0.22),        // 标题区（hero 文字所在带）
+      core: zone(W * 0.3, H * 0.3, W * 0.7, H * 0.7)   // 深层向内收的核心区
     };
   }, dataUrl);
   return { stats, sha: crypto.createHash('sha1').update(fs.readFileSync(path)).digest('hex').slice(0, 10) };
@@ -81,20 +80,25 @@ const info = (pg) => pg.evaluate(() => window.__COSMOS.info());
   await pg.waitForTimeout(5000);
 
   const i0 = await info(pg);
-  assert(i0 && i0.engine === 'spec-2.5d', '探针 __COSMOS 存在（2.5D 引擎）', i0 && i0.engine);
-  assert(i0.counts.stars >= 700, '桌面星尘 ≥700 粒子', i0.counts.stars);
+  assert(i0 && i0.engine === 'neural-field', '探针 __COSMOS 存在（推理场引擎）', i0 && i0.engine);
+  assert(i0.field.nodes >= 150, '桌面节点数 ≥150', i0.field.nodes);
+  assert(i0.field.edges >= i0.field.nodes, '连边已建立（≥节点数）', i0.field.edges);
+  assert(i0.field.pulses >= 15, '常驻推理脉冲 ≥15', i0.field.pulses);
   assert(i0.dpr <= 2, 'DPR ≤ 2', i0.dpr);
 
   await pg.waitForTimeout(1200);
   const i1 = await info(pg);
   assert(i1.frame > i0.frame, 'frame 持续增长', i0.frame + ' → ' + i1.frame);
   assert(i1.sceneT > i0.sceneT, 'sceneT 持续递增（环境时间不止）', i0.sceneT + ' → ' + i1.sceneT);
+  assert(i1.field.pulseT !== i0.field.pulseT, '脉冲沿边推进（pulseT 变化）',
+    i0.field.pulseT + ' → ' + i1.field.pulseT);
+  assert(i1.field.heatMax > 0, '脉冲余温存在（heatMax>0）', i1.field.heatMax);
 
   const s1 = await canvasShot(pg, OUT + 'm1.png');
-  assert(s1.stats.all.mean >= 6 && s1.stats.all.mean <= 45, '亮度均值 6~45/255（深邃但看得见）', JSON.stringify(s1.stats.all));
-  assert(s1.stats.top.mean < s1.stats.band.mean, '顶部负空间暗于银河带（标题区不被干扰）',
-    'top=' + s1.stats.top.mean + ' band=' + s1.stats.band.mean);
-  assert(s1.stats.lake.mean > 1.5, '湖面非死黑（倒影/基色可见）', s1.stats.lake.mean);
+  assert(s1.stats.all.mean >= 4 && s1.stats.all.mean <= 45, '亮度均值 4~45/255（暗但不死黑）', JSON.stringify(s1.stats.all));
+  assert(s1.stats.all.dark >= 0.45 && s1.stats.all.dark <= 0.95, '暗部占比 45%~95%（网不糊成一片）', s1.stats.all.dark);
+  assert(s1.stats.top.mean <= s1.stats.core.mean, '顶部带不亮于核心区（标题不被压）',
+    'top=' + s1.stats.top.mean + ' core=' + s1.stats.core.mean);
 
   // ❗用户回归：静默态永远微动态 —— 连拍 3 张（间隔 2s），签名两两不同
   await pg.waitForTimeout(2000);
@@ -104,7 +108,7 @@ const info = (pg) => pg.evaluate(() => window.__COSMOS.info());
   assert(s1.sha !== s2.sha && s2.sha !== s3.sha, '静默持续微动态（2s 间隔签名三连不同，不停笔）',
     s1.sha + '/' + s2.sha + '/' + s3.sha);
 
-  // 滚动：画布锁在视口原点
+  // 滚动：画布锁在视口原点 + 纵深视差
   await pg.evaluate(() => scrollTo(0, innerHeight * 1.2));
   await pg.waitForTimeout(600);
   const rect = await pg.evaluate(() => {
@@ -115,19 +119,39 @@ const info = (pg) => pg.evaluate(() => window.__COSMOS.info());
   const iScr = await info(pg);
   assert(iScr.cam.y < -0.15, '滚动产生纵深视差（cam.y 下沉）', iScr.cam.y);
   await pg.evaluate(() => scrollTo(0, 0));
+  await pg.waitForTimeout(400);
 
-  // Bass：feed 后 SkyLayer/WaterLayer uBass 生效（呼吸，不是爆闪）
+  // Bass：连边底亮随低频抬升（呼吸，不是爆闪）
+  const base0 = (await info(pg)).field.edgeLum;
   for (let k = 0; k < 25; k++) { await pg.evaluate(() => window.__COSMOS.feed(0.8, 0.3, 0.2, 0)); await pg.waitForTimeout(60); }
   const iB = await info(pg);
   assert(iB.audio.bass > 0.5, 'Bass 包络被吸收', iB.audio.bass);
-  assert(iB.skyU > 0.5, 'Bass 驱动天空地平线亮度（skyU）', iB.skyU);
+  assert(iB.field.edgeLum > base0 * 1.2, 'Bass → 连边底亮抬升（不是爆闪）', base0 + ' → ' + iB.field.edgeLum);
   assert(iB.cam.fov <= 60.5, '无 Beat 时 FOV 不动（律动克制）', iB.cam.fov);
 
-  // Beat：pulse 触发极轻微 FOV 脉冲（60→≤60.35）
+  // Mid：脉冲推进加速
+  const pA = (await info(pg)).field.pulseT;
+  await pg.waitForTimeout(120);
+  const pB = (await info(pg)).field.pulseT;
+  assert(pA !== pB, 'Mid 注入下脉冲持续推进', pA + ' → ' + pB);
+
+  // Beat：一次完整前传（wave 起、波前推进）+ 极轻微 FOV 脉冲
   for (let k = 0; k < 20; k++) { await pg.evaluate(() => window.__COSMOS.feed(0.3, 0.2, 0.1, 0.9)); await pg.waitForTimeout(60); }
   const iBeat = await info(pg);
   assert(iBeat.pulse > 0.3, 'Beat 脉冲被吸收', iBeat.pulse);
-  assert(iBeat.cam.fov > 60.02 && iBeat.cam.fov <= 60.35, 'Beat → FOV 极轻微脉冲（60.0→≤60.35，空间呼吸不是网页震动）', iBeat.cam.fov);
+  assert(iBeat.field.wave > 0, 'Beat → 前传波起（逐层点亮）', iBeat.field.wave);
+  assert(iBeat.field.young >= 1, 'Beat → 从输入层放出一批脉冲', iBeat.field.young);
+  assert(iBeat.cam.fov > 60.02 && iBeat.cam.fov <= 60.35, 'Beat → FOV 极轻微脉冲（60.0→≤60.35）', iBeat.cam.fov);
+  const wp1 = iBeat.field.wavePos;
+  await pg.waitForTimeout(300);
+  const wp2 = (await info(pg)).field.wavePos;
+  assert(wp2 !== wp1, '前传波波前在推进（wavePos 变化）', wp1 + ' → ' + wp2);
+
+  // Treble：只碰少数节点（uTreble 生效）
+  for (let k = 0; k < 20; k++) { await pg.evaluate(() => window.__COSMOS.feed(0.1, 0.2, 0.8, 0)); await pg.waitForTimeout(60); }
+  const iT = await info(pg);
+  assert(iT.audio.treble > 0.4, 'Treble 包络被吸收', iT.audio.treble);
+  assert(iT.field.trebleU > 0.05, 'Treble → 节点提亮 uniform 生效', iT.field.trebleU);
 
   // 停 feed：包络平滑回落（连续读数递减，无硬跳）
   const r1 = (await info(pg)).audio.bass;
@@ -137,8 +161,6 @@ const info = (pg) => pg.evaluate(() => window.__COSMOS.info());
   const r3 = (await info(pg)).audio.bass;
   assert(r1 > r2 && r2 >= r3 && r2 > 0.005, '停 feed 后平滑回落（递减不硬跳）', r1 + ' → ' + r2 + ' → ' + r3);
 
-  const veil = await pg.evaluate(() => !!document.querySelector('.cosmos-veil'));
-  assert(veil, '.cosmos-veil 已挂载');
   assert(errs.length === 0, '主上下文无 console error / pageerror', errs.slice(0, 4).join(' | '));
   await ctx.close();
 }
@@ -155,11 +177,12 @@ const info = (pg) => pg.evaluate(() => window.__COSMOS.info());
   assert(i1.frame > i0.frame, '减少动效下帧持续推进（不停笔）', i0.frame + ' → ' + i1.frame);
   assert(i1.sceneT > i0.sceneT, '减少动效下场景时间仍流动', i0.sceneT + ' → ' + i1.sceneT);
   const rs1 = await canvasShot(pg, OUT + 'rm1.png');
-  assert(rs1.stats.all.mean >= 5, '减少动效下仍画出成型星图', JSON.stringify(rs1.stats.all));
+  assert(rs1.stats.all.mean >= 4, '减少动效下仍画出成型网络', JSON.stringify(rs1.stats.all));
   // 放歌（feed）→ 视觉仍响应
   for (let k = 0; k < 20; k++) { await pg.evaluate(() => window.__COSMOS.feed(0.8, 0.3, 0.2, 0.5)); await pg.waitForTimeout(60); }
   const iF = await info(pg);
-  assert(iF.audio.bass > 0.4 && iF.skyU > 0.5, '减少动效下放歌仍随拍呼吸', 'bass=' + iF.audio.bass + ' skyU=' + iF.skyU);
+  assert(iF.audio.bass > 0.4 && iF.field.edgeLum > 0.1, '减少动效下放歌仍随拍响应',
+    'bass=' + iF.audio.bass + ' edgeLum=' + iF.field.edgeLum);
   assert(errs.length === 0, 'reduce-motion 上下文无报错', errs.slice(0, 4).join(' | '));
   await ctx.close();
 }
