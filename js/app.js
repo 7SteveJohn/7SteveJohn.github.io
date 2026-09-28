@@ -1208,7 +1208,7 @@ function initDampedScroll() {
   const html = document.documentElement;
   html.style.scrollBehavior = 'auto';   // 每帧 scrollTo 不能再被 CSS smooth 拖慢
 
-  const TIME_CONST = 150;               // 阻尼时间常数 ms：60fps 下每帧系数 ≈0.105（Lenis 默认观感）
+  let TIME_CONST = 150;                 // 阻尼时间常数 ms：60fps 下每帧系数 ≈0.105（Lenis 默认观感）
   let target = window.scrollY;
   let current = target;
   let rafId = null;
@@ -1241,6 +1241,9 @@ function initDampedScroll() {
       target = Math.max(0, Math.min(y, maxScroll()));
       wake();
     },
+    // 可调口子（对齐 lenis 的 lerp 选项）：数值越大越"绵"，越小越跟手；30~500ms 限幅
+    setDamping(ms) { TIME_CONST = Math.max(30, Math.min(500, ms)); },
+    get damping() { return TIME_CONST; },
   };
 
   // 滚轮 → 累加目标位；弹窗（overlay 与其内部滚动区）保持原生滚动
