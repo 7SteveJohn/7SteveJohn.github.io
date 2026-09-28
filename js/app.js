@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initNavScrollState();
   initSmoothAnchors();
   initScrollSpy();
+  initPageNext();
 
  // 5. 滚动浮现编排（ section reveal，含错峰）
   observeReveals();
@@ -1081,17 +1082,27 @@ function initNavScrollState() {
 
 // ScrollSpy：滚动时高亮当前区块对应的导航链接（产品页式"你在哪一节"）
 // 判据：视口 38% 高度这条线落在哪个区块内（短区块也能命中，IO 阈值法会漏）
-function initScrollSpy() {
+// 从顶部导航收集可见区块并按文档顺序排序（ScrollSpy 与逐页下翻共用）
+// 桌面导航与移动抽屉两套 nav 指向同一批区块：按 id 去重，抽屉关闭时其链接也会命中
+function collectNavSections() {
   const navLinks = [...document.querySelectorAll('header.site-header nav a[href^="#"]')];
-  if (!navLinks.length) return;
+  const seen = new Set();
+  const sections = [];
+  for (const a of navLinks) {
+    const id = a.getAttribute('href').slice(1);
+    if (seen.has(id)) continue;
+    const s = document.getElementById(id);
+    if (s && s.offsetHeight > 0) { seen.add(id); sections.push(s); }   // 空模块被 display:none 隐藏，rect.top=0 会抢高亮，剔除
+  }
+  sections.sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
+  return { navLinks, sections };
+}
+
+function initScrollSpy() {
+  const { navLinks, sections } = collectNavSections();
+  if (!navLinks.length || !sections.length) return;
   const byId = {};
   navLinks.forEach((a) => { byId[a.getAttribute('href').slice(1)] = a; });
-  const sections = Object.keys(byId)
-    .map((id) => document.getElementById(id))
-    .filter((s) => s && s.offsetHeight > 0);   // 空模块被 display:none 隐藏，rect.top=0 会抢高亮，剔除
-  if (!sections.length) return;
-  // 按 DOM 顺序判"当前在哪节"（导航顺序 ≠ 文档顺序：手记在理念/关于后面）
-  sections.sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
 
   const setActive = (id) => {
     navLinks.forEach((a) => a.classList.toggle('nav-active', a === byId[id]));
@@ -1118,6 +1129,49 @@ function initScrollSpy() {
     if (!ticking) { ticking = true; requestAnimationFrame(update); }
   }, { passive: true });
   update();
+}
+
+// 逐页下翻：底部居中箭头，每次点击滑到下一个区块顶部（区块序列与 ScrollSpy 一致）
+function initPageNext() {
+  const btn = document.getElementById('page-next');
+  if (!btn) return;
+  const { sections } = collectNavSections();
+  if (!sections.length) return;
+
+  // 与 ScrollSpy 同判线（视口 38%）：当前节之后的第一节即"下一页"；已是最后一节则无
+  const nextSection = () => {
+    const line = window.scrollY + window.innerHeight * 0.38;
+    let idx = 0;
+    for (let i = 0; i < sections.length; i++) {
+      if (sections[i].getBoundingClientRect().top + window.scrollY <= line) idx = i;
+    }
+    return sections[idx + 1] || null;
+  };
+
+  const update = () => {
+    const atBottom = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+    const hasNext = !atBottom && !!nextSection();
+    btn.classList.toggle('opacity-0', !hasNext);
+    btn.classList.toggle('pointer-events-none', !hasNext);
+  };
+
+  let ticking = false;
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => { ticking = false; update(); });
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  update();
+
+  btn.addEventListener('click', () => {
+    const next = nextSection();
+    if (!next) return;
+    const y = next.getBoundingClientRect().top + window.scrollY - 64;
+    smoothScrollTo(Math.max(0, y));
+    history.pushState(null, '', '#' + next.id);
+  });
 }
 
 // 锚点滚动：替换浏览器原生 smooth，改用 easeOutQuint 缓动（快起长滑），滚轮/触摸可随时打断
