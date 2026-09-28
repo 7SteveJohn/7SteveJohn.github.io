@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. 初始化移动端抽屉菜单与滚动状态导航
   initNavigation();
   initNavScrollState();
+  initDampedScroll();   // 先建阻尼系统，smoothScrollTo 检测后统一走 lerp
   initSmoothAnchors();
   initScrollSpy();
   initPageNext();
@@ -1198,6 +1199,70 @@ let smoothScrollTo = function (targetY) {
 // 暴露给 search.js 等模块复用
 window.smoothScrollTo = function (y) { smoothScrollTo(y); };
 
+// 阻尼滚动：滚轮驱动目标位，页面每帧向目标指数趋近（Lenis 手法，自写精简版）
+// 仅精确指针（桌面）+ 未开减少动效时启用；触摸/键盘/滚动条/弹窗内滚动保持原生
+function initDampedScroll() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (!window.matchMedia('(pointer: fine)').matches) return;
+
+  const html = document.documentElement;
+  html.style.scrollBehavior = 'auto';   // 每帧 scrollTo 不能再被 CSS smooth 拖慢
+
+  const TIME_CONST = 150;               // 阻尼时间常数 ms：60fps 下每帧系数 ≈0.105（Lenis 默认观感）
+  let target = window.scrollY;
+  let current = target;
+  let rafId = null;
+  let lastTs = 0;
+
+  const maxScroll = () => document.documentElement.scrollHeight - window.innerHeight;
+
+  const tick = (ts) => {
+    const dt = Math.min(100, ts - lastTs || 16.7);   // 帧率无关：指数趋近按真实耗时算
+    lastTs = ts;
+    current += (target - current) * (1 - Math.exp(-dt / TIME_CONST));
+    if (Math.abs(target - current) < 0.5) {
+      current = target;
+      window.scrollTo(0, current);
+      rafId = null;
+      return;
+    }
+    window.scrollTo(0, current);
+    rafId = requestAnimationFrame(tick);
+  };
+  const wake = () => {
+    if (rafId != null) return;
+    current = window.scrollY;
+    lastTs = performance.now();
+    rafId = requestAnimationFrame(tick);
+  };
+
+  window.__dampedScroll = {
+    setTarget(y) {
+      target = Math.max(0, Math.min(y, maxScroll()));
+      wake();
+    },
+  };
+
+  // 滚轮 → 累加目标位；弹窗（overlay 与其内部滚动区）保持原生滚动
+  window.addEventListener('wheel', (e) => {
+    if (e.defaultPrevented || !e.deltaY) return;
+    if (e.target.closest('.modal-overlay')) return;
+    e.preventDefault();
+    let dy = e.deltaY;
+    if (e.deltaMode === 1) dy *= 40;                       // 行
+    else if (e.deltaMode === 2) dy *= window.innerHeight;  // 页
+    target = Math.max(0, Math.min(target + dy, maxScroll()));
+    wake();
+  }, { passive: false });
+
+  // 外部滚动（滚动条/键盘/hash 直达/位置恢复）与本系统对齐，避免下次滚轮跳位
+  window.addEventListener('scroll', () => {
+    if (rafId == null || Math.abs(window.scrollY - current) > 1.5) {
+      current = target = window.scrollY;
+    }
+  }, { passive: true });
+}
+
 function initSmoothAnchors() {
   let rafId = null;
 
@@ -1212,6 +1277,11 @@ function initSmoothAnchors() {
   smoothScrollTo = function (targetY) {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       window.scrollTo(0, targetY);
+      return;
+    }
+    // 阻尼滚动在场：锚点/箭头统一驱动目标位，由同一套 lerp 收敛（观感一致）
+    if (window.__dampedScroll) {
+      window.__dampedScroll.setTarget(targetY);
       return;
     }
     stop();
