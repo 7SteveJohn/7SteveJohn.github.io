@@ -32,12 +32,12 @@
       <description>模型跑起来了，但接进自己程序之后开始变慢、偶发失败。记录我在 8GB 上收回来的几个参数，以及把本地模型当「可选项」设计这条底线。</description>
     </item>
     <item>
-      <title>像素叙事游戏开发手记：把“说不出口”做成一个能玩的东西</title>
+      <title>像素叙事游戏开发手记</title>
       <link>https://7stevejohn.github.io/?post=pixel-narrative-devlog</link>
       <guid isPermaLink="false">pixel-narrative-devlog</guid>
       <pubDate>Wed, 09 Sep 2026 00:00:00 GMT</pubDate>
       <category>游戏创作</category>
-      <description>在做的像素叙事游戏：2011 年的小城，两个不敢开口的人，七卷七十章，没有战斗没有解谜。聊聊它讲什么、怎么玩、为什么这么做。</description>
+      <description>在做的 2D 像素叙事游戏，Godot 4 引擎。记录大纲与卷零的进度，完成后先放卷一 Demo。</description>
     </item>
     <item>
       <title>端侧智能文件管家：如何在本地实现毫秒级向量检索与零泄密问答</title>
