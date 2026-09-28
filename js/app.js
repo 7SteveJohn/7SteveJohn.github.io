@@ -109,10 +109,34 @@ function initTheme() {
    2. 项目作品集模块 (Projects)
    ============================================================ */
 /* 将 projects.js 数据水合到首页产品卡片（下载/仓库/Releases 链接与提取码单一数据源） */
+/* 项目「我的角色 / 周期 / 技术难点」三行：数据只写在 projects.js，卡片与详情弹窗共用同一份 */
+function buildProjectFacts(project) {
+  return [
+    ['我的角色', project.role],
+    ['周期', project.period],
+    ['技术难点', project.challenge]
+  ]
+    .filter(([, value]) => value)
+    .map(([key, value]) => `
+      <div class="pf-row">
+        <span class="pf-k">${escapeHtml(key)}</span>
+        <span class="pf-v">${escapeHtml(value)}</span>
+      </div>`)
+    .join('');
+}
+
 function hydrateProductLinks() {
   document.querySelectorAll('article[data-project-id]').forEach(card => {
     const project = (window.PROJECTS_DATA || []).find(p => p.id === card.dataset.projectId);
     if (!project) return;
+
+    // 卡片上的三行署名信息（容器在 index.html 里是空壳，没数据就保持隐藏）
+    const facts = card.querySelector('[data-facts]');
+    const factsHtml = buildProjectFacts(project);
+    if (facts && factsHtml) {
+      facts.innerHTML = factsHtml;
+      facts.hidden = false;
+    }
 
     const linkMap = {
       download: project.downloadUrl,
@@ -145,6 +169,8 @@ window.openProjectModal = function(id) {
     ? (window.marked ? window.marked.parse(project.details) : `<p>${project.details}</p>`)
     : `<p class="text-[#86868b]">暂无更多详细说明。</p>`;
 
+  const factsHtml = buildProjectFacts(project);
+
   modalContent.innerHTML = `
     <div class="p-6 sm:p-8 space-y-6">
       <!-- 头部 -->
@@ -166,6 +192,11 @@ window.openProjectModal = function(id) {
           </span>
         `).join('')}
       </div>
+
+      ${factsHtml ? `
+      <!-- 我的角色 / 周期 / 技术难点与解法 -->
+      <div class="project-facts">${factsHtml}</div>
+      ` : ''}
 
       ${(project.version || project.updated || project.requires || project.sha256) ? `
       <!-- 版本 / 运行环境 / 校验（数据缺失时整块不渲染） -->
@@ -920,6 +951,19 @@ function initNavigation() {
         closeMenu();
         menuBtn.setAttribute('aria-expanded', 'false');
       });
+    });
+  }
+
+  // 二级导航「更多」：details 原生开合，补上点外面/点链接/按 Esc 关闭
+  const navMore = document.getElementById('nav-more');
+  if (navMore) {
+    const closeNavMore = () => { navMore.open = false; };
+    navMore.querySelectorAll('a').forEach(link => link.addEventListener('click', closeNavMore));
+    document.addEventListener('click', (e) => {
+      if (navMore.open && !navMore.contains(e.target)) closeNavMore();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && navMore.open) { closeNavMore(); navMore.querySelector('summary')?.focus(); }
     });
   }
 

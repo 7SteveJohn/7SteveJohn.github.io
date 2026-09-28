@@ -15,14 +15,14 @@
     })();
   </script>
 
-  <meta name="description" content="SevenJohn 的个人小站：自己做的一些小工具（本地 AI、游戏优化、网络入门手册），还有一些小说和随笔。" data-page-node-id="eeyJ3T55hSfhm0o0lWaWUE" />
+  <meta name="description" content="SevenJohn 的个人小站：做本地 AI 应用和桌面工具，Python / C# / Android。文件管家、离线网络手册、游戏性能工具，都是自己用得上的东西，AI 全在本机跑。" data-page-node-id="eeyJ3T55hSfhm0o0lWaWUE" />
   <link rel="canonical" href="https://7stevejohn.github.io/" data-page-node-id="s7AeEQL1XWFBvL4jb4L7WH" />
 
   <!-- Open Graph / Twitter Card（分享到微信、QQ、X 等平台的预览卡片） -->
   <meta property="og:type" content="website" data-page-node-id="zP8dHffLJAzV8SfpFQ10tJ" />
   <meta property="og:site_name" content="SevenJohn" data-page-node-id="kfjujytbugTzFbw3Q8ATTf" />
   <meta property="og:title" content="SevenJohn · 个人小站" data-page-node-id="xyx628BKmOPOWFAcaAiCdd" />
-  <meta property="og:description" content="自己做的小工具：本地 AI 文件管家、给小白的离线网络手册、游戏优化，还有小说和随笔。" data-page-node-id="bZsYkV6ruvU88fezBUCxWC" />
+  <meta property="og:description" content="做本地 AI 应用和桌面工具，Python / C# / Android：本地文件管家、离线网络手册、游戏性能工具，附开发手记。" data-page-node-id="bZsYkV6ruvU88fezBUCxWC" />
   <meta property="og:url" content="https://7stevejohn.github.io/" data-page-node-id="f0eBknEAYoJYShascCdfsT" />
   <meta property="og:image" content="https://7stevejohn.github.io/og-image.png" data-page-node-id="6G06pR1qEUtZbVlMYGfuLJ" />
   <meta property="og:image:width" content="1200" data-page-node-id="ioS3ziCmfuGvGujg0AlT7d" />
@@ -30,7 +30,7 @@
   <meta property="og:image:alt" content="SevenJohn · 个人小站" data-page-node-id="iSr3ymyeO2OiEutDNEqAhB" />
   <meta name="twitter:card" content="summary_large_image" data-page-node-id="M5xC59rESD2bNlBCqIt0UA" />
   <meta name="twitter:title" content="SevenJohn · 个人小站" data-page-node-id="hzFJePCViS4SnXQPIkRdvL" />
-  <meta name="twitter:description" content="自己做的小工具：本地 AI 文件管家、给小白的离线网络手册、游戏优化，还有小说和随笔。" data-page-node-id="CJZILADjquwagqiJEKsQt5" />
+  <meta name="twitter:description" content="做本地 AI 应用和桌面工具，Python / C# / Android：本地文件管家、离线网络手册、游戏性能工具，附开发手记。" data-page-node-id="CJZILADjquwagqiJEKsQt5" />
   <meta name="twitter:image" content="https://7stevejohn.github.io/og-image.png" data-page-node-id="0Ekw7zYB5dzGXJlmaQnkAu" />
 
   <!-- RSS 订阅 -->
@@ -122,13 +122,19 @@
       <!-- 导航锚点 -->
       <nav class="hidden md:flex items-center gap-6 text-[#1d1d1f] dark:text-[#86868b] text-xs" data-page-node-id="EPrCov4TxjabVTps9AREsb">
         <a href="#home" class="hover:text-black dark:hover:text-white transition" data-page-node-id="UZPARON1aLjtcVT09iVTa3">概览</a>
-        <a href="#metrics" class="hover:text-black dark:hover:text-white transition" data-page-node-id="0xD57rMVfXttkH0KZIuQjh">数据</a>
         <a href="#products" class="hover:text-black dark:hover:text-white transition" data-page-node-id="2sMryMC13zp8ZhrTmDipKw">工具</a>
+        <a href="#blog" class="hover:text-black dark:hover:text-white transition" data-page-node-id="nzjulzm2McykVNsZuSW2Ps">技术手记</a>
         <a href="#philosophy" class="hover:text-black dark:hover:text-white transition" data-page-node-id="8dxmxLLRZMVsWtbYS7lHXg">理念</a>
         <a href="#about" class="hover:text-black dark:hover:text-white transition">关于</a>
-        <a href="#blog" class="hover:text-black dark:hover:text-white transition" data-page-node-id="nzjulzm2McykVNsZuSW2Ps">技术手记</a>
-        <a href="#creation" class="hover:text-black dark:hover:text-white transition" data-page-node-id="HWmcv0DBntZFypJDpi3ZUK">创作</a>
-        <a href="#essays" class="hover:text-black dark:hover:text-white transition" data-page-node-id="BpMx29kRzQdeMYMJgTp4wN">随笔</a>
+        <!-- 二级导航：数据与读写类内容不占主导航位（首屏要先把「做本地 AI 和工具」立住） -->
+        <details id="nav-more" class="nav-more">
+          <summary class="hover:text-black dark:hover:text-white transition cursor-pointer">更多</summary>
+          <div class="nav-menu">
+            <a href="#metrics" class="hover:text-black dark:hover:text-white transition" data-page-node-id="0xD57rMVfXttkH0KZIuQjh">数据</a>
+            <a href="#creation" class="hover:text-black dark:hover:text-white transition" data-page-node-id="HWmcv0DBntZFypJDpi3ZUK">创作</a>
+            <a href="#essays" class="hover:text-black dark:hover:text-white transition" data-page-node-id="BpMx29kRzQdeMYMJgTp4wN">随笔</a>
+          </div>
+        </details>
       </nav>
 
       <!-- 快捷操作栏 -->
@@ -188,13 +194,14 @@
     <div id="mobile-menu" class="hidden md:hidden border-t border-[#d2d2d7]/50 dark:border-white/10 bg-white/95 dark:bg-[#000000]/95 site-nav" data-page-node-id="unkMvZaOUbDL4kpqhJGRst">
       <nav class="max-w-6xl mx-auto px-4 py-2 flex flex-col text-sm" data-page-node-id="XhZZ1mZzPuEHye26gF6Es6">
         <a href="#home" class="py-2.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="T5Bx2uA5alVfSy26GKRhGH">概览</a>
-        <a href="#metrics" class="py-2.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="B0xAqRvOvI5Wi9GBiwQeEJ">数据</a>
         <a href="#products" class="py-2.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="n23csEzYWcN71QyJBmi5cz">工具</a>
+        <a href="#blog" class="py-2.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="hewlzzAE8juOFrOXqOb6KN">技术手记</a>
         <a href="#philosophy" class="py-2.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="rZfLT25iJNXjWwdH3oQrbn">理念</a>
         <a href="#about" class="py-2.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition">关于</a>
-        <a href="#blog" class="py-2.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="hewlzzAE8juOFrOXqOb6KN">技术手记</a>
-        <a href="#creation" class="py-2.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="DmXHLrjKQLhp1qYnmlQobo">创作</a>
-        <a href="#essays" class="py-2.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="ApRZu82DcU01wl1aVlao8U">随笔</a>
+        <div class="pt-2 mt-1 border-t border-[#d2d2d7]/50 dark:border-white/10 text-[11px] text-[#86868b]">更多</div>
+        <a href="#metrics" class="py-2 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="B0xAqRvOvI5Wi9GBiwQeEJ">数据</a>
+        <a href="#creation" class="py-2 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="DmXHLrjKQLhp1YnmlQobo">创作</a>
+        <a href="#essays" class="py-2 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="ApRZu82DcU01wl1aVlao8U">随笔</a>
         <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="py-2.5 hover:underline underline-offset-2 transition" data-page-node-id="xKIUZ78GgECKxsl8v72CvW">GitHub @7SteveJohn</a>
       </nav>
     </div>
@@ -209,7 +216,7 @@
       <div class="hero-veil" aria-hidden="true"></div>
       <!-- 眉标 -->
       <p class="hero-anim text-xs sm:text-sm font-semibold tracking-wide uppercase text-[#86868b]" style="--i:0" data-page-node-id="JKvSQnK9APGuTT8kqmHr7p">
-        SevenJohn · 平时喜欢写点东西
+        SevenJohn · 本地 AI 应用 · 桌面工具 · Android
       </p>
 
       <!-- 巨幅标题 -->
@@ -220,7 +227,7 @@
 
       <!-- 副标自白 -->
       <p class="hero-anim max-w-xl mx-auto text-sm sm:text-base text-[#86868b] leading-relaxed font-normal" style="--i:2" data-page-node-id="wcYanQg9mjU0zc94CGyEAw">
-        平时写 Python、C# 和 Android。这里放着我做的一些小工具：本地 AI、游戏优化、给新手看的网络手册，还有一些小说和随笔。
+        做本地 AI 应用和桌面工具，Python / C# / Android。文件整理、离线手册、游戏性能——都是我自己用得上的东西；AI 一律跑在本机，不联网、不上传。
       </p>
 
       <!-- 双行动按钮 -->
@@ -261,7 +268,7 @@
         <div data-page-node-id="mO9pBdfRjBgUEFwEcm2I1x">
           <div id="hero-greeting" class="text-xs text-[#86868b] font-medium" data-page-node-id="HSvyH7FDEAEHmDNHXTf972"></div>
           <div class="text-sm font-bold text-[#1d1d1f] dark:text-white" data-page-node-id="4HNDn4GntrNu34iv22W2Ww">SevenJohn</div>
-          <div class="text-xs text-[#86868b]" data-page-node-id="9RgoOd30lFlk8cqyW1TArl">喜欢写代码，也写小说</div>
+          <div class="text-xs text-[#86868b]" data-page-node-id="9RgoOd30lFlk8cqyW1TArl">做本地 AI 应用和桌面工具</div>
           <div id="hero-status" class="hidden text-xs text-[#86868b] mt-0.5" data-page-node-id="qreOfmg5FdVuKGwKzJmbxv"></div>
         </div>
       </div>
@@ -281,12 +288,12 @@
           <div class="text-xs text-[#86868b] mt-1.5 leading-relaxed" data-page-node-id="IOif4GpHBgxYJGByEfLw8D">安卓端连网络权限都没申请</div>
         </div>
         <div class="reveal" data-page-node-id="RwzohvCKUyY4zdSUx5GmaC">
-          <div class="text-3xl font-semibold text-[#1d1d1f] dark:text-white" data-page-node-id="wt5BrSV6S72GMOcxsLyYNA">1% Low</div>
-          <div class="text-xs text-[#86868b] mt-1.5 leading-relaxed" data-page-node-id="UR8wc9FistLBDoNg1pb6Vi">专治对枪瞬间掉帧那一下</div>
+          <div class="text-3xl font-semibold text-[#1d1d1f] dark:text-white" data-page-node-id="wt5BrSV6S72GMOcxsLyYNA">0 API Key</div>
+          <div class="text-xs text-[#86868b] mt-1.5 leading-relaxed" data-page-node-id="UR8wc9FistLBDoNg1pb6Vi">模型就在本机，不用申请任何密钥</div>
         </div>
         <div class="reveal" data-page-node-id="cipUoZDfAOWVrGrxPIBJQX">
-          <div class="text-3xl font-semibold text-[#1d1d1f] dark:text-white" data-page-node-id="QSwF3hBLZdiwl6GWsfK5qF">&lt;50ms</div>
-          <div class="text-xs text-[#86868b] mt-1.5 leading-relaxed" data-page-node-id="emu90LK1Sev5y8n5FYQwHl">打开基本不用等，没什么花哨依赖</div>
+          <div class="text-3xl font-semibold text-[#1d1d1f] dark:text-white" data-page-node-id="QSwF3hBLZdiwl6GWsfK5qF">8GB 显存</div>
+          <div class="text-xs text-[#86868b] mt-1.5 leading-relaxed" data-page-node-id="emu90LK1Sev5y8n5FYQwHl">在这块显卡上把本地模型和出图跑通</div>
         </div>
       </div>
     </section>
@@ -303,67 +310,7 @@
         </div>
       </div>
 
-      <!-- 单品 1: Fluxion（完整版，自用不公开下载） -->
-      <article data-project-id="fluxion" class="bento-card reveal overflow-hidden">
-        <div class="grid lg:grid-cols-2 lg:items-center">
-          <div class="p-8 sm:p-12 space-y-4">
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="inline-block px-2.5 py-1 rounded-md text-xs font-mono border border-black/8 dark:border-white/12 text-[#86868b]">
-                Windows 原生工具 · C# / WinForms
-              </span>
-            </div>
-            <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white">
-              Fluxion · 完整版性能套件
-            </h3>
-            <p class="text-sm sm:text-base text-[#86868b] leading-relaxed">
-              把系统优化和帧生成合成一个程序：51 项体检一键优化、给 RTX 20/30 系开上 DLSS 帧生成、游戏库、进游戏自动切状态、实时监控，改动都能一键还原。弹窗里有 38 秒介绍片。
-            </p>
-
-            <!-- 标签 -->
-            <div class="flex flex-wrap gap-2 pt-2">
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">C# 原生编译</span>
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">51 项体检</span>
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">DLSS 帧生成</span>
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">游戏联动</span>
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">实时监控</span>
-            </div>
-
-            <!-- 操作胶囊组 -->
-            <div class="flex flex-wrap items-center gap-3 pt-4">
-              <button
-                onclick="openProjectModal('fluxion')"
-                class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5 cursor-pointer"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5"><path d="M8 5.14v14l11-7-11-7z"></path></svg>
-                <span>介绍视频 · 38 秒</span>
-              </button>
-              <button
-                onclick="openProjectModal('fluxion')"
-                class="text-xs hover:underline cursor-pointer font-medium"
-              >
-                全部功能明细 &gt;
-              </button>
-            </div>
-            <p class="text-xs text-[#86868b]">完整版自用，暂不放下载；帧生成功能在 GameBoost-DLSSG 分享版里单独有卡。</p>
-          </div>
-
-          <!-- 产品图：完整 UI 截图，桌面端右列展示，不裁切 -->
-          <div class="px-8 pb-8 sm:px-12 sm:pb-12 lg:py-12 lg:pl-0 lg:pr-12">
-            <div class="rounded-xl border border-black/8 dark:border-white/10 shadow-sm overflow-hidden bg-white dark:bg-black/20">
-              <img
-                src="assets/images/cover-fluxion.webp"
-                alt="Fluxion 完整版 · 仪表盘"
-                class="w-full h-auto block reveal-img"
-                loading="lazy"
-                decoding="async"
-                onerror="this.src='assets/images/cover-fluxion.jpg'"
-              />
-            </div>
-          </div>
-        </div>
-      </article>
-
-      <!-- 单品 2: FileButler -->
+      <!-- 单品 1: FileButler -->
       <article data-project-id="filebutler" class="bento-card reveal overflow-hidden" data-page-node-id="tC0KmIuf8B8maWBqB0CMiw">
         <div class="p-8 sm:p-12 space-y-4 max-w-3xl" data-page-node-id="ke3R5awDo6EvgS6vLdnTuE">
           <span class="inline-block px-2.5 py-1 rounded-md text-xs font-mono border border-black/8 dark:border-white/12 text-[#86868b]" data-page-node-id="QZPA7LbMhKtWxWRJvAbeG4">
@@ -378,6 +325,8 @@
           <p class="text-sm sm:text-base text-[#86868b] leading-relaxed" data-page-node-id="SnSlxoZIL8ZXXZzN9OFqkq">
             整理文件和本地知识库问答，合在一个软件里。AI 用的是本机 Ollama，不用 API Key，文件全程不联网。能秒搜文件、自动索引新文档、按内容搜图片、找出重复文件——每一步都有记录，手滑了也能撤销。
           </p>
+
+          <div data-facts class="project-facts" hidden></div>
 
           <!-- 标签 -->
           <div class="flex flex-wrap gap-2 pt-2" data-page-node-id="3JX671bhAWFJTbZ35qPmEM">
@@ -449,7 +398,7 @@
         </div>
       </article>
 
-      <!-- 单品 3: NetOps Handbook -->
+      <!-- 单品 2: NetOps Handbook -->
       <article data-project-id="netops-handbook" class="bento-card reveal overflow-hidden" data-page-node-id="DVVZg6yTThmdgJ4Yjd1BzA">
         <div class="p-8 sm:p-12 space-y-4 max-w-3xl" data-page-node-id="hxXTOau7NTk7uMoX8MFscd">
           <span class="inline-block px-2.5 py-1 rounded-md text-xs font-mono border border-black/8 dark:border-white/12 text-[#86868b]" data-page-node-id="NZeXiNwZYee2hWmZht1jpU">
@@ -464,6 +413,8 @@
           <p class="text-sm sm:text-base text-[#86868b] leading-relaxed" data-page-node-id="FHwxP5YA9zTO72r9SvGjxs">
             给网络新手做的离线辅助手册：58 个知识模块、25 个排障案例、58 条命令对照，还有面试题。得配着教材和实验用，光靠它学不会网络。断网也能查——安卓端连网络权限都没申请，绝不偷跑流量。
           </p>
+
+          <div data-facts class="project-facts" hidden></div>
 
           <!-- 标签 -->
           <div class="flex flex-wrap gap-2 pt-2" data-page-node-id="dufMGBekwn6V9eQfcvByNV">
@@ -528,6 +479,68 @@
         </div>
       </article>
 
+      <!-- 单品 3: Fluxion（完整版，自用不公开下载） -->
+      <article data-project-id="fluxion" class="bento-card reveal overflow-hidden">
+        <div class="grid lg:grid-cols-2 lg:items-center">
+          <div class="p-8 sm:p-12 space-y-4">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="inline-block px-2.5 py-1 rounded-md text-xs font-mono border border-black/8 dark:border-white/12 text-[#86868b]">
+                Windows 原生工具 · C# / WinForms
+              </span>
+            </div>
+            <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white">
+              Fluxion · 完整版性能套件
+            </h3>
+            <p class="text-sm sm:text-base text-[#86868b] leading-relaxed">
+              把系统优化和帧生成合成一个程序：51 项体检一键优化、给 RTX 20/30 系开上 DLSS 帧生成、游戏库、进游戏自动切状态、实时监控，改动都能一键还原。弹窗里有 38 秒介绍片。
+            </p>
+
+            <div data-facts class="project-facts" hidden></div>
+
+            <!-- 标签 -->
+            <div class="flex flex-wrap gap-2 pt-2">
+              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">C# 原生编译</span>
+              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">51 项体检</span>
+              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">DLSS 帧生成</span>
+              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">游戏联动</span>
+              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">实时监控</span>
+            </div>
+
+            <!-- 操作胶囊组 -->
+            <div class="flex flex-wrap items-center gap-3 pt-4">
+              <button
+                onclick="openProjectModal('fluxion')"
+                class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5 cursor-pointer"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5"><path d="M8 5.14v14l11-7-11-7z"></path></svg>
+                <span>介绍视频 · 38 秒</span>
+              </button>
+              <button
+                onclick="openProjectModal('fluxion')"
+                class="text-xs hover:underline cursor-pointer font-medium"
+              >
+                全部功能明细 &gt;
+              </button>
+            </div>
+            <p class="text-xs text-[#86868b]">完整版自用，暂不放下载；帧生成功能在 GameBoost-DLSSG 分享版里单独有卡。</p>
+          </div>
+
+          <!-- 产品图：完整 UI 截图，桌面端右列展示，不裁切 -->
+          <div class="px-8 pb-8 sm:px-12 sm:pb-12 lg:py-12 lg:pl-0 lg:pr-12">
+            <div class="rounded-xl border border-black/8 dark:border-white/10 shadow-sm overflow-hidden bg-white dark:bg-black/20">
+              <img
+                src="assets/images/cover-fluxion.webp"
+                alt="Fluxion 完整版 · 仪表盘"
+                class="w-full h-auto block reveal-img"
+                loading="lazy"
+                decoding="async"
+                onerror="this.src='assets/images/cover-fluxion.jpg'"
+              />
+            </div>
+          </div>
+        </div>
+      </article>
+
       <!-- 单品 4: GameBoost -->
       <article data-project-id="gameboost" class="bento-card reveal overflow-hidden" data-page-node-id="WpBNQijzzGBzI5iFX0SpWw">
         <div class="p-8 sm:p-12 space-y-4 max-w-3xl" data-page-node-id="cR03pYuJaOj1gX0bJdmkMb">
@@ -543,6 +556,8 @@
           <p class="text-sm sm:text-base text-[#86868b] leading-relaxed" data-page-node-id="KrUaxHjQndBCIKyyBmzunZ">
             打 CS2、瓦、三角洲之前点一下就行。跑分不重要，解决两件事：对枪瞬间的掉帧和输入延迟。电源、GPU、网络这些设置它自己调好，不想要了一键全部还原。
           </p>
+
+          <div data-facts class="project-facts" hidden></div>
 
           <!-- 标签 -->
           <div class="flex flex-wrap gap-2 pt-2" data-page-node-id="N0FWPtk7tjtAJA4hxBMQlV">
@@ -623,6 +638,8 @@
             <p class="text-sm sm:text-base text-[#86868b] leading-relaxed">
               给 RTX 20/30 系开上官方只给 40/50 系的 DLSS 帧生成：扫描游戏库、DX12 模式启动、运行诊断，改动都能一键还原。分享版只做帧生成这一件事，不带系统优化模块。
             </p>
+
+            <div data-facts class="project-facts" hidden></div>
 
             <!-- 标签 -->
             <div class="flex flex-wrap gap-2 pt-2">
@@ -719,10 +736,10 @@
           <div class="space-y-4 flex-1">
             <div>
               <h2 class="text-2xl font-bold tracking-tight text-[#1d1d1f] dark:text-white">关于我</h2>
-              <p class="text-sm text-[#86868b] mt-1">平时喜欢写点东西，顺手做点自己用得上的小工具。</p>
+              <p class="text-sm text-[#86868b] mt-1">做本地 AI 应用和桌面工具，顺手解决自己遇到的问题。</p>
             </div>
             <p class="text-sm text-[#1d1d1f] dark:text-[#f5f5f7] leading-relaxed">
-              平时写 Python、C# 和 Android，也写点小说和随笔。这里的几个工具都来自生活里的小麻烦：文件太多翻不到、打游戏对枪掉帧、想学网络又不知道从哪下手。想明白了就写一个，写完顺手分享出来。
+              平时写 Python、C# 和 Android，主要做本地 AI 应用和桌面工具。这里的几个工具都来自生活里的小麻烦：文件太多翻不到、打游戏对枪掉帧、想学网络又不知道从哪下手。想明白了就写一个，写完顺手分享出来。
             </p>
             <div class="flex flex-wrap gap-1.5">
               <span class="text-xs px-2.5 py-1 rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">Python</span>

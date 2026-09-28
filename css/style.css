@@ -50,6 +50,78 @@ h1, h2, h3 {
   -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
 
+/* 二级导航「更多」下拉（原生 details 开合，关闭逻辑在 app.js） */
+.nav-more { position: relative; }
+.nav-more > summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+.nav-more > summary::-webkit-details-marker { display: none; }
+.nav-more > summary::after {
+  content: "▾";
+  margin-left: 0.25rem;
+  font-size: 0.625rem;
+  opacity: 0.7;
+}
+.nav-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.65rem);
+  z-index: 50;
+  min-width: 8.5rem;
+  padding: 0.3rem;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #ffffff;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+}
+.dark .nav-menu {
+  background: #161617;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+.nav-menu a {
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.5rem;
+  white-space: nowrap;
+  color: #86868b;
+}
+.nav-menu a:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #1d1d1f;
+}
+.dark .nav-menu a:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+/* 项目卡与详情弹窗共用：我的角色 / 周期 / 技术难点与解法 */
+.project-facts {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.875rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--hairline);
+  background: rgba(0, 0, 0, 0.02);
+  font-size: 0.8125rem;
+  line-height: 1.65;
+}
+.dark .project-facts { background: rgba(255, 255, 255, 0.03); }
+.project-facts .pf-row {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 0.75rem;
+}
+.project-facts .pf-k {
+  color: #86868b;
+  font-size: 0.75rem;
+  padding-top: 0.1rem;
+}
+.project-facts .pf-v { color: #1d1d1f; }
+.dark .project-facts .pf-v { color: #d2d2d7; }
+
 /* 键盘无障碍跳转链接：默认视觉隐藏，Tab 聚焦时浮现 */
 .skip-link {
   position: absolute;

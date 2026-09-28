@@ -5,8 +5,32 @@
     <link>https://7stevejohn.github.io/</link>
     <description>技术手记、小说、游戏创作与随笔，想到什么写什么。</description>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 09 Sep 2026 00:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 26 Sep 2026 00:00:00 GMT</lastBuildDate>
     <atom:link href="https://7stevejohn.github.io/rss.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>8GB 显存跑本地大模型：先算显存账，再挑模型</title>
+      <link>https://7stevejohn.github.io/?post=local-llm-8gb-vram</link>
+      <guid isPermaLink="false">local-llm-8gb-vram</guid>
+      <pubDate>Sat, 26 Sep 2026 00:00:00 GMT</pubDate>
+      <category>本地 AI</category>
+      <description>第一次拉模型下来加载失败，才知道参数量不等于显存占用。记录 8GB 显卡上按任务分层选型的思路，以及我踩反过的顺序。</description>
+    </item>
+    <item>
+      <title>ComfyUI 工作流实践：把一次出图拆成能复用的节点</title>
+      <link>https://7stevejohn.github.io/?post=comfyui-workflow-sdxl</link>
+      <guid isPermaLink="false">comfyui-workflow-sdxl</guid>
+      <pubDate>Fri, 18 Sep 2026 00:00:00 GMT</pubDate>
+      <category>AIGC</category>
+      <description>一键出图工具满足不了「固定画风 + 保持构图 + 能复用」，换成节点式工作流之后才有解。记录 SDXL 在 8GB 上的节点排法与显存坑。</description>
+    </item>
+    <item>
+      <title>Ollama 显存适配：默认参数是给显存够用的机器配的</title>
+      <link>https://7stevejohn.github.io/?post=ollama-vram-fit</link>
+      <guid isPermaLink="false">ollama-vram-fit</guid>
+      <pubDate>Sat, 12 Sep 2026 00:00:00 GMT</pubDate>
+      <category>本地 AI</category>
+      <description>模型跑起来了，但接进自己程序之后开始变慢、偶发失败。记录我在 8GB 上收回来的几个参数，以及把本地模型当「可选项」设计这条底线。</description>
+    </item>
     <item>
       <title>像素叙事游戏开发手记：把“说不出口”做成一个能玩的东西</title>
       <link>https://7stevejohn.github.io/?post=pixel-narrative-devlog</link>
@@ -21,7 +45,7 @@
       <guid isPermaLink="false">filebutler-local-rag</guid>
       <pubDate>Wed, 02 Sep 2026 00:00:00 GMT</pubDate>
       <category>架构设计</category>
-      <description>剖析 FileButler 将 pywebview、SQLite FTS5 与 Ollama 本地模型结合的技术实现，探讨如何在不依赖任何云端 API 的前提下完成自动化知识库构建与安全操作撤销机制。</description>
+      <description>「直接问文件」这件事，难的不是接个模型，是让它既快又能反悔。记录 FileButler 的双索引分工、可撤销设计，以及端侧 AI 必须做的降级底线。</description>
     </item>
     <item>
       <title>机房与野外应急场景：打造 100% 零网络权限 Android 离线应用</title>
@@ -29,7 +53,7 @@
       <guid isPermaLink="false">netops-zero-permission</guid>
       <pubDate>Thu, 20 Aug 2026 00:00:00 GMT</pubDate>
       <category>移动开发</category>
-      <description>传统网络运维场景常伴随断网环境。本文复盘 NetOps Handbook 如何在 AndroidManifest 中彻底剔除 INTERNET 权限，并通过自研单页导航与 WebView 本地桥接实现流畅体验。</description>
+      <description>最需要翻命令手册的时刻，往往就是网已经断了的时候。记录 NetOps Handbook 怎么把「零网络权限」做成硬约束，以及 file:// 下自己写导航栈的原因。</description>
     </item>
     <item>
       <title>竞技帧率防抖：为什么 1% Low 远比平均帧率更能决定胜负？</title>
@@ -37,7 +61,7 @@
       <guid isPermaLink="false">gameboost-frame-pacing</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
       <category>系统调优</category>
-      <description>深入剖析 CS2 与瓦罗兰特等射击游戏中的微卡顿根源。从 Windows 默认定时器分辨率、DPC 中断延迟到核心调度，探讨 GameBoost 如何实现原生一键优化与安全回滚。</description>
+      <description>平均 300 帧还是不跟手，问题出在单帧生成时间的尖刺上。记录 GameBoost 针对 1% Low 做的几件事，以及动系统设置时那条不能省的底线。</description>
     </item>
   </channel>
 </rss>

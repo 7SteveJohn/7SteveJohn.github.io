@@ -2,7 +2,19 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://7stevejohn.github.io/</loc>
-    <lastmod>2026-09-09</lastmod>
+    <lastmod>2026-09-26</lastmod>
+  </url>
+  <url>
+    <loc>https://7stevejohn.github.io/?post=local-llm-8gb-vram</loc>
+    <lastmod>2026-09-26</lastmod>
+  </url>
+  <url>
+    <loc>https://7stevejohn.github.io/?post=comfyui-workflow-sdxl</loc>
+    <lastmod>2026-09-18</lastmod>
+  </url>
+  <url>
+    <loc>https://7stevejohn.github.io/?post=ollama-vram-fit</loc>
+    <lastmod>2026-09-12</lastmod>
   </url>
   <url>
     <loc>https://7stevejohn.github.io/?post=pixel-narrative-devlog</loc>
