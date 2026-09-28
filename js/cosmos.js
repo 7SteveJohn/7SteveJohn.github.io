@@ -462,7 +462,7 @@
         document.addEventListener('mouseenter', function () { self.out = false; }, { passive: true });
         window.addEventListener('pointerdown', function (ev) {
           if (ev.target && ev.target.closest &&
-              ev.target.closest('a,button,input,textarea,select,label,#cosmos-dock,#music-player')) return;
+              ev.target.closest('a,button,input,textarea,select,label,#music-player')) return;
           self.tx = self.x = ev.clientX; self.ty = self.y = ev.clientY;
           self.lastMove = performance.now();
           self.kick(ev.clientX, ev.clientY);
@@ -1806,14 +1806,17 @@
       this.vol = document.getElementById('cosmos-vol');
       this.state = document.getElementById('cosmos-state');
       this.bird = document.getElementById('cosmos-reset');
-      if (!this.panel || !this.chip) { this.panel = null; return; }
+      // 控制面板已删：panel/chip/vol/bird/state 均可缺席，只有音频链路必须活着
+      if (!this.panel || !this.chip) this.panel = null;
       var self = this;
 
-      this.fold.addEventListener('click', function () { self.setOpen(false); });
-      this.chip.addEventListener('click', function () { self.setOpen(true); });
+      if (this.panel) {
+        this.fold.addEventListener('click', function () { self.setOpen(false); });
+        this.chip.addEventListener('click', function () { self.setOpen(true); });
+      }
 
       // 本地音乐：创建对象 URL，交给本模块的 <audio>；不与站点歌单同时发声（Sound.init 里已互斥）
-      this.fileInput.addEventListener('change', function (ev) {
+      if (this.fileInput) this.fileInput.addEventListener('change', function (ev) {
         var f = ev.target.files && ev.target.files[0];
         if (!f) return;
         if (!Sound.ownEl) return;
@@ -1824,16 +1827,15 @@
         Sound.ensureGraph();
         Sound.resume();
         var pr = Sound.ownEl.play();
-        if (pr && pr.catch) pr.catch(function () { self.say('浏览器拦下了自动播放，点一下音轨试试'); });
-        self.setVol(self.vol.value / 100);
-        self.say('本地曲目：' + self.fileName);
+        if (pr && pr.catch) pr.catch(function () {});
+        self.setVol(self.vol ? self.vol.value / 100 : 0.7);
       });
 
-      this.vol.addEventListener('input', function () {
+      if (this.vol) this.vol.addEventListener('input', function () {
         self.setVol(self.vol.value / 100);
       });
 
-      this.bird.addEventListener('click', function () {
+      if (this.bird) this.bird.addEventListener('click', function () {
         rebuild(true, false);
         if (reduceMotion) runStillSettle();   // 停笔状态下重置：静默重走一遍入场再停笔
         self.say('背景已重置 · 正在重新聚拢');

@@ -232,7 +232,7 @@
       <!-- 双行动按钮 -->
       <div class="hero-anim flex flex-wrap items-center justify-center gap-4 pt-4" style="--i:3" data-page-node-id="9k9USFkpWLPqOIc8MoG9Az">
         <a href="#products" class="btn-primary px-6 py-2.5 text-sm" data-page-node-id="wtewTutKOwPW5utKD86pR3">
-          看看我做了什么
+          看看我在做什么
         </a>
         <a
           href="https://github.com/7SteveJohn"
@@ -362,7 +362,7 @@
         </div>
 
         <!-- 大幅产品图 -->
-        <div class="w-full border-t border-black/8 dark:border-white/10" data-page-node-id="7pgoqPBEJSZhWdHTvPv45a">
+        <div class="px-8 sm:px-12 pb-8 sm:pb-12"><div class="cover-box rounded-xl border border-black/8 dark:border-white/10 shadow-sm overflow-hidden bg-white dark:bg-black/20" data-page-node-id="7pgoqPBEJSZhWdHTvPv45a">
           <img 
             src="assets/images/cover-filebutler.webp" 
             alt="FileButler 真实界面" 
@@ -372,6 +372,7 @@
             decoding="async"
             onerror="this.src='assets/images/cover-filebutler.jpg'" data-page-node-id="0GiB0NCqgIu4lemDaHsABZ"
           />
+          </div>
         </div>
       </article>
 
@@ -443,7 +444,7 @@
         </div>
 
         <!-- 大幅产品图 -->
-        <div class="w-full border-t border-black/8 dark:border-white/10" data-page-node-id="x4pADpkMbOT0n6J38pmSfR">
+        <div class="px-8 sm:px-12 pb-8 sm:pb-12"><div class="cover-box rounded-xl border border-black/8 dark:border-white/10 shadow-sm overflow-hidden bg-white dark:bg-black/20" data-page-node-id="x4pADpkMbOT0n6J38pmSfR">
           <img 
             src="assets/images/cover-netops.webp" 
             alt="NetOps Handbook 真实实机" 
@@ -453,6 +454,7 @@
             decoding="async"
             onerror="this.src='assets/images/cover-netops.jpg'" data-page-node-id="wPAUhi6xSUj1u31uRlBJmC"
           />
+          </div>
         </div>
       </article>
 
@@ -502,7 +504,7 @@
           </div>
 
         <!-- 大幅产品图 -->
-        <div class="w-full border-t border-black/8 dark:border-white/10">
+        <div class="px-8 sm:px-12 pb-8 sm:pb-12"><div class="cover-box rounded-xl border border-black/8 dark:border-white/10 shadow-sm overflow-hidden bg-white dark:bg-black/20">
           <img
             src="assets/images/cover-fluxion.webp"
             alt="Fluxion 完整版 · 仪表盘"
@@ -511,6 +513,7 @@
             decoding="async"
             onerror="this.src='assets/images/cover-fluxion.jpg'"
           />
+          </div>
         </div>
       </article>
 
@@ -582,7 +585,7 @@
         </div>
 
         <!-- 大幅产品图 -->
-        <div class="w-full border-t border-black/8 dark:border-white/10" data-page-node-id="mqzy90AAUU6XepBRBUm7KC">
+        <div class="px-8 sm:px-12 pb-8 sm:pb-12"><div class="cover-box rounded-xl border border-black/8 dark:border-white/10 shadow-sm overflow-hidden bg-white dark:bg-black/20" data-page-node-id="mqzy90AAUU6XepBRBUm7KC">
           <img 
             src="assets/images/cover-gameboost.webp" 
             alt="GameBoost 性能调优实景" 
@@ -592,6 +595,7 @@
             decoding="async"
             onerror="this.src='assets/images/cover-gameboost.jpg'" data-page-node-id="JAbOGM7zL4rjAEUNiXemQE"
           />
+          </div>
         </div>
       </article>
 
@@ -645,7 +649,7 @@
           </div>
 
         <!-- 大幅产品图 -->
-        <div class="w-full border-t border-black/8 dark:border-white/10">
+        <div class="px-8 sm:px-12 pb-8 sm:pb-12"><div class="cover-box rounded-xl border border-black/8 dark:border-white/10 shadow-sm overflow-hidden bg-white dark:bg-black/20">
           <img
             src="assets/images/cover-dlssg.webp"
             alt="GameBoost-DLSSG 分享版 · 游戏库界面"
@@ -654,6 +658,7 @@
             decoding="async"
             onerror="this.src='assets/images/cover-dlssg.jpg'"
           />
+          </div>
         </div>
       </article>
 
@@ -918,35 +923,10 @@
     <audio id="music-audio" preload="none"></audio>
   </div>
 
-  <!-- 右下角推理场音频控制台（js/cosmos/main.js 驱动）：本地音乐上传 / 音量 / 重置推理场。
-       刻意做小做淡，不与左下角歌单播放器抢视觉重心；折叠后只剩一枚小圆钮。 -->
-  <div id="cosmos-dock" class="cosmos-dock">
-    <div id="cosmos-panel" class="cosmos-panel" role="group" aria-label="本地推理场背景与音频控制">
-      <div class="cosmos-head">
-        <span class="cosmos-title">推理场 · 音频</span>
-        <button id="cosmos-fold" type="button" aria-label="收起推理场面板" aria-expanded="true" aria-controls="cosmos-body">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
-      </div>
-      <div id="cosmos-body" class="cosmos-body">
-        <label class="cosmos-file" title="选一首本地音乐，推理场的脉冲会跟着它跑">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <span>本地音乐</span>
-          <input id="cosmos-file" type="file" accept="audio/*" hidden>
-        </label>
-        <div class="cosmos-row">
-          <span class="cosmos-lab">音量</span>
-          <input id="cosmos-vol" class="cosmos-range" type="range" min="0" max="100" step="1" value="70" aria-label="音量">
-        </div>
-        <button id="cosmos-reset" class="cosmos-btn" type="button">重置推理场</button>
-        <p id="cosmos-state" class="cosmos-state">静音中 · 推理场低频运行</p>
-      </div>
-    </div>
-    <button id="cosmos-chip" class="cosmos-chip" type="button" aria-label="展开推理场控制面板" title="推理场 · 音频" hidden>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18"/><path d="M3 12h18"/><path d="m6 6 12 12"/><path d="m18 6-12 12"/></svg>
-    </button>
-    <audio id="cosmos-audio" preload="none"></audio>
-  </div>
+  <!-- 推理场音频链路（js/cosmos 驱动）：悬浮控制面板已删，只保留隐藏音轨与文件选择。
+       hero「放首歌」走站点歌单；#cosmos-file 供本地曲目接入与真实音频链路验证。 -->
+  <input id="cosmos-file" type="file" accept="audio/*" hidden>
+  <audio id="cosmos-audio" preload="none"></audio>
 
   <!-- 引入项目数据与交互脚本（全部 defer：按文档顺序在 DOM 解析完成后执行，不阻塞首屏渲染） -->
   <script src="js/projects.js" defer></script>

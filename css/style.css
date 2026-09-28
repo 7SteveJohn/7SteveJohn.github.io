@@ -299,11 +299,14 @@ html:not(.dark) .bento-card:hover {
 }
 
 /* 项目卡封面统一排版：五张卡同一比例（1298:667 实拍比例）、同一裁切，高度不再随图飘 */
+/* 小块包裹型：图不全高（限高 480），顶对齐裁切，嵌在卡片留白内的圆角盒里（见 .cover-box） */
 .cover-img {
   display: block;
   width: 100%;
-  aspect-ratio: 1298 / 667;
+  height: auto;
+  max-height: 480px;
   object-fit: cover;
+  object-position: top;
 }
 
 /* 导航滚动状态：顶部无边框，下滑后浮现边框 */
@@ -343,8 +346,12 @@ header.site-header:not(.is-scrolled) {
 }
 /* 叙事区恒深色：两主题下的文字与按钮统一成深色底上的配色 */
 #home h1 { color: #f5f7fa !important; }
-#home h1 span { color: #93a0b4 !important; }
-#home p { color: #97a2b6 !important; }
+#home h1 span { color: #a9b4c8 !important; }
+#home p { color: #aab5c9 !important; }
+/* 亮线网络会穿透文字：深色光晕把字和线条隔开 */
+#home h1, #home p {
+  text-shadow: 0 1px 2px rgba(3, 6, 14, 0.85), 0 0 22px rgba(3, 6, 14, 0.6);
+}
 #home .btn-primary { background: #f5f5f7; color: #1d1d1f; }
 #home .btn-primary:hover { background: #ffffff; }
 #home a:not(.btn-primary) { color: #c8d2e2 !important; }
@@ -356,7 +363,10 @@ header.site-header:not(.is-scrolled) {
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  background: linear-gradient(to bottom,
+  background:
+    radial-gradient(ellipse 62% 52% at 50% 44%,
+      rgba(5, 7, 12, 0.58) 0%, rgba(5, 7, 12, 0.26) 58%, rgba(5, 7, 12, 0) 82%),
+    linear-gradient(to bottom,
     rgba(5, 7, 12, 0.62) 0%, rgba(5, 7, 12, 0.36) 20%,
     rgba(5, 7, 12, 0.12) 36%, rgba(5, 7, 12, 0) 52%,
     rgba(5, 7, 12, 0) 66%, rgba(5, 7, 12, 0.30) 86%,

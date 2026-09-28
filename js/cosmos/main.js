@@ -64,7 +64,7 @@ function boot() {
 
     // 点击交互：点哪就从最近的节点放一记推理脉冲
     addEventListener('pointerdown', (e) => {
-      if (e.target.closest('a,button,input,textarea,select,label,#cosmos-dock,#music-player')) return;
+      if (e.target.closest('a,button,input,textarea,select,label,#music-player')) return;
       const world = interaction.pick(e, CFG.layers.fieldZ);
       if (world) field.kick(world);
     }, { passive: true });
@@ -140,56 +140,22 @@ function boot() {
     });
     field.setPixelScale(renderer.getPixelRatio() * (innerHeight / 900) * 1.3);
 
-    // ---- 右下角音频控制台：本地音乐上传 / 音量 / 折叠 / 重置 ----
-    const dockState = document.getElementById('cosmos-state');
-    let dockFileName = '', dockUrl = null;
-    const say = (m) => { if (dockState) dockState.textContent = m; };
-    (function bindDock() {
-      const panel = document.getElementById('cosmos-panel');
-      const chip = document.getElementById('cosmos-chip');
-      const fold = document.getElementById('cosmos-fold');
-      const fileInput = document.getElementById('cosmos-file');
-      const vol = document.getElementById('cosmos-vol');
-      const resetBtn = document.getElementById('cosmos-reset');
-      if (!panel || !chip) return;
-      const setOpen = (open) => {
-        panel.hidden = !open;
-        chip.hidden = open;
-        if (fold) fold.setAttribute('aria-expanded', open ? 'true' : 'false');
-      };
-      if (fold) fold.addEventListener('click', () => setOpen(false));
-      chip.addEventListener('click', () => setOpen(true));
-      setOpen(true);
-      if (fileInput) fileInput.addEventListener('change', (ev) => {
-        const f = ev.target.files && ev.target.files[0];
-        if (!f || !audio.ownEl) return;
-        if (dockUrl) { try { URL.revokeObjectURL(dockUrl); } catch (e) {} }
-        dockUrl = URL.createObjectURL(f);
-        audio.ownEl.src = dockUrl;
-        dockFileName = f.name;
-        audio.ensureGraph();           // 文件选择即用户手势
-        audio.resume();
-        const pr = audio.ownEl.play();
-        if (pr && pr.catch) pr.catch(() => say('浏览器拦下了自动播放，点一下页面再试'));
-        if (vol) audio.ownEl.volume = vol.value / 100;
-        say('本地曲目：' + dockFileName);
-      });
-      if (vol) vol.addEventListener('input', () => {
-        const el = audio.activeEl();
-        if (el) el.volume = vol.value / 100;
-      });
-      if (resetBtn) resetBtn.addEventListener('click', () => {
-        window.__COSMOS.reset();
-        say('推理场已重置');
-      });
-    })();
-    setInterval(() => {
-      if (!dockState) return;
-      if (audio.ownEl && !audio.ownEl.paused) return say('本地曲目 · ' + (dockFileName || '播放中'));
-      if (audio.siteEl && !audio.siteEl.paused) return say('站点歌单 · 脉冲跟着音乐跑');
-      if (reduceMotion) return say('慢速运行 · 系统开了「减少动效」');
-      return say('静音中 · 网络仍在低频推理');
-    }, 1200);
+    // ---- 本地音乐接入：悬浮控制台已删，保留隐藏 input 的真实音频链路 ----
+    const fileInput = document.getElementById('cosmos-file');
+    const vol = document.getElementById('cosmos-vol');
+    let dockUrl = null;
+    if (fileInput) fileInput.addEventListener('change', (ev) => {
+      const f = ev.target.files && ev.target.files[0];
+      if (!f || !audio.ownEl) return;
+      if (dockUrl) { try { URL.revokeObjectURL(dockUrl); } catch (e) {} }
+      dockUrl = URL.createObjectURL(f);
+      audio.ownEl.src = dockUrl;
+      audio.ensureGraph();           // 文件选择即用户手势
+      audio.resume();
+      const pr = audio.ownEl.play();
+      if (pr && pr.catch) pr.catch(() => {});
+      if (vol) audio.ownEl.volume = vol.value / 100;
+    });
 
     // ---- 测试探针 ----
     window.__COSMOS = {

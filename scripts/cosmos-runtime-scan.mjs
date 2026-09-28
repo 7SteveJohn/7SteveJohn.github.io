@@ -117,9 +117,9 @@ const info = (pg) => pg.evaluate(() => window.__COSMOS.info());
   } catch (e) {}
   assert(restored, 'webglcontextrestored 后恢复渲染', restored);
 
-  // 7) 推理场控制台 DOM 在位
-  const dock = await pg.evaluate(() => !!(document.getElementById('cosmos-file') && document.getElementById('cosmos-vol')));
-  assert(dock, '推理场音频控制台在位（本地音乐/音量）');
+  // 7) 推理场音频链路 DOM 在位（悬浮面板已删，保留隐藏 input 与音轨）
+  const dock = await pg.evaluate(() => !!(document.getElementById('cosmos-file') && document.getElementById('cosmos-audio')));
+  assert(dock, '推理场音频链路在位（隐藏 input + 音轨）');
   assert(errs.length === 0, '交互上下文无 console error', errs.slice(0, 4).join(' | '));
   await ctx.close();
 }
