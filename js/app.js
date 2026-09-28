@@ -1131,26 +1131,43 @@ function initScrollSpy() {
   update();
 }
 
-// 逐页下翻：底部居中箭头，每次点击滑到下一个区块顶部（区块序列与 ScrollSpy 一致）
+// 书页序列：封面 → 产品区头 → 每张产品卡各一页 → 其余导航区块（像一本书一页页翻）
+function collectPageUnits() {
+  const units = [];
+  const add = (el) => { if (el && el.offsetHeight > 0) units.push(el); };
+  add(document.getElementById('home'));
+  const products = document.getElementById('products');
+  if (products && products.offsetHeight > 0) {
+    add(products.querySelector(':scope > .reveal'));            // 产品区标题页
+    products.querySelectorAll(':scope > article').forEach(add); // 每张产品卡一页
+  }
+  for (const s of collectNavSections().sections) {
+    if (s.id !== 'home' && s.id !== 'products') add(s);
+  }
+  units.sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
+  return units;
+}
+
+// 逐页下翻：底部居中箭头，像翻书一样每次点击滑到下一页顶部（产品区内逐卡翻）
 function initPageNext() {
   const btn = document.getElementById('page-next');
   if (!btn) return;
-  const { sections } = collectNavSections();
-  if (!sections.length) return;
+  const units = collectPageUnits();
+  if (units.length < 2) return;
 
-  // 与 ScrollSpy 同判线（视口 38%）：当前节之后的第一节即"下一页"；已是最后一节则无
-  const nextSection = () => {
-    const line = window.scrollY + window.innerHeight * 0.38;
-    let idx = 0;
-    for (let i = 0; i < sections.length; i++) {
-      if (sections[i].getBoundingClientRect().top + window.scrollY <= line) idx = i;
+  // 下一页 = 文档序里第一个页顶落在当前滚动位之下（阈值 = 页顶对齐位 64px + ε）的页。
+  // 不用 ScrollSpy 的 38% 判线：矮页（区头/理念）会让判线跨页命中，导致提前"没有下一页"。
+  const nextPage = () => {
+    const threshold = window.scrollY + 70;
+    for (const el of units) {
+      if (el.getBoundingClientRect().top + window.scrollY >= threshold) return el;
     }
-    return sections[idx + 1] || null;
+    return null;
   };
 
   const update = () => {
     const atBottom = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
-    const hasNext = !atBottom && !!nextSection();
+    const hasNext = !atBottom && !!nextPage();
     btn.classList.toggle('opacity-0', !hasNext);
     btn.classList.toggle('pointer-events-none', !hasNext);
   };
@@ -1166,11 +1183,11 @@ function initPageNext() {
   update();
 
   btn.addEventListener('click', () => {
-    const next = nextSection();
+    const next = nextPage();
     if (!next) return;
     const y = next.getBoundingClientRect().top + window.scrollY - 64;
     smoothScrollTo(Math.max(0, y));
-    history.pushState(null, '', '#' + next.id);
+    history.pushState(null, '', next.id ? '#' + next.id : location.pathname);
   });
 }
 
