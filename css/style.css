@@ -374,7 +374,7 @@ header.site-header:not(.is-scrolled) {
 }
 /* 叙事区恒深色：两主题下的文字与按钮统一成深色底上的配色 */
 #home h1 { color: #f5f7fa !important; }
-#home h1 span { color: #a9b4c8 !important; }
+#home h1 span { color: #cfe0ff !important; }
 #home p { color: #aab5c9 !important; }
 /* 亮线网络会穿透文字：深色光晕把字和线条隔开 */
 #home h1, #home p {
@@ -1142,4 +1142,165 @@ mark.sj-note {
 @media (max-width: 480px) {
   .music-fab { margin-left: -1.5rem; bottom: 1rem; }
   .music-panel { bottom: 4.4rem; }
+}
+
+/* ============================================================
+   点亮层（2026-09-29）：星光蓝强调色
+   色相取自 3D 推理场的冷蓝辉光与 HUD 角标，让正文层与背景同源。
+   全部为装饰性颜色 / 伪元素 / filter，不动布局与交互逻辑。
+   ============================================================ */
+:root {
+  --accent: #8fb8ff;
+  --accent-dim: rgba(143, 184, 255, 0.35);
+}
+
+/* 选区：星光蓝淡染 */
+::selection {
+  background: rgba(143, 184, 255, 0.26);
+}
+
+/* hero 眉标：呼吸信号点（推理场"在线"的心跳） */
+.hero-eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 0.6rem;
+  vertical-align: 0.08em;
+  border-radius: 9999px;
+  background: var(--accent);
+  box-shadow: 0 0 8px rgba(143, 184, 255, 0.8);
+  animation: eyebrow-breathe 2.8s ease-in-out infinite;
+}
+@keyframes eyebrow-breathe {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 1; }
+}
+
+/* 区块眉标：冷蓝短竖线（编辑风记号） */
+.sec-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+.sec-eyebrow::before {
+  content: "";
+  width: 2px;
+  height: 1em;
+  border-radius: 1px;
+  background: var(--accent);
+  box-shadow: 0 0 6px rgba(143, 184, 255, 0.5);
+}
+/* 理念区眉标在居中容器里，跟随居中 */
+#philosophy .sec-eyebrow { justify-content: center; }
+
+/* 理念编号染色 + 列顶发丝线（编辑风版式） */
+.phil-no {
+  color: var(--accent) !important;
+  font-weight: 600;
+}
+#philosophy .grid > .reveal {
+  border-top: 1px solid var(--hairline);
+  padding-top: 1.1rem;
+}
+
+/* hero 副题行：星光渐变字（不支持的浏览器回退为亮蓝白） */
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  #home h1 span {
+    color: transparent !important;
+    background: linear-gradient(180deg, #f2f7ff 0%, #a9c4f5 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+}
+
+/* 封面 hover：冷蓝环境光晕 + 图像轻微提亮（不动布局） */
+.cover-box {
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.cover-box:hover {
+  border-color: var(--accent-dim);
+  box-shadow:
+    0 0 0 1px rgba(143, 184, 255, 0.10),
+    0 12px 40px -12px rgba(96, 150, 255, 0.18);
+}
+.cover-img { transition: filter 0.35s ease; }
+.cover-box:hover .cover-img {
+  filter: brightness(1.05) saturate(1.04);
+}
+
+/* 文章 / 随笔卡 hover：左缘冷蓝指示线 */
+#articles-list > article,
+#essays-list > article {
+  position: relative;
+}
+#articles-list > article::before,
+#essays-list > article::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: 16%;
+  bottom: 16%;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0;
+  transform: scaleY(0.5);
+  transition: opacity 0.25s ease, transform 0.25s var(--ease-swift);
+  pointer-events: none;
+}
+#articles-list > article:hover::before,
+#essays-list > article:hover::before {
+  opacity: 0.9;
+  transform: none;
+}
+
+/* ScrollSpy 活动态：下划线染星光蓝 */
+header.site-header nav a.nav-active {
+  text-decoration-color: var(--accent);
+}
+
+/* 逐页箭头 hover：边框呼应星光蓝 */
+#page-next:hover {
+  border-color: rgba(143, 184, 255, 0.38);
+}
+
+/* hero GitHub 链接：箭头 hover 位移 */
+#home a.inline-flex svg {
+  transition: transform 0.2s var(--ease-swift);
+}
+#home a.inline-flex:hover svg {
+  transform: translateX(2px);
+}
+
+/* footer：顶部星光渐变发丝线 */
+footer {
+  position: relative;
+}
+footer::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(143, 184, 255, 0.45), transparent);
+  pointer-events: none;
+}
+
+/* 滚动条 hover 染色（微调呼应） */
+::-webkit-scrollbar-thumb:hover {
+  background: #6f8cbd;
+}
+
+/* 减少动效：停掉新增的呼吸与过渡 */
+@media (prefers-reduced-motion: reduce) {
+  .hero-eyebrow::before { animation: none; }
+  .cover-box,
+  .cover-img,
+  #home a.inline-flex svg,
+  #articles-list > article::before,
+  #essays-list > article::before {
+    transition: none;
+  }
 }
