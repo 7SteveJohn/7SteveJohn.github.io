@@ -48,14 +48,6 @@
       <description>「直接问文件」这件事，难的不是接个模型，是让它既快又能反悔。记录 FileButler 的双索引分工、可撤销设计，以及端侧 AI 必须做的降级底线。</description>
     </item>
     <item>
-      <title>机房与野外应急场景：打造 100% 零网络权限 Android 离线应用</title>
-      <link>https://7stevejohn.github.io/?post=netops-zero-permission</link>
-      <guid isPermaLink="false">netops-zero-permission</guid>
-      <pubDate>Thu, 20 Aug 2026 00:00:00 GMT</pubDate>
-      <category>移动开发</category>
-      <description>最需要翻命令手册的时刻，往往就是网已经断了的时候。记录 NetOps Handbook 怎么把「零网络权限」做成硬约束，以及 file:// 下自己写导航栈的原因。</description>
-    </item>
-    <item>
       <title>竞技帧率防抖：为什么 1% Low 远比平均帧率更能决定胜负？</title>
       <link>https://7stevejohn.github.io/?post=gameboost-frame-pacing</link>
       <guid isPermaLink="false">gameboost-frame-pacing</guid>
