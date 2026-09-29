@@ -258,15 +258,6 @@ window.closeProjectModal = function() {
   animateModalClose(document.getElementById('project-modal'));
 };
 
-// 滚动到卡片上的介绍视频并播放（用户点击手势后允许有声播放）
-window.playCardVideo = function(id) {
-  const v = document.getElementById('video-' + id);
-  if (!v) return;
-  v.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  const p = v.play();
-  if (p && p.catch) p.catch(() => {});
-};
-
 /* ============================================================
    3. 文字内容模块：技术手记 / 创作 / 随笔
       （共用 ARTICLES_DATA，按 section 字段路由，空模块自动隐藏）
