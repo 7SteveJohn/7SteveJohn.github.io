@@ -308,6 +308,15 @@ html:not(.dark) .bento-card:hover {
   object-fit: cover;
   object-position: top;
 }
+/* 卡片上的介绍视频（FileButler / NetOps / Fluxion）：16:9 完整可见，控制条不许被裁 */
+.cover-video {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: #000;
+}
 /* ===== 一屏一产品（翻页箭头的"一页"= 完整一张卡）：桌面且视口足够高时，
    卡限高视口、文字区收紧、封面弹性吃剩余空间（object-fit 裁切）；
    矮视口自动退回自由滚动 ===== */
@@ -334,6 +343,14 @@ html:not(.dark) .bento-card:hover {
   #products > article.bento-card .cover-img {
     height: 100%;
     max-height: none;
+  }
+  /* 一屏模式下视频改为 contain：完整可见 + 控制条贴底，黑边兜底 */
+  #products > article.bento-card .cover-video {
+    height: 100%;
+    flex: 1 1 0;
+    min-height: 0;
+    aspect-ratio: auto;
+    object-fit: contain;
   }
 }
 

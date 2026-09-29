@@ -44,8 +44,8 @@ window.PROJECTS_DATA = [
     requires: "",
     sha256: "",
     details: `
-<video controls preload="none" poster="assets/images/filebutler-tour-poster.jpg" src="assets/video/filebutler-intro.mp4" style="width:100%;aspect-ratio:16/9;border-radius:10px;background:#000;margin-bottom:6px;"></video>
-<p style="font-size:12px;color:#86868b;margin-top:0;">38 秒介绍片：一镜一件事，讲清它替你做掉哪些活。</p>
+<img src="assets/images/cover-filebutler.webp" alt="FileButler 实机界面" style="width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:block;">
+<p style="font-size:12px;color:#86868b;margin-top:6px;">FileButler 实机主界面；38 秒介绍视频在项目卡片上。</p>
 
 ### 💡 这是什么
 文件越堆越乱、想找的东西永远翻不出来——FileButler 就是为这个写的。它是一个**全在你自己电脑上跑**的文件管家 + 知识库问答：AI 用本机 Ollama 的免费模型，**不用申请任何 API Key，文件不会离开这台机器**。
@@ -69,24 +69,24 @@ window.PROJECTS_DATA = [
     title: "NetOps Handbook · 给小白的离线网络手册",
     category: "android",
     categoryName: "Android 应用",
-    description: "一本装在手机里的离线网络手册：58 个知识模块、25 个排障案例、58 条命令对照、392 条模拟器命令、30 道面试真题。它是配套的辅助资料，得配着教材和实验用，不能只靠它把网络学会。零联网权限，没信号也能翻。",
+    description: "一本装在手机里的离线网络手册：68 个知识模块、35 个排障案例、58 条命令对照、431 条模拟器命令、53 道面试真题。它是配套的辅助资料，得配着教材和实验用，不能只靠它把网络学会。零联网权限，没信号也能翻。",
     tags: ["Android", "WebView", "Gradle 8.9", "单页 SPA", "离线应用"],
     image: "assets/images/cover-netops.webp",
     demoUrl: "https://github.com/7SteveJohn/netops-handbook/releases",
     githubUrl: "https://github.com/7SteveJohn/netops-handbook",
-    downloadUrl: "https://wwblz.lanzouu.com/iiIEW4aczvmf",
-    downloadPwd: "4x9o",
+    downloadUrl: "https://wwblz.lanzouu.com/iejHb4adbxpc",
+    downloadPwd: "fyii",
     featured: true,
     role: "开发",
-    challenge: "难点是「断网也要能翻」这条硬约束把所有常规方案都否掉了：CDN、在线搜索、远端更新全不能用。解法是把 58 个模块编译进单个 HTML 文件随包带走，导航栈自己写（file:// 下浏览器 history 行为不可靠），图形样式全部内联；Android 端索性不申明 INTERNET 权限，从系统层面断掉联网可能，而不是靠自觉。",
+    challenge: "难点是「断网也要能翻」这条硬约束把所有常规方案都否掉了：CDN、在线搜索、远端更新全不能用。解法是把全部模块编译进单个 HTML 文件随包带走，导航栈自己写（file:// 下浏览器 history 行为不可靠），图形样式全部内联；Android 端索性不申明 INTERNET 权限，从系统层面断掉联网可能，而不是靠自觉。",
     // ↓ 版本/运行环境/校验码：填上即显示在弹窗里，留空自动隐藏
     version: "",
     updated: "",
     requires: "",
     sha256: "",
     details: `
-<video controls preload="none" poster="assets/images/netops-tour-poster.jpg" src="assets/video/netops-intro.mp4" style="width:100%;aspect-ratio:16/9;border-radius:10px;background:#000;margin-bottom:6px;"></video>
-<p style="font-size:12px;color:#86868b;margin-top:0;">38 秒介绍片：翻一遍里面有什么，以及怎么配合教材用。</p>
+<img src="assets/images/cover-netops.webp" alt="NetOps 2.0 实机界面" style="width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:block;">
+<p style="font-size:12px;color:#86868b;margin-top:6px;">NetOps 2.0 实机界面；38 秒介绍视频在项目卡片上。</p>
 
 ### 💡 这是什么
 NetOps 是一本**能装进口袋的离线网络小册子**。断网、没信号、蹲在机房角落都翻得开——它压根不申请联网权限。
@@ -94,7 +94,7 @@ NetOps 是一本**能装进口袋的离线网络小册子**。断网、没信号
 **它的定位是辅助工具，不是一门能独立走完的课**：得配合教材、网课和真机实验一起用——课前翻一遍混个脸熟，课上忘了解释随手查，面试前拿出来突击。只指望翻它就把网络学明白，不现实。
 
 ### ✨ 里面有什么
-- **58 个知识模块** / **25 个排障案例** / **58 条多厂商命令对照** / **392 条 CLI 模拟器命令** / **30 道面试真题**
+- **68 个知识模块** / **35 个排障案例** / **58 条多厂商命令对照** / **431 条 CLI 模拟器命令** / **53 道面试真题**
 - 命令看不懂？内置模拟器可以直接敲，有前缀联想和历史记录
 - 学习进度和收藏能导出成 JSON，换手机不丢
 - 三种毛玻璃主题（透明 / 毛玻璃 / 高斯），低端机会自动降级
@@ -198,8 +198,8 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
     updated: "2026-09-21",
     requires: "Windows 10/11 · NVIDIA RTX 20 系及以上（帧生成功能）",
     details: `
-<video controls preload="none" poster="assets/images/fluxion-tour-poster.jpg" src="assets/video/fluxion-intro.mp4" style="width:100%;aspect-ratio:16/9;border-radius:10px;background:#000;margin-bottom:6px;"></video>
-<p style="font-size:12px;color:#86868b;margin-top:0;">38 秒介绍片：一镜一件事，讲清它替你做掉哪些活。</p>
+<img src="assets/images/cover-fluxion.webp" alt="Fluxion 实机界面" style="width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:block;">
+<p style="font-size:12px;color:#86868b;margin-top:6px;">Fluxion 实机主界面；38 秒介绍视频在项目卡片上。</p>
 
 ### 💡 这是什么
 GameBoost（系统优化）和 DLSSG-Tool（帧生成）合并重构的完整版，七个页面——仪表盘、性能优化、帧生成、游戏库、实时监控、说明、设置。一句话：**一键把系统调到适合游戏的状态，并给 RTX 20/30 系接上 NVIDIA 官方只给 40/50 系的 DLSS 帧生成。**

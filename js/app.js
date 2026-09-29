@@ -253,7 +253,18 @@ window.openProjectModal = function(id) {
 };
 
 window.closeProjectModal = function() {
+  // 关闭时必须停掉弹窗内所有视频，否则声音会在背后继续
+  document.querySelectorAll('#project-modal video').forEach(v => { try { v.pause(); } catch (e) {} });
   animateModalClose(document.getElementById('project-modal'));
+};
+
+// 滚动到卡片上的介绍视频并播放（用户点击手势后允许有声播放）
+window.playCardVideo = function(id) {
+  const v = document.getElementById('video-' + id);
+  if (!v) return;
+  v.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const p = v.play();
+  if (p && p.catch) p.catch(() => {});
 };
 
 /* ============================================================
