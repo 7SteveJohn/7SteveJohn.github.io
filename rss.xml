@@ -5,8 +5,32 @@
     <link>https://7stevejohn.github.io/</link>
     <description>技术手记、小说、游戏创作与随笔，想到什么写什么。</description>
     <language>zh-cn</language>
-    <lastBuildDate>Sat, 26 Sep 2026 00:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 30 Sep 2026 00:00:00 GMT</lastBuildDate>
     <atom:link href="https://7stevejohn.github.io/rss.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>刷机为什么会卡开机：验证启动的信任链从哪开始</title>
+      <link>https://7stevejohn.github.io/?post=flash-vbmeta-trust-chain</link>
+      <guid isPermaLink="false">flash-vbmeta-trust-chain</guid>
+      <pubDate>Wed, 30 Sep 2026 00:00:00 GMT</pubDate>
+      <category>刷机</category>
+      <description>改完分区开不了机，问题通常不在分区写错，在于校验没过。记录 Android 13 的 init_boot 拆分与 AVB 2.0 的校验顺序，以及 9008 这条底层通道到底强在哪。</description>
+    </item>
+    <item>
+      <title>root 藏不住的原因：三层隐藏各管哪一段</title>
+      <link>https://7stevejohn.github.io/?post=root-hiding-layers</link>
+      <guid isPermaLink="false">root-hiding-layers</guid>
+      <pubDate>Wed, 30 Sep 2026 00:00:00 GMT</pubDate>
+      <category>刷机</category>
+      <description>装了 root 之后支付和银行就不让用，于是有了隐藏。记录注入、命名空间、内核三个层次各自解决什么，以及跨过本机之后那道改不了的云端校验。</description>
+    </item>
+    <item>
+      <title>两年刷机记：从 K60 Pro 到拯救者 Y700</title>
+      <link>https://7stevejohn.github.io/?post=two-years-of-flashing</link>
+      <guid isPermaLink="false">two-years-of-flashing</guid>
+      <pubDate>Wed, 30 Sep 2026 00:00:00 GMT</pubDate>
+      <category>随笔</category>
+      <description>一台手机、一块平板，从装个 Magisk 开始，到能自己写模块、自己签 vbmeta。记一下这两年是怎么被具体问题推着往前走的。</description>
+    </item>
     <item>
       <title>8GB 显存跑本地大模型：先算显存账，再挑模型</title>
       <link>https://7stevejohn.github.io/?post=local-llm-8gb-vram</link>
