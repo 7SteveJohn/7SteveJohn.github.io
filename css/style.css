@@ -417,7 +417,7 @@ header.site-header:not(.is-scrolled) {
     rgba(5, 7, 12, 0) 66%, rgba(5, 7, 12, 0.30) 86%,
     rgba(5, 7, 12, 0.70) 100%);
 }
-/* 头像卡挪到左下角：像 igloo 的角标，不占舞台中心 */
+/* 头像卡挪到左下角：像 igloo 的角标，不占舞台中心；整卡可点进「关于我」 */
 #home .hero-who {
   position: absolute;
   left: 26px;
@@ -425,6 +425,55 @@ header.site-header:not(.is-scrolled) {
   z-index: 2;
   margin: 0 !important;
   padding-top: 0 !important;
+  cursor: pointer;
+  border-radius: 14px;
+  transition: background 0.25s ease, transform 0.25s ease;
+}
+#home .hero-who:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+}
+#home .hero-who-more {
+  transition: transform 0.25s ease;
+}
+#home .hero-who:hover .hero-who-more {
+  transform: translateX(3px);
+  color: #f5f7fa !important;
+}
+/* CTA 里的音乐入口：保留但降权，弱边框幽灵样式 */
+#home .hero-ghost {
+  background: transparent;
+  border: 1px solid rgba(200, 210, 226, 0.28);
+  color: #aab5c9 !important;
+  transition: color 0.25s ease, border-color 0.25s ease;
+}
+#home .hero-ghost:hover {
+  color: #e8eefc !important;
+  border-color: rgba(200, 210, 226, 0.55);
+}
+/* 移动端：veil 中央暗晕覆盖比例按竖屏收窄，第二行标题提亮补对比 */
+@media (max-width: 639px) {
+  #home h1 span {
+    color: #e3edff !important;
+  }
+  #home h1, #home p {
+    text-shadow: 0 1px 3px rgba(3, 6, 14, 0.95), 0 0 26px rgba(3, 6, 14, 0.8);
+  }
+  .hero-veil {
+    background:
+      radial-gradient(ellipse 88% 46% at 50% 40%,
+        rgba(5, 7, 12, 0.72) 0%, rgba(5, 7, 12, 0.38) 58%, rgba(5, 7, 12, 0) 82%),
+      linear-gradient(to bottom,
+      rgba(5, 7, 12, 0.62) 0%, rgba(5, 7, 12, 0.36) 20%,
+      rgba(5, 7, 12, 0.12) 36%, rgba(5, 7, 12, 0) 52%,
+      rgba(5, 7, 12, 0) 66%, rgba(5, 7, 12, 0.30) 86%,
+      rgba(5, 7, 12, 0.70) 100%);
+  }
+  /* 角标抬高避开音乐 FAB（FAB 默认占底部中央） */
+  #home .hero-who {
+    left: 20px;
+    bottom: 6rem;
+  }
 }
 /* 逐页下翻按钮：固定底部居中（音乐 FAB 占最底，箭头在其正上方一档），点击滑到下一个区块（显隐由 app.js 切 opacity） */
 #page-next {
@@ -483,7 +532,8 @@ html.dark header.site-header nav a.nav-active {
 }
 @media (max-width: 720px) {
   #home { padding-top: max(4.5rem, 11svh); padding-bottom: 4.5rem; }
-  #home .hero-who { left: 16px; bottom: 14px; }
+  /* 角标抬高避开音乐 FAB（FAB 默认占底部中央） */
+  #home .hero-who { left: 16px; bottom: 6rem; }
 }
 
 /* ============================================================

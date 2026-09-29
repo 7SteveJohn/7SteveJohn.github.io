@@ -234,6 +234,10 @@
         <a href="#products" class="btn-primary px-6 py-2.5 text-sm" data-page-node-id="wtewTutKOwPW5utKD86pR3">
           浏览项目
         </a>
+        <a href="#about" class="btn-secondary px-6 py-2.5 text-sm inline-flex items-center gap-1.5">
+          <i data-lucide="user" class="w-4 h-4"></i>
+          <span>关于我</span>
+        </a>
         <a
           href="https://github.com/7SteveJohn"
           target="_blank"
@@ -245,14 +249,14 @@
         </a>
         <!-- 推理场入口：点击即放歌，脉冲跟着音乐跑（用户手势内解锁 AudioContext） -->
         <button id="cosmos-enter" type="button"
-          class="btn-secondary px-5 py-2.5 text-sm inline-flex items-center gap-2"
+          class="hero-ghost px-5 py-2.5 text-sm inline-flex items-center gap-2"
           title="播放音乐，背景律动会随节拍变化">
-          <span aria-hidden="true">♫</span><span>播放音乐，查看律动</span>
+          <span aria-hidden="true">♫</span><span>播放音乐</span>
         </button>
       </div>
 
-      <!-- 真实头像与创作者介绍 -->
-      <div class="hero-anim hero-who pt-8 flex items-center justify-center gap-4 text-left" style="--i:4" data-page-node-id="Q3QNk18xnLDCY550n40CHw">
+      <!-- 真实头像与创作者介绍（点击进「关于我」） -->
+      <a href="#about" class="hero-anim hero-who flex items-center gap-4 text-left" style="--i:4" title="关于我" data-page-node-id="Q3QNk18xnLDCY550n40CHw">
         <div class="w-14 h-14 rounded-full overflow-hidden border border-black/10 dark:border-white/20 shadow-md" data-page-node-id="bD1WWLYIXTF9DJC4o6TtPq">
           <img
             src="assets/images/avatar.webp"
@@ -267,10 +271,11 @@
         <div data-page-node-id="mO9pBdfRjBgUEFwEcm2I1x">
           <div id="hero-greeting" class="text-xs text-[#86868b] font-medium" data-page-node-id="HSvyH7FDEAEHmDNHXTf972"></div>
           <div class="text-sm font-bold text-[#1d1d1f] dark:text-white" data-page-node-id="4HNDn4GntrNu34iv22W2Ww">SevenJohn</div>
-          <div class="text-xs text-[#86868b]" data-page-node-id="9RgoOd30lFlk8cqyW1TArl">本地 AI 应用与桌面工具</div>
+          <div class="text-xs text-[#86868b]" data-page-node-id="9RgoOd30lFlk8cqyW1TArl">做本地 AI 应用与桌面工具</div>
+          <div class="hero-who-more text-xs text-[#c8d2e2] mt-0.5">了解我 <span aria-hidden="true">→</span></div>
           <div id="hero-status" class="hidden text-xs text-[#86868b] mt-0.5" data-page-node-id="qreOfmg5FdVuKGwKzJmbxv"></div>
         </div>
-      </div>
+      </a>
     </section>
 
     <!-- 2. 🚀 三大旗舰单品画卷式深度专栏 (Product Featurettes) -->
@@ -310,11 +315,12 @@
 
           <!-- 操作胶囊组 -->
           <div class="flex flex-wrap items-center gap-3 pt-4" data-page-node-id="1IkSfjrR5xN1UGh8RmXVkD">
-            <a 
-              href="https://wwblz.lanzouu.com/iH09N49fsrcb" 
+            <a
+              href="https://wwblz.lanzouu.com/iH09N49fsrcb"
               data-link="download"
-              target="_blank" 
+              target="_blank"
               rel="noopener noreferrer"
+              title="蓝奏云网盘；同一份文件也在 GitHub Releases"
               class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5" data-page-node-id="o8653gZ0xokGWHsAuSTopS"
             >
               <i data-lucide="download" class="w-3.5 h-3.5" data-page-node-id="O4d1GRFv5I3d22tbiPfm1E"></i>
