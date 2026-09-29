@@ -85,6 +85,9 @@ window.PROJECTS_DATA = [
     requires: "",
     sha256: "",
     details: `
+<video controls preload="none" poster="assets/images/netops-tour-poster.jpg" src="assets/video/netops-intro.mp4" style="width:100%;aspect-ratio:16/9;border-radius:10px;background:#000;margin-bottom:6px;"></video>
+<p style="font-size:12px;color:#86868b;margin-top:0;">38 秒介绍片：翻一遍里面有什么，以及怎么配合教材用。</p>
+
 ### 💡 这是什么
 NetOps 是一本**能装进口袋的离线网络小册子**。断网、没信号、蹲在机房角落都翻得开——它压根不申请联网权限。
 
