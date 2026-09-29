@@ -9,9 +9,8 @@
   <script>
     (function () {
       document.documentElement.classList.add('js');
-      var saved = localStorage.getItem('theme');
-      var dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
-      document.documentElement.classList.toggle('dark', dark);
+      // 站点恒深色：无条件挂 dark（旧 visitors 存过 theme=light 会把首屏变亮，2026-09-29 手机端翻车）
+      document.documentElement.classList.add('dark');
     })();
   </script>
 

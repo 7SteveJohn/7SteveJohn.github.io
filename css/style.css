@@ -1390,8 +1390,9 @@ footer::before {
     inset -1px 0 0 rgba(255, 150, 120, .05);
 }
 
-/* 跟手 specular：JS 只写 --sx/--sy，光斑跟随指针 */
-.glass-spec { position: relative; }
+/* 跟手 specular：JS 只写 --sx/--sy，光斑跟随指针
+   ❗不写 position —— 宿主各自定位（modal-panel=relative、music-panel/page-next=fixed），
+   2026-09-29 曾在此写 relative 把 music-panel 的 fixed 覆盖掉，面板掉进文档流在页尾占了 304px */
 .glass-spec::before {
   content: "";
   position: absolute;
