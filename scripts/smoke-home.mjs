@@ -35,6 +35,7 @@ const info = await p.evaluate(() => {
     subClip: cs?.webkitBackgroundClip || cs?.backgroundClip,
     eyebrow: document.querySelector('#home .hero-eyebrow')?.textContent.trim(),
     heroP: [...document.querySelectorAll('#home p')].map((e) => e.textContent.trim()),
+    homeAboutLinks: document.querySelectorAll('#home a[href="#about"]').length,
     sections: ['products', 'blog', 'creation', 'essays'].map(
       (id) => document.getElementById(id)?.querySelector('p.font-display')?.textContent.trim() || null
     ),
@@ -60,6 +61,7 @@ const WANT_SECTIONS = [
   '星砚耕行 · 研器书行迹，落笔揽晚星',
   '尘页实录 · 于此留存工具实践、技术手记与笔下故事',
 ];
+ok('首屏只有一个「关于我」入口（左下角标，CTA 里的重复按钮已删）', info.homeAboutLinks === 1, String(info.homeAboutLinks));
 ok('四个内容栏目的副标题 = 四字题 · 对句', JSON.stringify(info.sections) === JSON.stringify(WANT_SECTIONS), info.sections.join(' ／ '));
 ok('关于我：去专业化（依托 AI + 试错）', /我并非擅长编码的人/.test(info.about) && /学习路上留下的脚印/.test(info.about) && !/应届|求职|平时写 Python/.test(info.about), info.about.slice(0, 34));
 ok(
