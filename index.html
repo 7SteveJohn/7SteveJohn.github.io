@@ -792,7 +792,7 @@
   </button>
 
   <!-- 逐页下翻按钮：点击滑到下一个区块，一页一页翻（显隐由 app.js 随滚动切换） -->
-  <button id="page-next" aria-label="翻到下一页" class="opacity-0 pointer-events-none">
+  <button id="page-next" aria-label="翻到下一页" class="glass-spec opacity-0 pointer-events-none">
     <i data-lucide="chevron-down" class="w-4 h-4"></i>
   </button>
 
@@ -819,8 +819,8 @@
 
   <!-- ======================== 弹窗层 ======================== -->
   <!-- ⌘K 站内搜索命令面板 -->
-  <div id="search-palette" role="dialog" aria-modal="true" aria-label="站内搜索" class="modal-overlay hidden fixed inset-0 z-[60] flex items-start justify-center pt-[12vh] p-4 bg-black/70 backdrop-blur-md overflow-y-auto" data-page-node-id="YWRALxaKpWbP6prsv1PDME">
-    <div class="modal-panel w-full max-w-xl bg-white dark:bg-[#161617] rounded-2xl shadow-2xl border border-black/10 dark:border-white/10 overflow-hidden my-8" data-page-node-id="5SHPdxaCEio5gdTZ0BsPnG">
+  <div id="search-palette" role="dialog" aria-modal="true" aria-label="站内搜索" class="modal-overlay hidden fixed inset-0 z-[60] flex items-start justify-center pt-[12vh] p-4 bg-black/55 lg-dim overflow-y-auto" data-page-node-id="YWRALxaKpWbP6prsv1PDME">
+    <div class="modal-panel glass-spec relative w-full max-w-xl bg-white dark:bg-[#161617] rounded-2xl shadow-2xl border border-black/10 dark:border-white/10 overflow-hidden my-8" data-page-node-id="5SHPdxaCEio5gdTZ0BsPnG">
       <div class="flex items-center gap-2.5 px-4 border-b border-black/10 dark:border-white/10" data-page-node-id="bwNPLkraULMBLyRDIWGmzb">
         <i data-lucide="search" class="w-4 h-4 text-[#86868b] flex-shrink-0" data-page-node-id="Oa1OaDCErwbDIkkZAhufIi"></i>
         <input
@@ -842,8 +842,8 @@
   </div>
 
   <!-- 项目技术规格详情弹窗 -->
-  <div id="project-modal" role="dialog" aria-modal="true" aria-label="项目详情" class="modal-overlay hidden fixed inset-0 z-50 flex justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto" data-page-node-id="J7jlKWBIO4EBMtrDznKCbZ">
-    <div class="modal-panel relative m-auto w-full max-w-2xl bg-white dark:bg-[#161617] rounded-2xl shadow-2xl overflow-hidden border border-black/10 dark:border-white/10 my-8" data-page-node-id="WpQ2MFpp0ADpuMivaJXoYV">
+  <div id="project-modal" role="dialog" aria-modal="true" aria-label="项目详情" class="modal-overlay hidden fixed inset-0 z-50 flex justify-center p-4 sm:p-6 bg-black/55 lg-dim overflow-y-auto" data-page-node-id="J7jlKWBIO4EBMtrDznKCbZ">
+    <div class="modal-panel glass-spec relative m-auto w-full max-w-2xl bg-white dark:bg-[#161617] rounded-2xl shadow-2xl overflow-hidden border border-black/10 dark:border-white/10 my-8" data-page-node-id="WpQ2MFpp0ADpuMivaJXoYV">
       <button 
         onclick="closeProjectModal()" 
         aria-label="关闭"
@@ -857,8 +857,8 @@
   </div>
 
   <!-- 博客文章弹窗 -->
-  <div id="article-modal" role="dialog" aria-modal="true" aria-label="文章阅读" class="modal-overlay hidden fixed inset-0 z-50 flex justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto" data-page-node-id="OOLn0h7Z91FL1FPa03zBG8">
-    <div class="modal-panel relative m-auto w-full max-w-2xl bg-white dark:bg-[#161617] rounded-2xl shadow-2xl overflow-hidden border border-black/10 dark:border-white/10 my-8" data-page-node-id="segOYcOzBHoZAjAYEYxiPR">
+  <div id="article-modal" role="dialog" aria-modal="true" aria-label="文章阅读" class="modal-overlay hidden fixed inset-0 z-50 flex justify-center p-4 sm:p-6 bg-black/55 lg-dim overflow-y-auto" data-page-node-id="OOLn0h7Z91FL1FPa03zBG8">
+    <div class="modal-panel glass-spec relative m-auto w-full max-w-2xl bg-white dark:bg-[#161617] rounded-2xl shadow-2xl overflow-hidden border border-black/10 dark:border-white/10 my-8" data-page-node-id="segOYcOzBHoZAjAYEYxiPR">
       <!-- 阅读进度条 -->
       <div class="absolute top-0 left-0 right-0 h-[3px] z-10 pointer-events-none" data-page-node-id="qczz8h99IL6LcuTZvp8rjM">
         <div id="article-progress" class="h-full w-0 bg-[#1d1d1f] dark:bg-[#f5f5f7]" data-page-node-id="yEFmAmXfPH8BIA4EvYdlGH"></div>
@@ -881,7 +881,7 @@
       <svg class="music-icon icon-music" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
       <svg class="music-icon icon-pause" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></svg>
     </button>
-    <div id="music-panel" class="music-panel" role="group" aria-label="背景音乐控制">
+    <div id="music-panel" class="music-panel glass-spec" role="group" aria-label="背景音乐控制">
       <div class="music-head">
         <span id="music-title" class="music-title">背景音乐</span>
         <button id="music-close" type="button" aria-label="收起播放器">

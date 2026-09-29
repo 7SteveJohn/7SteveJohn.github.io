@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initHeroGreeting();
   initHeroStatus();
   initKonami();
+  initGlassSpec();
 
   // 7. 支持 ?post=文章id 深链（分享单篇内容链接）
   const postId = new URLSearchParams(location.search).get('post');
@@ -553,6 +554,25 @@ function initKonami() {
 function initFooterYear() {
   const el = document.getElementById('footer-year');
   if (el) el.textContent = String(new Date().getFullYear());
+}
+
+// 液态玻璃跟手 specular：指针在 .glass-spec 上移动时写 --sx/--sy（rAF 节流，触摸设备跳过）
+function initGlassSpec() {
+  if (window.matchMedia('(pointer: coarse)').matches) return;
+  let raf = 0, lastEl = null, mx = 0, my = 0;
+  const apply = () => {
+    raf = 0;
+    if (!lastEl) return;
+    const r = lastEl.getBoundingClientRect();
+    lastEl.style.setProperty('--sx', (mx - r.left) + 'px');
+    lastEl.style.setProperty('--sy', (my - r.top) + 'px');
+  };
+  document.addEventListener('pointermove', (e) => {
+    const t = e.target && e.target.closest ? e.target.closest('.glass-spec') : null;
+    if (!t) { lastEl = null; return; }
+    lastEl = t; mx = e.clientX; my = e.clientY;
+    if (!raf) raf = requestAnimationFrame(apply);
+  }, { passive: true });
 }
 
 // 单条内容卡片（技术手记 / 创作 / 随笔共用同一卡片样式）；可键盘聚焦，Enter/Space 触发打开

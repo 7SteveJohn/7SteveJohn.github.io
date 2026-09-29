@@ -967,7 +967,7 @@ mark.sj-note {
   border: 1px solid rgba(0, 0, 0, 0.1);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   cursor: pointer;
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.25s var(--lg-spring), border-color 0.2s ease;
 }
 .music-fab:hover {
   transform: scale(1.06);
@@ -1371,3 +1371,101 @@ footer::before {
     transition: none;
   }
 }
+
+/* ============================================================
+   液态玻璃控件层（2026-09-29）
+   配方来源：D:/Android/液态玻璃参数手册 / glass-recipe.json 暗色板
+   纪律：玻璃只上控件/浮层（吸顶导航、弹窗、FAB、箭头），滚动内容层禁上；
+        feDisplacementMap 折射是内核彩票（Chrome 152 全灭 / 154 可渲染 /
+        WebKit 丢整条声明），站点用「毛玻璃 + rim 五件套 + 1px 色散 +
+        跟手 specular」做材质厚度，不赌滤镜管线；全部套 @supports 降级。
+   ============================================================ */
+:root {
+  --lg-spring: cubic-bezier(.32, 1.6, .45, 1);
+  --lg-rim-dark:
+    inset 0 0 0 .5px rgba(255, 255, 255, .24),
+    inset 0 1px 1px rgba(255, 255, 255, .28),
+    inset 0 -1px 1px rgba(0, 0, 0, .10),
+    inset 1px 0 0 rgba(120, 170, 255, .06),
+    inset -1px 0 0 rgba(255, 150, 120, .05);
+}
+
+/* 跟手 specular：JS 只写 --sx/--sy，光斑跟随指针 */
+.glass-spec { position: relative; }
+.glass-spec::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(200px circle at var(--sx, 50%) var(--sy, -30%),
+    rgba(255, 255, 255, .08), transparent 62%);
+  opacity: 0;
+  transition: opacity .35s ease;
+}
+.glass-spec:hover::before { opacity: 1; }
+
+/* 吸顶导航 = Liquid Glass regular：内容滚到栏下自动透出毛玻璃（scroll edge effect） */
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  header.site-header.is-scrolled {
+    background: linear-gradient(180deg, rgba(30, 32, 40, .50), rgba(14, 15, 18, .42)) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(1.5);
+    backdrop-filter: blur(24px) saturate(1.5);
+    border-bottom-color: rgba(255, 255, 255, .07) !important;
+    box-shadow: inset 0 0 0 .5px rgba(255, 255, 255, .14), 0 8px 30px rgba(0, 0, 0, .25);
+  }
+
+  /* 半高 sheet：blur(40) + 暗板 tint .86（配方 §4 sheet 档） */
+  .dark .modal-panel {
+    background: linear-gradient(180deg, rgba(32, 34, 42, .88), rgba(16, 17, 20, .84));
+    -webkit-backdrop-filter: blur(40px) saturate(1.4);
+    backdrop-filter: blur(40px) saturate(1.4);
+    border-color: transparent;
+    box-shadow: var(--lg-rim-dark), 0 24px 80px rgba(0, 0, 0, .5);
+  }
+
+  /* 音乐 FAB：小圆玻璃 + 按压 squish（spring 曲线） */
+  .dark .music-fab {
+    background: rgba(30, 32, 40, .55);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
+    backdrop-filter: blur(20px) saturate(1.5);
+    box-shadow: var(--lg-rim-dark), 0 8px 24px rgba(0, 0, 0, .35);
+  }
+  .dark .music-fab:active { transform: scale(.96); transition-duration: .08s; }
+
+  /* 音乐面板：条带玻璃 */
+  .dark .music-panel {
+    background: linear-gradient(180deg, rgba(30, 32, 40, .72), rgba(14, 15, 18, .66));
+    -webkit-backdrop-filter: blur(28px) saturate(1.5);
+    backdrop-filter: blur(28px) saturate(1.5);
+    border-color: transparent;
+    box-shadow: var(--lg-rim-dark), 0 16px 48px rgba(0, 0, 0, .4);
+  }
+
+  /* 下翻箭头：小圆玻璃 */
+  #page-next {
+    background: rgba(20, 22, 28, .42);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    backdrop-filter: blur(16px) saturate(1.4);
+    border-color: rgba(255, 255, 255, .14);
+    box-shadow: inset 0 0 0 .5px rgba(255, 255, 255, .18),
+      inset 0 1px 1px rgba(255, 255, 255, .2), 0 8px 24px rgba(0, 0, 0, .3);
+  }
+  #page-next:active { transform: translateX(-50%) scale(.94); }
+
+  /* hero 音乐入口悬在 3D 舞台上：轻玻璃化 */
+  #home .hero-ghost {
+    background: rgba(20, 22, 30, .32);
+    -webkit-backdrop-filter: blur(10px) saturate(1.4);
+    backdrop-filter: blur(10px) saturate(1.4);
+    box-shadow: inset 0 0 0 .5px rgba(255, 255, 255, .16);
+  }
+}
+
+/* 弹窗遮罩只负责压暗，模糊让位给面板玻璃（避免双重糊） */
+.modal-overlay.lg-dim { background: rgba(5, 7, 12, .55) !important; }
+
+/* 辅助功能降级备注：不做 prefers-reduced-transparency 否决——本机 Windows
+   透明效果关闭时 Chromium 会报 reduce，会连站主的玻璃一起吞掉（2026-09-29 实测）。
+   兜底只靠 @supports 能力检测；真的需要低透明度的访客可用系统「增强对比」等方案。 */
