@@ -10,9 +10,9 @@
   <!-- 与主站一致：任何样式生效前先应用保存的主题，避免亮色用户进站闪黑 -->
   <script>
     (function () {
-      var saved = localStorage.getItem('theme');
-      var dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
-      document.documentElement.classList.toggle('dark', dark);
+      // 站点恒深色：无条件挂 dark（旧写法读的是无前缀键 theme，且会跟随访客系统浅色，
+      // 与主站 2026-09-29 定下的「恒深色」口径冲突，2026-09-30 修正）
+      document.documentElement.classList.add('dark');
     })();
   </script>
 

@@ -43,6 +43,35 @@ const spec = await p.evaluate(() => {
 console.log('panel →', panel, '| spec →', spec);
 await p.screenshot({ path: 'D:/HTML/Temp/lg-modal.png' });
 
+// 2.5 全玻璃面清单：position / 圆角 / 配方 / 是否挂 specular / rim 层数
+// （核对「整个网页对液态玻璃的把控」时直接看这一份，别靠肉眼翻 CSS）
+const inventory = await p.evaluate(() => {
+  const sel = [
+    ['header.site-header', '吸顶导航'],
+    ['.modal-panel', '弹窗面板'],
+    ['.music-fab', '音乐 FAB'],
+    ['.music-panel', '音乐面板'],
+    ['#page-next', '下翻箭头'],
+    ['#home .hero-ghost', 'hero 音乐入口'],
+  ];
+  return sel
+    .map(([s, name]) => {
+      const el = document.querySelector(s);
+      if (!el) return `${name.padEnd(12)} MISSING (${s})`;
+      const cs = getComputedStyle(el);
+      return [
+        name.padEnd(12),
+        `pos=${cs.position}`.padEnd(12),
+        `radius=${cs.borderRadius.split(' ')[0]}`.padEnd(16),
+        `blur=${(cs.backdropFilter || 'none').replace(/\s+/g, ' ').slice(0, 26)}`.padEnd(38),
+        `spec=${el.classList.contains('glass-spec') ? 'yes' : 'NO '}`.padEnd(10),
+        `rim=${(cs.boxShadow.match(/inset/g) || []).length}层`,
+      ].join(' ');
+    })
+    .join('\n');
+});
+console.log('--- 玻璃面清单 ---\n' + inventory);
+
 // 3. 关弹窗 → FAB 玻璃
 await p.evaluate(() => window.closeProjectModal());
 await p.waitForTimeout(600);
