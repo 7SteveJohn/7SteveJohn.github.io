@@ -463,7 +463,10 @@ header.site-header:not(.is-scrolled) {
   #home #site-subtitle {
     color: #e3edff !important;
   }
-  #home h1, #home p {
+  /* ❗左下角标里的文字也压在亮线网络上（原来只给 h1/p 加了阴影，角标是 div 吃不到），
+     移动端实测「做本地 AI 应用与桌面工具」被亮线穿过时发白难读 */
+  #home h1, #home p,
+  #home .hero-who, #home .hero-who * {
     text-shadow: 0 1px 3px rgba(3, 6, 14, 0.95), 0 0 26px rgba(3, 6, 14, 0.8);
   }
   .hero-veil {
@@ -480,6 +483,29 @@ header.site-header:not(.is-scrolled) {
   #home .hero-who {
     left: 20px;
     bottom: 6rem;
+  }
+  /* 移动端正文：Tailwind 的 text-sm（14px）在手机上偏小，抬到 15px 并把行高放松到 1.75
+     （2026-09-30 体检：卡片描述 14px/23 ≈ 1.64，关于我 14px/20 ≈ 1.43，后者偏挤） */
+  #products article p.text-sm,
+  #about p.text-sm {
+    font-size: 0.9375rem;
+    line-height: 1.75;
+  }
+  /* 点按区：顶栏四个可点元素原高 20–28px（搜索 26×26、菜单 28×28、查看作品 24、品牌名 20），
+     低于 iOS 44 / Material 48 的建议。用透明 ::after 把命中区撑到 ~40px，视觉尺寸一律不变。
+     ❗选择器限定在顶栏那一行——抽屉菜单里的链接高度本就 ~40px，再扩会互相重叠点错 */
+  header.site-header > div > a,
+  header.site-header > div > div > a,
+  header.site-header > div > div > button {
+    position: relative;
+  }
+  header.site-header > div > a::after,
+  header.site-header > div > div > a::after,
+  header.site-header > div > div > button::after {
+    content: "";
+    position: absolute;
+    inset: -10px -7px;
+    border-radius: 9999px;
   }
 }
 /* 逐页下翻按钮：固定底部居中（音乐 FAB 占最底，箭头在其正上方一档），点击滑到下一个区块（显隐由 app.js 切 opacity） */
