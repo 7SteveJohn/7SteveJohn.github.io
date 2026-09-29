@@ -77,17 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 
-  // 10. 访客计数（busuanzi）：load 之后等浏览器空闲再注入，外部服务再慢也不拖慢"页面打开"的手感
-  window.addEventListener('load', () => {
-    const inject = () => {
-      const s = document.createElement('script');
-      s.async = true;
-      s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi_pure_mini.js';
-      document.body.appendChild(s);
-    };
-    if ('requestIdleCallback' in window) requestIdleCallback(inject, { timeout: 3000 });
-    else setTimeout(inject, 1200);
-  });
 });
 
 /* ============================================================
@@ -1112,6 +1101,11 @@ function initNavScrollState() {
       backTop.classList.toggle('opacity-0', !show);
       backTop.classList.toggle('pointer-events-none', !show);
     }
+    // 阅读中让底部浮层退场：手机上音乐 FAB 会压住正文（实测 390×844 命中卡片末行），
+    // 滚动期间降到 .28，停手 700ms 复原。不改位置、不影响拖拽与点击
+    document.body.classList.add('is-scrolling');
+    clearTimeout(update._t);
+    update._t = setTimeout(() => document.body.classList.remove('is-scrolling'), 700);
   };
   window.addEventListener('scroll', update, { passive: true });
   update();

@@ -508,6 +508,13 @@ header.site-header:not(.is-scrolled) {
     border-radius: 9999px;
   }
 }
+
+/* 滚动中浮层退场：手机阅读时音乐 FAB 压在正文上，滚动期间淡到 .28，停手 700ms 复原
+   （类由 app.js initNavScrollState 维护；桌面端也生效，读长文时不抢视线） */
+body.is-scrolling .music-fab {
+  opacity: 0.28;
+}
+
 /* 逐页下翻按钮：固定底部居中（音乐 FAB 占最底，箭头在其正上方一档），点击滑到下一个区块（显隐由 app.js 切 opacity） */
 #page-next {
   position: fixed;
@@ -1000,7 +1007,7 @@ mark.sj-note {
   border: 1px solid rgba(0, 0, 0, 0.1);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   cursor: pointer;
-  transition: transform 0.25s var(--lg-spring), border-color 0.2s ease;
+  transition: transform 0.25s var(--lg-spring), border-color 0.2s ease, opacity 0.25s ease;
 }
 .music-fab:hover {
   transform: scale(1.06);
@@ -1503,3 +1510,11 @@ footer::before {
 /* 辅助功能降级备注：不做 prefers-reduced-transparency 否决——本机 Windows
    透明效果关闭时 Chromium 会报 reduce，会连站主的玻璃一起吞掉（2026-09-29 实测）。
    兜底只靠 @supports 能力检测；真的需要低透明度的访客可用系统「增强对比」等方案。 */
+/* 手机上隐藏「下翻一页」箭头：它固定在底部居中，一定会压住正文；触摸设备本来就是滑动浏览，
+   翻书隐喻只在桌面成立（2026-09-30 定，桌面端保留）。音乐 FAB 仍留着手势可达。
+   ❗必须写在 #page-next 基础规则之后——媒体查询不加特指度，同选择器后写的赢 */
+@media (max-width: 639px) {
+  #page-next {
+    display: none;
+  }
+}

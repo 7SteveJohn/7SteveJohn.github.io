@@ -9,7 +9,7 @@
  * - title: 项目名称
  * - category: 分类标识 (all | desktop | android)
  * - categoryName: 分类显示名称（如：桌面应用、Android 应用）
- * - description: 一句话/简短介绍项目亮点与功能
+ * - description: 一句话/简短介绍。❗卡片与弹窗都读这一份（改完跑 node scripts/gen-card-copy.js 同步进 index.html）
  * - tags: 技术栈标签数组（如：["Vue 3", "Vite", "Tailwind"]）
  * - image: 项目封面图（可选。不填时自动渲染「渐变+首字母」品牌封面；可填网络链接或 assets/images/ 本地路径）
  * - demoUrl: 在线演示地址（若暂无请填 "#"）
@@ -28,7 +28,7 @@ window.PROJECTS_DATA = [
     title: "FileButler · 本地文件管家",
     category: "desktop",
     categoryName: "桌面应用",
-    description: "文件乱成一团？这个帮你收拾。文件整理 + 直接问文件，都在你自己电脑上跑：AI 用本机 Ollama 免费模型，不用 API Key；秒搜、图片语义搜索、重复文件清理，每一步都能撤销，数据不出本机。",
+    description: "文件整理和本地知识库问答在同一个应用里完成：AI 跑在本机 Ollama 上，不需要 API Key，文件不上传。支持文件搜索、文档自动索引、按内容查找图片、重复文件清理；每一步有记录，可以撤销。",
     tags: ["Python", "Vue 3", "Ollama", "SQLite / FTS5", "RAG"],
     image: "assets/images/cover-filebutler.webp",
     demoUrl: "https://github.com/7SteveJohn/FileButler/releases",
@@ -69,7 +69,7 @@ window.PROJECTS_DATA = [
     title: "NetOps Handbook · 给小白的离线网络手册",
     category: "android",
     categoryName: "Android 应用",
-    description: "一本装在手机里的离线网络手册：68 个知识模块、35 个排障案例、58 条命令对照、431 条模拟器命令、53 道面试真题。它是配套的辅助资料，得配着教材和实验用，不能只靠它把网络学会。零联网权限，没信号也能翻。",
+    description: "面向初学者的离线网络手册：68 个知识模块、35 个排障案例、58 条命令对照、431 条模拟器命令、53 道面试真题。配合教材与实验使用，不能只靠它学会网络。未申请网络权限，没信号也能翻。",
     tags: ["Android", "WebView", "Gradle 8.9", "单页 SPA", "离线应用"],
     image: "assets/images/cover-netops.webp",
     demoUrl: "https://github.com/7SteveJohn/netops-handbook/releases",
@@ -110,7 +110,7 @@ NetOps 是一本**能装进口袋的离线网络小册子**。断网、没信号
     title: "GameBoost · 打游戏前点一下",
     category: "desktop",
     categoryName: "桌面应用",
-    description: "打 CS2 / Valorant / 三角洲之前点一下，自动把电源、显卡、网络、CPU 调度和定时器分辨率调好，专治对枪那一瞬间的卡顿。按你机器配置来，全部能一键还原。",
+    description: "在启动 CS2、Valorant、三角洲行动前运行一次：电源、GPU、CPU 调度、网络、定时器分辨率自动调好，解决对枪瞬间的掉帧与输入延迟，改动可一键还原。",
     tags: ["C#", "PowerShell", "Windows", "游戏性能"],
     image: "assets/images/cover-gameboost.webp",
     demoUrl: "https://github.com/7SteveJohn/GameBoost/releases",
@@ -147,7 +147,7 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
     title: "GameBoost-DLSSG · DLSS 帧生成",
     category: "desktop",
     categoryName: "桌面应用",
-    description: "给 RTX 20/30 系显卡开上官方只给 40/50 系的 DLSS 帧生成：游戏库管理、DX12 模式启动、运行诊断，改动一键还原。",
+    description: "给 RTX 20/30 系开启 DLSS 帧生成（该功能官方只提供给 40/50 系）：游戏库扫描、DX12 模式启动、运行诊断，改动可一键还原。分享版只含帧生成，不含系统优化。",
     tags: ["C#", "WinForms", "DLSS 帧生成", "游戏库管理", "Inno Setup"],
     image: "assets/images/cover-dlssg.webp",
     downloadUrl: "https://pan.baidu.com/s/1johUjnwCEfmjpwuz66tqyA?pwd=rw94",
@@ -227,7 +227,7 @@ Electron + Vite + TypeScript，本地 JSON 存储；NSIS 安装包与免安装�
     title: "Fluxion · 完整版性能套件",
     category: "desktop",
     categoryName: "桌面应用",
-    description: "GameBoost（系统优化）+ DLSSG-Tool（帧生成）合并重构的完整版——51 项体检一键优化、DLSS 帧生成、游戏库、进游戏自动切状态、实时监控，所有改动可一键还原。另有面向外人的分享版（见 GameBoost-DLSSG 卡），只保留了帧生成部分。",
+    description: "GameBoost（系统优化）与 DLSSG-Tool（帧生成）合并重构的完整版：51 项体检一键优化、DLSS 帧生成、游戏库、进游戏自动切状态、实时监控，改动可一键还原。分享版见 GameBoost-DLSSG 卡。",
     tags: ["C#", "WinForms", "51 项体检", "DLSS 帧生成", "游戏联动", "实时监控"],
     image: "assets/images/cover-fluxion.webp",
     githubUrl: "https://github.com/7SteveJohn/Fluxion",
