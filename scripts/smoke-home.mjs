@@ -43,12 +43,12 @@ const info = await p.evaluate(() => {
   };
 });
 
-ok('#site-subtitle 存在且取自 config 文案', info.sub === '代码与故事，一并存档', info.sub);
+ok('#site-subtitle 存在且取自 config 文案', info.sub === '屿间汇叙 · 一隅存工码，亦叙尘世星文', info.sub);
 ok('副标题继承渐变字（透明色 + background-clip）', info.subClip?.includes('text'), `${info.subColor} / ${info.subClip}`);
-ok('hero 大标题 = 站名', info.h1 === '楠屿实验室', info.h1);
-ok('顶栏品牌 = 站名', info.brand === '楠屿实验室', info.brand);
+ok('hero 大标题 = 站名', info.h1 === '楠屿札记', info.h1);
+ok('顶栏品牌 = 站名', info.brand === '楠屿札记', info.brand);
 ok('眉标不再重复 SevenJohn', !/SevenJohn/.test(info.eyebrow || ''), info.eyebrow);
-ok('浏览器标题 = 楠屿实验室…', /^楠屿实验室/.test(info.title), info.title);
+ok('浏览器标题 = 楠屿札记…', /^楠屿札记/.test(info.title), info.title);
 ok('关于我：去专业化', /业余|自学/.test(info.about) && !/平时写 Python/.test(info.about), info.about.slice(0, 40));
 ok(
   '卡片顺序 FileButler → 拍案 → NetOps → Fluxion → GameBoost → DLSSG',
