@@ -44,15 +44,13 @@
   <link rel="shortcut icon" href="favicon.ico" data-page-node-id="1fNcWZiUmAqEK0Ioc0RTWh" />
   <link rel="manifest" href="manifest.json" data-page-node-id="ypluPxiT1p91RQOWZTufd3" />
 
-  <!-- 关键首屏图片极速预加载 -->
-  <link rel="preload" as="image" href="assets/images/cover-filebutler.webp" type="image/webp" fetchpriority="high" data-page-node-id="Prjt3V7sWK0cxDYOgJRa5A" />
-  <link rel="preload" as="image" href="assets/images/cover-netops.webp" type="image/webp" fetchpriority="high" data-page-node-id="7iHBvhAOXdLvfH0mLe5vrU" />
-  <link rel="preload" as="image" href="assets/images/cover-gameboost.webp" type="image/webp" fetchpriority="high" data-page-node-id="QlmDAI6H2v0ICOWeWtYYek" />
+  <!-- 只预载首屏内确实要用的小图（hero 角标头像）。❗原来还预载了三张产品封面
+       （55/106/90 KB，全在折线以下、img/video 本来就有 lazy），high 优先级会和 4 个
+       render-blocking 的 CSS 抢带宽——实测手机 4G 上首屏可见 1.88s 里大半是它们 -->
   <link rel="preload" as="image" href="assets/images/avatar.webp" type="image/webp" fetchpriority="high" data-page-node-id="ZCNmZpl9ihCiXW9dZYSWYX" />
 
-  <!-- 推理场背景并行预载：three 引擎 + 场景脚本（全程序化，无贴图） -->
-  <link rel="modulepreload" href="assets/vendor/three.module.min.js" />
-  <link rel="modulepreload" href="js/cosmos/main.js" />
+  <!-- ❗不预载 three（676KB）：它会在手机上跟首屏 CSS 抢带宽，实测 4G 下首屏可见被拖到 2.9s。
+       改成首帧画完之后再动态 import（见文末 module 脚本），引擎自己带 1.1s 淡入，观感不受影响 -->
 
   <!-- Inter 字体（自托管 latin 子集，避免大陆访问 Google Fonts 阻塞） -->
   <link rel="stylesheet" href="assets/fonts/inter.css" data-page-node-id="9EErQatlmHBQHE0mykYO9k" />
@@ -66,9 +64,7 @@
   <!-- Marked.js (Markdown 解析器，自托管) -->
   <script src="assets/vendor/marked.min.js" defer></script>
 
-  <!-- Highlight.js (代码语法高亮，自托管) -->
-  <link rel="stylesheet" href="assets/vendor/github-dark.min.css" />
-  <script src="assets/vendor/highlight.min.js" defer></script>
+  <!-- Highlight.js：改为按需加载（见 js/app.js ensureHighlight()）——119KB 只有文章里真有代码块时才值得拉 -->
 
   <!-- 结构化数据（搜索引擎富摘要） -->
   <script type="application/ld+json">
@@ -538,7 +534,7 @@
               Fluxion · 完整版性能套件
             </h3>
             <p class="text-sm sm:text-base text-[#86868b] leading-relaxed">
-              系统优化和帧生成在同一个程序里：51 项体检一键优化、为 RTX 20/30 系开启 DLSS 帧生成、游戏库、进游戏自动切换状态、实时监控，改动可以一键还原。详情弹窗附 38 秒介绍片。
+              系统优化和帧生成在同一个程序里：51 项体检一键优化、为 RTX 20/30 系开启 DLSS 帧生成、游戏库、进游戏自动切换状态、实时监控，改动可以一键还原。
             </p>
 
             <div data-facts class="project-facts" hidden></div>
@@ -761,7 +757,7 @@
           <div class="text-xs font-mono text-[#86868b] phil-no" data-page-node-id="NED5OLNUZl0F7P9kfBrwt8">03</div>
           <h3 class="text-base font-semibold text-[#1d1d1f] dark:text-white mt-2" data-page-node-id="kdJ9y0cWssXUW0pV4g674V">用得上才做</h3>
           <p class="text-sm text-[#86868b] leading-relaxed mt-2" data-page-node-id="WL1lnFIJCrZEzoLAVDfovl">
-            只做日常确实需要的工具：文件检索、游戏掉帧、网络入门。每解决一个实际问题，就多一个工具。
+            只做日常确实需要的工具：文件检索、游戏掉帧、网络入门。
           </p>
         </div>
       </div>
@@ -1019,7 +1015,12 @@
     }
   }
   </script>
-  <script type="module" src="js/cosmos/main.js"></script>
+  <!-- 3D 推理场：等首屏真正画出来之后再拉（three 676KB）。引擎内部首帧前把画布压到 opacity 0、
+       首帧就绪后 1.1s 淡入，所以延后加载不会有突现感，只是显影晚一点 -->
+  <script type="module">
+    const bootCosmos = () => import('./js/cosmos/main.js').catch(() => {});
+    requestAnimationFrame(() => setTimeout(bootCosmos, 0));
+  </script>
   <script src="js/player.js" defer></script>
 </body>
 </html>

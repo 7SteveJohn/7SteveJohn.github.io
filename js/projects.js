@@ -110,7 +110,7 @@ NetOps 是一本**能装进口袋的离线网络小册子**。断网、没信号
     title: "GameBoost · 打游戏前点一下",
     category: "desktop",
     categoryName: "桌面应用",
-    description: "打 CS2 / 瓦罗兰特 / 三角洲之前点一下，自动把电源、显卡、网络、CPU 调度和定时器分辨率调好，专治对枪那一瞬间的卡顿。按你机器配置来，全部能一键还原。",
+    description: "打 CS2 / Valorant / 三角洲之前点一下，自动把电源、显卡、网络、CPU 调度和定时器分辨率调好，专治对枪那一瞬间的卡顿。按你机器配置来，全部能一键还原。",
     tags: ["C#", "PowerShell", "Windows", "游戏性能"],
     image: "assets/images/cover-gameboost.webp",
     demoUrl: "https://github.com/7SteveJohn/GameBoost/releases",
@@ -127,7 +127,7 @@ NetOps 是一本**能装进口袋的离线网络小册子**。断网、没信号
     sha256: "",
     details: `
 ### 💡 这是什么
-打 CS2、瓦罗兰特、三角洲这类游戏，最烦的不是平均帧数低，是**对枪那一下突然卡一下**。GameBoost 就是冲着这个做的——开打前点一下，把该调的都调好。跑分多少不重要。
+打 CS2、Valorant、三角洲这类游戏，最烦的不是平均帧数低，是**对枪那一下突然卡一下**。GameBoost 就是冲着这个做的——开打前点一下，把该调的都调好。跑分多少不重要。
 
 ### ✨ 能干什么
 - 自动调电源计划、显卡、网络、CPU 调度和定时器分辨率

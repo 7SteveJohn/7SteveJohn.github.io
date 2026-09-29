@@ -3,6 +3,29 @@
  * 极简、干脆、快速，无多余性能开销
  */
 
+/* 代码高亮按需加载：highlight.min.js 119KB + 主题 CSS，只有正文里真有代码块时才值得拉。
+   首屏不带（2026-09-30 性能体检：手机 4G 首屏因此少 120KB）。加载完自动回来补高亮。 */
+function ensureHighlight(root) {
+  const run = (scope) => scope.querySelectorAll('pre code').forEach((el) => window.hljs.highlightElement(el));
+  if (window.hljs) { run(root); return; }
+  if (!root || !root.querySelector('pre code')) return;   // 这份内容没有代码块，不加载
+  if (ensureHighlight.loading) return;
+  ensureHighlight.loading = true;
+  const css = document.createElement('link');
+  css.rel = 'stylesheet';
+  css.href = 'assets/vendor/github-dark.min.css';
+  document.head.appendChild(css);
+  const js = document.createElement('script');
+  js.src = 'assets/vendor/highlight.min.js';
+  js.onload = () => {
+    ensureHighlight.loading = false;
+    // 补高亮：打开中的弹窗正文此时已经渲染过，直接全量补一遍（隐藏的弹窗无成本）
+    document.querySelectorAll('.markdown-body').forEach(run);
+  };
+  js.onerror = () => { ensureHighlight.loading = false; };
+  document.head.appendChild(js);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // 1. 初始化主题（暗色/亮色）
   initTheme();
@@ -246,6 +269,7 @@ window.openProjectModal = function(id) {
   modalContent.classList.add('modal-content-in');
 
   addCopyButtons(modalContent);
+  ensureHighlight(modalContent);
 
   modal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
@@ -829,11 +853,7 @@ window.openArticleModal = function(id, skipUrlSync) {
     </div>
   `;
 
-  if (window.hljs) {
-    modalContent.querySelectorAll('pre code').forEach(el => {
-      window.hljs.highlightElement(el);
-    });
-  }
+  ensureHighlight(modalContent);
   addCopyButtons(modalContent);
   buildArticleToc(modalContent);
   injectArticleJsonLd(article);
@@ -861,7 +881,7 @@ window.openArticleModal = function(id, skipUrlSync) {
         swapModalContent(modalContent, () => {
           const body = modalContent.querySelector('.markdown-body');
           if (body) body.innerHTML = window.marked.parse(versionedContent(activeArticle));
-          if (window.hljs) modalContent.querySelectorAll('pre code').forEach((el) => window.hljs.highlightElement(el));
+          ensureHighlight(modalContent);
           addCopyButtons(modalContent);
           buildArticleToc(modalContent);
           initAnnotations(modalContent, article.id);

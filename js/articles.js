@@ -291,7 +291,7 @@ Ollama 装好、模型拉下来，聊天没问题。问题出在接进自己的�
   },
   {
     id: "filebutler-local-rag",
-    title: "端侧智能文件管家：如何在本地实现毫秒级向量检索与零泄密问答",
+    title: "本地文件管家：秒搜与可撤销怎么同时成立",
     date: "2026-09-02",
     readTime: "6 分钟",
     category: "架构设计",
@@ -322,7 +322,7 @@ Ollama 装好、模型拉下来，聊天没问题。问题出在接进自己的�
   },
   {
     id: "gameboost-frame-pacing",
-    title: "竞技帧率防抖：为什么 1% Low 远比平均帧率更能决定胜负？",
+    title: "帧率防抖：平均 300 帧为什么不跟手",
     date: "2026-08-10",
     readTime: "7 分钟",
     category: "系统调优",

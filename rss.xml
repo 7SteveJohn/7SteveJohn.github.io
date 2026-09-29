@@ -64,7 +64,7 @@
       <description>在做的 2D 像素叙事游戏，Godot 4 引擎。记录大纲与卷零的进度，完成后先放卷一 Demo。</description>
     </item>
     <item>
-      <title>端侧智能文件管家：如何在本地实现毫秒级向量检索与零泄密问答</title>
+      <title>本地文件管家：秒搜与可撤销怎么同时成立</title>
       <link>https://7stevejohn.github.io/?post=filebutler-local-rag</link>
       <guid isPermaLink="false">filebutler-local-rag</guid>
       <pubDate>Wed, 02 Sep 2026 00:00:00 GMT</pubDate>
@@ -72,7 +72,7 @@
       <description>「直接问文件」这件事，难的不是接个模型，是让它既快又能反悔。记录 FileButler 的双索引分工、可撤销设计，以及端侧 AI 必须做的降级底线。</description>
     </item>
     <item>
-      <title>竞技帧率防抖：为什么 1% Low 远比平均帧率更能决定胜负？</title>
+      <title>帧率防抖：平均 300 帧为什么不跟手</title>
       <link>https://7stevejohn.github.io/?post=gameboost-frame-pacing</link>
       <guid isPermaLink="false">gameboost-frame-pacing</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
