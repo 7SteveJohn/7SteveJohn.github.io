@@ -2,7 +2,8 @@
  * 右下角悬浮背景音乐播放器
  * ----------------------------------------------------
  * - 音频不进 SW 预缓存：首次在线播放后由 SW 运行时缓存接管，断网也能复播
- * - localStorage 只记住上次听的是哪一首（不记播放进度，下次进来从头开始）
+ * - ❗零播放记录（2026-09-29 应要求移除续听记忆）：不记听到哪首/听到几秒，
+ *   每个访客都从第一首开始；旧续听键主动清除——共用设备不留下上一个人的收听痕迹
  * - 歌单改动直接改 SONGS 数组（src 用 ASCII 文件名，title 保留原名）
  * - 循环模式：顺序循环（默认）/ 单曲循环，模式按钮切换，localStorage 持久化
  * - 自定义歌曲顺序：歌单每项 ↑↓ 移动，顺序持久化（按 src 记录，新增曲目排尾）
@@ -26,8 +27,8 @@
     { src: 'music/kami-no-manimani.mp3',   title: '神のまにまに' }
   ];
 
-  // 全站访客本地数据统一 sj. 前缀；这里保留一次旧键回读，老访客的续听/顺序/模式不丢
-  const LS_KEY = 'sj.music-resume';
+  // 全站访客本地数据统一 sj. 前缀；旧版「续听」键在这里主动清除（零播放记录）
+  const LS_RESUME = 'sj.music-resume';
   const LS_MODE = 'sj.music-mode';
   const LS_ORDER = 'sj.music-order';
   const legacy = (k) => { try { return localStorage.getItem(k.replace('sj.', '')); } catch (e) { return null; } };
@@ -56,14 +57,11 @@
     s = Math.floor(s);
     return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
   };
-
-  const save = () => {
+  // 零播放记录：清掉老版本留下的续听键（含旧前缀）
+  const clearResume = () => {
     try {
-      localStorage.setItem(LS_KEY, JSON.stringify({
-        i: current,
-        src: SONGS[current] ? SONGS[current].src : ''   // 顺序可自定义，恢复按 src 定位更稳
-        // ❗不再记播放进度：下次进来从上次的那一首开头听起，而不是接着上次的秒数
-      }));
+      localStorage.removeItem(LS_RESUME);
+      localStorage.removeItem('music-resume');
     } catch (e) { /* 隐私模式等场景静默跳过 */ }
   };
 
@@ -196,7 +194,7 @@
           if (j < 0 || j >= SONGS.length) return;
           const tmp = SONGS[i]; SONGS[i] = SONGS[j]; SONGS[j] = tmp;
           if (current === i) current = j; else if (current === j) current = i;
-          saveOrder(); save(); renderList();
+          saveOrder(); renderList();
         });
         return b;
       };
@@ -228,30 +226,21 @@
       curEl.textContent = '0:00';
       durEl.textContent = '0:00';
     }
-    save();
   }
 
   function togglePlay() {
     if (!audio.src) { load(current, true); return; }
     if (audio.paused) audio.play().catch(() => {});
-    else { audio.pause(); save(); }
+    else { audio.pause(); }
   }
 
   function restore() {
+    clearResume();          // 零播放记录：老访客的续听键一并清掉
     applyOrder();
-    try {
-      const saved = JSON.parse(localStorage.getItem(LS_KEY) || legacy(LS_KEY) || 'null');
-      if (saved) {
-        const bySrc = saved.src ? SONGS.findIndex(s => s.src === saved.src) : -1;
-        if (bySrc >= 0) current = bySrc;
-        else if (saved.i >= 0 && saved.i < SONGS.length) current = saved.i;
-      }
-    } catch (e) { /* 数据损坏则从头开始 */ }
     // 预热：页面加载即缓冲首曲，点播放几乎秒出声（SW 运行时缓存随后接管，二次访问零延迟）。
     // 触屏设备按流量考虑只取元数据。首次访客也能吃到预热——不只限有历史的用户。
     audio.preload = matchMedia('(pointer: coarse)').matches ? 'metadata' : 'auto';
     audio.src = SONGS[current].src;
-    // 不做 seek：恢复的只是"上次听的是哪一首"，播放位置一律从头开始
     try { mode = (localStorage.getItem(LS_MODE) || legacy(LS_MODE)) === 'one' ? 'one' : 'list'; } catch (e) {}
     titleEl.textContent = SONGS[current].title;
     applyMode();
@@ -347,7 +336,6 @@
     if (seeking || !isFinite(audio.duration)) return;
     seekEl.value = (audio.currentTime / audio.duration) * 100 || 0;
     curEl.textContent = fmt(audio.currentTime);
-    if (Math.floor(audio.currentTime) % 5 === 0) save(); // 低频持久化进度
   });
 
   seekEl.addEventListener('input', () => {
@@ -357,7 +345,6 @@
   seekEl.addEventListener('change', () => {
     if (isFinite(audio.duration)) audio.currentTime = (seekEl.value / 100) * audio.duration;
     seeking = false;
-    save();
   });
 
   if ('mediaSession' in navigator) {
