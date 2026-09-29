@@ -61,7 +61,7 @@ const WANT_SECTIONS = [
   '尘页实录 · 于此留存工具实践、技术手记与笔下故事',
 ];
 ok('四个内容栏目的副标题 = 四字题 · 对句', JSON.stringify(info.sections) === JSON.stringify(WANT_SECTIONS), info.sections.join(' ／ '));
-ok('关于我：去专业化', /业余|自学/.test(info.about) && !/平时写 Python/.test(info.about), info.about.slice(0, 40));
+ok('关于我：去专业化（依托 AI + 试错）', /我并非擅长编码的人/.test(info.about) && /学习路上留下的脚印/.test(info.about) && !/应届|求职|平时写 Python/.test(info.about), info.about.slice(0, 34));
 ok(
   '卡片顺序 FileButler → 拍案 → NetOps → Fluxion → GameBoost → DLSSG',
   info.ids.join(',') === 'filebutler,paian,netops-handbook,fluxion,gameboost,gameboost-dlssg',
