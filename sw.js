@@ -6,7 +6,7 @@
  * - 其余同源/静态资源：缓存优先 + 后台更新（stale-while-revalidate）
  * ⚠️ 每次发布改动静态资源后，把 CACHE 版本号 +1，旧缓存会在 activate 阶段自动清理。
  */
-const CACHE = 'sevenjohn-v81';
+const CACHE = 'sevenjohn-v82';
 const CORE = [
   './',
   'index.html',
@@ -42,9 +42,11 @@ const CORE = [
   'assets/images/cover-filebutler.webp',
   'assets/images/cover-netops.webp',
   'assets/images/cover-gameboost.webp',
+  'assets/images/cover-paian.webp',
   'assets/images/cover-filebutler.jpg',
   'assets/images/cover-netops.jpg',
   'assets/images/cover-gameboost.jpg',
+  'assets/images/cover-paian.jpg',
   'favicon.ico',
   'apple-touch-icon.png',
   'icon-512.png',

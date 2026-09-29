@@ -183,6 +183,44 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
   `
   },
   {
+    id: "paian",
+    title: "拍案 · 网文创作工作台",
+    category: "desktop",
+    categoryName: "桌面应用",
+    description: "给网文作者的纯本地工作台：写作、场景重排、伏笔追踪、人物与设定卡、牵线关系图、复盘统计。数据全部留在自己电脑上；AI 默认只判不写，不替你动笔。",
+    tags: ["Electron", "TypeScript", "CodeMirror 6", "纯本地"],
+    image: "assets/images/cover-paian.webp",
+    demoUrl: "https://github.com/7SteveJohn/PaiAn/releases",
+    githubUrl: "https://github.com/7SteveJohn/PaiAn",
+    featured: false,
+    role: "开发",
+    challenge: "难点是「纯本地」三个字把常规方案砍掉一半：数据不出电脑，AI 默认只判不写，功能要靠确定性统计立住。场景重排的切块与拼回做成纯函数，断言钉着「拼回去与原稿逐字节相等」——CRLF、段间空行、章末空行都不被规整，重排全章字节数不变；设定一致性检查只算叙述、只认唯一归属，台词里的境界词一律不计，挡掉几处误报也如实报出来。",
+    // ↓ 版本/运行环境/校验码：填上即显示在弹窗里，留空自动隐藏
+    version: "v1.0.0",
+    updated: "2026-09-29",
+    requires: "Windows 10/11（安装版免装 Node.js）",
+    sha256: "",
+    details: `
+<img src="assets/images/cover-paian.webp" alt="拍案 写作页实机" style="width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:block;">
+<p style="font-size:12px;color:#86868b;margin-top:6px;">拍案写作页：章节列表、正文编辑与右侧素材抽屉。</p>
+
+### 💡 这是什么
+给网文作者的**纯本地**创作工作台：数据全部保存在自己电脑上，不上传任何服务器；AI 功能调用你自己配置的模型 API，默认「只判不写」——它当镜子，不当笔。
+
+### ✨ 能干什么
+- **写作页**：CodeMirror 6 编辑器（Obsidian 同款内核）、自动保存、实时字数与目标进度、专注模式、Markdown 一键预览
+- **场景板**：本章按空行切成场景卡片，拖动重排或整块搬去下一章；拼回去与原稿逐字节相等，跨章挪动可整步退回
+- **正文标记**：选中即标 伏笔 / 彩蛋 / 人物 / 场景 / 碎片，不污染原文，导出自动清除
+- **素材抽屉**：伏笔追踪（按挂的章数计息）、碎片箱、人物卡、设定卡、分支沙盘、本地词库取名面板（不联网）
+- **牵线**：章、人物、伏笔摆成节点牵出因果，一键牵线、断线诊断，「演一遍」沿推动线逐拍放
+- **复盘**：节奏琴键（句长 / 对白占比）、对白天平、伏笔利息、AI 味自检（10 条模板句式，命中画虚线不改原文）、设定守夜人（境界回退 / 称谓易串 / 远场沉默）
+- **抗拖延**：冻结修改（只能向下续写）、断点记忆（下次进站直接回到现场）
+
+### 🛠️ 怎么做的
+Electron + Vite + TypeScript，本地 JSON 存储；NSIS 安装包与免安装便携版。场景重排、AI 味自检、设定守夜人全部是确定性实现，不调模型、零 token；UI 冒烟与 API / 提示词缓存等测试脚本齐备。
+  `
+  },
+  {
     id: "fluxion",
     title: "Fluxion · 完整版性能套件",
     category: "desktop",

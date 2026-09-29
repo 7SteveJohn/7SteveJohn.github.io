@@ -647,6 +647,75 @@
         </div>
       </article>
 
+      <!-- 单品 6: 拍案（网文创作工作台，源码在 GitHub） -->
+      <article data-project-id="paian" class="bento-card reveal overflow-hidden">
+        <div class="p-8 sm:p-12 space-y-4 max-w-3xl">
+            <span class="inline-block px-2.5 py-1 rounded-md text-xs font-mono border border-black/8 dark:border-white/12 text-[#86868b]">
+              Windows 桌面 · Electron / TypeScript
+            </span>
+            <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white">
+              拍案 · 网文创作工作台
+            </h3>
+            <p class="text-sm sm:text-base text-[#86868b] leading-relaxed">
+              给网文作者的纯本地工作台：写作、场景重排、伏笔追踪、人物与设定卡、牵线关系图、复盘统计。数据全部留在自己电脑上；AI 默认只判不写，不替你动笔。
+            </p>
+
+            <div data-facts class="project-facts" hidden></div>
+
+            <!-- 标签 -->
+            <div class="flex flex-wrap gap-2 pt-2">
+              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">Electron</span>
+              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">TypeScript</span>
+              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">CodeMirror 6</span>
+              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">纯本地</span>
+            </div>
+
+            <!-- 操作胶囊组 -->
+            <div class="flex flex-wrap items-center gap-3 pt-4">
+              <a
+                href="https://github.com/7SteveJohn/PaiAn/releases"
+                data-link="releases"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5"
+              >
+                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                <span>GitHub Releases</span>
+              </a>
+              <a
+                href="https://github.com/7SteveJohn/PaiAn"
+                data-link="github"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="p-2 rounded-full text-[#86868b] hover:text-black dark:hover:text-white transition"
+                title="查看 GitHub 仓库"
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+              </a>
+              <button
+                onclick="openProjectModal('paian')"
+                class="text-xs hover:underline ml-2 cursor-pointer font-medium"
+              >
+                了解更多 &gt;
+              </button>
+            </div>
+            <p class="text-xs text-[#86868b]">源码在 GitHub；数据全部保存在本机，不上传任何服务器。</p>
+          </div>
+
+        <!-- 大幅产品图 -->
+        <div class="px-8 sm:px-12 pb-8 sm:pb-12"><div class="cover-box rounded-xl border border-black/8 dark:border-white/10 shadow-sm overflow-hidden bg-white dark:bg-black/20">
+          <img
+            src="assets/images/cover-paian.webp"
+            alt="拍案 · 写作页实机"
+            class="cover-img reveal-img"
+            loading="lazy"
+            decoding="async"
+            onerror="this.src='assets/images/cover-paian.jpg'"
+          />
+          </div>
+        </div>
+      </article>
+
     </section>
 
  <!-- 4. 📐 研发哲学与技术对比-->
