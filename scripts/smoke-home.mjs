@@ -35,6 +35,9 @@ const info = await p.evaluate(() => {
     subClip: cs?.webkitBackgroundClip || cs?.backgroundClip,
     eyebrow: document.querySelector('#home .hero-eyebrow')?.textContent.trim(),
     heroP: [...document.querySelectorAll('#home p')].map((e) => e.textContent.trim()),
+    sections: ['products', 'blog', 'creation', 'essays'].map(
+      (id) => document.getElementById(id)?.querySelector('p.font-display')?.textContent.trim() || null
+    ),
     about: [...document.querySelectorAll('#about p')].map((e) => e.textContent.trim()).join(' | '),
     ids,
     videoSrc: v?.getAttribute('src'),
@@ -51,6 +54,13 @@ ok('顶栏品牌 = 站名', info.brand === '楠屿札记', info.brand);
 ok('眉标不再重复 SevenJohn', !/SevenJohn/.test(info.eyebrow || ''), info.eyebrow);
 ok('#home 只剩眉标 + 副标题两行（自白/描述行已按用户要求删除）', info.heroP.length === 2, info.heroP.join(' ／ '));
 ok('浏览器标题 = 楠屿札记…', /^楠屿札记/.test(info.title), info.title);
+const WANT_SECTIONS = [
+  '屿间汇叙 · 一隅存工码，亦叙尘世星文',
+  '岁稿存匣 · 收纳工具手记，贮藏随笔与星章',
+  '星砚耕行 · 研器书行迹，落笔揽晚星',
+  '尘页实录 · 于此留存工具实践、技术手记与笔下故事',
+];
+ok('四个内容栏目的副标题 = 四字题 · 对句', JSON.stringify(info.sections) === JSON.stringify(WANT_SECTIONS), info.sections.join(' ／ '));
 ok('关于我：去专业化', /业余|自学/.test(info.about) && !/平时写 Python/.test(info.about), info.about.slice(0, 40));
 ok(
   '卡片顺序 FileButler → 拍案 → NetOps → Fluxion → GameBoost → DLSSG',
