@@ -391,7 +391,7 @@ header.site-header:not(.is-scrolled) {
 }
 /* 叙事区恒深色：两主题下的文字与按钮统一成深色底上的配色 */
 #home h1 { color: #f5f7fa !important; }
-#home h1 span { color: #cfe0ff !important; }
+#home #site-subtitle { color: #cfe0ff !important; }   /* 副标题接手原来第二行标题的强调色 */
 #home p { color: #aab5c9 !important; }
 /* 亮线网络会穿透文字：深色光晕把字和线条隔开 */
 #home h1, #home p {
@@ -453,7 +453,7 @@ header.site-header:not(.is-scrolled) {
 }
 /* 移动端：veil 中央暗晕覆盖比例按竖屏收窄，第二行标题提亮补对比 */
 @media (max-width: 639px) {
-  #home h1 span {
+  #home #site-subtitle {
     color: #e3edff !important;
   }
   #home h1, #home p {
@@ -1273,7 +1273,7 @@ mark.sj-note {
 
 /* hero 副题行：星光渐变字（不支持的浏览器回退为亮蓝白） */
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
-  #home h1 span {
+  #home #site-subtitle {
     color: transparent !important;
     background: linear-gradient(180deg, #f2f7ff 0%, #a9c4f5 100%);
     -webkit-background-clip: text;

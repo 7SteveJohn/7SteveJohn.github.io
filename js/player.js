@@ -208,7 +208,7 @@
     if (!('mediaSession' in navigator)) return;
     navigator.mediaSession.metadata = new MediaMetadata({
       title: SONGS[current].title,
-      artist: 'SevenJohn · 博客 BGM'
+      artist: '楠屿实验室 · 博客 BGM'
     });
   }
 

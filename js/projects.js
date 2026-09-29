@@ -192,6 +192,8 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
     image: "assets/images/cover-paian.webp",
     demoUrl: "https://github.com/7SteveJohn/PaiAn/releases",
     githubUrl: "https://github.com/7SteveJohn/PaiAn",
+    downloadUrl: "https://pan.baidu.com/s/1FW267yG4QVrCdbYKOy5UsQ?pwd=vgym",
+    downloadPwd: "vgym",
     featured: false,
     role: "开发",
     challenge: "难点是「纯本地」三个字把常规方案砍掉一半：数据不出电脑，AI 默认只判不写，功能要靠确定性统计立住。场景重排的切块与拼回做成纯函数，断言钉着「拼回去与原稿逐字节相等」——CRLF、段间空行、章末空行都不被规整，重排全章字节数不变；设定一致性检查只算叙述、只认唯一归属，台词里的境界词一律不计，挡掉几处误报也如实报出来。",
@@ -202,7 +204,7 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
     sha256: "",
     details: `
 <img src="assets/images/cover-paian.webp" alt="拍案 写作页实机" style="width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:block;">
-<p style="font-size:12px;color:#86868b;margin-top:6px;">拍案写作页：章节列表、正文编辑与右侧素材抽屉。</p>
+<p style="font-size:12px;color:#86868b;margin-top:6px;">拍案写作页：章节列表、正文编辑与右侧素材抽屉；38 秒介绍视频在项目卡片上。</p>
 
 ### 💡 这是什么
 给网文作者的**纯本地**创作工作台：数据全部保存在自己电脑上，不上传任何服务器；AI 功能调用你自己配置的模型 API，默认「只判不写」——它当镜子，不当笔。

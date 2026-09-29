@@ -1,0 +1,83 @@
+/* 首页体检：站名/副标题、卡片顺序、拍案卡片（视频+网盘）、无 pageerror
+   用法：先起 127.0.0.1:8327 静态服务，再 node scripts/smoke-home.mjs */
+import { createRequire } from 'module';
+const require = createRequire('C:/Users/SevenJohn/.workbuddy/binaries/node/workspace/index.js');
+const { chromium } = require('playwright-core');
+
+const BASE = process.env.SITE_BASE || 'http://127.0.0.1:8327/';
+const checks = [];
+const ok = (name, pass, detail) => {
+  checks.push({ name, pass, detail });
+  console.log(`${pass ? 'PASS' : 'FAIL'}  ${name}${detail ? '  ' + detail : ''}`);
+};
+
+const b = await chromium.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe' });
+const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const errors = [];
+p.on('pageerror', (e) => errors.push(String(e)));
+await p.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 30000 });
+await p.waitForTimeout(3500);
+
+const info = await p.evaluate(() => {
+  const sub = document.getElementById('site-subtitle');
+  const cs = sub ? getComputedStyle(sub) : null;
+  const ids = [...document.querySelectorAll('#products article[data-project-id]')].map((e) => e.dataset.projectId);
+  const paian = document.querySelector('[data-project-id="paian"]');
+  const v = paian && paian.querySelector('video');
+  const dl = paian && paian.querySelector('[data-link="download"]');
+  const pwd = paian && paian.querySelector('[data-pwd]');
+  return {
+    title: document.title,
+    brand: document.querySelector('header a[href="#home"]')?.textContent.trim(),
+    h1: document.querySelector('#home h1')?.textContent.trim(),
+    sub: sub?.textContent.trim(),
+    subColor: cs?.color,
+    subClip: cs?.webkitBackgroundClip || cs?.backgroundClip,
+    eyebrow: document.querySelector('#home .hero-eyebrow')?.textContent.trim(),
+    about: [...document.querySelectorAll('#about p')].map((e) => e.textContent.trim()).join(' | '),
+    ids,
+    videoSrc: v?.getAttribute('src'),
+    poster: v?.getAttribute('poster'),
+    dlHref: dl?.getAttribute('href'),
+    pwdText: pwd?.textContent.trim(),
+  };
+});
+
+ok('#site-subtitle 存在且取自 config 文案', info.sub === '代码与故事，一并存档', info.sub);
+ok('副标题继承渐变字（透明色 + background-clip）', info.subClip?.includes('text'), `${info.subColor} / ${info.subClip}`);
+ok('hero 大标题 = 站名', info.h1 === '楠屿实验室', info.h1);
+ok('顶栏品牌 = 站名', info.brand === '楠屿实验室', info.brand);
+ok('眉标不再重复 SevenJohn', !/SevenJohn/.test(info.eyebrow || ''), info.eyebrow);
+ok('浏览器标题 = 楠屿实验室…', /^楠屿实验室/.test(info.title), info.title);
+ok('关于我：去专业化', /业余|自学/.test(info.about) && !/平时写 Python/.test(info.about), info.about.slice(0, 40));
+ok(
+  '卡片顺序 FileButler → 拍案 → NetOps → Fluxion → GameBoost → DLSSG',
+  info.ids.join(',') === 'filebutler,paian,netops-handbook,fluxion,gameboost,gameboost-dlssg',
+  info.ids.join(',')
+);
+ok('拍案卡片大图 = 介绍片', info.videoSrc === 'assets/video/paian-intro.mp4', String(info.videoSrc));
+ok('拍案海报存在', !!info.poster, String(info.poster));
+ok('拍案网盘胶囊指向百度网盘', /pan\.baidu\.com\/s\/1FW267yG4QVrCdbYKOy5UsQ/.test(info.dlHref || ''), String(info.dlHref));
+ok('拍案提取码 = vgym', /vgym/.test(info.pwdText || ''), String(info.pwdText));
+
+// 视频真的能播（拿到元数据）
+const playable = await p.evaluate(async () => {
+  const v = document.querySelector('[data-project-id="paian"] video');
+  if (!v) return 'no-video';
+  if (v.readyState >= 1) return `meta ${v.videoWidth}x${v.videoHeight} ${Math.round(v.duration)}s`;
+  return await new Promise((res) => {
+    v.addEventListener('loadedmetadata', () => res(`meta ${v.videoWidth}x${v.videoHeight} ${Math.round(v.duration)}s`), { once: true });
+    v.addEventListener('error', () => res('error'), { once: true });
+    v.preload = 'metadata';
+    v.load();
+    setTimeout(() => res('timeout'), 15000);
+  });
+});
+ok('拍案介绍片可读元数据', /^meta 1280x720 38s/.test(playable), playable);
+
+ok('无 pageerror', errors.length === 0, errors.slice(0, 2).join(' | '));
+
+await b.close();
+const failed = checks.filter((c) => !c.pass).length;
+console.log(`\n${checks.length - failed}/${checks.length} passed`);
+process.exit(failed ? 1 : 0);
