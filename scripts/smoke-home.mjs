@@ -34,6 +34,7 @@ const info = await p.evaluate(() => {
     subColor: cs?.color,
     subClip: cs?.webkitBackgroundClip || cs?.backgroundClip,
     eyebrow: document.querySelector('#home .hero-eyebrow')?.textContent.trim(),
+    heroP: [...document.querySelectorAll('#home p')].map((e) => e.textContent.trim()),
     about: [...document.querySelectorAll('#about p')].map((e) => e.textContent.trim()).join(' | '),
     ids,
     videoSrc: v?.getAttribute('src'),
@@ -48,6 +49,7 @@ ok('副标题继承渐变字（透明色 + background-clip）', info.subClip?.in
 ok('hero 大标题 = 站名', info.h1 === '楠屿札记', info.h1);
 ok('顶栏品牌 = 站名', info.brand === '楠屿札记', info.brand);
 ok('眉标不再重复 SevenJohn', !/SevenJohn/.test(info.eyebrow || ''), info.eyebrow);
+ok('#home 只剩眉标 + 副标题两行（自白/描述行已按用户要求删除）', info.heroP.length === 2, info.heroP.join(' ／ '));
 ok('浏览器标题 = 楠屿札记…', /^楠屿札记/.test(info.title), info.title);
 ok('关于我：去专业化', /业余|自学/.test(info.about) && !/平时写 Python/.test(info.about), info.about.slice(0, 40));
 ok(
