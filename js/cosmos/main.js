@@ -68,6 +68,12 @@ function boot() {
     const beat = new BeatDetector(CFG);
     const interaction = new InteractionManager(CFG, camera, canvas);
 
+    // 点击水面：从点击处放一记涟漪（等高线荡开再愈合）；交互元素上不误触
+    addEventListener('pointerdown', (e) => {
+      if (e.target.closest('a,button,input,textarea,select,label,#music-player')) return;
+      field.kick(e.clientX, e.clientY);
+    }, { passive: true });
+
     // ---- 主循环 ----
     let rafId = 0, frameNo = 0, last = performance.now();
     let sceneT = 0;                    // 场景时间（timeScale 缩放，驱动一切环境微动态）
@@ -92,6 +98,8 @@ function boot() {
       interaction.update(dtMs, CFG.layers.fieldZ);
       const a = audio.update(dtMs);
       const pulse = beat.update(a, dtMs, now);
+      // Beat → 场中放轻涟漪：等高线被荡开一层，随低频潮汐呼吸
+      if (beat.justBeat) { field.kickPulse(); beat.justBeat = false; }
 
       field.update(sceneT, a, interaction, dtMs, beat.pulse);
 
