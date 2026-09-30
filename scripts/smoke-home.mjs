@@ -71,8 +71,8 @@ ok(
 );
 ok('拍案卡片大图 = 介绍片', info.videoSrc === 'assets/video/paian-intro.mp4', String(info.videoSrc));
 ok('拍案海报存在', !!info.poster, String(info.poster));
-ok('拍案网盘胶囊指向百度网盘', /pan\.baidu\.com\/s\/1FW267yG4QVrCdbYKOy5UsQ/.test(info.dlHref || ''), String(info.dlHref));
-ok('拍案提取码 = vgym', /vgym/.test(info.pwdText || ''), String(info.pwdText));
+ok('拍案网盘胶囊指向百度网盘', /pan\.baidu\.com\/s\/1PFK4R4laPWgyoiulIuugHw/.test(info.dlHref || ''), String(info.dlHref));
+ok('拍案提取码 = vreh', /vreh/.test(info.pwdText || ''), String(info.pwdText));
 
 // 视频真的能播（拿到元数据）
 const playable = await p.evaluate(async () => {
