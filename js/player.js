@@ -228,6 +228,18 @@
     }
   }
 
+  // 起播稳定后让 SW 预热这首歌的全量入库（下次秒开 + 离线可播）：
+  // 消息走 message 事件 + waitUntil，SW 里裸 setTimeout 会被提前终止（2026-09-30 踩过）；
+  // 延迟 2.5s 发，让起播缓冲先把带宽用完。
+  audio.addEventListener('playing', function () {
+    setTimeout(function () {
+      var url = audio.currentSrc || audio.src;
+      if (url && navigator.serviceWorker && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'prefetch-media', url: url });
+      }
+    }, 2500);
+  });
+
   function togglePlay() {
     if (!audio.src) { load(current, true); return; }
     if (audio.paused) audio.play().catch(() => {});
@@ -238,8 +250,10 @@
     clearResume();          // 零播放记录：老访客的续听键一并清掉
     applyOrder();
     // 预热：页面加载即缓冲首曲，点播放几乎秒出声（SW 运行时缓存随后接管，二次访问零延迟）。
-    // 触屏设备按流量考虑只取元数据。首次访客也能吃到预热——不只限有历史的用户。
-    audio.preload = matchMedia('(pointer: coarse)').matches ? 'metadata' : 'auto';
+    // 触屏设备原按流量考虑只取 metadata——2026-09-30 用户实测手机上"歌曲来的很慢"：
+    // metadata 只拉几百 KB 头部，点播放才开始拉音频，跨境链路上被 SW 全量预热抢带宽。
+    // 改 auto 让首曲在页面加载期就缓冲到位（单曲 ~4MB，WiFi/5G 下无感），点播放基本秒响。
+    audio.preload = 'auto';
     audio.src = SONGS[current].src;
     try { mode = (localStorage.getItem(LS_MODE) || legacy(LS_MODE)) === 'one' ? 'one' : 'list'; } catch (e) {}
     titleEl.textContent = SONGS[current].title;

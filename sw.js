@@ -6,7 +6,7 @@
  * - 其余同源/静态资源：缓存优先 + 后台更新（stale-while-revalidate）
  * ⚠️ 每次发布改动静态资源后，把 CACHE 版本号 +1，旧缓存会在 activate 阶段自动清理。
  */
-const CACHE = 'sevenjohn-v99';
+const CACHE = 'sevenjohn-v100';
 const CORE = [
   './',
   'index.html',
@@ -111,6 +111,15 @@ function prefetch(url) {
   return prefetches.get(url);
 }
 
+// 全量预热延迟启动：Range 请求到达时 audio 正要拉起播数据（首访同时命中"未缓存"），
+// 立刻并发 4~6MB 全量下载会和起播缓冲抢带宽——手机跨境链路上起播被拖到数秒（2026-09-30 用户实测）。
+// 两条路：① respondWith 链路里只挂 setTimeout 版兜底——SW 在事件结束后随时可能被终止，
+// SW 内部 setTimeout 本就不可靠；② 确定性主路径在页面端：audio "playing" 2.5s 后
+// postMessage 过来（见下方 message 监听），waitUntil 保证预热跑完。prefetches 单例去重，不双跑。
+function lazyPrefetch(url) {
+  setTimeout(() => { prefetch(url); }, 2500);
+}
+
 async function handleRange(req) {
   const cached = await caches.match(req, { ignoreVary: true });
   if (cached) {
@@ -127,12 +136,12 @@ async function handleRange(req) {
     return offlineFallback('离线：音频未缓存，请联网播放一次');
   }
   if (net.status === 206) {
-    prefetch(req.url); // 上游原生支持 Range：原样透传（流式秒开）
+    lazyPrefetch(req.url); // 上游原生支持 Range：原样透传（流式秒开）
     return net;
   }
   const total = Number(net.headers.get('content-length') || 0);
   if (start === 0 && total && net.body) {
-    prefetch(req.url); // 后台入库
+    lazyPrefetch(req.url); // 后台入库（延迟，给起播让路）
     // 上游不认 Range（回 200 全量）：把 body 流包装成 206 —— 秒开且 seekable 正常
     return new Response(net.body, {
       status: 206,
@@ -155,11 +164,18 @@ async function handleRange(req) {
   return net;
 }
 
+// 页面端触发的确定性预热：audio "playing" 2.5s 后 postMessage 过来（player.js）。
+// message 是 extendable 事件，waitUntil 保证 SW 活到全量入库——SW 内裸 setTimeout 不可靠。
+self.addEventListener('message', (event) => {
+  const data = event.data;
+  if (data && data.type === 'prefetch-media' && data.url) {
+    event.waitUntil(prefetch(data.url));
+  }
+});
+
 self.addEventListener('fetch', (event) => {
   const req = event.request;
-  if (req.method !== 'GET' || !req.url.startsWith('http')) return;
-
-  // 媒体 Range 请求交给切片处理（必须先于缓存分支：206 无法 cache.put）
+  if (req.method !== 'GET' || !req.url.startsWith('http')) return;  // 媒体 Range 请求交给切片处理（必须先于缓存分支：206 无法 cache.put）
   if (req.headers.has('range')) {
     event.respondWith(handleRange(req));
     return;
