@@ -1,10 +1,11 @@
 /**
- * 介绍视频「海报 + 播放键」体验（2026-09-30，C1）
+ * 介绍视频「海报 + 播放键」体验（2026-09-30，C1；同日修不显示 bug）
  * ----------------------------------------------------
  * 播放前：视频不带原生 controls（黑底控制条与卡片气质不搭），海报上叠一枚居中
  * 圆形播放键；点击后移除覆盖层并唤出原生控件 + 播放。视频结束/暂停时恢复覆盖层。
- * 纯渐进增强：JS 失效时视频仍有原生 controls 属性吗——不，本脚本会把 controls 摘下，
- * 所以必须在 DOMContentLoaded 即执行；视频点不了的概率（JS 全挂）可接受（站内脚本全 defer）。
+ * ⚠️ 覆盖层必须挂在 .cover-box 父容器上，不能做 <video> 的子元素——video 是
+ *    替换元素，内部子元素渲染不一致（桌面 Chromium 显示、移动端内核直接 0×0
+ *    不渲染，实测），这正是"视频播放键不见了"的根因。
  * 与视频×音乐互斥（player.js）天然协同：本模块只动覆盖层，不碰 play/pause 链。
  */
 (function () {
@@ -15,6 +16,7 @@
       v.dataset.playGate = '1';
       v.removeAttribute('controls');            // 播放前不显示原生控制条
 
+      const box = v.closest('.cover-box') || v.parentElement;
       const layer = document.createElement('div');
       layer.className = 'video-play-gate';
       layer.setAttribute('aria-hidden', 'false');
@@ -30,16 +32,15 @@
         v.focus({ preventScroll: true });       // 键盘用户焦点落回视频
       }
       function close() {
-        if (!layer.isConnected) {
-          v.removeAttribute('controls');
-          v.appendChild(layer);
-        }
+        if (!layer.isConnected && !v.paused) return;
+        if (!layer.isConnected) box.appendChild(layer);
+        v.removeAttribute('controls');
       }
       layer.addEventListener('click', open);
       v.addEventListener('ended', close);
       v.addEventListener('pause', close);       // 暂停也收回控制条，回到海报态
-      v.addEventListener('play', () => { if (layer.isConnected) layer.remove(); });
-      v.appendChild(layer);
+      v.addEventListener('play', () => { layer.remove(); });
+      box.appendChild(layer);
     });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
