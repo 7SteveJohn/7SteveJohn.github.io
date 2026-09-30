@@ -388,11 +388,14 @@
     if (!videos.length) return;
     const siteAudio = audio;                        // 站点歌单
     const localAudio = document.getElementById('cosmos-audio');
-    let musicPausedByVideo = '';                    // '' | 'site' | 'local'：音乐因视频被暂停的凭据
+    let musicPausedByVideo = '';                    // '' | 'site' | 'local'：音乐因视频被暂停的凭据（只服务恢复方向）
+    let userOverride = false;                       // 用户在视频播放期间手动放歌 → 尊重到视频会话结束
+    let resumingByVideo = false;                    // 互斥自己的恢复进行中（不算用户 override）
 
     const playingVideo = () => videos.find((v) => !v.paused && !v.ended);
+    // 无凭据守卫、幂等：轮询每秒都会调，事件丢失后照样能把状态拉回来
+    // （v112 前的 `if (musicPausedByVideo) return` 会让丢事件环境的暂停路径永久短路——实测根因）
     function pauseMusicForVideo() {
-      if (musicPausedByVideo) return;               // 已因视频暂停过：保持凭据
       if (!siteAudio.paused) {
         siteAudio.pause();
         musicPausedByVideo = 'site';
@@ -405,22 +408,40 @@
       if (!musicPausedByVideo || playingVideo()) return;   // 还有别的视频在播就不恢复
       const which = musicPausedByVideo;
       musicPausedByVideo = '';
+      resumingByVideo = true;                       // 自己的恢复不算用户 override
+      setTimeout(function () { resumingByVideo = false; }, 400);   // 事件丢失时的兜底复位
       const el = which === 'site' ? siteAudio : localAudio;
-      if (el) el.play().catch(() => {});            // FAB 图标经 audio 的 play/pause 监听自动同步
+      if (el) el.play().catch(function () { resumingByVideo = false; });   // FAB 图标经 audio 的 play/pause 监听自动同步
     }
-    // 用户在视频播放期间手动恢复了音乐 → 凭据作废（视频暂停时不再强行恢复）
+    // 用户在视频播放期间手动恢复了音乐 → 本会话尊重用户（音乐与视频同播到视频结束）
     [siteAudio, localAudio].forEach((el) => {
-      if (el) el.addEventListener('play', () => { musicPausedByVideo = ''; });
+      if (el) el.addEventListener('play', function () {
+        if (playingVideo() && !resumingByVideo) userOverride = true;
+        resumingByVideo = false;
+      });
     });
 
     videos.forEach((v) => {
-      v.addEventListener('play', () => {
-        videos.forEach((o) => { if (o !== v && !o.paused) o.pause(); });   // 视频互斥
+      v.addEventListener('play', function () {
+        videos.forEach(function (o) { if (o !== v && !o.paused) o.pause(); });   // 视频互斥
         pauseMusicForVideo();
       });
       v.addEventListener('pause', resumeMusicIfIdle);
       v.addEventListener('ended', resumeMusicIfIdle);
     });
+
+    // 状态轮询兜底（2026-09-30 用户实测部分环境仍能同时播放）：事件在个别内核
+    // （X5/后台标签页等）会丢或乱序，事件链再对也架不住漏一个。每秒对齐一次理想态——
+    // 有视频在播 → 音乐必须停（除非用户本会话明确 override）；无视频在播且有凭据 → 恢复。
+    setInterval(function () {
+      const vPlaying = playingVideo();
+      if (!vPlaying) {
+        userOverride = false;                       // 视频会话结束，override 失效
+        if (musicPausedByVideo) resumeMusicIfIdle();
+        return;
+      }
+      if (!userOverride) pauseMusicForVideo();
+    }, 1000);
 
     // 滚出视口：可见比例 <15% 且仍在播 → 自动暂停（pause 事件链会恢复音乐）
     if ('IntersectionObserver' in window) {
