@@ -98,8 +98,7 @@ function boot() {
       interaction.update(dtMs, CFG.layers.fieldZ);
       const a = audio.update(dtMs);
       const pulse = beat.update(a, dtMs, now);
-      // Beat → 场中放轻涟漪：等高线被荡开一层，随低频潮汐呼吸
-      if (beat.justBeat) { field.kickPulse(); beat.justBeat = false; }
+      // beat 只进 field.update 的亮度通道，不再触发任何形状扰动（抽搐感的来源）
 
       field.update(sceneT, a, interaction, dtMs, beat.pulse);
 

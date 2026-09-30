@@ -14,9 +14,11 @@
  *     高光带随光源缓慢扫过坡面（液态玻璃的反光感）；
  *   · 视差纵深 —— 采样偏移按高度加权：山头随鼠标移动多、谷底几乎不动，
  *     鼠标一动整座岛产生真实的层深错动；
- *   · 律动 —— bass 抬潮汐幅度（高度场整体涨落）、beat/点击从场中放水波涟漪
- *     （衰减正弦环注入高度场，等高线被荡开再愈合）；
- *     幅度对齐历史口径：看得清，但不"整屏打拍子"、不晃得读不了字。
+ *   · 律动 —— 口径修正（第三版，回应"像在抽搐"）：瞬态包络绝不直接驱动形状——
+ *     bass 先过 1.5s EMA 慢包络再抬潮汐（等高线随歌的能量涨落，秒级，不逐拍跳）；
+ *     beat 只闪线亮度（不改形状，同旧推理场的 beat 提亮性质）；
+ *     mid 连续加速漂移（歌快场就流得快）；涟漪只保留点击手势，
+ *     beat 的随机位置涟漪正是"抽搐感"来源，已删。
  * ============================================================
  */
 import * as THREE from 'three';
@@ -35,10 +37,11 @@ const ISO_FRAG = /* glsl */ `
   uniform float uTime;   // 场景时间（timeScale 缩放后）
   uniform vec2  uMouse;  // damped 鼠标 [-1,1]：视差 + 邻近提亮
   uniform vec2  uRes;    // 画布 CSS 像素
-  uniform float uPulse;  // beat 包络 0..1
-  uniform float uBass;   // 低频包络 0..1
+  uniform float uPulse;  // beat 包络 0..1（只驱动线亮度，绝不驱动形状）
+  uniform float uBass;   // 低频慢包络 0..1（1.5s EMA，只驱动潮汐/亮度底）
+  uniform float uMid;    // 中频包络 0..1（连续加速漂移）
   uniform float uScroll; // 页面滚动量（px，damped）→ 背景极轻反向漂移
-  uniform vec4  uRipples[6]; // xy=涟漪中心(uv 空间) z=起始场景时间 w=强度；w<=0 为空槽
+  uniform vec4  uRipples[6]; // xy=涟漪中心(uv 空间) z=起始场景时间 w=强度；w<=0 为空槽（仅点击手势）
 
   // —— 2D 值噪声 + 4 octave fbm：全图唯一的"纹理来源" ——
   float hash(vec2 p) {
@@ -96,12 +99,13 @@ const ISO_FRAG = /* glsl */ `
     vec2 asp = vec2(uRes.x / uRes.y, 1.0);
     vec2 uv = (gl_FragCoord.xy / uRes - 0.5) * asp * 2.0;
 
-    // 潮汐呼吸：bass 直接抬幅度——起歌时整座岛在缓慢涨落
-    float breathe = 0.05 * sin(uTime * 0.12) + 0.10 * uBass;
+    // 潮汐呼吸：uBass 已是 1.5s 慢包络（JS 侧 EMA）——秒级涨落，不逐拍跳
+    float breathe = 0.05 * sin(uTime * 0.12) + 0.06 * uBass;
 
-    // 基准点：极慢漂移 + 滚动反向漂移
+    // 基准点：漂移（mid 起来时歌快场就流得快，连续加速不跳变）+ 滚动反向漂移
+    float drift = uTime * (0.008 + 0.004 * uMid);
     vec2 p0 = uv * 1.35
-            + vec2(uTime * 0.008, -uTime * 0.005)
+            + vec2(drift, -drift * 0.6)
             + vec2(0.0, -uScroll * 0.0004);
 
     // 轻度 domain warp：让等高线有地形的聚散，而不是同心圆
@@ -133,7 +137,8 @@ const ISO_FRAG = /* glsl */ `
     float near = 1.0 + 0.35 * max(0.0, 1.0 - mD / 0.45);
 
     float a = max(line * 0.30, major * 0.20);
-    a *= near * (1.0 + 0.25 * uPulse);
+    // 律动的"快"通道只有亮度：beat 闪线（不改形状），能量水平抬亮度底
+    a *= near * (1.0 + 0.30 * uPulse + 0.10 * uBass);
 
     vec3 base = vec3(0.020, 0.027, 0.047);   // #05070c 近黑，与 clear 色同族
     vec3 ink  = vec3(0.470, 0.565, 0.710);   // 冷青灰，--accent #8fb8ff 的压暗邻族
@@ -155,7 +160,8 @@ export class IsolinesField {
       uMouse:   { value: new THREE.Vector2(0, 0) },
       uRes:     { value: new THREE.Vector2(1, 1) },
       uPulse:   { value: 0 },
-      uBass:    { value: 0 },
+      uBass:    { value: 0 },   // 慢包络（1.5s EMA），驱动潮汐/亮度底
+      uMid:     { value: 0 },
       uScroll:  { value: 0 },
       uRipples: { value: Array.from({ length: RIPPLE_MAX }, () => new THREE.Vector4(0, 0, -10, 0)) },
     };
@@ -172,7 +178,8 @@ export class IsolinesField {
     scene.add(this.mesh);
     this.ripples = [];                 // { x, y, t0, amp }（uv 空间坐标）
     this._pulse = 0;
-    this._bass = 0;
+    this._bassSlow = 0;                // 1.5s EMA：歌的能量水平，驱动潮汐
+    this._mid = 0;
   }
 
   setRes(w, h) {
@@ -193,14 +200,9 @@ export class IsolinesField {
     if (this.ripples.length > RIPPLE_MAX) this.ripples.shift();
   }
 
-  /* 点击水面：从点击处放一记强涟漪 */
+  /* 点击水面：从点击处放一记强涟漪（唯一的涟漪来源，是手势不是律动） */
   kick(cx, cy) {
     this._ripple(cx, cy, 1.0);
-  }
-
-  /* beat：从场中随机位置放轻涟漪（等高线荡开一层，不"整屏打拍子"） */
-  kickPulse() {
-    this._ripple((Math.random() - 0.5) * 1.2, (Math.random() - 0.5) * 0.8, 0.45);
   }
 
   /* 主循环唯一入口；interaction 取 damped 鼠标与滚动，audio 只取包络 */
@@ -208,8 +210,14 @@ export class IsolinesField {
     this.uniforms.uTime.value = t;
     this.uniforms.uMouse.value.set(interaction.mouse.x, interaction.mouse.y);
     this.uniforms.uPulse.value = beatPulse;
-    this.uniforms.uBass.value = audio.bass || 0;
     this.uniforms.uScroll.value = interaction.scroll || 0;
+    // bass 慢包络：1.5s 时间常数的 EMA——瞬态鼓点进不来，只有能量水平潮汐
+    const dt = Math.min(dtMs, 100) / 1000;
+    const k = 1 - Math.exp(-dt / 1.5);
+    this._bassSlow += ((audio.bass || 0) - this._bassSlow) * k;
+    this._mid += ((audio.mid || 0) - this._mid) * (1 - Math.exp(-dt / 0.8));
+    this.uniforms.uBass.value = this._bassSlow;
+    this.uniforms.uMid.value = this._mid;
     // 涟漪槽：过期的写 0 强度
     const slots = this.uniforms.uRipples.value;
     for (let i = 0; i < RIPPLE_MAX; i++) {
@@ -219,7 +227,6 @@ export class IsolinesField {
     }
     this.ripples = this.ripples.filter((r) => t - r.t0 < 4.0);
     this._pulse = beatPulse;
-    this._bass = audio.bass || 0;
   }
 
   /* 调试探针（对齐 __COSMOS.info 的取用习惯） */
@@ -232,7 +239,7 @@ export class IsolinesField {
         y: +this.uniforms.uMouse.value.y.toFixed(3),
       },
       pulse: +this._pulse.toFixed(3),
-      bass: +this._bass.toFixed(3),
+      bass: +this._bassSlow.toFixed(3),
       ripples: this.ripples.length,
     };
   }
