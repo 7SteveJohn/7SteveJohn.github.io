@@ -1307,23 +1307,6 @@ mark.sj-note {
   50%      { opacity: 1; }
 }
 
-/* 区块眉标：冷蓝短竖线（编辑风记号） */
-.sec-eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-}
-.sec-eyebrow::before {
-  content: "";
-  width: 2px;
-  height: 1em;
-  border-radius: 1px;
-  background: var(--accent);
-  box-shadow: 0 0 6px rgba(143, 184, 255, 0.5);
-}
-/* 理念区眉标在居中容器里，跟随居中 */
-#philosophy .sec-eyebrow { justify-content: center; }
-
 /* 理念编号染色 + 列顶发丝线（编辑风版式） */
 .phil-no {
   color: var(--accent) !important;
