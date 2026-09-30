@@ -256,7 +256,7 @@ window.openProjectModal = function(id) {
         ${project.demoUrl && project.demoUrl !== '#' ? `
           <a href="${project.demoUrl}" target="_blank" rel="noopener noreferrer"
              class="btn-secondary px-4 py-2 text-xs bg-slate-100 dark:bg-white/10 text-[#1d1d1f] dark:text-white flex items-center gap-1.5 border border-black/10 dark:border-white/10">
-            <span>在线发布 / Releases</span>
+            <span>GitHub Releases</span>
             <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
           </a>
         ` : ''}
