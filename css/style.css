@@ -491,6 +491,28 @@ header.site-header:not(.is-scrolled) {
     font-size: 0.9375rem;
     line-height: 1.75;
   }
+  /* 产品卡手机端收紧（2026-09-30 用户反馈"每一个框变得奇大无比"）：
+     p-8/px-8 的 32px 留白在 390px 视口上占比过高，块间距再一叠，一张卡滚过两屏。
+     留白整体降一档、facts 改竖排、卡间距 64→40，让卡回到"内容为主" */
+  #products > article.bento-card > div:first-child {
+    padding: 1.25rem 1.25rem 0.25rem;
+  }
+  #products > article.bento-card > div:last-child {
+    padding: 0.625rem 1.25rem 1.25rem;
+  }
+  #products > article.bento-card .project-facts .pf-row {
+    grid-template-columns: 1fr;   /* 4.5rem 标签列 + 窄值列在手机上换行碎；改标签在上、值在下 */
+    gap: 0.1rem;
+  }
+  #products > article.bento-card .project-facts .pf-k {
+    padding-top: 0;
+  }
+  #products > article.bento-card .project-facts {
+    padding: 0.7rem 0.85rem;
+  }
+  #products.space-y-16 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 2.5rem;
+  }
   /* 点按区：顶栏四个可点元素原高 20–28px（搜索 26×26、菜单 28×28、查看作品 24、品牌名 20），
      低于 iOS 44 / Material 48 的建议。用透明 ::after 把命中区撑到 ~40px，视觉尺寸一律不变。
      ❗选择器限定在顶栏那一行——抽屉菜单里的链接高度本就 ~40px，再扩会互相重叠点错 */

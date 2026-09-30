@@ -12,6 +12,22 @@ const CFG = CONFIG;
 const isMobile = matchMedia('(pointer:coarse)').matches || innerWidth < 768;
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+// 移动端观感调优（2026-09-30 用户反馈：竖屏上连线横跨半屏、又亮又乱，背景"变丑"）：
+// 竖屏 aspect 小 → 跨层连边投影成大跨度斜线，近层铺满全屏更加重交叉。
+// 场整体收小压暗：近层不再铺满全屏（连线跨距变短、四周留黑），节点/连边/脉冲三路同时减量。
+// CFG === CONFIG（同一引用），在 NeuralField 构造前覆写即可全部生效。
+if (isMobile) {
+  Object.assign(CFG.field, {
+    nodesMobile: 96,      // 140 → 96：少一层网眼，交叉少一大截
+    linksPerNode: 2,      // 3 → 2：连边数再砍三分之一
+    spreadNear: 0.78,     // 输出层从铺满全屏收到 78% → 长斜线变短，四周留出干净的黑
+    spreadFar: 0.40,
+    nodeSize: 2.0,
+  });
+  Object.assign(CFG.edges, { base: 0.08 });            // 连线底亮压暗一档
+  Object.assign(CFG.pulses, { countMobile: 9, size: 3.0 }); // 脉冲更少更小
+}
+
 function fallback2d() {
   // 无 WebGL：回退 2D canvas 版（js/cosmos.js 自举，挂 #cosmos-canvas）
   const s = document.createElement('script');

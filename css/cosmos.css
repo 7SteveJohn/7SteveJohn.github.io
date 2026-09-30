@@ -20,6 +20,20 @@
   inset: 0;
   z-index: -1;
   pointer-events: none;
+  /* 常驻暗角：3D 引擎不会调用 buildVeil（那是 2D 回退的），index.html 里的静态 veil
+     原本是空壳——推理场连线在文字区外围全程裸奔，手机竖屏上尤其乱（2026-09-30 用户反馈）。
+     2D 回退时 buildVeil 写的是 inline background，会自然覆盖这条，不冲突。 */
+  background:
+    radial-gradient(ellipse 130% 90% at 50% 42%,
+      rgba(0, 2, 7, 0) 42%, rgba(0, 2, 7, 0.30) 76%, rgba(0, 2, 7, 0.62) 100%);
+}
+@media (max-width: 639px) {
+  .cosmos-veil {
+    /* 竖屏：暗角收得更紧、更深，把连线群压向中景，文字区外圈留出干净的黑 */
+    background:
+      radial-gradient(ellipse 150% 74% at 50% 42%,
+        rgba(0, 2, 7, 0) 30%, rgba(0, 2, 7, 0.44) 68%, rgba(0, 2, 7, 0.82) 100%);
+  }
 }
 
 /* 深空底色兜底：3D 场景首帧淡入前不露白 */
