@@ -98,7 +98,8 @@ function boot() {
       interaction.update(dtMs, CFG.layers.fieldZ);
       const a = audio.update(dtMs);
       const pulse = beat.update(a, dtMs, now);
-      // beat 只进 field.update 的亮度通道，不再触发任何形状扰动（抽搐感的来源）
+      // beat 是事件不是状态：从岛心荡开一圈亮度环（空间动画，不全线闪、不做形变）
+      if (beat.justBeat) { field.onBeat(); beat.justBeat = false; }
 
       field.update(sceneT, a, interaction, dtMs, beat.pulse);
 
