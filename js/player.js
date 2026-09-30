@@ -379,5 +379,61 @@
     navigator.mediaSession.setActionHandler('nexttrack', () => { startBeat(); load(current + 1, !audio.paused); });
   }
 
+  // —— 介绍视频 × 音乐互斥 + 视口自动暂停（2026-09-30 用户需求）——
+  // 看介绍视频时自动暂停音乐（站点歌单或本地音乐，谁在响停谁），视频暂停/播完自动恢复；
+  // 视频滚出视口自动暂停（走 pause 事件 → 同样恢复音乐）。多视频互斥：任一在播即"观看中"。
+  // 恢复的唯一凭据是 musicPausedByVideo：用户本来就没开音乐时，视频结束不会强行播放。
+  (function initVideoMusicMutex() {
+    const videos = Array.from(document.querySelectorAll('#products video'));
+    if (!videos.length) return;
+    const siteAudio = audio;                        // 站点歌单
+    const localAudio = document.getElementById('cosmos-audio');
+    let musicPausedByVideo = '';                    // '' | 'site' | 'local'：音乐因视频被暂停的凭据
+
+    const playingVideo = () => videos.find((v) => !v.paused && !v.ended);
+    function pauseMusicForVideo() {
+      if (musicPausedByVideo) return;               // 已因视频暂停过：保持凭据
+      if (!siteAudio.paused) {
+        siteAudio.pause();
+        musicPausedByVideo = 'site';
+      } else if (localAudio && localAudio.src && !localAudio.paused) {
+        localAudio.pause();
+        musicPausedByVideo = 'local';
+      }
+    }
+    function resumeMusicIfIdle() {
+      if (!musicPausedByVideo || playingVideo()) return;   // 还有别的视频在播就不恢复
+      const which = musicPausedByVideo;
+      musicPausedByVideo = '';
+      const el = which === 'site' ? siteAudio : localAudio;
+      if (el) el.play().catch(() => {});            // FAB 图标经 audio 的 play/pause 监听自动同步
+    }
+    // 用户在视频播放期间手动恢复了音乐 → 凭据作废（视频暂停时不再强行恢复）
+    [siteAudio, localAudio].forEach((el) => {
+      if (el) el.addEventListener('play', () => { musicPausedByVideo = ''; });
+    });
+
+    videos.forEach((v) => {
+      v.addEventListener('play', () => {
+        videos.forEach((o) => { if (o !== v && !o.paused) o.pause(); });   // 视频互斥
+        pauseMusicForVideo();
+      });
+      v.addEventListener('pause', resumeMusicIfIdle);
+      v.addEventListener('ended', resumeMusicIfIdle);
+    });
+
+    // 滚出视口：可见比例 <15% 且仍在播 → 自动暂停（pause 事件链会恢复音乐）
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((en) => {
+          if (!en.isIntersecting && !en.target.paused && !en.target.ended && en.target.currentTime > 0) {
+            en.target.pause();
+          }
+        });
+      }, { threshold: 0.15 });
+      videos.forEach((v) => io.observe(v));
+    }
+  })();
+
   restore();
 })();
