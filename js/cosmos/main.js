@@ -98,10 +98,10 @@ function boot() {
       interaction.update(dtMs, CFG.layers.fieldZ);
       const a = audio.update(dtMs);
       const pulse = beat.update(a, dtMs, now);
-      // beat 是事件不是状态：从岛心荡开一圈亮度环（空间动画，不全线闪、不做形变）
-      if (beat.justBeat) { field.onBeat(); beat.justBeat = false; }
+      // beat 是事件不是状态：从岛心荡开一圈亮度环，强度按乐句角色标定（每第 8 拍是重音）
+      if (beat.justBeat) { field.onBeat(beat.beats % 8 === 0 ? 1.0 : 0.6); beat.justBeat = false; }
 
-      field.update(sceneT, a, interaction, dtMs, beat.pulse);
+      field.update(sceneT, a, interaction, dtMs);
 
       // 首帧落画布：淡入（黑屏感 → 平滑显影）
       if (frameNo === 1) { canvas.style.opacity = '1'; }
@@ -152,6 +152,7 @@ function boot() {
       cfg: CFG,
       engine: 'isolines',
       feed: (b, m, t, beat) => audio.feed(b, m, t, beat),
+      ensure: () => { audio.ensureGraph(); audio.resume(); return !!audio.analyser; },
       reset: () => {
         interaction.target.x = interaction.target.y = 0;
         interaction.scrollTarget = 0;

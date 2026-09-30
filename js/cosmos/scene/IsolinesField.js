@@ -48,12 +48,11 @@ const ISO_FRAG = /* glsl */ `
   uniform float uTime;   // 场景时间（timeScale 缩放后）
   uniform vec2  uMouse;  // damped 鼠标 [-1,1]：视差 + 邻近提亮
   uniform vec2  uRes;    // 画布 CSS 像素
-  uniform float uPulse;  // beat 包络 0..1（残余的全线微闪，弱）
-  uniform float uBass;   // 低频慢包络，已按歌曲动态范围归一化（只驱动潮汐/亮度底）
+  uniform float uBass;   // 能量水平 0..1（上游已 AGC 归一；此处再做潮汐慢化）
   uniform float uMid;    // 中频包络 0..1，sqrt 感知映射（连续加速漂移）
   uniform float uScroll; // 页面滚动量（px，damped）→ 背景极轻反向漂移
   uniform vec4  uRipples[6]; // xy=涟漪中心(uv 空间) z=起始场景时间 w=强度；w<=0 为空槽（仅点击手势）
-  uniform float uWaves[4];   // beat 亮度环的起始场景时间；<0 为空槽（环从岛心荡开）
+  uniform vec2  uWaves[4];   // x=beat 亮度环起始场景时间 y=强度（普通拍 0.6/乐句拍 1.0）；x<0 空槽
 
   // —— 2D 值噪声 + 4 octave fbm：全图唯一的"纹理来源" ——
   float hash(vec2 p) {
@@ -106,14 +105,15 @@ const ISO_FRAG = /* glsl */ `
     return h;
   }
 
-  // beat 亮度环：一圈光从岛心荡开，扫过之处的等高线被点亮（事件驱动的空间动画，
-  // 固有衰减包络——不做形变、不全线同时闪）。速度 0.5/s 约两秒扫出屏幕，幅度指数衰减。
-  float waveRing(vec2 uv, float t0, float now) {
+  // beat 亮度环（标准 shockwave 形状）：一圈光从岛心荡开，扫过之处的等高线被点亮。
+  // 形状与时间轴固定（speed/decay/tight 是常量），只有强度按拍的角色（普通/乐句）标定——
+  // 这是"自然感"的关键：beat 是事件，触发的是独立时间轴的固有包络，不写任何当前值。
+  float waveRing(vec2 uv, float t0, float strength, float now) {
     float age = now - t0;
     if (age <= 0.0 || age >= 2.5) return 0.0;
     float r = length(uv * 0.72);
-    float front = age * 0.5;
-    return exp(-pow((r - front) * 2.4, 2.0)) * exp(-age * 0.9);
+    float front = age * 0.8;
+    return exp(-pow((r - front) * 18.0, 2.0)) * exp(-age * 3.5) * strength;
   }
 
   void main() {
@@ -159,12 +159,12 @@ const ISO_FRAG = /* glsl */ `
     float near = 1.0 + 0.35 * max(0.0, 1.0 - mD / 0.45);
 
     float a = max(line * 0.30, major * 0.20);
-    // 律动两通道：残余的全线微闪（弱）+ beat 亮度环从岛心扫过（空间事件动画）
+    // 律动唯一的"快"通道：beat 亮度环扫过（空间事件动画）。全线同闪已删（开关灯感是反面模式）
     float wave = 0.0;
     for (int i = 0; i < 4; i++) {
-      wave = max(wave, waveRing(uv, uWaves[i], uTime));
+      wave = max(wave, waveRing(uv, uWaves[i].x, uWaves[i].y, uTime));
     }
-    a = (a + max(line, major) * wave * 0.26) * near * (1.0 + 0.12 * uPulse);
+    a = (a + max(line, major) * wave * 0.26) * near;
 
     vec3 base = vec3(0.020, 0.027, 0.047);   // #05070c 近黑，与 clear 色同族
     vec3 ink  = vec3(0.470, 0.565, 0.710);   // 冷青灰，--accent #8fb8ff 的压暗邻族
@@ -186,12 +186,11 @@ export class IsolinesField {
       uTime:    { value: 0 },
       uMouse:   { value: new THREE.Vector2(0, 0) },
       uRes:     { value: new THREE.Vector2(1, 1) },
-      uPulse:   { value: 0 },
-      uBass:    { value: 0 },   // 归一化后的能量水平（自适应缩放），驱动潮汐
+      uBass:    { value: 0 },   // 能量水平（上游 AGC 归一）经潮汐慢化
       uMid:     { value: 0 },   // sqrt 感知映射，驱动漂移速度
       uScroll:  { value: 0 },
       uRipples: { value: Array.from({ length: RIPPLE_MAX }, () => new THREE.Vector4(0, 0, -10, 0)) },
-      uWaves:   { value: [-10, -10, -10, -10] },   // beat 亮度环起始时间，<0 空槽
+      uWaves:   { value: Array.from({ length: 4 }, () => new THREE.Vector2(-10, 0)) },   // x=t0 y=强度
     };
     const geo = new THREE.PlaneGeometry(2, 2);
     const mat = new THREE.ShaderMaterial({
@@ -205,11 +204,9 @@ export class IsolinesField {
     this.mesh.frustumCulled = false;   // clip-space 直出，不经相机，别被视锥剔除
     scene.add(this.mesh);
     this.ripples = [];                 // { x, y, t0, amp }（uv 空间坐标）
-    this._pulse = 0;
-    this._bassSlow = 0;                // 1.5s EMA：歌的能量水平
-    this._bassPeak = 0.25;             // 衰减式峰值跟随：歌曲动态范围的上沿
+    this._tide = 0;                    // 潮汐：能量水平的慢化层（非对称：涨 0.12s / 落 1.2s）
     this._mid = 0;
-    this._waves = [];                  // beat 亮度环的起始时间
+    this._waves = [];                  // { t0, s }
   }
 
   setRes(w, h) {
@@ -235,27 +232,25 @@ export class IsolinesField {
     this._ripple(cx, cy, 1.0);
   }
 
-  /* beat 事件：从岛心荡开一圈亮度环（固有衰减包络，空间动画不碰形状） */
-  onBeat() {
-    this._waves.push(this.uniforms.uTime.value);
+  /* beat 事件：从岛心荡开一圈亮度环。strength：普通拍 0.6 / 乐句拍（每第 8 拍）1.0 */
+  onBeat(strength) {
+    this._waves.push({ t0: this.uniforms.uTime.value, s: strength || 0.6 });
     if (this._waves.length > 4) this._waves.shift();
   }
 
   /* 主循环唯一入口；interaction 取 damped 鼠标与滚动，audio 只取包络 */
-  update(t, audio, interaction, dtMs = 16.7, beatPulse = 0) {
+  update(t, audio, interaction, dtMs = 16.7) {
     this.uniforms.uTime.value = t;
     this.uniforms.uMouse.value.set(interaction.mouse.x, interaction.mouse.y);
-    this.uniforms.uPulse.value = beatPulse;
     this.uniforms.uScroll.value = interaction.scroll || 0;
     const dt = Math.min(dtMs, 100) / 1000;
-    // 能量慢包络（1.5s EMA）→ 衰减式峰值跟随 → 按歌曲自身动态范围归一：
-    // 安静的歌也有可见潮汐，重低音歌不过冲（自适应缩放，勿写死幅度）
-    const k = 1 - Math.exp(-dt / 1.5);
-    this._bassSlow += ((audio.bass || 0) - this._bassSlow) * k;
-    this._bassPeak = Math.max(this._bassSlow, this._bassPeak * Math.exp(-dt / 8.0));
-    this.uniforms.uBass.value = Math.min(1, this._bassSlow / Math.max(this._bassPeak, 0.25));
-    // mid 的 sqrt 感知映射：人耳对响度是对数的，线性映射要么没反应要么过冲
-    this._mid += ((audio.mid || 0) - this._mid) * (1 - Math.exp(-dt / 0.8));
+    // 潮汐：能量水平的慢化层，非对称（涨 0.45s 只跟乐句级变化——单拍瞬态被滤掉，
+    // 落 1.2s 有余韵）。形状律动全走慢通道，逐拍节拍只走亮度环。
+    const target = audio.bass || 0;
+    const kT = 1 - Math.exp(-dt / (target > this._tide ? 0.45 : 1.2));
+    this._tide += (target - this._tide) * kT;
+    this.uniforms.uBass.value = this._tide;
+    this._mid += ((audio.mid || 0) - this._mid) * (1 - Math.exp(-dt / 0.3));
     this.uniforms.uMid.value = Math.sqrt(Math.max(0, this._mid));
     // 涟漪槽：过期的写 0 强度
     const slots = this.uniforms.uRipples.value;
@@ -268,10 +263,11 @@ export class IsolinesField {
     // 亮度环槽：过期的写空
     const wv = this.uniforms.uWaves.value;
     for (let i = 0; i < 4; i++) {
-      wv[i] = this._waves[i] !== undefined ? this._waves[i] : -10;
+      const wv2 = this._waves[i];
+      if (wv2) wv[i].set(wv2.t0, wv2.s);
+      else wv[i].set(-10, 0);
     }
-    this._waves = this._waves.filter((t0) => t - t0 < 2.5);
-    this._pulse = beatPulse;
+    this._waves = this._waves.filter((w) => t - w.t0 < 2.5);
   }
 
   /* 调试探针（对齐 __COSMOS.info 的取用习惯） */
@@ -283,10 +279,9 @@ export class IsolinesField {
         x: +this.uniforms.uMouse.value.x.toFixed(3),
         y: +this.uniforms.uMouse.value.y.toFixed(3),
       },
-      pulse: +this._pulse.toFixed(3),
       bass: +this.uniforms.uBass.value.toFixed(3),
-      bassPeak: +this._bassPeak.toFixed(3),
-      waves: this._waves.length,
+      tide: +this._tide.toFixed(3),
+      waves: this._waves.map((w) => w.s),
     };
   }
 }

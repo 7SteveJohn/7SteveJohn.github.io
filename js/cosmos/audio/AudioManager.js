@@ -1,9 +1,17 @@
 // AudioManager（规格书 §5）：HTMLAudioElement → AudioContext → AnalyserNode → FFT → Bass/Mid/Treble
 // 两路数据源（互斥，别一起响）：
-//   ① 面板上传的本地音乐 #cosmos-audio —— 自建 AnalyserNode（规格书频段配置）
+//   ① 面板上传的本地音乐 #cosmos-audio —— 自建 AnalyserNode（本文件信号链）
 //   ② 站点歌单 window.__BEAT（player.js 算好的 lv/mid/treble + level 离散拍）
 // 用户手势后才建 AudioContext（文件选择/播放即手势，遵守 Autoplay Policy）
-// 包络：攻击快释放慢（墙钟 dt），音乐停止 → 平滑回落，画面不塌
+//
+// 信号链（2026-09-30 按 WebAudio 深度调研重构）：
+//   fftSize 2048（bin 宽 23.4Hz@48k，kick 区 40-150Hz 可分辨；512 时整个 kick 糊在 bin 0-1）
+//   smoothingTimeConstant = 0 —— 内置 EMA 会抹平瞬态并与下方包络双重平滑，平滑全部自控
+//   min/maxDecibels -85/-20 —— 默认 -30dBFS 上限对现代母带大量钳制 255（"响歌过冲"真源）
+//   频段按 Hz 边界换算 bin（采样率自适应，44.1k 蓝牙耳机不漂移）：bass 60-250 / mid 250-4k / treble 4k-12k
+//   频段电平 = RMS（dB→线性功率求和开方），算术平均不满足能量一致性
+//   非对称指数包络（attack 10ms / release 120ms，帧率无关 1-exp(-dt/τ)）
+//   AGC：衰减式峰值跟随（τ=3s）归一化 —— 安静歌有反应、响歌不过冲（早期归一，全部下游受益）
 export class AudioManager {
   constructor(cfg) {
     this.cfg = cfg;
@@ -14,7 +22,8 @@ export class AudioManager {
     this.actx = null; this.analyser = null; this.arr = null;
     this.ownActive = false;
     this._feed = null; this._feedUntil = 0;
-    this._slowBass = 0;
+    this._bands = null;                       // {bass:[i0,i1], mid:…, treble:…} 按采样率换算
+    this._peak = { bass: 0.25, mid: 0.25, treble: 0.25 };   // AGC 衰减式峰值
 
     if (this.ownEl) {
       this.ownEl.addEventListener('playing', () => {
@@ -30,7 +39,7 @@ export class AudioManager {
       });
     }
   }
-  // 本地音乐：手势后调用。规格书频段：fftSize 512 / bass[0,8] / mid[9,64] / treble[65,128]
+  // 本地音乐：手势后调用
   ensureGraph() {
     if (this.analyser || !this.ownEl) return this.analyser;
     try {
@@ -39,11 +48,14 @@ export class AudioManager {
       this.actx = new AC();
       const src = this.actx.createMediaElementSource(this.ownEl);
       this.analyser = this.actx.createAnalyser();
-      this.analyser.fftSize = 512;
-      this.analyser.smoothingTimeConstant = 0.82;
+      this.analyser.fftSize = 2048;
+      this.analyser.smoothingTimeConstant = 0;
+      this.analyser.minDecibels = -85;
+      this.analyser.maxDecibels = -20;
       src.connect(this.analyser);
       this.analyser.connect(this.actx.destination);
-      this.arr = new Uint8Array(this.analyser.frequencyBinCount);
+      this.arr = new Float32Array(this.analyser.frequencyBinCount);   // dB 域
+      this._bands = null;   // sampleRate 就绪后惰性计算
     } catch (e) { this.analyser = null; }
     return this.analyser;
   }
@@ -54,27 +66,46 @@ export class AudioManager {
     this._feed = { b: bass || 0, m: mid || 0, t: treble || 0, beat: beat || 0 };
     this._feedUntil = performance.now() + 1200;
   }
-  _band(lo, hi) {
-    let s = 0;
-    for (let i = lo; i <= hi && i < this.arr.length; i++) s += this.arr[i];
-    return s / Math.max(1, hi - lo + 1) / 255;
+  _calcBands() {
+    const fs = this.actx.sampleRate, n = this.analyser.fftSize;
+    const hz2bin = (f) => Math.min(this.arr.length - 1, Math.max(0, Math.round(f * n / fs)));
+    this._bands = {
+      bass: [hz2bin(60), hz2bin(250)],
+      mid: [hz2bin(250), hz2bin(4000)],
+      treble: [hz2bin(4000), hz2bin(12000)],
+    };
   }
-  _env(cur, target, dtMs, atk, rel) {
-    const k = target > cur ? atk : rel;
-    return cur + (target - cur) * Math.min(1, k * dtMs / 16.7);
+  // 频段电平：dB → 线性幅度 → 功率求和 → RMS（幅度量，能量一致性）
+  _bandRMS(band) {
+    let s = 0, n = 0;
+    for (let i = band[0]; i <= band[1] && i < this.arr.length; i++) {
+      const lin = Math.pow(10, this.arr[i] / 20);
+      s += lin * lin; n++;
+    }
+    return Math.sqrt(s / Math.max(1, n));
+  }
+  // 非对称指数包络：帧率无关；attack 10ms / release 120ms（音频级跟随，平滑职责全在这）
+  _env(cur, target, dtMs) {
+    const tau = target > cur ? 0.010 : 0.120;
+    return cur + (target - cur) * (1 - Math.exp(-Math.min(dtMs, 100) / tau));
+  }
+  // AGC：env 对 3s 衰减式峰值归一——写死的幅度必然"安静歌没反应/响歌过冲"
+  _agc(env, key) {
+    const p = this._peak[key] = Math.max(env, this._peak[key] * Math.exp(-Math.min(this._dt, 100) / 3000));
+    return Math.min(1, env / (p + 1e-4));
   }
   update(dtMs) {
-    const A = this.cfg.audio;
+    this._dt = dtMs;
     let b = 0, m = 0, t = 0, beat = 0;
     if (this._feed && performance.now() < this._feedUntil) {
-      ({ b, m, t, beat } = { b: this._feed.b, m: this._feed.m, t: this._feed.t, beat: this._feed.beat });
+      ({ b, m, t, beat } = this._feed);
       this.playing = true;
     } else if (this.ownActive && this.analyser) {
-      this.analyser.getByteFrequencyData(this.arr);
-      b = this._band(0, 8);       // 规格书 bassRange
-      m = this._band(9, 64);      // midRange
-      t = this._band(65, 128);    // trebleRange
-      // 本地路自检拍点：能量涨幅（BeatDetector 的输入之一；beatEnv 走 BeatDetector）
+      if (!this._bands) this._calcBands();
+      this.analyser.getFloatFrequencyData(this.arr);
+      b = this._bandRMS(this._bands.bass);
+      m = this._bandRMS(this._bands.mid);
+      t = this._bandRMS(this._bands.treble);
       this.playing = true;
     } else {
       const B = window.__BEAT;
@@ -88,11 +119,14 @@ export class AudioManager {
         this.playing = false;
       }
     }
-    const dt = Math.min(dtMs, 100);
-    this.bass = this._env(this.bass, Math.min(1, b), dt, A.attack, A.release);
-    this.mid = this._env(this.mid, Math.min(1, m), dt, A.attack * 0.7, A.release * 0.8);
-    this.treble = this._env(this.treble, Math.min(1, t), dt, A.attack * 1.1, A.release * 1.2);
-    this.beatEnv = this._env(this.beatEnv, Math.min(1, beat), dt, 0.5, 0.09);
+    // 快包络（跟瞬态）→ AGC 归一 → 输出 0..1
+    const envB = this._env(this.bass, Math.min(1, b), dtMs);
+    const envM = this._env(this.mid, Math.min(1, m), dtMs);
+    const envT = this._env(this.treble, Math.min(1, t), dtMs);
+    this.bass = this._agc(envB, 'bass');
+    this.mid = this._agc(envM, 'mid');
+    this.treble = this._agc(envT, 'treble');
+    this.beatEnv = this._env(this.beatEnv, Math.min(1, beat), dtMs);
     return this;
   }
   activeEl() {
