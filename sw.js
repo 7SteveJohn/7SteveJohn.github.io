@@ -6,17 +6,18 @@
  * - 其余同源/静态资源：缓存优先 + 后台更新（stale-while-revalidate）
  * ⚠️ 每次发布改动静态资源后，把 CACHE 版本号 +1，旧缓存会在 activate 阶段自动清理。
  */
-const CACHE = 'sevenjohn-v108';
+const CACHE = 'sevenjohn-v109';
 const CORE = [
   './',
   'index.html',
   '404.html',
   'css/style.css',
   'css/cosmos.css',
-  'js/cosmos.js',        // 无 WebGL / 初始化失败时的 2D 回退（js/cosmos/main.js 内部按需加载）
+  'js/cosmos.js',        // 手机 / 无 WebGL 时的 2D 星河回退（js/cosmos/main.js 引导层按需加载）
   'js/cosmos/config.js',
-  'js/cosmos/main.js',   // 推理场场景主渲染（分层节点网 + 脉冲，WebGL / three.js 自托管）
-  'js/cosmos/scene/NeuralField.js',
+  'js/cosmos/main.js',   // 背景引导层：设备分档（full/lite/static），桌面动态 import main3d
+  'js/cosmos/main3d.js', // 桌面 3D 等高线岛图（动态加载，three 只在桌面路径下载）
+  'js/cosmos/scene/IsolinesField.js',
   'js/cosmos/audio/AudioManager.js',
   'js/cosmos/audio/BeatDetector.js',
   'js/cosmos/interaction/InteractionManager.js',
