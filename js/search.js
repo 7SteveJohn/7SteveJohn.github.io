@@ -117,11 +117,19 @@
     filtered = search(query);
     selected = 0;
     if (!query) {
-      resultsEl.innerHTML = '<div class="px-3 py-6 text-center text-xs text-[#86868b]">输入关键词搜索手记、小说、工具，或用 ↑ ↓ 选择区块</div>';
+      resultsEl.innerHTML = '<div class="search-empty">'
+        + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>'
+        + '<p class="t1">输入关键词搜索手记、小说、工具</p>'
+        + '<p class="t2">或用 ↑ ↓ 选择区块</p>'
+        + '</div>';
       return;
     }
     if (!filtered.length) {
-      resultsEl.innerHTML = '<div class="px-3 py-6 text-center text-xs text-[#86868b]">没有找到相关内容</div>';
+      resultsEl.innerHTML = '<div class="search-empty">'
+        + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>'
+        + '<p class="t1">没有找到相关内容</p>'
+        + '<p class="t2">换个关键词试试</p>'
+        + '</div>';
       return;
     }
     resultsEl.innerHTML = filtered

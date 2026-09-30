@@ -774,6 +774,44 @@ html.vt-fade::view-transition-new(modal-content) { animation: 0.3s var(--ease-sw
 }
 
 /* ⌘K 搜索命令面板 */
+/* 输入框豁免全局焦点环：面板本身即焦点上下文，输入光标就是焦点指示 */
+#search-input:focus-visible {
+  outline: none;
+}
+/* 空状态：图标 + 两行提示 */
+.search-empty {
+  padding: 2.1rem 1rem 2.3rem;
+  text-align: center;
+}
+.search-empty svg {
+  display: block;
+  width: 22px;
+  height: 22px;
+  margin: 0 auto 10px;
+  opacity: 0.45;
+}
+.search-empty .t1 {
+  font-size: 0.8rem;
+  color: #86868b;
+}
+.search-empty .t2 {
+  margin-top: 4px;
+  font-size: 0.7rem;
+  color: rgba(134, 134, 139, 0.62);
+}
+/* 底部提示键帽（与右上 ESC 键帽同款） */
+.search-kbd {
+  display: inline-block;
+  margin: 0 0.05rem;
+  padding: 0.05rem 0.32rem;
+  border-radius: 0.25rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 9px;
+  line-height: 1.5;
+  color: #86868b;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+}
 .search-item.is-selected {
   background: rgba(18, 30, 60, 0.05);
 }
