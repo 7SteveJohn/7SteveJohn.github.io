@@ -242,8 +242,8 @@ Electron + Vite + TypeScript，本地 JSON 存储；NSIS 安装包与免安装�
     featured: true,
     role: "开发",
     challenge: "两件事最难：一是 51 项系统改动要「真的生效」且能一键还原，二是 20/30 系帧生成代理经常「加载了但没激活」。解法分别是：每项执行前先备份并把状态分成已生效 / 未生效 / 待确认 / 需处理四档，HPET 强制、MSI 强制转换这类改错会丢设备的项只核验不给旋钮；代理是否激活用日志 + 进程模块双证据判定，失败自动换入口 DLL 重试。",
-    version: "v1.6.7",
-    updated: "2026-09-21",
+    version: "v1.1.0",
+    updated: "2026-09-30",
     requires: "Windows 10/11 · NVIDIA RTX 20 系及以上（帧生成功能）",
     details: `
 <img src="assets/images/cover-fluxion.webp" alt="Fluxion 实机界面" style="width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:block;">
