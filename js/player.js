@@ -90,8 +90,11 @@
   // 不用低频均值（那是恒定值，眼睛看不出"律动"）：瞬时能量对比慢速均值，
   // 超过阈值算一拍，冲高立即、回落带衰减 —— 视觉上是"哐→散"的冲击感。
   let actx = null, analyser = null, beatRaf = 0;
-  let beatPulse = 0, beatLock = 0, beatPrevT = 0, beatSlow = 0, beatPrevE = 0;
-  const BEAT_ARR = new Uint8Array(512);   // fftSize 1024 → 512 bins
+  let beatPulse = 0, beatLock = 0, beatPrevT = 0;
+  const BEAT_ARR = new Float32Array(1024);   // fftSize 2048 → 1024 bins（dB 域）
+  const BEAT_HIST = [];                      // bass 功率历史（~0.8s，自适应中值阈值用）
+  let beatPeak = 0.05;                       // AGC：3s 衰减式峰值跟随（初值取典型 RMS 量级，过高会让开头律动沉底）
+  let bassEnv = 0, midEnv = 0, treEnv = 0;   // 非对称指数包络（attack 10ms / release 120ms）
   function beatLoop() {
     // ❗句柄必须"只在本帧排下一帧"时赋值：早先写成帧首 beatRaf = rAF(...)，
     // 而切歌/暂停会触发 stopBeat() 把这个句柄 cancel 掉——但此时下一帧其实已经
@@ -101,42 +104,50 @@
     const nw = performance.now();
     const dt = beatPrevT ? Math.min(0.1, (nw - beatPrevT) / 1000) : 0.016;
     beatPrevT = nw;
-    analyser.getByteFrequencyData(BEAT_ARR);
-    // ❗fftSize 要够大：256 时每 bin ≈ 187Hz，最低 6 个 bin 就跨到 1.1kHz，
-    // 里面全是持续伴奏 → 测出的是"段落能量"（实测 22 秒才 24 拍、还夹 2.25 秒空白）。
-    // 1024 时每 bin ≈ 47Hz，最低 8 个 bin 覆盖 0~370Hz —— 正好是底鼓/贝斯的冲击区。
-    let sum = 0;
-    const n = 8;
-    for (let i = 0; i < n; i++) sum += BEAT_ARR[i];
-    const energy = sum / n / 255;                  // 0..1
-    // 中频与高频顺手一起算：背景推理场 js/cosmos/ 会读 window.__BEAT.mid / .treble
-    // 去驱动旋臂回旋与流星迸发（复用同一批 bin，不再建第二个 analyser）
-    let sm = 0;
-    for (let i = 10; i < 60; i++) sm += BEAT_ARR[i];
-    const midEnergy = sm / 50 / 255;
-    let st = 0;
-    for (let i = 70; i < 210; i++) st += BEAT_ARR[i];
-    const treEnergy = st / 140 / 255;
-    const now = nw;
-    // ❗判据用「相对上一帧的涨幅」，不要用"与峰值比较"：本机采集下最低几个 bin
-    // 几乎全程高电平（实测 pk 每帧都被当前值顶回去，arm 永远为 0），
-    // 峰值对比法在这个信号上无解。起音的定义就是"突然变响"——比上一帧涨一截即算。
-    // 门槛随慢均值自适应（安静段门槛低、高潮段门槛高），避免弱拍漏掉或强段狂触发。
-    beatSlow += (energy - beatSlow) * 0.05;
-    const rise = energy - beatPrevE;
-    beatPrevE = energy;
-    // 门槛 = 慢均值的 7%（且至少 0.012）：调高一档就漏拍（实测 0.12 倍只有 42BPM
-    // 且大段空白），调太低会把同一拍拆成两下。7% 在本机的采集上落在合适的密度。
-    if (rise > Math.max(0.012, beatSlow * 0.07) && now > beatLock) {
-      beatPulse = 1;
-      beatLock = now + 220;                        // ≈270BPM 上限，只防"同一拍连打两次"
-    } else {
-      beatPulse = Math.max(0, beatPulse - dt * 3.4);   // 落回约 0.3 秒，峰谷对比拉得开
-      if (beatPulse < 0.02) beatPulse = 0;
+    // 信号链对齐 cosmos/audio 的深度调研结论（2026-09-30）：
+    // float 数据（byte 是 dB 重映射且 -30dBFS 上限对响歌大量钳 255）+ smoothing 0
+    // （内置 EMA 抹瞬态，平滑交给下面的非对称指数包络）+ Hz 边界频段（采样率自适应）。
+    analyser.getFloatFrequencyData(BEAT_ARR);
+    const fs = actx.sampleRate, nBins = analyser.fftSize / 2;
+    const hz0 = (f) => Math.min(nBins - 1, Math.max(0, Math.round(f * nBins / fs)));
+    const bandRMS = (lo, hi) => {
+      let s = 0, n = 0;
+      for (let i = lo; i <= hi && i < nBins; i++) { const lin = Math.pow(10, BEAT_ARR[i] / 20); s += lin * lin; n++; }
+      return Math.sqrt(s / Math.max(1, n));
+    };
+    const energy = bandRMS(hz0(60), hz0(250));       // bass 60-250Hz：kick/贝斯冲击区
+    const midRaw = bandRMS(hz0(250), hz0(4000));
+    const treRaw = bandRMS(hz0(4000), hz0(12000));
+    // 非对称指数包络：起音快（10ms 跟瞬态）、回落慢（120ms 有余韵），帧率无关
+    const envStep = (cur, tgt) => cur + (tgt - cur) * (1 - Math.exp(-dt / (tgt > cur ? 0.010 : 0.120)));
+    bassEnv = envStep(bassEnv, energy);
+    midEnv = envStep(midEnv, midRaw);
+    treEnv = envStep(treEnv, treRaw);
+    // AGC：对 3s 衰减式峰值归一——安静歌有反应、响歌不过冲（写死的幅度必然顾此失彼）
+    beatPeak = Math.max(bassEnv, beatPeak * Math.exp(-dt / 3.0));
+    const lv = Math.min(1, bassEnv / (beatPeak + 1e-4));
+    const mid = Math.min(1, midEnv / (beatPeak + 1e-4));
+    const tre = Math.min(1, treEnv / (beatPeak + 1e-4));
+    // 节拍：bass 瞬时功率 vs 最近 ~0.8s 历史中值 ×1.35（自适应中值阈值）+ 噪声门 + 280ms 不应期
+    // （与 js/cosmos/audio/BeatDetector.js 同一套算法；检测在功率域 e=bassEnv² 上做）
+    const e = bassEnv * bassEnv;
+    BEAT_HIST.push(e);
+    if (BEAT_HIST.length > 48) BEAT_HIST.shift();
+    if (BEAT_HIST.length > 20) {
+      const sorted = BEAT_HIST.slice().sort((a, b) => a - b);
+      const med = sorted[sorted.length >> 1];
+      let peak = 0;
+      for (const v of BEAT_HIST) if (v > peak) peak = v;
+      if (e > peak * 0.1 && e > med * 1.35 && nw - beatLock > 280) {
+        beatLock = nw;
+        beatPulse = Math.min(1, Math.sqrt(e / (med + 1e-6)) * 0.8);
+      }
     }
+    beatPulse *= Math.exp(-dt / 0.30);               // 指数回落（线性回落观感生硬）
+    if (beatPulse < 0.02) beatPulse = 0;
     window.__BEAT = {
-      level: Math.min(1, beatPulse), lv: energy, slow: beatSlow, rise: rise,
-      mid: midEnergy, treble: treEnergy, ctx: actx ? actx.state : '-'
+      level: Math.min(1, beatPulse), lv: lv, slow: beatPeak, rise: e,
+      mid: mid, treble: tre, ctx: actx ? actx.state : '-'
     };
     beatRaf = requestAnimationFrame(beatLoop);   // 续帧放帧尾：帧内任何早退都不会留下悬空句柄
   }
@@ -148,8 +159,10 @@
         actx = new AC();
         const srcNode = actx.createMediaElementSource(audio);   // 只能建一次；建后声音经 analyser 回到扬声器
         analyser = actx.createAnalyser();
-        analyser.fftSize = 1024;                 // 每 bin≈47Hz，低频才有分辨率
-        analyser.smoothingTimeConstant = 0.2;    // 越低越保瞬态（0.55 会把鼓点抹平）
+        analyser.fftSize = 2048;                 // bin ≈ 23Hz@48k：kick 40-150Hz 可分辨
+        analyser.smoothingTimeConstant = 0;      // 平滑交给 beatLoop 的非对称指数包络
+        analyser.minDecibels = -85;              // 默认 -30 上限对响歌大量钳 255
+        analyser.maxDecibels = -20;
         srcNode.connect(analyser);
         analyser.connect(actx.destination);
       }

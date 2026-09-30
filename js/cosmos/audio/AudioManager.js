@@ -23,7 +23,8 @@ export class AudioManager {
     this.ownActive = false;
     this._feed = null; this._feedUntil = 0;
     this._bands = null;                       // {bass:[i0,i1], mid:…, treble:…} 按采样率换算
-    this._peak = { bass: 0.25, mid: 0.25, treble: 0.25 };   // AGC 衰减式峰值
+    // AGC 峰值初值取典型 RMS 量级：初始过高会让开头十几秒律动沉底（3s τ 衰减太慢）
+    this._peak = { bass: 0.05, mid: 0.05, treble: 0.05 };   // 衰减式峰值（env 超峰即时上顶）
 
     if (this.ownEl) {
       this.ownEl.addEventListener('playing', () => {
