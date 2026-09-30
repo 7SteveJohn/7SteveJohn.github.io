@@ -1,9 +1,9 @@
 // Interactive Cosmic Blog · main.js
-// 只负责初始化、模块连接、生命周期、主循环；场景在 js/cosmos/scene/NeuralField.js
-// 主循环：interaction.update → audio.update → beat → camera → field.update → render
+// 只负责初始化、模块连接、生命周期、主循环；桌面场景在 js/cosmos/scene/IsolinesField.js
+// 主循环：interaction.update → audio.update → beat → field.update → render
 import * as THREE from 'three';
 import { CONFIG } from './config.js';
-import { NeuralField } from './scene/NeuralField.js';
+import { IsolinesField } from './scene/IsolinesField.js';
 import { AudioManager } from './audio/AudioManager.js';
 import { BeatDetector } from './audio/BeatDetector.js';
 import { InteractionManager } from './interaction/InteractionManager.js';
@@ -62,24 +62,17 @@ function boot() {
   }
 
   function start() {
-    const field = new NeuralField(scene, CFG, isMobile, innerWidth / innerHeight);
+    const field = new IsolinesField(scene);
+    field.setRes(innerWidth, innerHeight);
     const audio = new AudioManager(CFG);
     const beat = new BeatDetector(CFG);
     const interaction = new InteractionManager(CFG, camera, canvas);
-
-    // 点击交互：点哪就从最近的节点放一记推理脉冲
-    addEventListener('pointerdown', (e) => {
-      if (e.target.closest('a,button,input,textarea,select,label,#music-player')) return;
-      const world = interaction.pick(e, CFG.layers.fieldZ);
-      if (world) field.kick(world);
-    }, { passive: true });
 
     // ---- 主循环 ----
     let rafId = 0, frameNo = 0, last = performance.now();
     let sceneT = 0;                    // 场景时间（timeScale 缩放，驱动一切环境微动态）
     let running = true, hidden = false, contextLost = false;
     const timeScale = reduceMotion ? CFG.motion.timeScaleReduce : CFG.motion.timeScale;
-    let lastFov = CFG.camera.fov;
 
     function tick(now) {
       if (!running) return;
@@ -99,22 +92,8 @@ function boot() {
       interaction.update(dtMs, CFG.layers.fieldZ);
       const a = audio.update(dtMs);
       const pulse = beat.update(a, dtMs, now);
-      // Beat → 从输入层放一批脉冲，逐层点亮（一次"前向推理"）
-      if (beat.justBeat) { field.kickPulse(); beat.justBeat = false; }
 
-      // Camera：damped 视差 + 滚动纵深 + Beat 极轻微 FOV 脉冲（观察角度变化，不是图片滑动）
-      camera.position.x = interaction.mouse.x * CFG.camera.parallaxStrengthX;
-      camera.position.y = interaction.mouse.y * CFG.camera.parallaxStrengthY
-                        - interaction.scroll * CFG.camera.scrollStrength;
-      camera.lookAt(0, camera.position.y * 0.4, CFG.layers.fieldZ);
-      const fov = CFG.camera.fov + pulse * CFG.camera.beatFovPulse;
-      if (Math.abs(fov - lastFov) > 0.0005) {
-        camera.fov = fov;
-        camera.updateProjectionMatrix();
-        lastFov = fov;
-      }
-
-      field.update(sceneT, a, interaction.mouseWorld, interaction.hasMouse, dtMs, beat.pulse);
+      field.update(sceneT, a, interaction, dtMs, beat.pulse);
 
       // 首帧落画布：淡入（黑屏感 → 平滑显影）
       if (frameNo === 1) { canvas.style.opacity = '1'; }
@@ -140,10 +119,8 @@ function boot() {
       camera.aspect = innerWidth / innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(innerWidth, innerHeight);
-      field.fitAspect(camera.aspect);
-      field.setPixelScale(renderer.getPixelRatio() * (innerHeight / 900) * 1.3);
+      field.setRes(innerWidth, innerHeight);
     });
-    field.setPixelScale(renderer.getPixelRatio() * (innerHeight / 900) * 1.3);
 
     // ---- 本地音乐接入：悬浮控制台已删，保留隐藏 input 的真实音频链路 ----
     const fileInput = document.getElementById('cosmos-file');
@@ -165,16 +142,15 @@ function boot() {
     // ---- 测试探针 ----
     window.__COSMOS = {
       cfg: CFG,
-      engine: 'neural-field',
+      engine: 'isolines',
       feed: (b, m, t, beat) => audio.feed(b, m, t, beat),
       reset: () => {
         interaction.target.x = interaction.target.y = 0;
         interaction.scrollTarget = 0;
-        field.reset();
         audio.feed(0, 0, 0, 0);
       },
       info: () => ({
-        engine: 'neural-field',
+        engine: 'isolines',
         field: field.info(),
         audio: {
           bass: +audio.bass.toFixed(3), mid: +audio.mid.toFixed(3),
