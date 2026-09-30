@@ -661,6 +661,20 @@ html.dark header.site-header nav a.nav-active {
 }
 
 /* 移动端菜单：展开下拉，收起上滑退出 */
+/* ❗抽屉必须脱离文档流（2026-09-30 用户实测锚点全错 434px 的根因）：菜单原本是
+   static 下拉块，展开时把全页内容推低 ~434px，点击瞬间所有锚点 rect.top 都带着
+   这 434px，抽屉一关内容弹回，滚动全部过冲。挂在 sticky 头部内用 top:100% 锚到
+   头部正下方，既跟随头部又不再推挤文档流 */
+#mobile-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  max-height: calc(100vh - 100%);
+  overflow-y: auto;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+}
 #mobile-menu:not(.hidden) {
   animation: menu-drop 0.26s var(--ease-swift);
 }
