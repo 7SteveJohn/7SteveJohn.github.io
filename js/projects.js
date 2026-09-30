@@ -33,14 +33,14 @@ window.PROJECTS_DATA = [
     image: "assets/images/cover-filebutler.webp",
     demoUrl: "https://github.com/7SteveJohn/FileButler/releases",
     githubUrl: "https://github.com/7SteveJohn/FileButler",
-    downloadUrl: "https://wwblz.lanzouu.com/iH09N49fsrcb",
-    downloadPwd: "cens",
+    downloadUrl: "https://wwblz.lanzouu.com/ioYSs4ahayja",
+    downloadPwd: "5bok",
     featured: true,
     role: "开发",
     challenge: "难点是「搜得快」和「撤得回」互相打架：几万份文件要秒级出结果，但整理动作必须能反悔。解法是分两条索引——文件名与长文本走 SQLite FTS5 倒排（毫秒级），语义问答交给 bge-m3 向量库在后台空闲时慢慢建；所有移动都先生成方案、勾选确认后才执行，每一步写事务日志，出错按批次整体回滚。",
     // ↓ 版本/运行环境/校验码：填上即显示在弹窗里，留空自动隐藏
-    version: "v1.1.6",
-    updated: "2026-09-21",
+    version: "v1.2.0",
+    updated: "2026-10-01",
     requires: "",
     sha256: "",
     details: `
@@ -53,6 +53,7 @@ window.PROJECTS_DATA = [
 ### ✨ 能干什么
 - **秒搜（只读，不动你的文件）**：启动自动扫描，后台盯着新文件，几秒内就能搜到；支持「ext:pdf」「size:>100mb」「dm:本周」这种语法，长词走全文索引
 - **直接问文件**：新文档自动转成向量入库（bge-m3），不用手动整理，问它就行，聊天记录能回看
+- **模型接入**：默认本机 Ollama，模型常驻 30 分钟不反复载入，可开「启动时预载 + 常驻不卸载」首问零等待；也支持 LM Studio 一键检测接入
 - **图片也能搜**：模型给图写描述、把图里的字抄出来，搜「日落」找照片、搜发票号找截图
 - **批量整理**：规则 + 本地模型先分类 → 给你预览 → 你勾选确认 → 才移动，**不会擅自挪动任何文件**，每一步都能撤销，方案还能存成模板
 - **找重复文件**：三级哈希查重 → 按规则保留 → 挪进「待清理」文件夹（只挪不删，随时撤销）
