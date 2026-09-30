@@ -6,7 +6,7 @@
  * - 其余同源/静态资源：缓存优先 + 后台更新（stale-while-revalidate）
  * ⚠️ 每次发布改动静态资源后，把 CACHE 版本号 +1，旧缓存会在 activate 阶段自动清理。
  */
-const CACHE = 'sevenjohn-v109';
+const CACHE = 'sevenjohn-v111';
 const CORE = [
   './',
   'index.html',
@@ -22,6 +22,7 @@ const CORE = [
   'js/cosmos/audio/BeatDetector.js',
   'js/cosmos/interaction/InteractionManager.js',
   'assets/vendor/three.module.min.js',
+  'js/video-gate.js',   // 介绍视频海报态：播放前叠居中播放键，点击唤出原生控件
   'js/player.js',   // 站点歌单播放器：推理场的音频来源之一（__BEAT），断网也要能起来
   // 本地化依赖（原 CDN 已全部下放到 assets/vendor，断网也能完整渲染）
   'assets/vendor/tailwind.css',

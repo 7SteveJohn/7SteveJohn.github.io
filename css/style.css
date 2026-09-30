@@ -319,6 +319,35 @@ html:not(.dark) .bento-card:hover {
   object-fit: cover;
   background: #000;
 }
+/* 视频海报态的播放键覆盖层（video-gate.js 建层）：居中圆钮，与液态玻璃气质同族 */
+.video-play-gate {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.30) 0%, rgba(0, 0, 0, 0) 40%);
+}
+.cover-box { position: relative; }   /* 覆盖层的定位锚（cover-box 原本无定位） */
+.video-play-btn {
+  width: 3.75rem;
+  height: 3.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(8, 10, 16, 0.55);
+  color: rgba(240, 245, 252, 0.92);
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+  transition: transform 0.25s var(--ease-swift), background 0.25s ease;
+}
+.video-play-btn:hover { transform: scale(1.06); background: rgba(8, 10, 16, 0.72); }
+.video-play-btn svg { width: 1.6rem; height: 1.6rem; }
 /* ===== 一屏一产品（翻页箭头的"一页"= 完整一张卡）：桌面且视口足够高时，
    卡限高视口、文字区收紧、封面弹性吃剩余空间（object-fit 裁切）；
    矮视口自动退回自由滚动 ===== */
@@ -527,6 +556,27 @@ header.site-header:not(.is-scrolled) {
     content: "";
     position: absolute;
     inset: -10px -7px;
+    border-radius: 9999px;
+  }
+  /* 点按区（2026-09-30 审计 B1）：产品卡按钮行命中区同样不足（了解更多 59×16、
+     GitHub 圆钮 32×32、网盘下载高 32、GitHub Releases 高 34）。同款 ::after 撑法，
+     视觉不变；hero CTA 行的「更多项目见 GitHub」链接一并补。按钮之间 gap 12px
+     足够容纳左右扩 6px，不会互相重叠点错 */
+  #products article [data-link],                       /* 网盘下载 / GitHub Releases */
+  #products article button[onclick*="openProjectModal"],  /* 了解更多 > */
+  #products article a[href*="github.com"][class*="rounded-full"],  /* GitHub 圆钮 */
+  #home .hero-ghost,
+  #home a[href*="github.com"].inline-flex {
+    position: relative;
+  }
+  #products article [data-link]::after,
+  #products article button[onclick*="openProjectModal"]::after,
+  #products article a[href*="github.com"][class*="rounded-full"]::after,
+  #home .hero-ghost::after,
+  #home a[href*="github.com"].inline-flex::after {
+    content: "";
+    position: absolute;
+    inset: -9px -8px;
     border-radius: 9999px;
   }
 }
@@ -1139,12 +1189,12 @@ mark.sj-note {
 .dark #music-close:hover { color: #f5f5f7; }
 #music-close .music-icon { width: 15px; height: 15px; }
 
-/* 进度行 */
+/* 进度行（时间码 0.7rem→0.75rem：11.2px 低于 12px 可读下限，2026-09-30 审计 B2） */
 .music-progress {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: #86868b;
   font-variant-numeric: tabular-nums;
 }
@@ -1254,14 +1304,14 @@ mark.sj-note {
   font-weight: 600;
 }
 .dark .music-list button.is-current { color: #f5f5f7; }
-/* 上移/下移小按钮：自定义歌单顺序 */
+/* 上移/下移小按钮：自定义歌单顺序（0.72rem→0.75rem：11.5px 低于 12px 可读下限，2026-09-30 审计 B2） */
 .music-list .song-move {
-  width: 1.35rem;
-  min-width: 1.35rem;
+  width: 1.6rem;
+  min-width: 1.6rem;
   flex: none;
-  padding: 0.2rem 0;
+  padding: 0.35rem 0;
   text-align: center;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   line-height: 1;
   color: #b0b0b8;
 }
