@@ -12,20 +12,15 @@ const CFG = CONFIG;
 const isMobile = matchMedia('(pointer:coarse)').matches || innerWidth < 768;
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// 移动端观感调优（2026-09-30 用户反馈：竖屏上连线横跨半屏、又亮又乱，背景"变丑"）：
-// 竖屏 aspect 小 → 跨层连边投影成大跨度斜线，近层铺满全屏更加重交叉。
-// 场整体收小压暗：近层不再铺满全屏（连线跨距变短、四周留黑），节点/连边/脉冲三路同时减量。
-// CFG === CONFIG（同一引用），在 NeuralField 构造前覆写即可全部生效。
-if (isMobile) {
-  Object.assign(CFG.field, {
-    nodesMobile: 96,      // 140 → 96：少一层网眼，交叉少一大截
-    linksPerNode: 2,      // 3 → 2：连边数再砍三分之一
-    spreadNear: 0.78,     // 输出层从铺满全屏收到 78% → 长斜线变短，四周留出干净的黑
-    spreadFar: 0.40,
-    nodeSize: 2.0,
-  });
-  Object.assign(CFG.edges, { base: 0.08 });            // 连线底亮压暗一档
-  Object.assign(CFG.pulses, { countMobile: 9, size: 3.0 }); // 脉冲更少更小
+// 手机端不跑 3D 推理场（2026-09-30 用户反馈"3D 背景图在手机上的表现很不好"，两轮调参后仍不满意）：
+// 竖屏 aspect 小，跨层连线被透视拉成横跨半屏的大斜线，这是形态问题，收密度/压亮度救不回来；
+// 真机上全屏 WebGL shader 的功耗发热也压不住。改走 2D 星河版（js/cosmos.js）——
+// 那套引擎本就是为低配/小屏写的：粒子按屏幕面积折算、帧率分级、240 万像素预算，
+// 观感是星云+星尘而非线网，竖屏上更柔。桌面保留 3D。
+if (!webglOK() || isMobile) {
+  fallback2d();
+} else {
+  boot();
 }
 
 function fallback2d() {
@@ -40,12 +35,6 @@ function webglOK() {
     const c = document.createElement('canvas');
     return !!(c.getContext('webgl2') || c.getContext('webgl'));
   } catch (e) { return false; }
-}
-
-if (!webglOK()) {
-  fallback2d();
-} else {
-  boot();
 }
 
 function boot() {

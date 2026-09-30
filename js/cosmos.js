@@ -705,7 +705,8 @@
     // 环境辉光：复刻旧雾霭精灵的径向轮廓（中心 0.62 峰值快速衰减，到精灵半径处归零）
     var glowR = Math.round(Math.max(W, H) * 1.44);
     // 暗角：复刻原画布渐变——内半径 min*0.22，外半径 max*0.78，三段 0 / 0.16 / CFG.vignette
-    var inner = Math.round(Math.min(W, H) * 0.22);
+    // 竖屏例外：内半径放宽到 min*0.34——圆心亮区按短边算只有 ~170px，竖屏中央几乎全被压黑（2026-09-30）
+    var inner = Math.round(Math.min(W, H) * (W < 720 ? 0.34 : 0.22));
     var outer = Math.round(Math.max(W, H) * 0.78);
     var mid = Math.round(inner + (outer - inner) * 0.62);
     v.style.background =
@@ -1170,7 +1171,7 @@
 
   function countPlan() {
     var area = W * H;
-    var mob = W < 720 ? 0.55 : 1;              // 手机端进一步压密度
+    var mob = W < 720 ? 0.75 : 1;              // 手机端压密度（0.55 实测太狠：390 宽屏上星尘几乎不可见，2026-09-30）
     var q = quality * mob * CFG.density;
     return {
       far: cnt(area / 11000 * q, 60, 220),
@@ -1703,6 +1704,8 @@
       budget.last = lastDraw;
     } catch (err) {
       // 一帧坏了就当没画，下一帧继续；背景层绝不能把博客正文拖下水
+      // （但别完全静默：reduce-motion 用户报"背景全黑"时，console 得有迹可循——2026-09-30）
+      console.warn('[cosmos2d] frame error:', err && err.message);
     }
   }
 
