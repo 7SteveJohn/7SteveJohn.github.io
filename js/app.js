@@ -126,10 +126,21 @@ function initTheme() {
    ============================================================ */
 /* 将 projects.js 数据水合到首页产品卡片（下载/仓库/Releases 链接与提取码单一数据源） */
 /* 项目「角色 / 技术难点」两行：数据只写在 projects.js，卡片与详情弹窗共用同一份 */
-function buildProjectFacts(project) {
+// 卡片上的「技术难点」只保留首句钩子：第一句说的正是"难在哪"，后面的解法细节
+// 属于「了解更多」弹窗（2026-09-30 用户反馈：卡片上难点文字太多，一张卡被长文压垮）
+function challengeHook(challenge) {
+  const text = String(challenge || '');
+  const m = text.match(/^[\s\S]*?[。！？]/);
+  let hook = m ? m[0] : text;
+  if (hook.length > 64) hook = hook.slice(0, 63).replace(/[，、；：,;]$/, '') + '……';
+  return hook;
+}
+
+// hookOnly：卡片传 true（首句钩子），弹窗不传（全文）
+function buildProjectFacts(project, hookOnly) {
   return [
     ['角色', project.role],
-    ['技术难点', project.challenge]
+    ['技术难点', hookOnly ? challengeHook(project.challenge) : project.challenge]
   ]
     .filter(([, value]) => value)
     .map(([key, value]) => `
@@ -147,7 +158,7 @@ function hydrateProductLinks() {
 
     // 卡片上的两行署名信息（容器在 index.html 里是空壳，没数据就保持隐藏）
     const facts = card.querySelector('[data-facts]');
-    const factsHtml = buildProjectFacts(project);
+    const factsHtml = buildProjectFacts(project, true);
     if (facts && factsHtml) {
       facts.innerHTML = factsHtml;
       facts.hidden = false;
