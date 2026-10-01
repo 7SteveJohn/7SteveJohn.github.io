@@ -53,10 +53,10 @@
       ['核心数据', '#metrics'],
       ['个人工具', '#products'],
       ['设计原则', '#philosophy'],
+      ['AI 学习', '#ai'],
       ['技术手记', '#blog'],
       ['创作', '#creation'],
-      ['随笔', '#essays'],
-      ['AI 学习', '#ai']
+      ['随笔', '#essays']
     ].forEach(([label, href]) => {
       items.push({
         type: '区块',
