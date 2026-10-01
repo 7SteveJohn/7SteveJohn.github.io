@@ -262,12 +262,22 @@
   function restore() {
     clearResume();          // 零播放记录：老访客的续听键一并清掉
     applyOrder();
-    // 预热：页面加载即缓冲首曲，点播放几乎秒出声（SW 运行时缓存随后接管，二次访问零延迟）。
-    // 触屏设备原按流量考虑只取 metadata——2026-09-30 用户实测手机上"歌曲来的很慢"：
-    // metadata 只拉几百 KB 头部，点播放才开始拉音频，跨境链路上被 SW 全量预热抢带宽。
-    // 改 auto 让首曲在页面加载期就缓冲到位（单曲 ~4MB，WiFi/5G 下无感），点播放基本秒响。
-    audio.preload = 'auto';
+    // 秒开策略（2026-10-01 重做，替换 preload='auto'）：
+    // 旧法「加载即全曲缓冲」让没点播放的访客也被动下 ~4MB（体检 PERF-1/2）。
+    // 新法三段式：metadata 只取时长（几 KB）→ SW 预热首曲前 256KB（点播放零网络等待、
+    // 立刻出声，见 sw.js warmPartial）→ 真实播放 2.5s 后才全量入库（下方 playing 监听）。
+    audio.preload = 'metadata';
     audio.src = SONGS[current].src;
+    const swRef = navigator.serviceWorker;
+    const warmUp = function () {
+      try {
+        const conn = navigator.connection;
+        if (conn && (conn.saveData || /2g$/i.test(conn.effectiveType || ''))) return;   // 省流模式不预热
+        if (swRef.controller) swRef.controller.postMessage({ type: 'warm-media', url: SONGS[current].src });
+      } catch (e) {}
+    };
+    if (swRef && swRef.controller) warmUp();
+    else if (swRef) swRef.addEventListener('controllerchange', warmUp, { once: true });   // 首次访问：SW 接管页面后再预热
     try { mode = (localStorage.getItem(LS_MODE) || legacy(LS_MODE)) === 'one' ? 'one' : 'list'; } catch (e) {}
     titleEl.textContent = SONGS[current].title;
     applyMode();

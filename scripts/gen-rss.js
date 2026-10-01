@@ -45,7 +45,7 @@ const latest = articles.reduce((max, a) => (a.date > max ? a.date : max), articl
 const rss = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>SevenJohn · 手记与创作</title>
+    <title>楠屿札记 · 手记与创作</title>
     <link>${SITE_URL}/</link>
     <description>技术手记、小说、游戏创作与随笔，想到什么写什么。</description>
     <language>zh-cn</language>

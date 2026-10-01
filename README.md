@@ -11,11 +11,10 @@
    - 全部产品（统称**个人工具**）的介绍、下载/仓库链接与提取码统一维护于 [`js/projects.js`](file:///d:/HTML/js/projects.js)——**改链接只改这一个文件**，产品卡片与详情弹窗会在页面加载时自动水合同步；
    - 全部文字内容（技术手记 / 创作 / 随笔）维护于 [`js/articles.js`](file:///d:/HTML/js/articles.js)，用可选字段 `section` 路由模块，追加数据后界面自动渲染，每篇拥有可分享的独立深链（`?post=文章id`）；某类内容为空时，对应模块与导航入口自动隐藏。
 3. **全功能支持**：
-   - 🌓 自动与手动的暗黑/明亮主题切换（配置记忆持久化）；
    - 📝 沉浸式 Markdown 阅读弹窗与代码语法高亮（手记、小说、游戏创作、随笔通用），带阅读进度条、← → 方向键翻章、代码块一键复制；
    - 📡 RSS 订阅（`rss.xml`）与 SEO 配套（`sitemap.xml` / `robots.txt` / Open Graph 分享卡片）；
    - 📴 PWA 离线缓存（Service Worker）：断网也能读，可"添加到主屏幕"当 App 用；
- - 🌌 背景光粒子、滚动浮现编排、导航整页换页、明暗圆形扩散等编辑风动效（全量尊重 `prefers-reduced-motion`）；
+ - 🌌 背景光粒子、滚动浮现编排、导航整页换页等编辑风动效（全量尊重 `prefers-reduced-motion`）；
    - 📱 完美适配 PC 电脑端、平板与手机端（移动端含汉堡导航菜单）。
 
 ---
@@ -93,7 +92,7 @@ npx serve d:/HTML
 }
 ```
 
-> 💡 目前 `articles.js` 里带 **【示例】** 前缀的三条是占位演示（小说 / 游戏创作 / 随笔各一条），替换成自己的内容后删掉即可。随笔模块在没有内容时会整体隐藏，想发布第一条时照上表加数据即可。
+> 💡 `articles.js` 里现存的就是正式文章；想新增时照上表追加数据即可。随笔模块在没有内容时会整体隐藏。
 
 写完后**运行一次下面命令**，同步更新 RSS 订阅源与站点地图：
 ```bash
@@ -115,9 +114,9 @@ node scripts/gen-rss.js
 | `assets/vendor/lucide.min.js` | 自托管 Lucide 图标库 v1.41.0（不依赖 unpkg，大陆访问不阻塞） | 想升级时从官方 UMD 构建替换 |
 | `manifest.json` / `icon-512.png` | PWA 应用清单与安装图标 | 想换 App 名字/图标时替换 |
 | `sw.js` | Service Worker 离线缓存 | ⚠️ 改动静态资源后发布时，把顶部 `CACHE` 版本号 +1，否则老用户可能读到旧缓存 |
-| `js/cosmos/`（main.js + config.js + scene/ + audio/ + interaction/） | 首页 3D 背景「本地推理场」：分层节点网 + 邻层连边 + 沿边前传的推理脉冲，随乐律动（three.js 自托管） | 改参数看 `config.js`（field / edges / pulses / ambient）；面板见页面右下角 |
+| `js/cosmos/`（main.js + config.js + scene/ + audio/ + interaction/） | 首页 3D 背景「等高线岛图」：fbm 高度场 + domain warp 的等值线渲染，随乐律动（three.js 自托管；手机/无 WebGL 降级 2D 星河，软渲染设备静态暗角） | 改参数看 `config.js`；设备分档逻辑见 `main.js` |
 | `js/cosmos.js` / `css/cosmos.css` | 无 WebGL 时的 2D 回退背景（噪声宇宙），主场景初始化失败自动加载 | 一般无需改动 |
-| `scripts/cosmos-motion-scan.mjs` / `cosmos-runtime-scan.mjs` | 背景验收脚本（35+25 项断言：静默不停笔 / 脉冲推进 / 音频链路 / 容灾 / 移动端） | 改背景后跑：`python -m http.server 8327` + `node scripts/cosmos-motion-scan.mjs http://127.0.0.1:8327/index.html` |
+| `scripts/cosmos-motion-scan.mjs` / `cosmos-runtime-scan.mjs` | 背景验收脚本（⚠️ 断言仍针对旧「推理场」引擎，等高线改造后待重写，暂不可跑） | 重写后跑法：`python -m http.server 8327` + `node scripts/cosmos-motion-scan.mjs` |
 | `cosmos-home.html` | 2D 回退背景的单文件演示页（CSS/JS 全内嵌，可独立分享） | 改 `js/cosmos.js` 后如需同步，重跑一次内嵌导出 |
 
 ---
@@ -130,11 +129,10 @@ node scripts/gen-rss.js
 | --- | --- | --- |
 | 本地文本批注 | 弹窗内选中正文 → 写批注 → 保存；黄色高亮持久保留，点击高亮可查看/删除 | `sj.ann.<文章id>` |
 | 情绪反馈 | 文章底部点 💫共鸣 / 💡启发 / ❓疑惑 / 🌧唏嘘（单选可取消，仅标记自己的感受） | `sj.emo.<文章id>` |
-| 随便看看 | Ctrl/⌘+K 面板右下角 🎲，随机打开一篇旧文 | 无 |
+| 随便看看 | Ctrl/⌘+K 搜索面板右下角「随便看看」按钮，随机打开一篇旧文 | 无 |
 | 时光回溯 | 文章数据加 `revisions` 字段即可在弹窗切换新旧版本（见下） | 无 |
 | 读完致谢 | 弹窗内读到 100% 出现一次性提示 | 无 |
 | 键盘彩蛋 | 依次按 ↑↑↓↓←→←→BA，粒子变彩色庆典 20 秒 | 无 |
-| 访客计数 | 页脚"累计访问/访客"由 [不蒜子](https://busuanzi.ibruce.info/) 统计，无账号、不展示 IP；服务不可达时自动隐藏 | 无 |
 
 **文章版本切换（时光回溯）数据写法**——在文章对象上加 `revisions` 数组，越靠前越旧：
 ```javascript

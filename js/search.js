@@ -50,13 +50,13 @@
 
     [
       ['概览', '#home'],
-      ['核心数据', '#metrics'],
       ['个人工具', '#products'],
-      ['设计原则', '#philosophy'],
+      ['理念', '#philosophy'],
       ['AI 学习', '#ai'],
       ['技术手记', '#blog'],
       ['创作', '#creation'],
-      ['随笔', '#essays']
+      ['随笔', '#essays'],
+      ['关于', '#about']
     ].forEach(([label, href]) => {
       items.push({
         type: '区块',
