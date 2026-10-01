@@ -55,7 +55,8 @@
       ['设计原则', '#philosophy'],
       ['技术手记', '#blog'],
       ['创作', '#creation'],
-      ['随笔', '#essays']
+      ['随笔', '#essays'],
+      ['AI 学习', '#ai']
     ].forEach(([label, href]) => {
       items.push({
         type: '区块',

@@ -5,8 +5,64 @@
     <link>https://7stevejohn.github.io/</link>
     <description>技术手记、小说、游戏创作与随笔，想到什么写什么。</description>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 30 Sep 2026 00:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 01 Oct 2026 00:00:00 GMT</lastBuildDate>
     <atom:link href="https://7stevejohn.github.io/rss.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>一、Token 是什么：把 AI 圈最容易用错的几个词说清楚</title>
+      <link>https://7stevejohn.github.io/?post=ai-concepts-primer</link>
+      <guid isPermaLink="false">ai-concepts-primer</guid>
+      <pubDate>Thu, 01 Oct 2026 00:00:00 GMT</pubDate>
+      <category>AI 学习</category>
+      <description>AI 圈一半争论源于词没对齐。拆解 Token、上下文窗口、温度系数，以及三个流传最广的误区。</description>
+    </item>
+    <item>
+      <title>二、大模型是怎么炼成的：从数据清洗到人类对齐</title>
+      <link>https://7stevejohn.github.io/?post=ai-model-training</link>
+      <guid isPermaLink="false">ai-model-training</guid>
+      <pubDate>Thu, 01 Oct 2026 00:00:00 GMT</pubDate>
+      <category>AI 学习</category>
+      <description>预训练给智力，后训练给性格。拆解数据清洗到人类对齐这条流水线，以及越狱的本质、对齐税和训练与推理两本算力账。</description>
+    </item>
+    <item>
+      <title>三、学 AI 要不要先啃高数：普通人现实可走的四条路</title>
+      <link>https://7stevejohn.github.io/?post=ai-learning-paths</link>
+      <guid isPermaLink="false">ai-learning-paths</guid>
+      <pubDate>Thu, 01 Oct 2026 00:00:00 GMT</pubDate>
+      <category>AI 学习</category>
+      <description>先选路，再补课。拆四条学习路径的门槛与回报，主推深耕行业叠加 AI 的复合路线，附避坑与免费资源清单。</description>
+    </item>
+    <item>
+      <title>四、Agent 为什么会翻车：智能体的能力边界在哪</title>
+      <link>https://7stevejohn.github.io/?post=ai-agent-boundary</link>
+      <guid isPermaLink="false">ai-agent-boundary</guid>
+      <pubDate>Thu, 01 Oct 2026 00:00:00 GMT</pubDate>
+      <category>AI 学习</category>
+      <description>智能体翻车是常态而非意外：拆解函数调用与规划幻觉的机制、实验室与现场的落差，以及复合型人才的机会。</description>
+    </item>
+    <item>
+      <title>五、中国 AI 的长板与短板：为什么落地快、原创少</title>
+      <link>https://7stevejohn.github.io/?post=ai-china-landscape</link>
+      <guid isPermaLink="false">ai-china-landscape</guid>
+      <pubDate>Thu, 01 Oct 2026 00:00:00 GMT</pubDate>
+      <category>AI 学习</category>
+      <description>中国 AI 的真实画像是落地快、原创少——同一结构的一体两面；拆开长板与短板，以及对普通人的含义。</description>
+    </item>
+    <item>
+      <title>六、AI 会抢走谁的饭碗：为什么不必都挤向开发岗</title>
+      <link>https://7stevejohn.github.io/?post=ai-jobs-rethink</link>
+      <guid isPermaLink="false">ai-jobs-rethink</guid>
+      <pubDate>Thu, 01 Oct 2026 00:00:00 GMT</pubDate>
+      <category>AI 学习</category>
+      <description>AI 抢的是任务，不是岗位。拆解电网、矿山、政务、医疗落地案例，看清行业复合型人才为何最缺。</description>
+    </item>
+    <item>
+      <title>七、AI 的下一程：算力的账、走出屏幕的智能与治理的规则</title>
+      <link>https://7stevejohn.github.io/?post=ai-frontier-mirror</link>
+      <guid isPermaLink="false">ai-frontier-mirror</guid>
+      <pubDate>Thu, 01 Oct 2026 00:00:00 GMT</pubDate>
+      <category>AI 学习</category>
+      <description>AI 的下一程看三件事：算力的账、走出屏幕的智能、治理的规则；系列收尾落回终身学习与人机协同。</description>
+    </item>
     <item>
       <title>刷机为什么会卡开机：验证启动的信任链从哪开始</title>
       <link>https://7stevejohn.github.io/?post=flash-vbmeta-trust-chain</link>

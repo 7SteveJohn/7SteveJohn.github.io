@@ -2,7 +2,35 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://7stevejohn.github.io/</loc>
-    <lastmod>2026-09-30</lastmod>
+    <lastmod>2026-10-01</lastmod>
+  </url>
+  <url>
+    <loc>https://7stevejohn.github.io/?post=ai-concepts-primer</loc>
+    <lastmod>2026-10-01</lastmod>
+  </url>
+  <url>
+    <loc>https://7stevejohn.github.io/?post=ai-model-training</loc>
+    <lastmod>2026-10-01</lastmod>
+  </url>
+  <url>
+    <loc>https://7stevejohn.github.io/?post=ai-learning-paths</loc>
+    <lastmod>2026-10-01</lastmod>
+  </url>
+  <url>
+    <loc>https://7stevejohn.github.io/?post=ai-agent-boundary</loc>
+    <lastmod>2026-10-01</lastmod>
+  </url>
+  <url>
+    <loc>https://7stevejohn.github.io/?post=ai-china-landscape</loc>
+    <lastmod>2026-10-01</lastmod>
+  </url>
+  <url>
+    <loc>https://7stevejohn.github.io/?post=ai-jobs-rethink</loc>
+    <lastmod>2026-10-01</lastmod>
+  </url>
+  <url>
+    <loc>https://7stevejohn.github.io/?post=ai-frontier-mirror</loc>
+    <lastmod>2026-10-01</lastmod>
   </url>
   <url>
     <loc>https://7stevejohn.github.io/?post=flash-vbmeta-trust-chain</loc>

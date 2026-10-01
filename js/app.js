@@ -33,10 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // 2. 将 projects.js 中的下载/仓库链接水合到产品卡片（单一数据源）
   hydrateProductLinks();
 
-  // 3. 渲染三个文字模块：技术手记 / 创作（小说·游戏创作）/ 随笔（无内容自动隐藏）
+  // 3. 渲染四个文字模块：技术手记 / 创作（小说·游戏创作）/ 随笔 / AI 学习（无内容自动隐藏）
   initArticles();
   initCreation();
   initEssays();
+  initAi();
 
   // 4. 初始化移动端抽屉菜单与滚动状态导航
   initNavigation();
@@ -284,7 +285,7 @@ window.closeProjectModal = function() {
 };
 
 /* ============================================================
-   3. 文字内容模块：技术手记 / 创作 / 随笔
+   3. 文字内容模块：技术手记 / 创作 / 随笔 / AI 学习
       （共用 ARTICLES_DATA，按 section 字段路由，空模块自动隐藏）
    ============================================================ */
 
@@ -717,6 +718,15 @@ function initEssays() {
   });
 }
 
+function initAi() {
+  renderArticleSection({
+    match: (a) => a.section === 'ai',
+    sectionId: 'ai',
+    navHref: '#ai',
+    listId: 'ai-list'
+  });
+}
+
 // 同模块内的兄弟篇目（创作模块再按「小说 / 游戏创作」分组），供弹窗上一篇/下一篇翻页
 function getSiblingList(article) {
   const all = getSortedArticles();
@@ -725,6 +735,10 @@ function getSiblingList(article) {
   }
   if (article.section === 'essay') {
     return all.filter(a => a.section === 'essay');
+  }
+  if (article.section === 'ai') {
+    // AI 学习系列：七篇同日期，稳定排序保持数组顺序，即阅读顺序（一→七）
+    return all.filter(a => a.section === 'ai');
   }
   return all.filter(a => !a.section);
 }
