@@ -6,7 +6,7 @@
  * - 其余同源/静态资源：缓存优先 + 后台更新（stale-while-revalidate）
  * ⚠️ 每次发布改动静态资源后，把 CACHE 版本号 +1，旧缓存会在 activate 阶段自动清理。
  */
-const CACHE = 'sevenjohn-v131';
+const CACHE = 'sevenjohn-v132';
 const CORE = [
   './',
   'index.html',
@@ -28,6 +28,7 @@ const CORE = [
   // 本地化依赖（原 CDN 已全部下放到 assets/vendor，断网也能完整渲染）
   'assets/vendor/tailwind.css',
   'assets/vendor/marked.min.js',
+  'assets/vendor/purify.min.js',
   // highlight.min.js（122KB）不进预缓存（2026-10-01 体检 PERF-3）：index.html 的按需策略
   // 是"只有文章里真有代码块才拉"，预缓存它等于让按需策略形同虚设；首次在线加载自动入缓存。
   'assets/vendor/github-dark.min.css',

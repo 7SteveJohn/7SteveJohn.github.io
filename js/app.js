@@ -192,8 +192,8 @@ window.openProjectModal = function(id) {
   modal.classList.remove('is-closing');
   modal._lastFocus = document.activeElement;
 
-  const detailsHtml = project.details 
-    ? (window.marked ? window.marked.parse(project.details) : `<p>${project.details}</p>`)
+  const detailsHtml = project.details
+    ? sanitizeMarkdownHtml(window.marked ? window.marked.parse(project.details) : `<p>${project.details}</p>`)
     : `<p class="text-[#86868b]">暂无更多详细说明。</p>`;
 
   const factsHtml = buildProjectFacts(project);
@@ -611,7 +611,7 @@ function articleCardHtml(art, opts = {}) {
        <span>${escapeHtml(art.date)}</span>
        <span>· ${escapeHtml(getReadTime(art))}</span>`;
   return `
-    <article tabindex="0" role="button" aria-label="阅读：${escapeHtml(art.title)}" class="bento-card reveal p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer group" onclick="openArticleModal('${escapeHtml(art.id)}')">
+    <article tabindex="0" role="button" aria-label="阅读：${escapeHtml(art.title)}" data-open-article="${escapeHtml(art.id)}" class="bento-card reveal p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer group">
       <div class="space-y-2 flex-1">
         <div class="flex items-center gap-2 text-xs font-mono text-[#86868b] flex-wrap">
           ${metaLead}
@@ -793,7 +793,7 @@ window.openArticleModal = function(id, skipUrlSync) {
   activeArticle = article;
   activeVersion = 0;
 
-  const parsedMarkdown = window.marked ? window.marked.parse(versionedContent(article)) : `<p>${versionedContent(article)}</p>`;
+  const parsedMarkdown = sanitizeMarkdownHtml(window.marked ? window.marked.parse(versionedContent(article)) : `<p>${versionedContent(article)}</p>`);
 
   // 同模块翻页：首篇无上一篇、末篇无下一篇，仅一篇时不显示翻页栏
   const siblings = getSiblingList(article);
@@ -802,7 +802,7 @@ window.openArticleModal = function(id, skipUrlSync) {
   const nextArticle = idx > -1 && idx < siblings.length - 1 ? siblings[idx + 1] : null;
 
   const pagerBtn = (target, label, icon) => `
-    <button data-pager="${icon === 'left' ? 'prev' : 'next'}" onclick="openArticleModal('${escapeHtml(target.id)}')" class="btn-secondary px-4 py-2 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white flex items-center gap-1.5 cursor-pointer">
+    <button data-pager="${icon === 'left' ? 'prev' : 'next'}" data-open-article="${escapeHtml(target.id)}" class="btn-secondary px-4 py-2 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white flex items-center gap-1.5 cursor-pointer">
       ${icon === 'left' ? '<i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>' : ''}
       <span>${label}</span>
       ${icon === 'right' ? '<i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>' : ''}
@@ -821,7 +821,7 @@ window.openArticleModal = function(id, skipUrlSync) {
       <div class="pt-4 flex flex-wrap items-center gap-2">
         <span class="text-xs font-semibold text-[#86868b] mr-1">相关阅读</span>
         ${related.map((r) => `
-          <button onclick="openArticleModal('${r.id}')" class="px-3 py-1.5 rounded-full text-xs bg-black/5 dark:bg-white/10 text-[#1d1d1f] dark:text-white hover:bg-black/10 dark:hover:bg-white/20 transition cursor-pointer max-w-full truncate">
+          <button data-open-article="${escapeHtml(r.id)}" class="px-3 py-1.5 rounded-full text-xs bg-black/5 dark:bg-white/10 text-[#1d1d1f] dark:text-white hover:bg-black/10 dark:hover:bg-white/20 transition cursor-pointer max-w-full truncate">
             ${escapeHtml(r.title)}
           </button>
         `).join('')}
@@ -897,7 +897,7 @@ window.openArticleModal = function(id, skipUrlSync) {
         // 正文区上下交替过渡：旧内容先淡出，再换内容淡入
         swapModalContent(modalContent, () => {
           const body = modalContent.querySelector('.markdown-body');
-          if (body) body.innerHTML = window.marked.parse(versionedContent(activeArticle));
+          if (body) body.innerHTML = sanitizeMarkdownHtml(window.marked.parse(versionedContent(activeArticle)));
           ensureHighlight(modalContent);
           addCopyButtons(modalContent);
           buildArticleToc(modalContent);
@@ -1027,6 +1027,27 @@ function initNavigation() {
       if (e.key === 'Escape' && navMore.open) { closeNavMore(); navMore.querySelector('summary')?.focus(); }
     });
   }
+
+  // 事件委托：文章/项目卡片与弹窗内跳转按钮统一走 data 属性派发（2026-10-01 体检 SEC-3），
+  // 取代内联 onclick——id 不再拼进 JS 字符串上下文，未来数据源变更也不会重新引入注入面。
+  // 卡片的 Enter/Space 键盘操作（.click()）与 ← → 翻章（btn.click()）同样经由此处派发。
+  document.addEventListener('click', (e) => {
+    const articleTrigger = e.target.closest?.('[data-open-article]');
+    if (articleTrigger) {
+      window.openArticleModal(articleTrigger.getAttribute('data-open-article'));
+      return;
+    }
+    const projectTrigger = e.target.closest?.('[data-open-project]');
+    if (projectTrigger) {
+      window.openProjectModal(projectTrigger.getAttribute('data-open-project'));
+      return;
+    }
+    const closeTrigger = e.target.closest?.('[data-close-modal]');
+    if (closeTrigger) {
+      if (closeTrigger.getAttribute('data-close-modal') === 'project') window.closeProjectModal();
+      else window.closeArticleModal();
+    }
+  });
 
   // 点击遮罩关闭弹窗
   const projectModal = document.getElementById('project-modal');
@@ -1463,4 +1484,15 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+// marked v15 起不再内置 sanitize，解析结果里的原生 HTML 会原样透传——
+// 正文数据虽为仓库内静态内容，这里仍统一过一层 DOMPurify 白名单净化（2026-10-01 体检 SEC-4），
+// 未来接入评论/远程内容源时不再有"直接 innerHTML"的注入面。
+// details/summary 是 README 折叠注解的官方写法，显式放行防止净化误伤。
+function sanitizeMarkdownHtml(html) {
+  if (window.DOMPurify) {
+    return window.DOMPurify.sanitize(html, { ADD_TAGS: ['details', 'summary'], ADD_ATTR: ['open'] });
+  }
+  return html;
 }

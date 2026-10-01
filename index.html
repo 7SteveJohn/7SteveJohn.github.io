@@ -63,6 +63,7 @@
 
   <!-- Marked.js (Markdown 解析器，自托管) -->
   <script src="assets/vendor/marked.min.js" defer></script>
+  <script src="assets/vendor/purify.min.js" defer></script>
 
   <!-- Highlight.js：改为按需加载（见 js/app.js ensureHighlight()）——119KB 只有文章里真有代码块时才值得拉 -->
 
@@ -338,7 +339,7 @@
               <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
             </a>
             <button 
-              onclick="openProjectModal('filebutler')" 
+              data-open-project="filebutler"
               class="text-xs hover:underline underline-offset-2 ml-2 cursor-pointer font-medium" data-page-node-id="zXbIjudMbp5snZGCStUyZl"
             >
               了解更多 &gt;
@@ -419,7 +420,7 @@
                 <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
               </a>
               <button
-                onclick="openProjectModal('paian')"
+                data-open-project="paian"
                 class="text-xs hover:underline ml-2 cursor-pointer font-medium"
               >
                 了解更多 &gt;
@@ -499,7 +500,7 @@
               <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
             </a>
             <button 
-              onclick="openProjectModal('netops-handbook')" 
+              data-open-project="netops-handbook"
               class="text-xs hover:underline underline-offset-2 ml-2 cursor-pointer font-medium" data-page-node-id="j15RHXRViQFCgJfJ2RrAwL"
             >
               了解更多 &gt;
@@ -552,7 +553,7 @@
             <!-- 操作胶囊组 -->
             <div class="flex flex-wrap items-center gap-3 pt-4">
               <button
-                onclick="openProjectModal('fluxion')"
+                data-open-project="fluxion"
                 class="text-xs hover:underline cursor-pointer font-medium"
               >
                 全部功能明细 &gt;
@@ -642,7 +643,7 @@
               <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
             </a>
             <button 
-              onclick="openProjectModal('gameboost')" 
+              data-open-project="gameboost"
               class="text-xs hover:underline underline-offset-2 ml-2 cursor-pointer font-medium" data-page-node-id="coeszzPak1o5e6OKkUbmJ3"
             >
               了解更多 &gt;
@@ -701,7 +702,7 @@
                 <span>网盘下载<span data-pwd> (提取码: rw94)</span></span>
               </a>
               <button
-                onclick="openProjectModal('gameboost-dlssg')"
+                data-open-project="gameboost-dlssg"
                 class="text-xs hover:underline ml-2 cursor-pointer font-medium"
               >
                 了解更多 &gt;
@@ -927,8 +928,8 @@
   <!-- 项目技术规格详情弹窗 -->
   <div id="project-modal" role="dialog" aria-modal="true" aria-label="项目详情" class="modal-overlay hidden fixed inset-0 z-50 flex justify-center p-4 sm:p-6 bg-black/55 lg-dim overflow-y-auto" data-page-node-id="J7jlKWBIO4EBMtrDznKCbZ">
     <div class="modal-panel glass-spec relative m-auto w-full max-w-2xl bg-white dark:bg-[#161617] rounded-2xl shadow-2xl overflow-hidden border border-black/10 dark:border-white/10 my-8" data-page-node-id="WpQ2MFpp0ADpuMivaJXoYV">
-      <button 
-        onclick="closeProjectModal()" 
+      <button
+        data-close-modal="project"
         aria-label="关闭"
         class="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white transition cursor-pointer" data-page-node-id="BTbx9ChoUEFBwM5TlwfFV3"
       >
@@ -947,7 +948,7 @@
         <div id="article-progress" class="h-full w-0 bg-[#1d1d1f] dark:bg-[#f5f5f7]" data-page-node-id="yEFmAmXfPH8BIA4EvYdlGH"></div>
       </div>
       <button
-        onclick="closeArticleModal()"
+        data-close-modal="article"
         aria-label="关闭"
         class="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white transition cursor-pointer" data-page-node-id="ud7AYU9YFShErGRPueRFNR"
       >
