@@ -631,7 +631,7 @@ function articleCardHtml(art, opts = {}) {
   `;
 }
 
-// 通用单列表块渲染（技术手记 / 随笔）：过滤 → 渲染 → 空则连导航一起隐藏
+// 通用单列表块渲染（AI 学习 / 技术手记 / 随笔）：过滤 → 渲染 → 空则连导航一起隐藏
 function renderArticleSection({ match, sectionId, navHref, listId }) {
   const sectionEl = document.getElementById(sectionId);
   if (!sectionEl) return;
@@ -648,6 +648,9 @@ function renderArticleSection({ match, sectionId, navHref, listId }) {
 
   sectionEl.style.display = '';
   navLinks.forEach(link => link.style.display = '');
+  // 栏目头右侧计数（blog-count / ai-count / essays-count），格式与创作模块一致
+  const countEl = document.getElementById(`${sectionId}-count`);
+  if (countEl) countEl.textContent = items.length === 1 ? '共 1 篇' : `共 ${items.length} 篇`;
   if (listContainer) {
     listContainer.innerHTML = items.map(articleCardHtml).join('');
     if (window.lucide) window.lucide.createIcons();
