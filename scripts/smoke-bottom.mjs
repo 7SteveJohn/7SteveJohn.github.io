@@ -1,6 +1,5 @@
 /* 复现：页底状态（桌面+移动） */
-import { createRequire } from 'module';
-const require = createRequire('C:/Users/SevenJohn/.workbuddy/binaries/node/workspace/index.js');
+import { devRequire as require } from './_dev-require.mjs';
 const { chromium } = require('playwright-core');
 
 const b = await chromium.launch({

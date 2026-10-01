@@ -1,6 +1,5 @@
 /* CSSOM 检查：样式表在哪断的 */
-import { createRequire } from 'module';
-const require = createRequire('C:/Users/SevenJohn/.workbuddy/binaries/node/workspace/index.js');
+import { devRequire as require } from './_dev-require.mjs';
 const { chromium } = require('playwright-core');
 
 const b = await chromium.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe' });

@@ -1,10 +1,10 @@
 /* 线上站动效终检：静止 2 秒的帧间像素差，判定"背景是不是活的" */
-import { createRequire } from 'module';
-const require = createRequire('C:/Users/SevenJohn/.workbuddy/binaries/node/workspace/index.js');
+import { devRequire as require } from './_dev-require.mjs';
 const { chromium } = require('playwright-core');
-import fs from 'fs';
+import fs from 'node:fs';
+import os from 'node:os';
 
-const OUT = 'C:/Users/SevenJohn/AppData/Local/Temp/pw-test/online';
+const OUT = os.tmpdir().replace(/\\/g, '/') + '/pw-test/online';
 fs.mkdirSync(OUT, { recursive: true });
 const b = await chromium.launch({ channel: 'msedge', args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader'] });
 const pg = await b.newPage({ viewport: { width: 1440, height: 900 } });

@@ -1,8 +1,7 @@
 /* 路人视角首访截图 + 浮层压字体检。
    用法：先起 127.0.0.1:8327 静态服务，再 node scripts/first-look.mjs
    产物：Temp/look-*.png；控制台输出 footer/主题/压字统计 */
-import { createRequire } from 'module';
-const require = createRequire('C:/Users/SevenJohn/.workbuddy/binaries/node/workspace/index.js');
+import { devRequire as require } from './_dev-require.mjs';
 const { chromium } = require('playwright-core');
 
 const BASE = 'http://127.0.0.1:8327/';

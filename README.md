@@ -8,8 +8,8 @@
 
 1. **零构建依赖，双击即用**：采用现代标准 HTML5 + Tailwind CSS + 原生 ES6，直接用浏览器双击 `index.html` 即可运行。
 2. **数据与界面解耦**：
-   - 全部产品（统称**个人工具**）的介绍、下载/仓库链接与提取码统一维护于 [`js/projects.js`](file:///d:/HTML/js/projects.js)——**改链接只改这一个文件**，产品卡片与详情弹窗会在页面加载时自动水合同步；
-   - 全部文字内容（技术手记 / 创作 / 随笔）维护于 [`js/articles.js`](file:///d:/HTML/js/articles.js)，用可选字段 `section` 路由模块，追加数据后界面自动渲染，每篇拥有可分享的独立深链（`?post=文章id`）；某类内容为空时，对应模块与导航入口自动隐藏。
+   - 全部产品（统称**个人工具**）的介绍、下载/仓库链接与提取码统一维护于 [`js/projects.js`](js/projects.js)——**改链接只改这一个文件**，产品卡片与详情弹窗会在页面加载时自动水合同步；
+   - 全部文字内容（技术手记 / 创作 / 随笔）维护于 [`js/articles.js`](js/articles.js)，用可选字段 `section` 路由模块，追加数据后界面自动渲染，每篇拥有可分享的独立深链（`?post=文章id`）；某类内容为空时，对应模块与导航入口自动隐藏。
 3. **全功能支持**：
    - 📝 沉浸式 Markdown 阅读弹窗与代码语法高亮（手记、小说、游戏创作、随笔通用），带阅读进度条、← → 方向键翻章、代码块一键复制；
    - 📡 RSS 订阅（`rss.xml`）与 SEO 配套（`sitemap.xml` / `robots.txt` / Open Graph 分享卡片）；
@@ -28,7 +28,7 @@
 在终端中执行：
 ```bash
 # 使用 npx 启动轻量静态服务
-npx serve d:/HTML
+npx serve .
 ```
 或者在 VS Code 中安装 **Live Server** 插件，右键 `index.html` 选择 **"Open with Live Server"** 即可支持热刷新。
 
@@ -36,7 +36,7 @@ npx serve d:/HTML
 
 ## 🛠️ 如何将你自己的项目上传展示？
 
-旗舰作品专栏（`index.html` 中的全部 `<article data-project-id>` 卡片）负责展示文案排版；**下载链接、提取码、GitHub 仓库/Releases 地址请只在 [`js/projects.js`](file:///d:/HTML/js/projects.js) 中维护**——页面加载时 `app.js` 会按 `data-project-id` 自动把这些链接水合到卡片按钮上（HTML 中的初始 href 仅作 JS 失效时的兜底）。
+旗舰作品专栏（`index.html` 中的全部 `<article data-project-id>` 卡片）负责展示文案排版；**下载链接、提取码、GitHub 仓库/Releases 地址请只在 [`js/projects.js`](js/projects.js) 中维护**——页面加载时 `app.js` 会按 `data-project-id` 自动把这些链接水合到卡片按钮上（HTML 中的初始 href 仅作 JS 失效时的兜底）。
 
 `projects.js` 同时驱动点击「技术规格详情」后的弹窗内容：
 ```javascript
@@ -66,7 +66,7 @@ npx serve d:/HTML
 
 ## ✍️ 如何写新的文字内容（技术手记 / 小说 / 游戏创作 / 随笔）？
 
-全部文字内容都在 [`js/articles.js`](file:///d:/HTML/js/articles.js) 的 `ARTICLES_DATA` 数组里，用可选字段 `section` 决定出现在哪个模块：
+全部文字内容都在 [`js/articles.js`](js/articles.js) 的 `ARTICLES_DATA` 数组里，用可选字段 `section` 决定出现在哪个模块：
 
 | 想发布到 | 怎么填 |
 | --- | --- |
@@ -116,7 +116,9 @@ node scripts/gen-rss.js
 | `sw.js` | Service Worker 离线缓存 | ⚠️ 改动静态资源后发布时，把顶部 `CACHE` 版本号 +1，否则老用户可能读到旧缓存 |
 | `js/cosmos/`（main.js + config.js + scene/ + audio/ + interaction/） | 首页 3D 背景「等高线岛图」：fbm 高度场 + domain warp 的等值线渲染，随乐律动（three.js 自托管；手机/无 WebGL 降级 2D 星河，软渲染设备静态暗角） | 改参数看 `config.js`；设备分档逻辑见 `main.js` |
 | `js/cosmos.js` / `css/cosmos.css` | 无 WebGL 时的 2D 回退背景（噪声宇宙），主场景初始化失败自动加载 | 一般无需改动 |
-| `scripts/cosmos-motion-scan.mjs` / `cosmos-runtime-scan.mjs` | 背景验收脚本（⚠️ 断言仍针对旧「推理场」引擎，等高线改造后待重写，暂不可跑） | 重写后跑法：`python -m http.server 8327` + `node scripts/cosmos-motion-scan.mjs` |
+| `scripts/cosmos-scan.mjs` | 背景引擎验收（20 项断言：full/lite/static 三档、等高线探针、帧推进、容灾标志、reduce-motion、3D 拉取失败回退） | `python -m http.server 8327` + `node scripts/cosmos-scan.mjs` |
+| `scripts/smoke-media.mjs` + `dev-server.js` | 媒体体验验收（音乐/视频秒开、互斥、滚出暂停、离线可播；dev-server 为带 Range 的本地静态服务器） | `node scripts/dev-server.js` + `node scripts/smoke-media.mjs` |
+| `scripts/stability-edge.mjs` | 边缘稳定性（恶意 ?post=、损坏 localStorage、reduce-motion、弹窗压力循环） | `python -m http.server 8327` + `node scripts/stability-edge.mjs` |
 | `cosmos-home.html` | 2D 回退背景的单文件演示页（CSS/JS 全内嵌，可独立分享） | 改 `js/cosmos.js` 后如需同步，重跑一次内嵌导出 |
 
 ---
@@ -154,7 +156,7 @@ node scripts/gen-rss.js
 </details>
 ```
 
-**状态仪表盘**——编辑 [`js/status.js`](file:///d:/HTML/js/status.js) 的 `SITE_STATUS`（在读/在做/心情/更新日期），首页头像区自动展示；留空则整行隐藏。
+**状态仪表盘**——编辑 [`js/status.js`](js/status.js) 的 `SITE_STATUS`（在读/在做/心情/更新日期），首页头像区自动展示；留空则整行隐藏。
 
 ## 💬 读者共创类功能接入指引（可选，需注册第三方服务）
 

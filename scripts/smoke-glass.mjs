@@ -1,6 +1,5 @@
 /* 冒烟：液态玻璃控件层 */
-import { createRequire } from 'module';
-const require = createRequire('C:/Users/SevenJohn/.workbuddy/binaries/node/workspace/index.js');
+import { devRequire as require } from './_dev-require.mjs';
 const { chromium } = require('playwright-core');
 
 const b = await chromium.launch({

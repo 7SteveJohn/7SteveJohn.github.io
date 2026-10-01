@@ -1,8 +1,7 @@
 /* 网页稳定性检查：交互链路 / 控制台噪音 / 离线回退 / 3D 失败回退 / 深链健壮性
    用法：先起 127.0.0.1:8327 静态服务，再 node scripts/stability-check.mjs
    输出 PASS/FAIL 清单；FAIL 任何一条 exit 1 */
-import { createRequire } from 'module';
-const require = createRequire('C:/Users/SevenJohn/.workbuddy/binaries/node/workspace/index.js');
+import { devRequire as require } from './_dev-require.mjs';
 const { chromium } = require('playwright-core');
 
 const BASE = process.env.SITE_BASE || 'http://localhost:8327/';

@@ -1,8 +1,7 @@
 /* 移动端适配体检：横向溢出 / 过小字号 / 过小点按区 / 正文对比度 / 浮层压字
    用法：先起 127.0.0.1:8327 静态服务，再 node scripts/mobile-audit.mjs
    产物：Temp/mob-*.png + 控制台分宽度报告 */
-import { createRequire } from 'module';
-const require = createRequire('C:/Users/SevenJohn/.workbuddy/binaries/node/workspace/index.js');
+import { devRequire as require } from './_dev-require.mjs';
 const { chromium } = require('playwright-core');
 
 const BASE = process.env.SITE_BASE || 'http://127.0.0.1:8327/';

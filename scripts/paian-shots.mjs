@@ -1,8 +1,7 @@
 /* 拍案实机素材采集：隔离实例逐模块截图，产物 Temp/paian-cap/shot-*.png
    用法：先 PORT=4400 DATA_DIR=<副本> node server.js，再 node scripts/paian-shots.mjs
    点击用「叶子节点精确文本」匹配（app 用的是原生 div/span 按钮，role 不可靠） */
-import { createRequire } from 'module';
-const require = createRequire('C:/Users/SevenJohn/.workbuddy/binaries/node/workspace/index.js');
+import { devRequire as require } from './_dev-require.mjs';
 const { chromium } = require('playwright-core');
 
 const BASE = process.env.PAIAN_BASE || 'http://127.0.0.1:4400/';

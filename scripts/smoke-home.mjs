@@ -1,7 +1,6 @@
 /* 首页体检：站名/副标题、卡片顺序、拍案卡片（视频+网盘）、无 pageerror
    用法：先起 127.0.0.1:8327 静态服务，再 node scripts/smoke-home.mjs */
-import { createRequire } from 'module';
-const require = createRequire('C:/Users/SevenJohn/.workbuddy/binaries/node/workspace/index.js');
+import { devRequire as require } from './_dev-require.mjs';
 const { chromium } = require('playwright-core');
 
 const BASE = process.env.SITE_BASE || 'http://127.0.0.1:8327/';

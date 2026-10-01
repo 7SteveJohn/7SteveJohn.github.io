@@ -1,6 +1,5 @@
 /* 冒烟：播放器零记录——写入旧续听键 → 刷新 → 应回到第一首且键被清除 */
-import { createRequire } from 'module';
-const require = createRequire('C:/Users/SevenJohn/.workbuddy/binaries/node/workspace/index.js');
+import { devRequire as require } from './_dev-require.mjs';
 const { chromium } = require('playwright-core');
 
 const b = await chromium.launch({

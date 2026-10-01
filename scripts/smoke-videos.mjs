@@ -1,7 +1,7 @@
 /* 冒烟：卡片介绍视频布局 + 弹窗图片/链接 + 关弹窗停声
    跑法：python -m http.server 8327 → node scripts/smoke-videos.mjs */
+import { devRequire as require } from './_dev-require.mjs';
 import { createRequire } from 'module';
-const require = createRequire('C:/Users/SevenJohn/.workbuddy/binaries/node/workspace/index.js');
 const { chromium } = require('playwright-core');
 
 /* 网盘链接与提取码的期望值取自数据源，别在本文件里硬编码：

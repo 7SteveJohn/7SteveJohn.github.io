@@ -2,8 +2,7 @@
    用法：先起 127.0.0.1:8327 静态服务，再 node scripts/perf-audit.mjs
    关注四件事：秒启动（首屏可见耗时 / 总字节）、不卡顿（长任务）、手机不丢素材（404 / 加载失败）、
               手机不失真（图片 intrinsic 比例 vs 渲染比例 + object-fit） */
-import { createRequire } from 'module';
-const require = createRequire('C:/Users/SevenJohn/.workbuddy/binaries/node/workspace/index.js');
+import { devRequire as require } from './_dev-require.mjs';
 const { chromium } = require('playwright-core');
 
 const BASE = process.env.SITE_BASE || 'http://127.0.0.1:8327/';
