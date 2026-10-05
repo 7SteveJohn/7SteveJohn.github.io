@@ -113,11 +113,13 @@ node scripts/gen-rss.js
 | `assets/fonts/` | 自托管 Inter 字体（不依赖 Google Fonts，大陆访问不阻塞） | 无需改动 |
 | `assets/vendor/lucide.min.js` | 自托管 Lucide 图标库 v1.41.0（不依赖 unpkg，大陆访问不阻塞） | 想升级时从官方 UMD 构建替换 |
 | `manifest.json` / `icon-512.png` | PWA 应用清单与安装图标 | 想换 App 名字/图标时替换 |
-| `sw.js` | Service Worker 离线缓存 | ⚠️ 改动静态资源后发布时，把顶部 `CACHE` 版本号 +1，否则老用户可能读到旧缓存 |
+| `sw.js` | Service Worker 离线缓存（全面 stale-while-revalidate：缓存秒开 + 后台更新） | 常规发布**无需**动版本号——内容更新由 SWR 在访客下次打开时自动对齐；仅当改动 `CORE` 预缓存列表或缓存结构时才把顶部 `CACHE` +1 |
+| `_headers` | Cloudflare Pages 响应头（媒体类资源 7 天缓存） | 仅影响 pages.dev；媒体文件名惯例"名不变内容不变"，新增目录要放宽缓存时在此追加 |
 | `js/cosmos/`（main.js + config.js + scene/ + audio/ + interaction/） | 首页 3D 背景「等高线岛图」：fbm 高度场 + domain warp 的等值线渲染，随乐律动（three.js 自托管；手机/无 WebGL 降级 2D 星河，软渲染设备静态暗角） | 改参数看 `config.js`；设备分档逻辑见 `main.js` |
 | `js/cosmos.js` / `css/cosmos.css` | 无 WebGL 时的 2D 回退背景（噪声宇宙），主场景初始化失败自动加载 | 一般无需改动 |
 | `scripts/cosmos-scan.mjs` | 背景引擎验收（20 项断言：full/lite/static 三档、等高线探针、帧推进、容灾标志、reduce-motion、3D 拉取失败回退） | `python -m http.server 8327` + `node scripts/cosmos-scan.mjs` |
 | `scripts/smoke-media.mjs` + `dev-server.js` | 媒体体验验收（音乐/视频秒开、互斥、滚出暂停、离线可播；dev-server 为带 Range 的本地静态服务器） | `node scripts/dev-server.js` + `node scripts/smoke-media.mjs` |
+| `scripts/swr-check.mjs` | SW 策略验收（缓存秒开/后台更新/导航缓存优先/离线兜底，CDP 注入 3s 网络延迟做计时断言） | `node scripts/dev-server.js` + `node scripts/swr-check.mjs` |
 | `scripts/stability-edge.mjs` | 边缘稳定性（恶意 ?post=、损坏 localStorage、reduce-motion、弹窗压力循环） | `python -m http.server 8327` + `node scripts/stability-edge.mjs` |
 | `cosmos-home.html` | 2D 回退背景的单文件演示页（CSS/JS 全内嵌，可独立分享） | 改 `js/cosmos.js` 后如需同步，重跑一次内嵌导出 |
 

@@ -41,6 +41,24 @@
       v.addEventListener('pause', close);       // 暂停也收回控制条，回到海报态
       v.addEventListener('play', () => { layer.remove(); });
       box.appendChild(layer);
+
+      // 元数据懒加载（2026-10-05）：四个视频都在首屏之下，preload=metadata 会让
+      // 每次打开都发 4 个 Range 请求（慢网/本机 IDM 劫持场景下平白拖慢开屏）。
+      // 预加载放行推迟到"滚动接近"时——接近视口才恢复 metadata 提示。
+      if ('IntersectionObserver' in window && v.preload !== 'none') {
+        v.preload = 'none';
+      }
+      if ('IntersectionObserver' in window) {
+        const near = new IntersectionObserver((entries) => {
+          entries.forEach((en) => {
+            if (en.isIntersecting) {
+              v.preload = 'metadata';
+              near.disconnect();
+            }
+          });
+        }, { rootMargin: '600px 0px' });
+        near.observe(v);
+      }
     });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

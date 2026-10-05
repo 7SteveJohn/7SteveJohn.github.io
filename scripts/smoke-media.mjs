@@ -10,7 +10,7 @@ import fs from 'node:fs';
 import { devRequire as require } from './_dev-require.mjs';
 const { chromium } = require('playwright-core');
 const BASE = 'http://localhost:8328/';   // localhost（app.js 仅 localhost/HTTPS 注册 SW）+ Range 服务器（贴近生产行为）
-const CACHE_NAME = 'sevenjohn-v132';     // 与 sw.js 顶部 CACHE 同步改
+const CACHE_NAME = 'sevenjohn-v137';     // 与 sw.js 顶部 CACHE 同步改
 
 let pass = 0, fail = 0;
 const ok = (n, extra) => { pass++; console.log('PASS  ' + n + (extra ? '  ' + extra : '')); };
@@ -24,7 +24,7 @@ const b = await chromium.launch({
 
 async function cacheKeys(pg, filter) {
   return pg.evaluate(async (f) => {
-    const cache = await caches.open('sevenjohn-v131');
+    const cache = await caches.open('sevenjohn-v137');
     return (await cache.keys()).map((r) => r.url).filter((u) => u.includes(f));
   }, filter);
 }
@@ -98,7 +98,7 @@ let playMs = -1;
       const b64 = fs.readFileSync('D:/HTML/music/attention.mp3').toString('base64');
       await pg.evaluate(async (b64) => {
         const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-        const cache = await caches.open('sevenjohn-v131');
+        const cache = await caches.open('sevenjohn-v137');
         await cache.put(location.origin + '/music/attention.mp3', new Response(bytes, { headers: { 'Content-Type': 'audio/mpeg' } }));
         return (await cache.match(location.origin + '/music/attention.mp3')) !== null;
       }, b64);
@@ -110,11 +110,18 @@ let playMs = -1;
   await pg.evaluate(() => document.getElementById('music-audio').pause());
 }
 
-/* R2：四个视频 preload=metadata + 点击即播 */
+/* R2：四个视频开屏 preload=none（元数据懒加载）+ 滚动接近后 metadata + 点击即播 */
 {
   const pre = await pg.evaluate(() =>
     [...document.querySelectorAll('#products video.cover-video')].map((v) => v.getAttribute('preload')));
-  assert(pre.length === 4 && pre.every((p) => p === 'metadata'), 'R2-a 四个介绍视频 preload=metadata', pre.join(','));
+  assert(pre.length === 4 && pre.every((p) => p === 'none'), 'R2-a 四个介绍视频开屏 preload=none（懒加载）', pre.join(','));
+  const afterScroll = await pg.evaluate(async () => {
+    document.querySelector('#products video.cover-video').scrollIntoView({ block: 'center' });
+    await new Promise((r) => setTimeout(r, 1200));   // IntersectionObserver rootMargin 600px 内 → 放行 metadata
+    return [...document.querySelectorAll('#products video.cover-video')].map((v) => v.preload);
+  });
+  assert(afterScroll.length === 4 && afterScroll[0] === 'metadata', 'R2-a-ii 滚动接近后恢复 preload=metadata', afterScroll.join(','));
+  await pg.evaluate(() => window.scrollTo(0, 0));
   const ms = await pg.evaluate(() => {
     const v = document.querySelector('[data-project-id="filebutler"] video');
     const btn = v.closest('.cover-box').querySelector('.video-play-btn');
@@ -280,7 +287,7 @@ await ctx.close();
     const b64 = fs.readFileSync('D:/HTML/music/attention.mp3').toString('base64');
     await p3.evaluate(async (b64) => {
       const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-      const cache = await caches.open('sevenjohn-v131');
+      const cache = await caches.open('sevenjohn-v137');
       await cache.put(location.origin + '/music/attention.mp3', new Response(bytes, { headers: { 'Content-Type': 'audio/mpeg' } }));
     }, b64);
   } catch (e) { console.log('      [seed err]', String(e).slice(0, 80)); }

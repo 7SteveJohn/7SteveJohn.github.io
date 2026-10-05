@@ -1,0 +1,16 @@
+# Cloudflare Pages 响应头（2026-10-05 卡顿修复配套）
+# 只给"文件名即内容"的媒体资源放宽缓存：封面/海报/字体/视频/音乐按命名惯例内容不变。
+# CSS/JS/assets/vendor 刻意不放行——它们会随发布更新，保持默认 must-revalidate 诚实，
+# 更新及时性由 SW 的 stale-while-revalidate 兜底。GitHub Pages 忽略本文件（max-age=600 自带）。
+
+/assets/fonts/*
+  Cache-Control: public, max-age=604800
+
+/assets/images/*
+  Cache-Control: public, max-age=604800
+
+/assets/video/*
+  Cache-Control: public, max-age=604800
+
+/music/*
+  Cache-Control: public, max-age=604800

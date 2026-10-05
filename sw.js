@@ -1,12 +1,17 @@
 /**
  * Service Worker：离线缓存（"本地优先"的完全体——断网也能读手记和小说）
  * ----------------------------------------------------
- * 策略：
- * - 页面导航（HTML）：网络优先，失败回退缓存（保证更新及时、离线可读）
- * - 其余同源/静态资源：缓存优先 + 后台更新（stale-while-revalidate）
- * ⚠️ 每次发布改动静态资源后，把 CACHE 版本号 +1，旧缓存会在 activate 阶段自动清理。
+ * 策略（2026-10-05 起全面 stale-while-revalidate，修"每次打开都等跨海往返"的常态卡顿）：
+ * - 页面导航：首页（含 ?post= 深链）SWR——缓存秒开、后台拉新版更新固定键 './index.html'；
+ *   其他 HTML（cosmos-home 演示页等）保持网络优先、离线回退首页——低频且不许污染离线兜底。
+ * - CSS/JS 与其余静态资源：SWR（缓存优先 + 后台更新）。
+ * - 音频 Range 请求：切片/预热/全量三级，见下方媒体分支。
+ * 一致性说明：SWR 下"缓存里的 HTML/CSS/JS"整体同版本出入，不存在"新 DOM 配旧样式"
+ * ——旧版三件套一起出、后台更新完下次打开一起换新。内容更新（文章、图、RSS）靠 SWR
+ * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
+ * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v136';
+const CACHE = 'sevenjohn-v137';
 const CORE = [
   './',
   'index.html',
@@ -242,46 +247,41 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 页面导航：网络优先，离线回退到缓存的 index.html（深链 ?post= 也由它承载）
+  // 页面导航：首页（含任意 ?query 深链）SWR——缓存秒开、后台拉新版写回固定键
+  // './index.html'（深链的 ?post= 由页面 JS 解析，HTML 本体同一份）。
+  // 只缓存本站首页的正常响应，404 页、cosmos-home 等其他 HTML 一律不入缓存
+  // （2026-10-01 体检 ATK-1：否则坏链接会把离线兜底首页污染成那个页面）。
   if (req.mode === 'navigate') {
-    event.respondWith(
-      fetch(req)
-        .then((res) => {
-          // 只把「本站首页的正常响应」写进离线兜底（2026-10-01 体检 ATK-1）：
-          // 404 页、cosmos-home 等其他 HTML 一律不入缓存——否则点开一条坏链接或
-          // 分享的演示页链接，就会把断网兜底首页污染成那个页面
-          const path = new URL(req.url).pathname;
-          if (res && res.ok && (path === '/' || path === '/index.html')) {
-            const copy = res.clone();
-            caches.open(CACHE).then((cache) => cache.put('./index.html', copy));
-          }
-          return res;
+    const path = new URL(req.url).pathname;
+    if (path === '/' || path === '/index.html') {
+      event.respondWith(
+        caches.match('./index.html').then((cached) => {
+          const network = fetch(req)
+            .then((res) => {
+              if (res && res.ok) {
+                const copy = res.clone();
+                caches.open(CACHE).then((cache) => cache.put('./index.html', copy));
+              }
+              return res;
+            })
+            .catch(() => cached || offlineFallback('离线：页面未缓存'));
+          return cached || network;
         })
-        .catch(() => caches.match('./index.html')
+      );
+    } else {
+      // 非首页 HTML：网络优先、离线回退缓存首页（低频页面，不值得各存一份）
+      event.respondWith(
+        fetch(req).catch(() => caches.match('./index.html')
           .then((hit) => hit || caches.match('index.html'))
           .then((hit) => hit || offlineFallback('离线：未缓存该页面')))
-    );
+      );
+    }
     return;
   }
 
-  // CSS/JS：网络优先——必须与 HTML 同版本，否则会出现"新 DOM + 旧样式"的裸奔页面；
-  // 离线时回退缓存。其余资源走下方的缓存优先。
-  if (req.destination === 'style' || req.destination === 'script' || /\.(css|js)(\?|$)/.test(req.url)) {
-    event.respondWith(
-      fetch(req)
-        .then((res) => {
-          if (res && (res.ok || res.type === 'opaque')) {
-            const copy = res.clone();
-            caches.open(CACHE).then((cache) => cache.put(req, copy));
-          }
-          return res;
-        })
-        .catch(() => caches.match(req).then((hit) => hit || offlineFallback('离线：资源未缓存')))
-    );
-    return;
-  }
-
-  // 静态资源：缓存优先 + 后台更新（含跨域 CDN 的不透明响应）
+  // CSS/JS 与其余静态资源统一走 SWR（缓存优先 + 后台更新）。CSS/JS 不再网络优先
+  // （2026-10-05）：那是"每次打开都等跨海往返"的常态卡顿根因——同版本缓存三件套
+  // 一起出，一致性由上方导航 SWR 的说明保证。
   // ⚠️ res.ok 的 204（本机 IDM 等下载器劫持大文件时的空响应）绝不能入缓存——
   //    一旦入库，cached || network 会让这个资源永远命中空缓存
   event.respondWith(
