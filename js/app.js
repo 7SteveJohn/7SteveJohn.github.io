@@ -632,13 +632,15 @@ function articleCardHtml(art, opts = {}) {
 }
 
 // 通用单列表块渲染（AI 学习 / 技术手记 / 随笔）：过滤 → 渲染 → 空则连导航一起隐藏
-function renderArticleSection({ match, sectionId, navHref, listId }) {
+// useArrayOrder: 系列模块（AI 学习）按数组序渲染，阅读顺序写死在数组里，不随日期变
+function renderArticleSection({ match, sectionId, navHref, listId, useArrayOrder = false }) {
   const sectionEl = document.getElementById(sectionId);
   if (!sectionEl) return;
 
   const navLinks = document.querySelectorAll(`a[href="${navHref}"]`);
   const listContainer = document.getElementById(listId);
-  const items = getSortedArticles().filter(match);
+  const source = useArrayOrder ? (window.ARTICLES_DATA || []) : getSortedArticles();
+  const items = source.filter(match);
 
   if (items.length === 0) {
     sectionEl.style.display = 'none';
@@ -726,7 +728,8 @@ function initAi() {
     match: (a) => a.section === 'ai',
     sectionId: 'ai',
     navHref: '#ai',
-    listId: 'ai-list'
+    listId: 'ai-list',
+    useArrayOrder: true
   });
 }
 
@@ -740,8 +743,8 @@ function getSiblingList(article) {
     return all.filter(a => a.section === 'essay');
   }
   if (article.section === 'ai') {
-    // AI 学习系列：七篇同日期，稳定排序保持数组顺序，即阅读顺序（一→七）
-    return all.filter(a => a.section === 'ai');
+    // AI 学习系列：按数组顺序翻页即阅读顺序（一→七），与列表渲染同序，日期只作展示
+    return (window.ARTICLES_DATA || []).filter(a => a.section === 'ai');
   }
   return all.filter(a => !a.section);
 }
