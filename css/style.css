@@ -1625,3 +1625,295 @@ footer::before {
     display: none;
   }
 }
+
+/* ============================================================
+   深空壁纸层 + 桌面磨砂增强（js/wallpaper.js 门控）
+   ------------------------------------------------------------
+   层级契约：本层 z-index:-1，DOM 位置在 #cosmos-canvas（-2）之后、
+   .cosmos-veil（-1）之前 —— 同 z-index 按 DOM 顺序绘制，所以是
+   「推理场 → 壁纸 → 暗角 → 正文」：壁纸参与暗角压暗，正文永远在
+   最上层；滚动时固定不动。
+   门控：只有 html.has-wallpaper 时才有不透明度，图缺失 = 什么都不发生。
+   ============================================================ */
+#site-wallpaper {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  background: url("../assets/images/wallpaper.webp") center / cover no-repeat;
+  /* blur 会让边缘露出底下的画布；scale 一点点把边缘推出视口外 */
+  filter: blur(18px) brightness(0.60) saturate(1.05);
+  transform: scale(1.08);
+  transition: opacity 1.2s var(--ease-swift);
+}
+html.has-wallpaper #site-wallpaper {
+  opacity: 0.34;
+}
+/* 桌面细指针：screen 混合只提亮不压暗 —— 壁纸亮部从推理场的不透明深底里透出来，
+   连线与脉冲照常压在壁纸之上；触摸设备不做全屏混合（省一次每帧合成），
+   改为低不透明度的静态层 */
+@media (min-width: 1024px) and (pointer: fine) {
+  #site-wallpaper {
+    filter: blur(26px) brightness(0.62) saturate(1.05);
+  }
+  html.has-wallpaper #site-wallpaper {
+    mix-blend-mode: screen;
+    opacity: 0.55;
+  }
+}
+/* 桌面端：卡片补一层轻磨砂，和壁纸/推理场形成玻璃层次。
+   触摸设备保持今天的纯色卡片（大面积 backdrop-filter 在手机上会掉帧） */
+@media (min-width: 1024px) and (pointer: fine) {
+  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    html.has-wallpaper .dark .bento-card {
+      background: rgba(18, 20, 27, 0.58);
+      border-color: rgba(255, 255, 255, 0.09);
+      -webkit-backdrop-filter: blur(10px) saturate(1.3);
+      backdrop-filter: blur(10px) saturate(1.3);
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #site-wallpaper {
+    transition: none;
+  }
+}
+
+/* ============================================================
+   Live2D 看板娘（js/live2d.js 懒加载 assets/vendor/live2d/）
+   ------------------------------------------------------------
+   ❗运行时样式 waifu.css 是「运行时注入到 head 末尾」的，同特指度下它排在
+   style.css 之后必然赢 —— 所以这里一律用 `html body #id` 这种加高特指度的
+   选择器覆盖：只改「放哪儿、长什么样」，不动它的动作、气泡开关与渲染循环。
+   层级：30（低于 sticky 导航 40 与弹窗 50，不压任何浮层）。
+   ============================================================ */
+html body #waifu {
+  left: auto;
+  right: 0;
+  z-index: 30;
+}
+/* 只在桌面出现（js/live2d.js 的闸门也认 1024px，这里兜住「开着窗口再缩窄」的情况） */
+@media (max-width: 1023px) {
+  html body #waifu,
+  html body #live2d-close {
+    display: none;
+  }
+}
+
+/* 左侧那个黄色小页签不用：本站用角色右上角自己的关闭键 */
+html body #waifu-toggle {
+  display: none;
+}
+
+/* 提示气泡换成站点同款深空玻璃（原版是奶油色纸片，和暗色体系打架）：
+   挪到角色左上方，宽度与原版一致 */
+html body #waifu-tips {
+  left: auto;
+  right: calc(100% + 4px);
+  margin: -34px 0;
+  background: rgba(18, 20, 27, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  color: #f5f5f7;
+  font-size: 13px;
+  line-height: 1.6;
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
+}
+html body #waifu-tips span {
+  color: #8FB8FF;
+}
+
+/* 关闭键：贴在角色右上角，出现得比角色慢一点，避免和入场动画抢注意力 */
+#live2d-close {
+  position: fixed;
+  right: 14px;
+  bottom: 316px;
+  z-index: 31;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9999px;
+  background: rgba(20, 22, 30, 0.55);
+  color: #86868b;
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+html.has-live2d #live2d-close {
+  display: flex;
+  animation: fade-in 0.6s var(--ease-swift) 0.8s backwards;
+}
+#live2d-close:hover {
+  background: rgba(20, 22, 30, 0.9);
+  color: #fff;
+}
+#live2d-close svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* 看板娘在场时，右下角的「回到顶部」让开它的位置（否则会压在角色身上） */
+@media (min-width: 1024px) {
+  html.has-live2d #back-to-top {
+    right: 19rem;
+  }
+}
+
+/* 手机上整个看板娘不参与布局 */
+@media (max-width: 767px) {
+  html body #waifu {
+    display: none !important;
+  }
+}
+
+/* ============================================================
+   次级页面外壳（archive.html / gallery.html 共用）
+   ----------------------------------------------------
+   与首页同一套玻璃/暗色语言；容器比首页的 max-w-5xl 宽一点，
+   给归档的波浪曲线与照片墙的混排网格留出两侧空间。
+   ============================================================ */
+.page-wrap {
+  width: 100%;
+  max-width: 74rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+@media (min-width: 640px) {
+  .page-wrap {
+    padding: 0 1.5rem;
+  }
+}
+.page-head {
+  padding: 3.4rem 0 0.6rem;
+}
+.page-eyebrow {
+  font-family: ui-monospace, Consolas, "Courier New", monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(158, 176, 202, 0.55);
+}
+.page-title {
+  margin: 0.5rem 0;
+  font-size: 30px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #f5f5f7;
+}
+.page-sub {
+  max-width: 46rem;
+  font-size: 13px;
+  line-height: 1.75;
+  color: #86868b;
+}
+.page-sub b,
+.page-sub strong {
+  color: #8fb8ff;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+/* 次级页导航里的当前页 */
+.subpage-nav-active {
+  color: #f5f5f7;
+  font-weight: 600;
+}
+
+/* ============================================================
+   按住 Tab 的快速导航浮层（js/tab-nav.js）
+   ----------------------------------------------------
+   弹窗态列该文目录、页面态列章节与最近文章；层级 70 高于弹窗（50）与搜索（60）。
+   ============================================================ */
+#tabnav {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 8vh 1rem 1rem;
+  background: rgba(5, 7, 12, 0.45);
+  animation: fade-in 0.18s var(--ease-swift);
+}
+#tabnav[hidden] {
+  display: none;
+}
+.tabnav-panel {
+  position: relative;
+  width: min(28rem, 100%);
+  max-height: 70vh;
+  overflow: auto;
+  padding: 1.1rem 1.2rem 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  background: rgba(16, 18, 24, 0.82);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  backdrop-filter: blur(24px) saturate(1.4);
+  animation: tabnav-in 0.26s var(--ease-swift);
+}
+@keyframes tabnav-in {
+  from { transform: translateY(6px); opacity: 0.6; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.tabnav-title {
+  margin-bottom: 0.6rem;
+  font-family: ui-monospace, Consolas, "Courier New", monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(158, 176, 202, 0.6);
+}
+.tabnav-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tabnav-item {
+  overflow: hidden;
+  padding: 0.5rem 0.7rem;
+  border-radius: 10px;
+  color: #86868b;
+  font-size: 13px;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.tabnav-item.is-active {
+  color: #f5f5f7;
+  background: rgba(143, 184, 255, 0.14);
+  box-shadow: inset 2px 0 0 #8fb8ff;
+}
+.tabnav-hint {
+  margin-top: 0.7rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 11px;
+  color: #86868b;
+}
+.tabnav-hint b {
+  color: #f5f5f7;
+  font-weight: 600;
+}
+/* 给读屏播报用：视觉上不占位 */
+.tabnav-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  #tabnav,
+  .tabnav-panel {
+    animation: none;
+  }
+}

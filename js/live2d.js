@@ -1,0 +1,112 @@
+/**
+ * Live2D 看板娘（自托管运行时 + Live2D 官方示例模型，右下角）
+ * ----------------------------------------------------
+ * - 只在对的环境出现：桌面细指针 + 视口 ≥1024px + 没开「减少动态效果」+ 没开省流量 + 用户没关过
+ * - 首帧之后（requestIdleCallback）才注入 waifu.css 与 ESM 运行时：不抢首屏带宽；
+ *   资源不进 sw.js 预缓存，首次在线加载后由 SW 静态资源分支自动入库（断网可复用）
+ * - 任何一步失败都静默收场：把已插入的节点收干净，不弹提示、不刷 console.error
+ * - file:// 双击打开：模型要 fetch，必被 CORS 挡 → 这里直接跳过（本地服务器预览才看得到）
+ * - 关闭键在角色右上角：写 sj.live2d=off 持久化，下次不再加载
+ * - 出现后给 <html> 挂 has-live2d，css/style.css 借它把右下角「回到顶部」按钮让开
+ * - 模型资源由 scripts/vendor-live2d.js 生成（换模型见 assets/vendor/live2d/SOURCE.txt）
+ */
+(function () {
+  'use strict';
+
+  const BASE = 'assets/vendor/live2d/';
+  const MODEL = BASE + 'model/shizuku/shizuku.model.json';
+  const KEY = 'sj.live2d';
+  const root = document.documentElement;
+
+  // ---- 闸门：不在手机上、不在省电/省流量环境、不在 file:// ----
+  const hit = (q) => !!(window.matchMedia && window.matchMedia(q).matches);
+  const conn = navigator.connection || navigator.mozConnection || {};
+  let closed = false;
+  try { closed = localStorage.getItem(KEY) === 'off'; } catch (e) { /* 隐私模式：当作没关过 */ }
+
+  if (closed) return;
+  if (location.protocol === 'file:') return;
+  if (hit('(prefers-reduced-motion: reduce)')) return;
+  if (!hit('(pointer: fine)') || !hit('(min-width: 1024px)')) return;
+  if (conn.saveData === true) return;
+
+  const nodes = () => ['waifu', 'waifu-toggle', 'live2d-close']
+    .map((id) => document.getElementById(id))
+    .filter(Boolean);
+
+  // 静默降级：清干净已插入的东西，页面上什么都不留
+  const fail = () => {
+    nodes().forEach((el) => el.remove());
+    root.classList.remove('has-live2d');
+  };
+
+  function addCloseButton() {
+    if (document.getElementById('live2d-close')) return;
+    const btn = document.createElement('button');
+    btn.id = 'live2d-close';
+    btn.type = 'button';
+    btn.title = '关闭看板娘（以后不再出现）';
+    btn.setAttribute('aria-label', '关闭看板娘');
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+    btn.addEventListener('click', () => {
+      try { localStorage.setItem(KEY, 'off'); } catch (e) { /* 存不下也只是这次躲起来 */ }
+      const waifu = document.getElementById('waifu');
+      if (waifu) waifu.classList.add('waifu-hidden');   // 用上游自己的隐藏类，不动它的渲染循环
+      btn.remove();
+      root.classList.remove('has-live2d');
+    });
+    document.body.appendChild(btn);
+  }
+
+  // 等 #waifu 真正插进 DOM：成功了才挂 has-live2d、才给关闭键，失败就静默收场
+  function settle(tries) {
+    if (document.getElementById('waifu')) {
+      root.classList.add('has-live2d');
+      addCloseButton();
+      return;
+    }
+    if (tries <= 0) return fail();
+    setTimeout(() => settle(tries - 1), 250);
+  }
+
+  function boot() {
+    const css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = BASE + 'waifu.css';
+    document.head.appendChild(css);
+
+    const run = document.createElement('script');
+    run.type = 'module';
+    run.src = BASE + 'waifu-tips.js';
+    run.onerror = fail;
+    run.onload = () => {
+      try {
+        if (typeof window.initWidget !== 'function') return fail();
+        window.initWidget({
+          waifuPath: BASE + 'waifu-tips.json',
+          cubism2Path: BASE + 'live2d.min.js',
+          // 工具条留空：本站只要角色本体 + 提示气泡，右上角自带关闭键
+          tools: [],
+          logLevel: 'error',
+          drag: false
+        });
+      } catch (e) {
+        return fail();
+      }
+      settle(48);   // 最多等 12 秒（模型 1.7MB，慢网络也够）
+    };
+    document.head.appendChild(run);
+  }
+
+  // 先确认模型清单真的取得到：取不到就别把运行时拉下来（file://、404、权限问题都在这里挡住）
+  function probe() {
+    fetch(MODEL, { cache: 'force-cache' })
+      .then((res) => (res.ok ? res.json() : Promise.reject(0)))
+      .then((json) => { if (json && json.model) boot(); })
+      .catch(fail);
+  }
+
+  const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 1500));
+  if (document.readyState === 'complete') idle(probe);
+  else window.addEventListener('load', () => idle(probe), { once: true });
+})();

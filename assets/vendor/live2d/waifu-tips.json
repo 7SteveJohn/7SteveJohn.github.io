@@ -1,0 +1,61 @@
+{
+  "models": [
+    {
+      "name": "Shizuku",
+      "paths": ["assets/vendor/live2d/model/shizuku/shizuku.model.json"],
+      "message": "Live2D 官方示例模型「Shizuku」——鼠标放上去她会看着你。"
+    }
+  ],
+  "message": {
+    "default": [
+      "站里的歌单在底部中间，点一下就能放。",
+      "想按时间翻文章的话，「归档」页排成了一条时间河。",
+      "背景里的连线是本机推理场的示意图，纯装饰，不联网。",
+      "按 Ctrl+D 把我收进书签吧。",
+      "看长文的时候，按住 Tab 能唤出目录。",
+      "照片墙里都是这些年随手存下的图。"
+    ],
+    "welcome": "欢迎来到「$1」，随便逛逛～",
+    "referrer": "从「$1」过来的朋友，请进请进～",
+    "hoverBody": ["别戳啦，痒～", "鼠标在哪，我就看哪～", "再看就收费了（开玩笑的）。"],
+    "tapBody": ["呀！被发现了。", "想听歌的话，底部中间的按钮在等你。", "轻一点，我还想多待一会儿。"],
+    "copy": "复制走啦，记得标个出处哦～",
+    "visibilitychange": "欢迎回来，刚才是去查文档了吗？",
+    "console": "在控制台里翻什么呢？这行字是写给同行看的。",
+    "photo": "咔嚓，存好啦。",
+    "changeSuccess": "换好啦，还喜欢吗？",
+    "changeFail": "唔…这套暂时换不了。",
+    "goodbye": "那我先躲起来啦，想我了再叫我～",
+    "hitokoto": "「$1」——$2 · $3"
+  },
+  "time": [
+    { "hour": "0-4", "text": "夜深了，早点睡，明天再看也不迟。" },
+    { "hour": "5-8", "text": "早，今天的太阳还没升起来呢。" },
+    { "hour": "9-11", "text": "上午好，写代码前先倒杯水吧。" },
+    { "hour": "12-13", "text": "中午好，记得吃饭。" },
+    { "hour": "14-17", "text": "下午好，慢慢来，不着急。" },
+    { "hour": "18-22", "text": "晚上好，今天过得怎么样？" },
+    { "hour": "23-23", "text": "快零点了，注意身体呀。" }
+  ],
+  "seasons": [
+    { "date": "01/01", "text": "<span>元旦</span>快乐，今年是 {year} 年，又是新的一页。" },
+    { "date": "10/01-10/07", "text": "<span>国庆</span>假期，出去走走也不错。" }
+  ],
+  "mouseover": [
+    { "selector": "#music-fab", "text": ["想听歌吗？站里的歌单都在这儿。", "点一下就能放，播过的曲子断网也记得住。"] },
+    { "selector": "#search-open", "text": ["找什么？我帮你开搜索框。", "搜标题、标签、正文都行。"] },
+    { "selector": "a[href=\"#blog\"]", "text": ["技术手记在这里，都是踩坑记下来的。"] },
+    { "selector": "a[href=\"#creation\"]", "text": ["创作区有小说和游戏开发手记。"] },
+    { "selector": "a[href=\"#essays\"]", "text": ["随笔区写的是生活里那些小事。"] },
+    { "selector": ".bento-card", "text": ["这一张值得点开看看。", "「{text}」——点开有详细说明。"] },
+    { "selector": "#back-to-top", "text": ["一口气拉回顶部。"] },
+    { "selector": "a[href^=\"https://github.com/7SteveJohn\"]", "text": ["GitHub 在这儿，代码都开源。"] }
+  ],
+  "click": [
+    { "selector": ".bento-card", "text": ["正在打开「{text}」…", "看细节的话，点「技术规格详情」更全。"] },
+    { "selector": "#music-play", "text": ["开始放歌咯，背景的连线会跟着节拍亮。", "先歇一会儿。"] },
+    { "selector": "#page-next", "text": ["翻到下一屏，继续往下看。"] },
+    { "selector": "#search-open", "text": ["输入关键词就行，回车打开。"] },
+    { "selector": "a[href^=\"#\"]", "text": ["带你去「{text}」。"] }
+  ]
+}

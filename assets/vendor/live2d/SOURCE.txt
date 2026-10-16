@@ -1,0 +1,12 @@
+本目录为自托管的 Live2D 看板娘资源，运行时零 CDN。
+
+来源：
+  live2d-widgets@1.0.1                https://github.com/stevenjoezhang/live2d-widget  (GPL-3.0-or-later)
+  live2d-widget-model-shizuku@1.0.5   Live2D 官方示例模型「Shizuku」
+  live2d.min.js                       Live2D Cubism 2 core，随 live2d-widgets 分发
+
+重建：scripts/vendor-live2d.js（见文件头注释）
+换模型：把新模型的 assets/** 放进 model/<名字>/，改 assets/vendor/live2d/waifu-tips.json 里的 models[].paths
+
+注意：模型与运行时的授权按各自上游条款（GPL-3.0-or-later / Live2D 官方示例模型条款）；
+      换用第三方模型前请自行确认其授权，不要用来路不明的模型。

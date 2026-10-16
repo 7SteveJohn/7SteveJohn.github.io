@@ -94,6 +94,10 @@
        无 WebGL / 初始化失败时回退 js/cosmos.js 2D 版）：
        固定铺满视口、压在所有内容之下，页面滚动时它不动 -->
   <canvas id="cosmos-canvas" aria-hidden="true"></canvas>
+  <!-- 深空壁纸层（js/wallpaper.js 门控：图片加载成功才挂 html.has-wallpaper 显示）：
+       压在推理场画布之上、暗角之下——桌面细指针设备用 screen 混合，壁纸亮部从推理场
+       深底里透出来；触摸/窄屏改为低透明度静态层。图缺失即完全退回今天的观感 -->
+  <div id="site-wallpaper" aria-hidden="true"></div>
   <!-- 暗角 + 冷蓝环境辉光：CSS 静态层（cosmos.css .cosmos-veil），两版引擎共用 -->
   <div id="cosmos-veil" class="cosmos-veil" aria-hidden="true"></div>
   <!-- IGLOO 式 HUD 角标（纯装饰，等宽小字，不拦交互，手机上隐藏） -->
@@ -129,6 +133,9 @@
           <div class="nav-menu">
             <a href="#creation" class="hover:text-black dark:hover:text-white transition" data-page-node-id="HWmcv0DBntZFypJDpi3ZUK">创作</a>
             <a href="#essays" class="hover:text-black dark:hover:text-white transition" data-page-node-id="BpMx29kRzQdeMYMJgTp4wN">随笔</a>
+            <!-- 两个次级页面（归档 / 照片墙）不占主导航位，和创作、随笔一起收在「更多」里 -->
+            <a href="archive.html" class="hover:text-black dark:hover:text-white transition">归档</a>
+            <a href="gallery.html" class="hover:text-black dark:hover:text-white transition">照片墙</a>
           </div>
         </details>
       </nav>
@@ -198,6 +205,8 @@
         <div class="pt-2 mt-1 border-t border-[#d2d2d7]/50 dark:border-white/10 text-[11px] text-[#86868b]">更多</div>
         <a href="#creation" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="DmXHLrjKQLhp1YnmlQobo">创作</a>
         <a href="#essays" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="ApRZu82DcU01wl1aVlao8U">随笔</a>
+        <a href="archive.html" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition">归档</a>
+        <a href="gallery.html" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition">照片墙</a>
         <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="py-3.5 hover:underline underline-offset-2 transition" data-page-node-id="xKIUZ78GgECKxsl8v72CvW">GitHub @7SteveJohn</a>
       </nav>
     </div>
@@ -291,7 +300,7 @@
             端侧 AI 桌面应用 · pywebview / Vue 3 / Ollama
           </span>
           <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white" data-page-node-id="j0Im5wPeXbivM0rKRi8JKP">
-            FileButler · 本地智能文件管家
+            FileButler · 本地文件管家
           </h3>
           <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed" data-page-node-id="SnSlxoZIL8ZXXZzN9OFqkq">文件整理和本地知识库问答在同一个应用里完成：AI 跑在本机 Ollama 上，不需要 API Key，文件不上传。支持文件搜索、文档自动索引、按内容查找图片、重复文件清理；每一步有记录，可以撤销。</p>
 
@@ -453,7 +462,7 @@
             Android 离线应用 · Gradle 8.9 / 单页 SPA
           </span>
           <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white" data-page-node-id="rBMfW5D7X39ryJ6lq4drQh">
-            NetOps Handbook · 给小白的网络手册
+            NetOps Handbook · 给小白的离线网络手册
           </h3>
           <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed" data-page-node-id="FHwxP5YA9zTO72r9SvGjxs">面向初学者的离线网络手册：68 个知识模块、35 个排障案例、58 条多厂商命令对照、431 条 CLI 命令、53 道面试真题。配合教材与实验使用，不能只靠它学会网络。未申请网络权限，没信号也能翻。</p>
 
@@ -596,7 +605,7 @@
             Windows 性能调优 · C# / PowerShell / Win32
           </span>
           <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white" data-page-node-id="NzVLGpaKYBpGOVRzvbfS3n">
-            GameBoost · 游戏加速
+            GameBoost · 打游戏前点一下
           </h3>
           <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed" data-page-node-id="KrUaxHjQndBCIKyyBmzunZ">在启动 CS2、Valorant、三角洲行动前运行一次：电源、GPU、CPU 调度、网络、定时器分辨率自动调好，解决对枪瞬间的掉帧与输入延迟，改动可一键还原。</p>
 
@@ -808,7 +817,10 @@
         <div data-page-node-id="5Tc9uYIUUw5VLmkXzLkvTP">
           <p class="font-display text-2xl text-[#1d1d1f] dark:text-white mt-1" data-page-node-id="gqS5KeNqQBU0NZpDzMH5Zg">岁稿存匣 · 收纳工具手记，贮藏随笔与星章</p>
         </div>
-        <p id="blog-count" class="text-xs text-[#86868b] pb-1.5 whitespace-nowrap"></p>
+        <div class="flex items-center gap-4 pb-1.5">
+          <p id="blog-count" class="text-xs text-[#86868b] whitespace-nowrap"></p>
+          <a href="archive.html" class="text-xs text-[#86868b] hover:text-black dark:hover:text-white transition whitespace-nowrap">全部文章 → 归档</a>
+        </div>
       </div>
 
       <div id="articles-list" class="space-y-3" data-reveal-stagger data-page-node-id="Lmp1jklPMyBpo7A9D2cowh">
@@ -891,7 +903,9 @@
         </div>
         <div class="flex items-center gap-6" data-page-node-id="UarKTP2SX9BcJHhpau0bUS">
           <a href="#home" class="hover:text-black dark:hover:text-white transition" data-page-node-id="3eDalBFwYjoNKhDdoBPyvF">回到顶部 ↑</a>
-                    <a href="mailto:sevenksq@163.com" class="hover:text-black dark:hover:text-white transition">sevenksq@163.com</a>
+          <a href="archive.html" class="hover:text-black dark:hover:text-white transition">归档</a>
+          <a href="gallery.html" class="hover:text-black dark:hover:text-white transition">照片墙</a>
+          <a href="mailto:sevenksq@163.com" class="hover:text-black dark:hover:text-white transition">sevenksq@163.com</a>
           <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="hover:text-black dark:hover:text-white transition" data-page-node-id="0VBHbCwE7UYE2eV7xE1B4m">@7SteveJohn</a>
         </div>
       </div>
@@ -1027,6 +1041,12 @@
     const bootCosmos = () => import('./js/cosmos/main.js').catch(() => {});
     requestAnimationFrame(() => setTimeout(bootCosmos, 0));
   </script>
+  <!-- 深空壁纸层门控：只决定「图片能加载才显示」，与交互无关 -->
+  <script src="js/wallpaper.js" defer></script>
+  <!-- Live2D 看板娘：桌面端、首帧之后才拉自托管运行时（约 1.9MB，不进预缓存） -->
+  <script src="js/live2d.js" defer></script>
+  <!-- 按住 Tab 唤出快速导航 / 文章目录（与 archive、gallery 共用同一份） -->
+  <script src="js/tab-nav.js" defer></script>
   <script src="js/player.js" defer></script>
 </body>
 </html>

@@ -11,13 +11,18 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v137';
+const CACHE = 'sevenjohn-v138';
 const CORE = [
   './',
   'index.html',
   '404.html',
+  // 归档与照片墙（2026-10-16 新增）：文本资源很小，直接预缓存，断网可翻
+  'archive.html',
+  'gallery.html',
   'css/style.css',
   'css/cosmos.css',
+  'css/archive.css',
+  'css/gallery.css',
   'js/cosmos.js',        // 手机 / 无 WebGL 时的 2D 星河回退（js/cosmos/main.js 引导层按需加载）
   'js/cosmos/config.js',
   'js/cosmos/main.js',   // 背景引导层：设备分档（full/lite/static），桌面动态 import main3d
@@ -43,6 +48,15 @@ const CORE = [
   'js/particles.js',
   'js/search.js',
   'js/status.js',
+  // 新页面与新增效果（2026-10-16）：深空壁纸门控、按住 Tab 的快速导航、
+  // 次级页共用外壳、归档时间河、照片墙
+  'js/wallpaper.js',
+  'js/tab-nav.js',
+  'js/subpage.js',
+  'js/archive.js',
+  'js/gallery.js',
+  // 壁纸图与 Live2D 看板娘（运行时 + 模型约 1.9MB）不进预缓存：
+  // 壁纸由 img 预载后自然入库，看板娘只在桌面首次在线加载后入缓存（与 three/mp3 同策略）
   'assets/fonts/inter.css',
   'assets/fonts/inter-var-latin.woff2',
   'assets/vendor/lucide.min.js',
@@ -247,20 +261,28 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 页面导航：首页（含任意 ?query 深链）SWR——缓存秒开、后台拉新版写回固定键
-  // './index.html'（深链的 ?post= 由页面 JS 解析，HTML 本体同一份）。
-  // 只缓存本站首页的正常响应，404 页、cosmos-home 等其他 HTML 一律不入缓存
+  // 页面导航：白名单页面（含首页任意 ?query 深链）SWR——缓存秒开、后台拉新版写回固定键
+  // （首页的 ?post= 由页面 JS 解析，HTML 本体同一份）。
+  // 白名单以外的 HTML（404 页、cosmos-home 演示页）一律不入缓存
   // （2026-10-01 体检 ATK-1：否则坏链接会把离线兜底首页污染成那个页面）。
   if (req.mode === 'navigate') {
     const path = new URL(req.url).pathname;
-    if (path === '/' || path === '/index.html') {
+    // 归档与照片墙是站内正经入口（2026-10-16 新增），值得各存一份：断网也能翻
+    const SWR_KEYS = {
+      '/': './index.html',
+      '/index.html': './index.html',
+      '/archive.html': './archive.html',
+      '/gallery.html': './gallery.html'
+    };
+    const key = SWR_KEYS[path];
+    if (key) {
       event.respondWith(
-        caches.match('./index.html').then((cached) => {
+        caches.match(key).then((cached) => {
           const network = fetch(req)
             .then((res) => {
               if (res && res.ok) {
                 const copy = res.clone();
-                caches.open(CACHE).then((cache) => cache.put('./index.html', copy));
+                caches.open(CACHE).then((cache) => cache.put(key, copy));
               }
               return res;
             })

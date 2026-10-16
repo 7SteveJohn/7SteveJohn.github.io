@@ -15,6 +15,7 @@
    - 📡 RSS 订阅（`rss.xml`）与 SEO 配套（`sitemap.xml` / `robots.txt` / Open Graph 分享卡片）；
    - 📴 PWA 离线缓存（Service Worker）：断网也能读，可"添加到主屏幕"当 App 用；
  - 🌌 背景光粒子、滚动浮现编排、导航整页换页等编辑风动效（全量尊重 `prefers-reduced-motion`）；
+   - 🎬 **参考视频移植的四项效果**（沿用站点原有深色语言，不改成浅色动漫风）：深空壁纸层 + 桌面磨砂玻璃、右下角 Live2D 看板娘（鼠标跟随即时摆动、可一键关闭）、波浪曲线「归档」页、照片墙灯箱，外加**按住 Tab** 唤出的快速导航。每一项都可单独关闭，加载失败一律静默退回原观感；维护方式见下文「[🎬 视频里的效果怎么维护](#-视频里的效果怎么维护)」一节。
    - 📱 完美适配 PC 电脑端、平板与手机端（移动端含汉堡导航菜单）。
 
 ---
@@ -122,6 +123,14 @@ node scripts/gen-rss.js
 | `scripts/swr-check.mjs` | SW 策略验收（缓存秒开/后台更新/导航缓存优先/离线兜底，CDP 注入 3s 网络延迟做计时断言） | `node scripts/dev-server.js` + `node scripts/swr-check.mjs` |
 | `scripts/stability-edge.mjs` | 边缘稳定性（恶意 ?post=、损坏 localStorage、reduce-motion、弹窗压力循环） | `python -m http.server 8327` + `node scripts/stability-edge.mjs` |
 | `cosmos-home.html` | 2D 回退背景的单文件演示页（CSS/JS 全内嵌，可独立分享） | 改 `js/cosmos.js` 后如需同步，重跑一次内嵌导出 |
+| `archive.html` + `css/archive.css` + `js/archive.js` | 波浪曲线「归档」页：全部文章按时间排在一条曲线上，点卡片回首页阅读弹窗 | 数据来自 `js/articles.js`，加文章无需改这里 |
+| `gallery.html` + `css/gallery.css` + `js/gallery.js` | 照片墙：混排网格 + 灯箱（←/→/Esc） | 加图只在 `js/gallery.js` 顶部 `GALLERY_DATA` 里加一条 |
+| `js/subpage.js` | 次级页共用外壳（SW 注册、导航滚动态、页脚年份、滚动浮现 `window.pageReveal`） | 一般无需改动 |
+| `js/tab-nav.js` + `css/style.css` 的 `#tabnav` 段 | 按住 Tab 唤出目录 / 快速导航（弹窗内列该文目录，页面上列章节与最近文章） | 阈值与节流在文件头 `HOLD` / `CYCLE_GAP` |
+| `js/wallpaper.js` + `assets/images/wallpaper.webp` | 深空壁纸层门控与壁纸图（换壁纸=替换这张图；不想用就删掉它，页面自动回到原观感） | 关闭开关：控制台 `localStorage['sj.wallpaper']='off'` |
+| `assets/vendor/live2d/`（运行时 + 官方示例模型，约 1.9MB） | 右下角 Live2D 看板娘资源（`waifu-tips.js` / `waifu.css` / `live2d.min.js` / `chunk/index.js` / `model/shizuku/**`） | 重建或换模型：`node scripts/vendor-live2d.js`；来源与授权见目录内 `SOURCE.txt` |
+| `scripts/vendor-live2d.js` | 从隔离 node 工作区把看板娘运行时与模型搬进 `assets/vendor/live2d/`（跳过 800KB 交互音效并摘掉 `sound` 引用） | 依赖 `npm i live2d-widgets@1.0.1 live2d-widget-model-shizuku@1.0.5` |
+| `scripts/video-fx-smoke.mjs` | 本次四项效果的验收（40 项断言：壁纸/看板娘/归档/照片墙/按住 Tab/手机档/离线/降级） | `node scripts/dev-server.js` + `node scripts/video-fx-smoke.mjs` |
 
 ---
 
@@ -167,6 +176,61 @@ node scripts/gen-rss.js
 1. **评论 / 反向问答**：注册 [giscus.app](https://giscus.app)（基于 GitHub Discussions）→ 仓库开启 Discussions → 按 giscus.app 向导生成配置 → 在 `index.html` 弹窗模板后插入其 `<script>` 挂载代码即可。
 2. **回信表单 / 读者共创投递**：注册 [Formspree](https://formspree.io)（免费档够用）→ 拿到表单 endpoint → 新增一个"回信"区块放 `<form action="https://formspree.io/f/你的ID" method="POST">`；投稿进入你的邮箱，人工筛选后整理成博文发布。
 3. **邮件订阅**：[Buttondown](https://buttondown.email) 或 [follow.it](https://follow.it)，同样一段嵌入代码；也可以只保留 RSS（已内置 `rss.xml`）。
+
+---
+
+## 🎬 视频里的效果怎么维护
+
+四项效果都做成「可选层 + 静默降级」：资源在就生效，加载失败或被关掉就完全回到原来的观感，不弹提示、不刷报错。整站仍是深色极简体系，运行时零 CDN。
+
+### 1. 深空壁纸 + 桌面磨砂玻璃
+- 图片：`assets/images/wallpaper.webp`（1920×1080，约 42KB）。**换壁纸 = 替换这张图**，不用改代码。
+- 层级：`#site-wallpaper`（z-index -1）压在推理场画布之上、暗角之下；桌面细指针设备用 `mix-blend-mode: screen`，壁纸亮部从推理场深底里透出来，触摸设备改用低透明度静态层（省一次每帧全屏混合）。
+- 桌面端内容卡片会额外补一层 10px 轻磨砂（`@supports` + `pointer: fine`），手机保持纯色卡片。
+- 关闭：控制台执行 `localStorage['sj.wallpaper']='off'` 后刷新；或直接删掉那张 webp（门控脚本探测不到图就不挂 `has-wallpaper`）。
+- 实现：`js/wallpaper.js`（门控）+ `css/style.css` 末尾「深空壁纸层」段。
+
+### 2. Live2D 看板娘（右下角）
+- 出现条件：桌面细指针 + 视口 ≥1024px + 没开「减少动态效果」+ 没开省流量 + 用户没关过；**首帧之后**才加载，且**不进 SW 预缓存**（和 three、mp3 同策略）。
+- 关闭：角色右上角的小叉（写 `sj.live2d=off` 持久化）。想找回来：`localStorage.removeItem('sj.live2d')` 后刷新。
+- ❗`file://` 双击打开时模型要 fetch，会被 CORS 挡 → 看板娘静默不出现；**要看她请用本地服务器预览**（`node scripts/dev-server.js` → http://localhost:8328）。
+- 换模型：把新模型的 `assets/**` 放进 `assets/vendor/live2d/model/<名字>/`，再改 `assets/vendor/live2d/waifu-tips.json` 里 `models[].paths` 指向新的 `*.model.json`；整体重建用 `node scripts/vendor-live2d.js`（依赖装在隔离 node 工作区，见脚本头注释）。
+- 说什么话：文案全在 `assets/vendor/live2d/waifu-tips.json`（`mouseover` / `click` 的 `selector` 写站内元素，`{text}` 会替换成该元素文字；已去掉上游的「一言」与彩蛋外链，保证零外部请求）。
+- 授权：运行时 `live2d-widgets` 是 **GPL-3.0-or-later**，模型是 **Live2D 官方示例模型「Shizuku」**；换第三方模型前请自行确认授权。详见 `assets/vendor/live2d/SOURCE.txt`。
+- 位置协调：看板娘在场时（`html.has-live2d`）右下角「回到顶部」自动左移 304px 让位；音乐播放器在底部居中，互不遮挡。
+
+### 3. 归档页（波浪曲线时间轴）
+- `archive.html` 的数据直接读 `js/articles.js` 的 `ARTICLES_DATA`（与首页同一份），**加文章不用改这个页面**。
+- 桌面 ≥900px：一条正弦曲线串起所有卡片，卡片左右交错挂在曲线两侧，滚动时曲线「走到哪亮到哪」；<900px 退化为单列 + 左侧竖线（不做绝对定位，稳）。
+- 分类筛选写进地址栏 hash（如 `archive.html#creation`），可分享、可后退。
+- 卡片是 `<a href="index.html?post=<id>">`：点了回首页打开阅读弹窗，读全文的逻辑只有一份。
+
+### 4. 照片墙 + 灯箱
+- `gallery.html`：加一张图 = 在 `js/gallery.js` 顶部 `GALLERY_DATA` 里加一条：
+  ```js
+  { src: 'assets/images/xxx.webp', caption: '标题', meta: '副标题', span: 'wide' }  // span 可选 'wide' / 'tall'，用来错落排版
+  ```
+- 灯箱：←/→ 切换、Esc 关闭、点遮罩关闭；打开时锁页面滚动，关闭后焦点回到那张图；大图 `loading="lazy"`，只预加载相邻两张。
+
+### 5. 按住 Tab 唤出目录 / 快速导航
+- 轻点 Tab：完全走浏览器原生焦点导航（这个功能不接管）。
+- **按住 Tab 约 180ms**：弹出玻璃浮层 —— 在文章阅读弹窗里列出该文目录；在页面上列出站点章节 + 最近文章。按住期间 Tab / Shift+Tab 循环高亮（200ms 节流，不容易选飞），**松开跳转**，Esc 取消。
+- 目标是弹窗内标题就在弹窗里滚；否则走站点既有的平滑滚动数学（顶部留 64px，`prefers-reduced-motion` 下瞬时跳）。
+- 取舍：为了「轻点仍是原生 Tab」，首次 keydown 不 preventDefault —— 代价是按住时可能闪一下焦点环，换来的是键盘可达性不因这个功能倒退。
+
+### 6. 怎么验收
+```bash
+node scripts/dev-server.js          # 终端 A：8328 静态服务（带 Range）
+node scripts/video-fx-smoke.mjs     # 终端 B：四项效果 40 项断言
+```
+既有回归套件（本次改动全部通过）：
+```bash
+node scripts/swr-check.mjs                                      # SW 策略（dev-server 8328）
+node scripts/smoke-media.mjs                                    # 媒体体验（dev-server 8328）
+python -m http.server 8327  →  node scripts/stability-edge.mjs   # 边缘稳定性
+python -m http.server 8327  →  node scripts/cosmos-scan.mjs      # 背景引擎
+```
+> `sw.js` 顶部 `CACHE` 本次由 `v137` 升到 `v138`（改了 `CORE` 预缓存列表）；脚本里硬编码过缓存名的 `swr-check.mjs` / `smoke-media.mjs` 已同步。
 
 ## 🌐 如何免费部署上线到公网？
 

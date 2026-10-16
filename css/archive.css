@@ -1,0 +1,224 @@
+/* ============================================================
+   归档页（archive.html）：波浪曲线时间轴
+   ----------------------------------------------------
+   桌面（≥900px）：卡片由 js/archive.js 绝对定位挂在正弦曲线两侧，
+   曲线本体是一张 SVG（坐标与卡片同像素空间）；
+   窄屏（<900px）：退化为单列 + 左侧竖线，SVG/节点/年份标全部隐藏。
+   配色只取站点既有令牌（星光蓝 #8FB8FF / 暗底 #030712 / 次要字 #86868b）。
+   ============================================================ */
+
+#archive-wave {
+  position: relative;
+  margin-top: 0.5rem;
+}
+
+/* 分类筛选胶囊（全部 / 技术手记 / 创作 / 随笔 / AI 学习） */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1.5rem 0 1.9rem;
+}
+.arc-chip {
+  padding: 0.34rem 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #86868b;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+.arc-chip:hover {
+  color: #f5f5f7;
+  border-color: rgba(255, 255, 255, 0.22);
+}
+.arc-chip[aria-pressed="true"] {
+  color: #8fb8ff;
+  border-color: rgba(143, 184, 255, 0.55);
+  background: rgba(143, 184, 255, 0.1);
+}
+.arc-chip:focus-visible {
+  outline: 2px solid rgba(143, 184, 255, 0.7);
+  outline-offset: 2px;
+}
+
+#archive-list {
+  position: relative;
+}
+
+/* 曲线层：压在卡片之下（卡片有背景，天然盖住穿过它的线段） */
+#archive-svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wave-line {
+  fill: none;
+  stroke: rgba(143, 184, 255, 0.16);
+  stroke-width: 1.5;
+}
+
+.wave-progress {
+  fill: none;
+  stroke: rgba(143, 184, 255, 0.6);
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 6px rgba(143, 184, 255, 0.35));
+  transition: stroke-dashoffset 0.15s linear;
+}
+
+/* 节点：每个卡片在曲线上的锚点 */
+.wave-node {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: #8fb8ff;
+  box-shadow: 0 0 0 4px rgba(143, 184, 255, 0.12), 0 0 12px rgba(143, 184, 255, 0.5);
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+/* 年份标：只在该年第一张卡片旁出现一次 */
+.wave-year {
+  position: absolute;
+  font-family: ui-monospace, Consolas, "Courier New", monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: rgba(158, 176, 202, 0.72);
+  background: rgba(3, 7, 18, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 9999px;
+  padding: 1px 7px;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+/* 卡片：位置由 JS 写 top/left/width，这里只管外观与悬停 */
+.arc-card {
+  position: relative;
+  z-index: 2;
+  display: block;
+  padding: 1.05rem 1.15rem;
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.25s var(--ease-swift), border-color 0.2s ease, box-shadow 0.25s var(--ease-swift);
+}
+.arc-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(143, 184, 255, 0.38);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+}
+.arc-card:focus-visible {
+  outline: 2px solid rgba(143, 184, 255, 0.7);
+  outline-offset: 3px;
+}
+
+.arc-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 11px;
+  color: #86868b;
+  font-variant-numeric: tabular-nums;
+}
+
+.arc-pill {
+  padding: 2px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: #f5f5f7;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.arc-title {
+  margin: 0.55rem 0 0.4rem;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: #f5f5f7;
+}
+
+.arc-sum {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: #86868b;
+}
+
+.arc-tags {
+  margin-top: 0.6rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: ui-monospace, Consolas, "Courier New", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+  color: rgba(158, 176, 202, 0.6);
+}
+
+.arc-empty {
+  padding: 1.4rem 0 0.4rem;
+  font-size: 13px;
+  color: #86868b;
+}
+
+/* ---------- 桌面：卡片变成曲线两侧的绝对定位块 ---------- */
+@media (min-width: 900px) {
+  .arc-item {
+    position: absolute;
+  }
+}
+
+/* ---------- 窄屏：单列 + 左侧竖线，全部交给文档流 ---------- */
+@media (max-width: 899px) {
+  .arc-item {
+    position: relative;
+    margin: 0 0 16px 24px;
+  }
+  #archive-list::before {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 8px;
+    bottom: 8px;
+    width: 1px;
+    background: linear-gradient(rgba(143, 184, 255, 0.4), rgba(143, 184, 255, 0.04));
+  }
+  .arc-item::before {
+    content: "";
+    position: absolute;
+    left: -21px;
+    top: 26px;
+    width: 7px;
+    height: 7px;
+    border-radius: 9999px;
+    background: #8fb8ff;
+    box-shadow: 0 0 0 4px rgba(143, 184, 255, 0.12);
+  }
+  #archive-svg,
+  .wave-node,
+  .wave-year {
+    display: none;
+  }
+}
+
+/* ---------- 减少动态效果：只留淡入，不要位移与滚动进度动画 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .arc-card,
+  .wave-progress {
+    transition: none;
+  }
+  .arc-card:hover {
+    transform: none;
+  }
+}
