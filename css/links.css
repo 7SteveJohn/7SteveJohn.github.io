@@ -41,17 +41,7 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-.links-empty {
-  padding: 1.2rem 1rem;
-  border: 1px dashed rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
-  color: #86868b;
-  font-size: 12.5px;
-  text-align: center;
-}
-.links-empty[hidden] {
-  display: none;
-}
+/* 空态样式（.empty-state）在 css/style.css 里，与连载页书架共用 */
 
 /* ---------- 友链卡片 ---------- */
 .link-grid {

@@ -1949,6 +1949,26 @@ html.has-live2d #live2d-close {
   font-weight: 600;
 }
 
+/* 空态（链接页的友链/收藏、连载页的书架共用） */
+.empty-state {
+  padding: 1.2rem 1rem;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  color: #86868b;
+  font-size: 12.5px;
+  line-height: 1.8;
+  text-align: center;
+}
+.empty-state[hidden] {
+  display: none;
+}
+.empty-state code {
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.07);
+  font-size: 0.95em;
+}
+
 /* 筛选胶囊（归档页的分类筛选、链接页的收藏分组共用） */
 .chips {
   display: flex;

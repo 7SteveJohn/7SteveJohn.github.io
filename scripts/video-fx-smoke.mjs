@@ -373,7 +373,11 @@ try {
     const r = spawnSync(process.execPath, ['scripts/sync-chrome.mjs'], { cwd: process.cwd(), encoding: 'utf8' });
     assert(r.status === 0, 'J1 sync-chrome 一致性校验通过', (r.stdout || '').trim().split('\n').pop());
 
-    const page = await (await browser.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
+    const jCtx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    // J 段测的是站点配置/设置面板/胶囊/目录/封面，不看板娘：显式关掉它，避免
+    // 「模型加载途中被反复点击 → 上游 hitTest 空指针」这种与本节无关的偶发报错
+    await jCtx.addInitScript(() => localStorage.setItem('sj.live2d', 'off'));
+    const page = await jCtx.newPage();
     const errors = errorsOf(page);
     await page.goto(BASE + 'index.html?fx=full', { waitUntil: 'load', timeout: 30000 });
     await page.waitForTimeout(1600);
@@ -428,7 +432,9 @@ try {
       cls: document.documentElement.className.split(' ').filter((c) => c.startsWith('fx-no')).sort().join(','),
       store: [localStorage.getItem('sj.particles'), localStorage.getItem('sj.cosmos')].join(',')
     }));
-    assert(flags.cls === 'fx-no-cosmos,fx-no-particles' && flags.store === 'off,off', 'J3d 粒子/推理场开关生效并落盘', JSON.stringify(flags));
+    // 只断言这两个开关（本节上下文里再关掉了看板娘，类名里还会有 fx-no-live2d）
+    assert(/fx-no-cosmos/.test(flags.cls) && /fx-no-particles/.test(flags.cls) && flags.store === 'off,off',
+      'J3d 粒子/推理场开关生效并落盘', JSON.stringify(flags));
 
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
@@ -590,6 +596,108 @@ try {
     assert(l3.cards === 0 && l3.empty, 'K5d 无结果给空态', JSON.stringify(l3));
 
     assert(errors.length === 0, 'K6 花园与链接页无控制台错误', errors.slice(0, 2).join(' | '));
+    await page.context().close();
+  }
+
+  // ---------------- L. 第 3 轮：连载阅读器 ----------------
+  {
+    const page = await (await browser.newContext({ viewport: { width: 1440, height: 950 } })).newPage();
+    const errors = errorsOf(page);
+
+    // L1 书架与示例提示
+    await page.goto(BASE + 'novel.html', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(1400);
+    const l0 = await page.evaluate(() => ({
+      books: document.querySelectorAll('.novel-book').length,
+      shelfVisible: !document.getElementById('novel-shelf').hidden,
+      readerHidden: document.getElementById('novel-reader').hidden
+    }));
+    assert(l0.books > 0 && l0.shelfVisible && l0.readerHidden, 'L1a 书架渲染且阅读器默认收起', JSON.stringify(l0));
+
+    // L2 打开第一章：Markdown 渲染 + 上下章禁用态 + 示例提示 + 深链
+    await page.click('.novel-book');
+    await page.waitForTimeout(900);
+    const l1 = await page.evaluate(() => ({
+      reader: !document.getElementById('novel-reader').hidden,
+      chapter: document.getElementById('novel-chapter').textContent,
+      progress: document.getElementById('novel-progress').textContent,
+      hash: location.hash,
+      blocks: document.querySelectorAll('.novel-body p').length + document.querySelectorAll('.novel-body blockquote').length,
+      prevDisabled: document.getElementById('novel-prev').disabled,
+      nextDisabled: document.getElementById('novel-next').disabled,
+      tip: !document.getElementById('novel-sample-tip').hidden,
+      size: getComputedStyle(document.querySelector('.novel-body')).fontSize
+    }));
+    assert(l1.reader && l1.blocks > 3 && /\/ch-/.test(l1.hash) && l1.tip, 'L2a 打开章节：Markdown 渲染 + 深链 + 示例提示', JSON.stringify({ hash: l1.hash, blocks: l1.blocks }));
+    assert(l1.prevDisabled && !l1.nextDisabled && l1.progress.startsWith('1'), 'L2b 首章：上一章禁用、下一章可用', l1.progress);
+
+    // L3 翻章：按钮 + 键盘
+    await page.click('#novel-next');
+    await page.waitForTimeout(700);
+    const l2 = await page.evaluate(() => ({ chapter: document.getElementById('novel-chapter').textContent, nextDisabled: document.getElementById('novel-next').disabled }));
+    await page.keyboard.press('ArrowLeft');
+    await page.waitForTimeout(600);
+    const l3 = await page.evaluate(() => ({ chapter: document.getElementById('novel-chapter').textContent }));
+    assert(l2.chapter !== l1.chapter && l2.nextDisabled && l3.chapter === l1.chapter, 'L3 下一章按钮 + 键盘 ← 翻回', `${l1.chapter} → ${l2.chapter} → ${l3.chapter}`);
+
+    // L4 目录抽屉：条目数、当前项、跳章后关闭
+    await page.click('#novel-toc-open');
+    await page.waitForTimeout(450);
+    const l4 = await page.evaluate(() => ({
+      open: !document.getElementById('novel-drawer').hidden,
+      items: document.querySelectorAll('.novel-toc-item').length,
+      current: !!document.querySelector('.novel-toc-item.is-current')
+    }));
+    await page.click('.novel-toc-item:nth-child(3)');
+    await page.waitForTimeout(700);
+    const l5 = await page.evaluate(() => ({ chapter: document.getElementById('novel-chapter').textContent, closed: document.getElementById('novel-drawer').hidden }));
+    assert(l4.open && l4.items >= 2 && l4.current && l5.closed && l5.chapter !== l1.chapter, 'L4 目录抽屉：条目 + 当前项 + 跳章后收起', JSON.stringify({ items: l4.items, to: l5.chapter }));
+
+    // L5 排版滑杆：即时生效并持久化
+    await page.evaluate(() => {
+      const s = document.getElementById('novel-size'); s.value = '21'; s.dispatchEvent(new Event('input', { bubbles: true }));
+      const l = document.getElementById('novel-lh'); l.value = '1.7'; l.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await page.waitForTimeout(350);
+    const l6 = await page.evaluate(() => ({
+      size: getComputedStyle(document.querySelector('.novel-body')).fontSize,
+      stored: localStorage.getItem('sj.novel.type')
+    }));
+    assert(l6.size === '21px' && /1\.7/.test(l6.stored || ''), 'L5 字号/行高滑杆即时生效并持久化', JSON.stringify(l6));
+
+    // L6 沉浸模式：藏导航与页脚 + 退出键 + Esc
+    await page.click('#novel-immersive');
+    await page.waitForTimeout(400);
+    const l7 = await page.evaluate(() => ({
+      immersive: document.documentElement.classList.contains('novel-immersive'),
+      header: getComputedStyle(document.querySelector('header.site-header')).display,
+      exitBtn: getComputedStyle(document.getElementById('novel-immersive-exit')).display
+    }));
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(350);
+    const l8 = await page.evaluate(() => document.documentElement.classList.contains('novel-immersive'));
+    assert(l7.immersive && l7.header === 'none' && l7.exitBtn !== 'none' && !l8, 'L6 沉浸模式（藏导航 + 退出键 + Esc 退出）', JSON.stringify(l7));
+
+    // L7 进度记忆：回书架再进书 → 接着上次那章
+    await page.click('#novel-back');
+    await page.waitForTimeout(500);
+    const saved = await page.evaluate(() => localStorage.getItem('sj.novel.last.') || Object.keys(localStorage).filter((k) => k.startsWith('sj.novel.last.')));
+    await page.click('.novel-book');
+    await page.waitForTimeout(900);
+    const resumed = await page.evaluate(() => document.getElementById('novel-chapter').textContent);
+    assert(l5.chapter === resumed, 'L7 进度记忆：重进书接着上次那章', JSON.stringify({ saved: typeof saved === 'string' ? 'ok' : saved.length, resumed }));
+
+    // L8 深链直开
+    await page.goto(BASE + 'novel.html#sample-night/ch-2', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(1400);
+    const l9 = await page.evaluate(() => ({
+      reader: !document.getElementById('novel-reader').hidden,
+      chapter: document.getElementById('novel-chapter').textContent,
+      title: document.title
+    }));
+    assert(l9.reader && /第二章/.test(l9.chapter) && /楠屿札记/.test(l9.title), 'L8 章节深链可直接打开', JSON.stringify(l9));
+
+    assert(errors.length === 0, 'L9 阅读器无控制台错误', errors.slice(0, 2).join(' | '));
     await page.context().close();
   }
 

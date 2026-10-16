@@ -48,7 +48,8 @@ function renderSubNav(current) {
     '      <a href="index.html" class="flex items-center gap-2 font-semibold text-sm tracking-tight text-[#1d1d1f] dark:text-white hover:opacity-80 transition">',
     `        <span>${CFG.name}</span>`,
     '      </a>',
-    '      <nav class="flex items-center gap-4 sm:gap-6 text-[#1d1d1f] dark:text-[#86868b] text-xs">',
+    // flex-wrap：入口变多后（归档/照片墙/花园/友链/连载）小屏能换行，不挤成一条
+    '      <nav class="flex flex-wrap items-center justify-end gap-x-4 gap-y-1 sm:gap-x-6 text-[#1d1d1f] dark:text-[#86868b] text-xs">',
     '        <a href="index.html#blog" class="hidden sm:inline hover:text-black dark:hover:text-white transition">技术手记</a>',
     ...items,
     '        <a href="index.html" class="hover:text-black dark:hover:text-white transition">返回首页</a>',

@@ -18,6 +18,7 @@
    - 🎬 **参考视频移植的四项效果**（沿用站点原有深色语言，不改成浅色动漫风）：深空壁纸层 + 桌面磨砂玻璃、右下角 Live2D 看板娘（鼠标跟随即时摆动、可一键关闭）、波浪曲线「归档」页、照片墙灯箱，外加**按住 Tab** 唤出的快速导航。每一项都可单独关闭，加载失败一律静默退回原观感；维护方式见下文「[🎬 视频里的效果怎么维护](#-视频里的效果怎么维护)」一节。
    - ⚙️ **显示设置面板**（左下角齿轮）：效果档位、壁纸模糊/亮度滑块、粒子/推理场/看板娘开关、一键还原；站名/社交/壁纸清单/页面清单收口在 `js/site-config.js`，`scripts/sync-chrome.mjs` 负责校验各页导航与页脚不漂移；文章卡支持封面图（没封面自动用品牌渐变 + 栏目首字）。见下文「[🧩 配置、观感与发布流程](#-配置观感与发布流程)」。
    - 🌱 **花园页**（生命游戏 / 排序可视化 / 星空粒子，同一时刻只跑一个循环）与**链接页**（友情链接 + 收藏夹筛选搜索）：纯前端、零后端，见下文「[🌱 花园与链接页](#-花园与链接页第-2-轮)」。
+   - 📖 **连载阅读器**（`novel.html`）：书架 + 章节抽屉 + 键盘翻页 + 进度记忆 + 字号行高调节 + 沉浸模式，章节直接读 `js/novel-data.js` 的 Markdown，见下文「[📖 连载阅读器](#-连载阅读器第-3-轮)」。
    - 📱 完美适配 PC 电脑端、平板与手机端（移动端含汉堡导航菜单）。
 
 ---
@@ -136,9 +137,10 @@ node scripts/gen-rss.js
 | `js/wallpaper.js` + `assets/images/wallpaper*.webp` | 深空壁纸层门控、轮换、渐变兜底与档位判定（换壁纸=替换图片并在配置里登记） | 关闭开关：控制台 `localStorage['sj.wallpaper']='off'`，或左下角齿轮 |
 | `assets/vendor/live2d/`（运行时 + 官方示例模型，约 1.9MB） | 右下角 Live2D 看板娘资源（`waifu-tips.js` / `waifu.css` / `live2d.min.js` / `chunk/index.js` / `model/shizuku/**`） | 重建或换模型：`node scripts/vendor-live2d.js`；来源与授权见目录内 `SOURCE.txt` |
 | `scripts/vendor-live2d.js` | 从隔离 node 工作区把看板娘运行时与模型搬进 `assets/vendor/live2d/`（跳过 800KB 交互音效并摘掉 `sound` 引用） | 依赖 `npm i live2d-widgets@1.0.1 live2d-widget-model-shizuku@1.0.5` |
-| `scripts/video-fx-smoke.mjs` | 效果移植验收（75 项断言：壁纸轮换/看板娘/归档/照片墙/按住 Tab/手机档/离线/降级/配置与设置面板/胶囊/目录/封面/灯箱/花园/链接页） | `node scripts/dev-server.js` + `node scripts/video-fx-smoke.mjs` |
+| `scripts/video-fx-smoke.mjs` | 效果移植验收（85 项断言：壁纸轮换/看板娘/归档/照片墙/按住 Tab/手机档/离线/降级/配置与设置面板/胶囊/目录/封面/灯箱/花园/链接页/连载阅读器） | `node scripts/dev-server.js` + `node scripts/video-fx-smoke.mjs` |
 | `garden.html` + `js/garden.js` + `js/garden/{life,sorting,stars}.js` + `css/garden.css` | 花园页：三个 canvas 玩具，单循环、切页停帧、减少动效只画一帧 | 加玩具：新文件推进 `window.GardenToys` + 页面加一个 script 标签 |
 | `links.html` + `js/friends.js` + `js/bookmarks.js` + `js/links.js` + `css/links.css` | 链接页：友情链接（空态 + 申请说明）与收藏夹（分组筛选 + 关键词搜索） | 友链加 `js/friends.js`，收藏加 `js/bookmarks.js` |
+| `novel.html` + `js/novel.js` + `js/novel-data.js` + `css/novel.css` | 连载阅读器：书架、章节抽屉、键盘翻页、进度记忆、字号行高、沉浸模式、章节深链 | 章节写进 `js/novel-data.js`（第 4 轮起由本地写作台生成） |
 
 ---
 
@@ -304,7 +306,7 @@ python -m http.server 8327  →  node scripts/cosmos-scan.mjs      # 背景引�
 ```bash
 node scripts/sync-chrome.mjs        # 站点外壳一致性（页面入口/标记块）
 node scripts/dev-server.js          # 终端 A
-node scripts/video-fx-smoke.mjs     # 终端 B：75 项（J 段第 1 轮、K 段第 2 轮：花园与链接页）
+node scripts/video-fx-smoke.mjs     # 终端 B：85 项（J 段第 1 轮、K 段第 2 轮花园与链接页、L 段第 3 轮连载阅读器）
 ```
 
 ## 🌱 花园与链接页（第 2 轮）
@@ -327,6 +329,17 @@ node scripts/video-fx-smoke.mjs     # 终端 B：75 项（J 段第 1 轮、K 段
 - **友情链接**：数据在 `js/friends.js`（`name/url/desc/avatar`）；为空时显示空态与申请方式（邮箱 + GitHub），倾向收录原创、可稳定访问的站点。
 - **收藏夹**：数据在 `js/bookmarks.js`（分组 → 条目：`name/url/desc/tags`）；分组胶囊筛选 + 本地关键词搜索（纯前端过滤，命中数实时显示）。
 - 全是外链入口，页面本身不加载任何第三方资源（零外链红线不受影响）；站内相对链接（如 `archive.html`）直接跳转，外链统一 `rel="noopener noreferrer"`。
+
+## 📖 连载阅读器（第 3 轮）
+
+`novel.html` + `js/novel-data.js`（数据）+ `js/novel.js`（渲染）+ `css/novel.css`。
+
+- **数据与界面解耦**：章节写在 `js/novel-data.js` 的 `window.NOVEL_BOOKS`（书 → 卷 → 章，正文是 Markdown），加一章就是加一条记录，刷新即可见。
+- **阅读体验**：窄版心（34em）中文长文排版；章节抽屉（含当前章高亮）；上一章/下一章；键盘 **←/→** 翻章；**沉浸模式**（藏导航与工具，只留正文 + 一枚「退出沉浸」，Esc 也能退出）。
+- **进度记忆**：每个书一本记录 —— `sj.novel.last.<bookId> = { chapter, scroll }`，从书架再进去会接着上次那一章；排版偏好存在 `sj.novel.type = { size, lh }`（字号 16–22、行高 1.6–2.1）。
+- **可分享深链**：`novel.html#<bookId>/<chapterId>`，翻章时用 `replaceState` 同步地址栏，深链可直接落到某一章。
+- **代码块**：正文里出现 ```` ``` ```` 时才按需加载 highlight（与首页手记同一套按需策略）。
+- **现状**：站内还没有真正的连载内容，所以书架里放了一本标注「示例」的两章短书用于验证阅读器（页面顶部有提示，可一键「知道了」）；第 4 轮的本地写作台会直接往 `js/novel-data.js` 生成章节，届时删掉示例书即可。
 
 ## 🌐 如何免费部署上线到公网？
 

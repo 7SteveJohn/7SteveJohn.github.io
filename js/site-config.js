@@ -70,7 +70,8 @@
       { href: 'archive.html', label: '归档' },
       { href: 'gallery.html', label: '照片墙' },
       { href: 'garden.html', label: '花园' },
-      { href: 'links.html', label: '友链' }
+      { href: 'links.html', label: '友链' },
+      { href: 'novel.html', label: '连载' }
     ],
 
     // ---- 外链：必须出现在所有页页脚 ----
@@ -88,6 +89,7 @@
       { href: 'gallery.html', label: '照片墙', title: '照片墙', sitemap: true, priority: '0.7', changefreq: 'monthly' },
       { href: 'garden.html', label: '花园', title: '花园', sitemap: true, priority: '0.6', changefreq: 'monthly' },
       { href: 'links.html', label: '友链', title: '友链与收藏', sitemap: true, priority: '0.5', changefreq: 'monthly' },
+      { href: 'novel.html', label: '连载', title: '连载', sitemap: true, priority: '0.7', changefreq: 'weekly' },
       { href: '404.html', label: '404', sitemap: false, chrome: false },
       { href: 'cosmos-home.html', label: '星河随乐而舞（演示页）', sitemap: false, chrome: false }
     ]

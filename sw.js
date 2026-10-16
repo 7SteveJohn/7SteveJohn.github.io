@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v140';   // 2026-10-17 第 2 轮：CORE 增花园与链接页
+const CACHE = 'sevenjohn-v141';   // 2026-10-17 第 3 轮：CORE 增连载阅读器
 const CORE = [
   './',
   'index.html',
@@ -21,12 +21,14 @@ const CORE = [
   'gallery.html',
   'garden.html',
   'links.html',
+  'novel.html',
   'css/style.css',
   'css/cosmos.css',
   'css/archive.css',
   'css/gallery.css',
   'css/garden.css',
   'css/links.css',
+  'css/novel.css',
   'css/settings-panel.css',
   'js/cosmos.js',        // 手机 / 无 WebGL 时的 2D 星河回退（js/cosmos/main.js 引导层按需加载）
   'js/cosmos/config.js',
@@ -68,6 +70,8 @@ const CORE = [
   'js/links.js',
   'js/friends.js',
   'js/bookmarks.js',
+  'js/novel.js',
+  'js/novel-data.js',
   'js/subpage.js',
   'js/archive.js',
   'js/gallery.js',
@@ -290,7 +294,8 @@ self.addEventListener('fetch', (event) => {
       '/archive.html': './archive.html',
       '/gallery.html': './gallery.html',
       '/garden.html': './garden.html',
-      '/links.html': './links.html'
+      '/links.html': './links.html',
+      '/novel.html': './novel.html'
     };
     const key = SWR_KEYS[path];
     if (key) {
