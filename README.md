@@ -129,6 +129,7 @@ node scripts/gen-rss.js
 | `manifest.json` / `icon-512.png` | PWA 应用清单与安装图标 | 想换 App 名字/图标时替换 |
 | `sw.js` | Service Worker 离线缓存（全面 stale-while-revalidate：缓存秒开 + 后台更新） | 常规发布**无需**动版本号——内容更新由 SWR 在访客下次打开时自动对齐；仅当改动 `CORE` 预缓存列表或缓存结构时才把顶部 `CACHE` +1 |
 | `_headers` | Cloudflare Pages 响应头（媒体类资源 7 天缓存） | 仅影响 pages.dev；媒体文件名惯例"名不变内容不变"，新增目录要放宽缓存时在此追加 |
+| `.nojekyll` | 让 GitHub Pages 跳过 Jekyll：不加的话，`posts/*.md`（带 front matter）会被渲染成 `/posts/*.html` 的重复页面 | 不要删；文件内容随意（Pages 只看存在与否） |
 | `js/cosmos/`（main.js + config.js + scene/ + audio/ + interaction/） | 首页 3D 背景「等高线岛图」：fbm 高度场 + domain warp 的等值线渲染，随乐律动（three.js 自托管；手机/无 WebGL 降级 2D 星河，软渲染设备静态暗角） | 改参数看 `config.js`；设备分档逻辑见 `main.js` |
 | `js/cosmos.js` / `css/cosmos.css` | 无 WebGL 时的 2D 回退背景（噪声宇宙），主场景初始化失败自动加载 | 一般无需改动 |
 | `scripts/cosmos-scan.mjs` | 背景引擎验收（20 项断言：full/lite/static 三档、等高线探针、帧推进、容灾标志、reduce-motion、3D 拉取失败回退） | `python -m http.server 8327` + `node scripts/cosmos-scan.mjs` |
