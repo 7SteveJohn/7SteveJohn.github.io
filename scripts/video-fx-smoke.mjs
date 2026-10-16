@@ -11,6 +11,7 @@
  *   G 降级   prefers-reduced-motion 不加载看板娘、粒子画布隐藏；file:// 下看板娘静默跳过
  * 用法：node scripts/dev-server.js（8328）→ node scripts/video-fx-smoke.mjs
  */
+import { spawnSync } from 'node:child_process';
 import { devRequire as require } from './_dev-require.mjs';
 const { chromium } = require('playwright-core');
 const BASE = 'http://localhost:8328/';
@@ -58,13 +59,14 @@ try {
         cls: document.documentElement.classList.contains('has-wallpaper'),
         opacity: cs ? Number(cs.opacity) : 0,
         blend: cs ? cs.mixBlendMode : '',
-        img: cs ? cs.backgroundImage.includes('wallpaper.webp') : false,
+        // 轮换后壁纸由 --wp-image 提供，可能是任意一张 wallpaper[-n].webp，别再写死文件名
+        imgAny: cs ? /wallpaper[^")]*\.webp/.test(cs.backgroundImage) : false,
         lite: document.documentElement.classList.contains('wallpaper-lite'),
         cardBlur: card ? (getComputedStyle(card).backdropFilter || 'none') : 'none',
         tier: (window.__fxTier || {}).tier || '',
       };
     });
-    assert(wp.cls && wp.opacity > 0 && wp.img, 'A1 深空壁纸层生效', `opacity=${wp.opacity}`);
+    assert(wp.cls && wp.opacity > 0 && (wp.imgAny || wp.img), 'A1 深空壁纸层生效', `opacity=${wp.opacity}`);
     assert(wp.blend === 'screen', 'A2 桌面细指针用 screen 混合（壁纸从推理场深底透出）', wp.blend);
     assert(!wp.lite && wp.tier === 'full' && /blur/.test(wp.cardBlur),
       'A2b 强机档位：卡片磨砂在场、未被降成轻档', `tier=${wp.tier} blur=${wp.cardBlur.slice(0, 12)}`);
@@ -363,6 +365,141 @@ try {
     assert(fileState.wp, 'G5 file:// 下壁纸仍生效（纯 CSS 层，无需 fetch）');
     assert(fileErrors.filter((e) => /live2d|waifu/i.test(e)).length === 0, 'G6 file:// 无看板娘相关报错', fileErrors.slice(0, 2).join(' | '));
     await fileCtx.close();
+  }
+
+  // ---------------- J. 第 1 轮：配置收口 / 设置面板 / 三件动效 / 文章卡封面 ----------------
+  {
+    // J1 一致性：js/site-config.js 与各页导航页脚不漂移（脚本自己是权威）
+    const r = spawnSync(process.execPath, ['scripts/sync-chrome.mjs'], { cwd: process.cwd(), encoding: 'utf8' });
+    assert(r.status === 0, 'J1 sync-chrome 一致性校验通过', (r.stdout || '').trim().split('\n').pop());
+
+    const page = await (await browser.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
+    const errors = errorsOf(page);
+    await page.goto(BASE + 'index.html?fx=full', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(1600);
+
+    // J2 站点配置读得到，且与页面标题同源
+    const cfg = await page.evaluate(() => ({
+      name: (window.SITE_CONFIG || {}).name, wallpapers: ((window.SITE_CONFIG || {}).wallpapers || []).length,
+      title: document.title
+    }));
+    assert(cfg.name && cfg.title.startsWith(cfg.name) && cfg.wallpapers >= 1, 'J2 SITE_CONFIG 生效且与标题一致', JSON.stringify(cfg));
+
+    // J3 设置面板：齿轮 → 打开 → 滑杆实时生效 + 落盘 → 档位写键
+    await page.click('#fx-open');
+    await page.waitForTimeout(350);
+    const opened = await page.evaluate(() => ({
+      open: !document.getElementById('fx-panel').hidden,
+      focus: document.activeElement.className
+    }));
+    assert(opened.open && /fx-close/.test(opened.focus), 'J3a 设置面板可打开且焦点进入', JSON.stringify(opened));
+
+    await page.evaluate(() => {
+      const b = document.getElementById('fx-blur');
+      b.value = '8';
+      b.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await page.waitForTimeout(200);
+    const slider = await page.evaluate(() => ({
+      filter: getComputedStyle(document.getElementById('site-wallpaper')).filter,
+      stored: localStorage.getItem('sj.wp-blur')
+    }));
+    assert(/blur\(8px\)/.test(slider.filter) && slider.stored === '8', 'J3b 模糊滑杆实时生效并持久化', JSON.stringify(slider));
+
+    await page.click('[data-tier="lite"]');
+    await page.waitForTimeout(250);
+    const tier = await page.evaluate(() => ({
+      stored: localStorage.getItem('sj.wallpaper'),
+      lite: document.documentElement.classList.contains('wallpaper-lite'),
+      note: !document.getElementById('fx-note').hidden
+    }));
+    assert(tier.stored === 'lite' && tier.lite && tier.note, 'J3c 档位切换即时生效并提示刷新', JSON.stringify(tier));
+
+    // 开关：粒子/推理场/看板娘 → 类 + 键（看板娘这个环境本来就没加载，只验开关语义）
+    await page.evaluate(() => {
+      ['fx-particles', 'fx-cosmos'].forEach((id) => {
+        const el = document.getElementById(id);
+        el.checked = false;
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+    });
+    await page.waitForTimeout(200);
+    const flags = await page.evaluate(() => ({
+      cls: document.documentElement.className.split(' ').filter((c) => c.startsWith('fx-no')).sort().join(','),
+      store: [localStorage.getItem('sj.particles'), localStorage.getItem('sj.cosmos')].join(',')
+    }));
+    assert(flags.cls === 'fx-no-cosmos,fx-no-particles' && flags.store === 'off,off', 'J3d 粒子/推理场开关生效并落盘', JSON.stringify(flags));
+
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+    assert(await page.evaluate(() => document.getElementById('fx-panel').hidden), 'J3e Esc 关闭设置面板');
+
+    // 复位（别把弱机档位带进后面的用例）
+    await page.evaluate(() => { ['sj.wallpaper', 'sj.wp-blur', 'sj.wp-dim', 'sj.particles', 'sj.cosmos', 'sj.live2d', 'sj.fx-lite'].forEach((k) => localStorage.removeItem(k)); });
+    await page.reload({ waitUntil: 'load' });
+    await page.waitForTimeout(1500);
+
+    // J4 导航胶囊：跟着 ScrollSpy 走
+    await page.evaluate(() => document.querySelector('#philosophy').scrollIntoView());
+    await page.waitForTimeout(1100);
+    const pill = await page.evaluate(() => {
+      const nav = document.querySelector('header.site-header .max-w-6xl > nav');
+      const active = nav.querySelector('a.nav-active');
+      const p = document.querySelector('.nav-pill');
+      return {
+        on: nav.classList.contains('nav-pill-on'),
+        active: active ? active.textContent.trim() : null,
+        expect: active ? active.offsetLeft - 6 : null,
+        got: p.style.transform,
+        opacity: getComputedStyle(p).opacity,
+        underline: active ? getComputedStyle(active).textDecorationLine : null
+      };
+    });
+    assert(pill.on && pill.active && pill.got.includes(`${pill.expect}px`) && pill.opacity === '1' && pill.underline === 'none',
+      'J4 导航胶囊跟随当前区块（且下划线让位）', JSON.stringify(pill));
+
+    // J5 目录高亮当前章节
+    await page.goto(BASE + 'index.html?post=ai-frontier-mirror', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(2600);
+    const toc1 = await page.evaluate(() => {
+      const links = [...document.querySelectorAll('.toc-box .toc-link')];
+      return { n: links.length, cur: links.findIndex((l) => l.classList.contains('is-current')), aria: (links.find((l) => l.classList.contains('is-current')) || {}).getAttribute ? links.find((l) => l.classList.contains('is-current')).getAttribute('aria-current') : null };
+    });
+    await page.evaluate(() => { document.getElementById('article-modal-content').scrollTop = 2400; });
+    await page.waitForTimeout(600);
+    const toc2 = await page.evaluate(() => {
+      const links = [...document.querySelectorAll('.toc-box .toc-link')];
+      return { cur: links.findIndex((l) => l.classList.contains('is-current')), only: links.filter((l) => l.classList.contains('is-current')).length };
+    });
+    assert(toc1.n >= 3 && toc1.cur >= 0 && toc1.aria === 'true' && toc2.cur !== toc1.cur && toc2.only === 1,
+      'J5 目录高亮当前章节且随滚动变化', `${toc1.cur} → ${toc2.cur}`);
+
+    // J6 文章卡封面：每张卡都有媒体位（真图或品牌首字），数量与文章数一致
+    await page.goto(BASE + 'index.html', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(1800);
+    const cards = await page.evaluate(() => {
+      const list = [...document.querySelectorAll('#articles-list .ac-with-cover')];
+      const media = list.filter((c) => c.querySelector('.ac-media'));
+      const filled = media.filter((c) => c.querySelector('.ac-media img') || (c.querySelector('.ac-fallback') || {}).textContent);
+      const broken = [...document.querySelectorAll('.ac-media img')].filter((i) => i.complete && i.naturalWidth === 0).length;
+      return { cards: list.length, media: media.length, filled: filled.length, broken, data: (window.ARTICLES_DATA || []).filter((a) => !a.section).length };
+    });
+    assert(cards.media === cards.cards && cards.cards > 0 && cards.filled === cards.cards && cards.broken === 0,
+      'J6 文章卡全部有封面位（真图或品牌渐变首字）', JSON.stringify(cards));
+
+    // J7 灯箱入场动画
+    await page.goto(BASE + 'gallery.html', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(1500);
+    await page.click('.gal-tile:nth-child(2)');
+    await page.waitForTimeout(250);
+    const zoom = await page.evaluate(() => {
+      const img = document.getElementById('gal-img');
+      return { cls: img.className, anim: getComputedStyle(img).animationName };
+    });
+    assert(/is-in/.test(zoom.cls) && zoom.anim === 'gal-zoom', 'J7 灯箱大图入场缩放', JSON.stringify(zoom));
+
+    assert(errors.length === 0, 'J8 第 1 轮新增功能无控制台错误', errors.slice(0, 2).join(' | '));
+    await page.context().close();
   }
 
   // ---------------- H. 弱机路径（无硬件加速 → 软件合成）----------------

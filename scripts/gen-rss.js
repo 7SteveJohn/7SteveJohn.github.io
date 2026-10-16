@@ -2,13 +2,20 @@
  * RSS / Sitemap 生成器（零构建：仅新增文章后手动运行一次）
  * ----------------------------------------------------
  * 用法：node scripts/gen-rss.js
- * 读取 js/articles.js 的 ARTICLES_DATA，在站点根目录生成 rss.xml 与 sitemap.xml。
+ * 读取 js/articles.js 的 ARTICLES_DATA 与 js/site-config.js 的页面清单，
+ * 在站点根目录生成 rss.xml 与 sitemap.xml。
+ *
+ * ❗2026-10-17 修：此前 sitemap 只输出首页 + ?post= 深链，手工补进去的
+ *   archive.html / gallery.html 会在下次生成时被覆盖掉。现在页面部分统一从
+ *   js/site-config.js 的 pages（sitemap:true）来 —— 加页面只改那一处。
  */
 
 const fs = require('fs');
 const path = require('path');
 
-const SITE_URL = 'https://7stevejohn.github.io';
+require('../js/site-config.js');
+const CFG = global.SITE_CONFIG;
+const SITE_URL = CFG.url;
 
 // articles.js 是浏览器脚本（挂 window.ARTICLES_DATA），这里模拟 window 环境后加载
 global.window = {};
@@ -45,9 +52,9 @@ const latest = articles.reduce((max, a) => (a.date > max ? a.date : max), articl
 const rss = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>楠屿札记 · 手记与创作</title>
+    <title>${escapeXml(CFG.rssTitle)}</title>
     <link>${SITE_URL}/</link>
-    <description>技术手记、小说、游戏创作与随笔，想到什么写什么。</description>
+    <description>${escapeXml(CFG.rssDescription)}</description>
     <language>zh-cn</language>
     <lastBuildDate>${new Date(latest).toUTCString()}</lastBuildDate>
     <atom:link href="${SITE_URL}/rss.xml" rel="self" type="application/rss+xml" />
@@ -57,14 +64,26 @@ ${rssItems}
 `;
 
 // ---------- sitemap.xml ----------
+// 页面部分来自 js/site-config.js 的 pages（sitemap:true）；lastmod 统一用「站点最后更新」
+// （= 最新文章日期）：静态页改动不便逐页记账，用同一个可复现的信号对爬虫更友好。
+const pageEntries = CFG.pages
+  .filter((p) => p.sitemap)
+  .map((p) => {
+    const extra = (p.priority ? `\n    <priority>${p.priority}</priority>` : '')
+      + (p.changefreq ? `\n    <changefreq>${p.changefreq}</changefreq>` : '');
+    // 首页的规范地址是根路径（canonical 也是它），别写成 /index.html
+    const loc = p.href === 'index.html' ? `${SITE_URL}/` : `${SITE_URL}/${p.href}`;
+    return { loc, lastmod: latest, extra };
+  });
+
 const sitemapUrls = [
-  { loc: `${SITE_URL}/`, lastmod: latest },
-  ...articles.map((a) => ({ loc: postUrl(a.id), lastmod: a.date }))
+  ...pageEntries,
+  ...articles.map((a) => ({ loc: postUrl(a.id), lastmod: a.date, extra: '' }))
 ]
   .map(
     (u) => `  <url>
     <loc>${u.loc}</loc>
-    <lastmod>${u.lastmod}</lastmod>
+    <lastmod>${u.lastmod}</lastmod>${u.extra}
   </url>`
   )
   .join('\n');
@@ -78,4 +97,4 @@ ${sitemapUrls}
 const root = path.join(__dirname, '..');
 fs.writeFileSync(path.join(root, 'rss.xml'), rss);
 fs.writeFileSync(path.join(root, 'sitemap.xml'), sitemap);
-console.log(`✓ rss.xml / sitemap.xml 已生成（共 ${articles.length} 篇文章）`);
+console.log(`✓ rss.xml / sitemap.xml 已生成（${CFG.pages.filter((p) => p.sitemap).length} 个页面 + ${articles.length} 篇文章）`);

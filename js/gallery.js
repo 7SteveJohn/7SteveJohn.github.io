@@ -87,6 +87,10 @@
     CAP.textContent = it.caption || '';
     META.textContent = it.meta || '';
     IDX.textContent = `${cur + 1} / ${data.length}`;
+    // 重新挂一次入场动画：同一个 <img> 只换 src 不会自动重放 keyframes
+    IMG.classList.remove('is-in');
+    void IMG.offsetWidth;
+    IMG.classList.add('is-in');
     preload(cur + 1);
     preload(cur - 1);
   }

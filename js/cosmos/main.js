@@ -43,7 +43,12 @@ function inBundledBrowser() {
   return /MicroMessenger|MQQBrowser/i.test(navigator.userAgent);
 }
 
-if (inBundledBrowser() || softwareGL()) {
+// 显示设置面板的「推理场」开关（sj.cosmos === 'off'）：只留 .cosmos-veil 暗角兜底，不加载任何引擎
+const cosmosOff = (() => { try { return localStorage.getItem('sj.cosmos') === 'off'; } catch (e) { return false; } })();
+
+if (cosmosOff) {
+  window.__COSMOS_TIER = 'static';
+} else if (inBundledBrowser() || softwareGL()) {
   window.__COSMOS_TIER = 'static';   // 静态暗角档：不加载任何背景引擎
 } else if (!webglOK() || isMobile) {
   window.__COSMOS_TIER = 'lite';

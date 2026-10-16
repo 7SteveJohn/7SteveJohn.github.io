@@ -1,0 +1,310 @@
+/* ============================================================
+   显示设置面板（js/settings-panel.js）
+   ----------------------------------------------------
+   入口在左下角（右下被看板娘/回到顶部/音乐 FAB 占满，左上被星场 HUD 占）。
+   面板本身只占一层，不引入大面积 backdrop-filter —— 轻档机器上也开得起。
+   层级：齿轮 34（低于吸顶导航 40）／面板 66（高于弹窗 50 与搜索 60，低于按住 Tab 的浮层 70）。
+   ============================================================ */
+
+/* 开关的「立即生效」部分：引擎真正的启停要刷新（见 js/settings-panel.js 注释） */
+html.fx-no-particles #particle-canvas {
+  display: none;
+}
+html.fx-no-cosmos #cosmos-canvas,
+html.fx-no-cosmos .cosmos-veil {
+  display: none;
+}
+html.fx-no-live2d #waifu,
+html.fx-no-live2d #live2d-close {
+  display: none !important;
+}
+
+.fx-open {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 34;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  background: rgba(18, 20, 27, 0.62);
+  color: #86868b;
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease, transform 0.25s var(--ease-swift);
+}
+.fx-open svg {
+  width: 17px;
+  height: 17px;
+}
+.fx-open:hover {
+  color: #f5f5f7;
+  background: rgba(18, 20, 27, 0.9);
+  transform: rotate(24deg);
+}
+.fx-open[aria-expanded="true"] {
+  color: #8fb8ff;
+}
+
+.fx-panel {
+  position: fixed;
+  left: 16px;
+  bottom: 62px;
+  z-index: 66;
+  width: min(21rem, calc(100vw - 32px));
+  max-height: min(70vh, 30rem);
+  overflow: auto;
+  padding: 0.9rem 1rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  background: rgba(16, 18, 24, 0.86);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(22px) saturate(1.35);
+  backdrop-filter: blur(22px) saturate(1.35);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.2s var(--ease-swift), transform 0.24s var(--ease-swift);
+}
+.fx-panel.is-open {
+  opacity: 1;
+  transform: none;
+}
+.fx-panel[hidden] {
+  display: none;
+}
+
+.fx-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.7rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.fx-head b {
+  color: #f5f5f7;
+  font-size: 13px;
+  font-weight: 600;
+}
+.fx-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  color: #86868b;
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+.fx-close svg {
+  width: 14px;
+  height: 14px;
+}
+.fx-close:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.fx-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.fx-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 28px;
+}
+.fx-row-col {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.45rem;
+}
+.fx-label {
+  flex: 0 0 auto;
+  min-width: 4.2rem;
+  color: #86868b;
+  font-size: 12px;
+}
+.fx-row input[type="range"] {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 18px;
+  accent-color: #8fb8ff;
+  cursor: pointer;
+}
+.fx-val {
+  flex: 0 0 auto;
+  min-width: 2.6rem;
+  color: #b9c8ff;
+  font-family: ui-monospace, Consolas, "Courier New", monospace;
+  font-size: 11px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 三选一档位 */
+.fx-seg {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+.fx-seg button {
+  padding: 0.35rem 0.2rem;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #86868b;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+.fx-seg button:hover {
+  color: #f5f5f7;
+}
+.fx-seg button.is-on {
+  color: #0a0a0c;
+  background: #8fb8ff;
+  font-weight: 600;
+}
+.fx-hint {
+  color: rgba(158, 176, 202, 0.72);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.fx-hint:empty {
+  display: none;
+}
+
+/* 开关：隐藏原生 checkbox，用胶囊替身 */
+.fx-row-sw {
+  cursor: pointer;
+}
+.fx-row-sw input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.fx-sw {
+  position: relative;
+  flex: 0 0 auto;
+  width: 40px;
+  height: 22px;
+  margin-left: auto;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.06);
+  transition: background-color 0.22s ease, border-color 0.22s ease;
+}
+.fx-sw::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: #86868b;
+  transition: transform 0.22s var(--ease-swift), background-color 0.22s ease;
+}
+.fx-row-sw input:checked ~ .fx-sw {
+  border-color: rgba(143, 184, 255, 0.6);
+  background: rgba(143, 184, 255, 0.24);
+}
+.fx-row-sw input:checked ~ .fx-sw::after {
+  background: #8fb8ff;
+  transform: translateX(18px);
+}
+.fx-row-sw input:focus-visible ~ .fx-sw {
+  outline: 2px solid rgba(143, 184, 255, 0.7);
+  outline-offset: 2px;
+}
+
+.fx-note {
+  margin-top: 0.6rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid rgba(143, 184, 255, 0.28);
+  border-radius: 9px;
+  background: rgba(143, 184, 255, 0.08);
+  color: #b9c8ff;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.fx-note[hidden] {
+  display: none;
+}
+
+.fx-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.fx-reset {
+  padding: 0.32rem 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #f5f5f7;
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.fx-reset:hover {
+  border-color: rgba(143, 184, 255, 0.5);
+  background: rgba(143, 184, 255, 0.12);
+}
+.fx-about {
+  color: #86868b;
+  font-size: 11.5px;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.fx-about:hover {
+  color: #f5f5f7;
+}
+
+/* 窄屏：面板变底部抽屉，别顶到屏幕上沿 */
+@media (max-width: 640px) {
+  .fx-open {
+    left: 12px;
+    bottom: 12px;
+    width: 34px;
+    height: 34px;
+  }
+  .fx-panel {
+    left: 12px;
+    right: 12px;
+    bottom: 54px;
+    width: auto;
+    max-height: 62vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-open,
+  .fx-panel,
+  .fx-sw,
+  .fx-sw::after {
+    transition: none;
+  }
+  .fx-open:hover {
+    transform: none;
+  }
+}

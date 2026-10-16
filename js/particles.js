@@ -11,6 +11,9 @@
 (function () {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
+  // 显示设置面板的「粒子层」开关（sj.particles === 'off'）：连画布都不启动
+  try { if (localStorage.getItem('sj.particles') === 'off') return; } catch (e) { /* 无痕模式：照常 */ }
+
   // 3D 背景（js/cosmos/main.js）在场时自动让位：两层环境光点叠着跑只是白烧 CPU
   if (document.getElementById('cosmos-canvas')) return;
 

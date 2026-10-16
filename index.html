@@ -87,6 +87,7 @@
  <!-- 定制样式-->
   <link rel="stylesheet" href="css/style.css" data-page-node-id="DJZNUKsUQagCUphQLazIKY" />
   <link rel="stylesheet" href="css/cosmos.css" />
+  <link rel="stylesheet" href="css/settings-panel.css" />
 </head>
 <body class="bg-white text-[#1d1d1f] dark:bg-[#0a0a0c] dark:text-[#f5f5f7] min-h-screen transition-colors duration-200 antialiased" data-page-node-id="HMv6yxcstcjkCYNAATJeCG">
 
@@ -1041,12 +1042,18 @@
     const bootCosmos = () => import('./js/cosmos/main.js').catch(() => {});
     requestAnimationFrame(() => setTimeout(bootCosmos, 0));
   </script>
+  <!-- 站点配置唯一来源（站名/社交/壁纸清单/页面清单）—— 必须早于 wallpaper 等读它的脚本 -->
+  <script src="js/site-config.js" defer></script>
   <!-- 深空壁纸层门控：只决定「图片能加载才显示」，与交互无关 -->
   <script src="js/wallpaper.js" defer></script>
   <!-- Live2D 看板娘：桌面端、首帧之后才拉自托管运行时（约 1.9MB，不进预缓存） -->
   <script src="js/live2d.js" defer></script>
   <!-- 按住 Tab 唤出快速导航 / 文章目录（与 archive、gallery 共用同一份） -->
   <script src="js/tab-nav.js" defer></script>
+  <!-- 显示设置面板（左下角齿轮）：档位、壁纸模糊/亮度、粒子/推理场/看板娘开关 -->
+  <script src="js/settings-panel.js" defer></script>
+  <!-- 导航当前项胶囊：跟 ScrollSpy 的 .nav-active 走（仅首页有滚动导航） -->
+  <script src="js/nav-indicator.js" defer></script>
   <script src="js/player.js" defer></script>
 </body>
 </html>

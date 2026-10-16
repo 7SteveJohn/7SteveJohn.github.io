@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v138';
+const CACHE = 'sevenjohn-v139';   // 2026-10-17 第 1 轮：CORE 增 site-config / 设置面板 / 导航胶囊
 const CORE = [
   './',
   'index.html',
@@ -23,6 +23,7 @@ const CORE = [
   'css/cosmos.css',
   'css/archive.css',
   'css/gallery.css',
+  'css/settings-panel.css',
   'js/cosmos.js',        // 手机 / 无 WebGL 时的 2D 星河回退（js/cosmos/main.js 引导层按需加载）
   'js/cosmos/config.js',
   'js/cosmos/main.js',   // 背景引导层：设备分档（full/lite/static），桌面动态 import main3d
@@ -48,10 +49,14 @@ const CORE = [
   'js/particles.js',
   'js/search.js',
   'js/status.js',
+  // 站点配置唯一来源（站名/社交/壁纸清单/页面清单），wallpaper 等脚本依赖它
+  'js/site-config.js',
   // 新页面与新增效果（2026-10-16）：深空壁纸门控、按住 Tab 的快速导航、
   // 次级页共用外壳、归档时间河、照片墙
   'js/wallpaper.js',
   'js/tab-nav.js',
+  'js/settings-panel.js',
+  'js/nav-indicator.js',
   'js/subpage.js',
   'js/archive.js',
   'js/gallery.js',

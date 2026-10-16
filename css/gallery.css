@@ -121,6 +121,25 @@
   max-height: 72vh;
   object-fit: contain;
 }
+/* 大图入场：轻缩放 + 淡入（js/gallery.js 每次换图重新挂一次 is-in 让动画重放） */
+#gal-img.is-in {
+  animation: gal-zoom 0.34s var(--ease-swift);
+}
+@keyframes gal-zoom {
+  from {
+    opacity: 0.55;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #gal-img.is-in {
+    animation: none;
+  }
+}
 .gal-bar {
   display: flex;
   align-items: center;

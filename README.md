@@ -16,6 +16,7 @@
    - 📴 PWA 离线缓存（Service Worker）：断网也能读，可"添加到主屏幕"当 App 用；
  - 🌌 背景光粒子、滚动浮现编排、导航整页换页等编辑风动效（全量尊重 `prefers-reduced-motion`）；
    - 🎬 **参考视频移植的四项效果**（沿用站点原有深色语言，不改成浅色动漫风）：深空壁纸层 + 桌面磨砂玻璃、右下角 Live2D 看板娘（鼠标跟随即时摆动、可一键关闭）、波浪曲线「归档」页、照片墙灯箱，外加**按住 Tab** 唤出的快速导航。每一项都可单独关闭，加载失败一律静默退回原观感；维护方式见下文「[🎬 视频里的效果怎么维护](#-视频里的效果怎么维护)」一节。
+   - ⚙️ **显示设置面板**（左下角齿轮）：效果档位、壁纸模糊/亮度滑块、粒子/推理场/看板娘开关、一键还原；站名/社交/壁纸清单/页面清单收口在 `js/site-config.js`，`scripts/sync-chrome.mjs` 负责校验各页导航与页脚不漂移；文章卡支持封面图（没封面自动用品牌渐变 + 栏目首字）。见下文「[🧩 配置、观感与发布流程](#-配置观感与发布流程)」。
    - 📱 完美适配 PC 电脑端、平板与手机端（移动端含汉堡导航菜单）。
 
 ---
@@ -127,10 +128,14 @@ node scripts/gen-rss.js
 | `gallery.html` + `css/gallery.css` + `js/gallery.js` | 照片墙：混排网格 + 灯箱（←/→/Esc） | 加图只在 `js/gallery.js` 顶部 `GALLERY_DATA` 里加一条 |
 | `js/subpage.js` | 次级页共用外壳（SW 注册、导航滚动态、页脚年份、滚动浮现 `window.pageReveal`） | 一般无需改动 |
 | `js/tab-nav.js` + `css/style.css` 的 `#tabnav` 段 | 按住 Tab 唤出目录 / 快速导航（弹窗内列该文目录，页面上列章节与最近文章） | 阈值与节流在文件头 `HOLD` / `CYCLE_GAP` |
-| `js/wallpaper.js` + `assets/images/wallpaper.webp` | 深空壁纸层门控与壁纸图（换壁纸=替换这张图；不想用就删掉它，页面自动回到原观感） | 关闭开关：控制台 `localStorage['sj.wallpaper']='off'` |
+| `js/site-config.js` + `scripts/sync-chrome.mjs` | 站点配置唯一来源（站名/社交/壁纸/页面/导航）+ 各页导航页脚一致性校验与注入 | 加页面改配置后跑 `node scripts/sync-chrome.mjs`；新页面用 chrome 标记块 + `--write` |
+| `js/settings-panel.js` + `css/settings-panel.css` | 左下角齿轮：档位、壁纸模糊/亮度滑杆、粒子/推理场/看板娘开关、一键还原 | 键名与语义见「[🧩 配置、观感与发布流程](#-配置观感与发布流程)」 |
+| `js/nav-indicator.js` | 导航当前项胶囊（跟 ScrollSpy 的 `.nav-active`，只动 transform/width） | 桌面细指针才启用；样式在 `css/style.css` 的 `.nav-pill` |
+| `scripts/make-wallpapers.mjs` + `assets/images/wallpaper-2/3.webp` | 程序化生成深空壁纸（ffmpeg 逐像素合成，零版权风险） | `node scripts/make-wallpapers.mjs [--force]`；轮换清单在 `SITE_CONFIG.wallpapers` |
+| `js/wallpaper.js` + `assets/images/wallpaper*.webp` | 深空壁纸层门控、轮换、渐变兜底与档位判定（换壁纸=替换图片并在配置里登记） | 关闭开关：控制台 `localStorage['sj.wallpaper']='off'`，或左下角齿轮 |
 | `assets/vendor/live2d/`（运行时 + 官方示例模型，约 1.9MB） | 右下角 Live2D 看板娘资源（`waifu-tips.js` / `waifu.css` / `live2d.min.js` / `chunk/index.js` / `model/shizuku/**`） | 重建或换模型：`node scripts/vendor-live2d.js`；来源与授权见目录内 `SOURCE.txt` |
 | `scripts/vendor-live2d.js` | 从隔离 node 工作区把看板娘运行时与模型搬进 `assets/vendor/live2d/`（跳过 800KB 交互音效并摘掉 `sound` 引用） | 依赖 `npm i live2d-widgets@1.0.1 live2d-widget-model-shizuku@1.0.5` |
-| `scripts/video-fx-smoke.mjs` | 本次四项效果的验收（40 项断言：壁纸/看板娘/归档/照片墙/按住 Tab/手机档/离线/降级） | `node scripts/dev-server.js` + `node scripts/video-fx-smoke.mjs` |
+| `scripts/video-fx-smoke.mjs` | 效果移植验收（63 项断言：壁纸轮换/看板娘/归档/照片墙/按住 Tab/手机档/离线/降级/配置与设置面板/胶囊/目录/封面/灯箱） | `node scripts/dev-server.js` + `node scripts/video-fx-smoke.mjs` |
 
 ---
 
@@ -230,7 +235,7 @@ node scripts/gen-rss.js
 ### 6. 怎么验收
 ```bash
 node scripts/dev-server.js          # 终端 A：8328 静态服务（带 Range）
-node scripts/video-fx-smoke.mjs     # 终端 B：四项效果 51 项断言
+node scripts/video-fx-smoke.mjs     # 终端 B：效果移植验收 63 项断言
 ```
 含三条易回归的路径（2026-10-17 补）：**H 弱机自动降档**（软件合成下滚动帧率必须回到 60 帧档、不加载看板娘、`?fx=full` 能覆盖）、**I 无 WebGL**（零请求、零报错、不留空白看板娘）、A2b **强机档位**（卡片磨砂在场）。
 既有回归套件（本次改动全部通过）：
@@ -241,6 +246,63 @@ python -m http.server 8327  →  node scripts/stability-edge.mjs   # 边缘稳�
 python -m http.server 8327  →  node scripts/cosmos-scan.mjs      # 背景引擎
 ```
 > `sw.js` 顶部 `CACHE` 本次由 `v137` 升到 `v138`（改了 `CORE` 预缓存列表）；脚本里硬编码过缓存名的 `swr-check.mjs` / `smoke-media.mjs` 已同步。
+
+## 🧩 配置、观感与发布流程
+
+这一节是「参考站可借鉴项」的落地记录（2026-10-17 第 1 轮）。
+
+### 站点配置收口（`js/site-config.js`）
+
+站名、简介、作者、社交链接、壁纸清单、页面清单、导航与「更多」条目、页脚外链全部只在这一个文件里定义：
+
+- 浏览器直接读 `window.SITE_CONFIG`；Node 侧（`gen-rss.js`、`sync-chrome.mjs`、写作台）`require` 后读 `globalThis.SITE_CONFIG`，同一份定义。
+- **加一个页面**：`pages[]` 里登记（`sitemap:true` 才会进 sitemap.xml），入口放 `entries[]`（归档/照片墙这一档）。
+- **校验不漂移**：`node scripts/sync-chrome.mjs` —— 检查根目录每个 HTML 都已登记、每个页面都含 `entries[]` 与 `externals[]` 的链接、首页还含 `nav[]`/`more[]`；缺了就报出来（当前 6 项全过）。
+- **新页面免手写导航**：页面里放两个标记块即可，`node scripts/sync-chrome.mjs --write` 会把导航与页脚渲染进去：
+  ```html
+  <!-- chrome:nav:start --><!-- chrome:nav:end -->
+  <!-- chrome:footer:start --><!-- chrome:footer:end -->
+  ```
+  （既有三页是手写块且带 `data-page-node-id`，脚本只校验不覆盖。）
+- **sitemap 不再被覆盖**：`scripts/gen-rss.js` 已改为从 `SITE_CONFIG.pages` 输出页面清单，顺手给首页写根路径、给各页带上 priority/changefreq。
+
+### 显示设置面板（左下角齿轮）
+
+| 项 | 作用 | 存储键 |
+| --- | --- | --- |
+| 效果档位 完整/轻档/关闭 | 等于 `?fx=full` / `?fx=lite` / `?fx=off` | `sj.wallpaper` |
+| 壁纸模糊 0–26px | 实时改 `--wp-blur` | `sj.wp-blur` |
+| 壁纸亮度 30–100% | 实时改 `--wp-dim` | `sj.wp-dim` |
+| 粒子层 / 推理场 / 看板娘 | 关掉对应引擎（刷新后彻底停） | `sj.particles` / `sj.cosmos` / `sj.live2d` |
+| 一键还原 | 清掉以上全部键并刷新 | — |
+
+- 滑杆与档位立即生效；粒子/推理场/看板娘是各自脚本启动阶段的早退开关，面板会先隐藏再提示刷新。
+- 档位那一行会告诉你「这台机器被自动判成轻档了」（= 之前那次掉帧的自动降档），想强制完整效果点「完整」即可。
+
+### 壁纸轮换与生成
+
+- 清单在 `SITE_CONFIG.wallpapers[]`；每次进站随机选一张并用 `sessionStorage` 固定（滚动中不换图），加载失败自动顺延下一张，全部失败退回 `themeColors` 深色渐变（不会留空底）。
+- 新图可以自己丢进 `assets/images/` 并加进清单；想程序化生成同风格的用 `node scripts/make-wallpapers.mjs [--force]`（ffmpeg 逐像素合成，零依赖零版权风险）。
+
+### 三件动效与文章封面
+
+- **导航当前项胶囊**（`js/nav-indicator.js`）：跟 `ScrollSpy` 的 `.nav-active` 走，只动 transform/width；启用后原来的下划线让位（脚本没跑时仍是下划线，观感不倒退）。
+- **目录高亮当前章节**（`app.js` 的 `initTocSpy`）：滚动容器内取距顶部最近的标题，给对应 `.toc-link` 加 `.is-current` + `aria-current`。
+- **灯箱入场**（`css/gallery.css`）：大图 `scale .94→1` + 淡入，换图重放；`prefers-reduced-motion` 下关闭。
+- **文章卡封面**：`js/articles.js` 里给文章加可选字段 `cover: "assets/images/xxx.webp"` 即可（桌面左图右文 200×120，手机上图下文 16:9）；**没写 cover 的文章自动用「品牌渐变 + 栏目首字」**，图片 404 时 `onerror` 摘掉 `img` 露出首字，不留破图框。
+
+### 顺手修掉的两个既有问题
+
+1. **ScrollSpy 高亮一直只落在移动端抽屉里**：`collectNavSections` 把桌面导航与抽屉按 href 去重，只保留后出现的抽屉链接，于是桌面导航从不高亮（做胶囊时暴露）—— 改成同一 href 的所有链接一起标记。
+2. **CSS 变量里的相对 `url()` 按样式表路径解析**：壁纸轮换写进 `--wp-image` 的相对路径被解析成 `/css/assets/...`，图片根本没显示 —— 现在先转绝对地址再写变量。
+
+### 验收
+
+```bash
+node scripts/sync-chrome.mjs        # 站点外壳一致性（6 项）
+node scripts/dev-server.js          # 终端 A
+node scripts/video-fx-smoke.mjs     # 终端 B：63 项（含第 1 轮 J 段：配置/面板/胶囊/目录/封面/灯箱）
+```
 
 ## 🌐 如何免费部署上线到公网？
 

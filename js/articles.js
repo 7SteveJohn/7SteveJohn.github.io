@@ -297,6 +297,7 @@ Ollama 装好、模型拉下来，聊天没问题。问题出在接进自己的�
     readTime: "6 分钟",
     category: "架构设计",
     summary: "「直接问文件」这件事，难的不是接个模型，是让它既快又能反悔。记录 FileButler 的双索引分工、可撤销设计，以及端侧 AI 必须做的降级底线。",
+    cover: "assets/images/cover-filebutler.webp",
     tags: ["Python", "Ollama", "SQLite", "RAG", "端侧AI"],
     content: `
 ### 问题：想「问文件」，但文件不能出门
@@ -328,6 +329,7 @@ Ollama 装好、模型拉下来，聊天没问题。问题出在接进自己的�
     readTime: "7 分钟",
     category: "系统调优",
     summary: "平均 300 帧还是不跟手，问题出在单帧生成时间的尖刺上。记录 GameBoost 针对 1% Low 做的几件事，以及动系统设置时那条不能省的底线。",
+    cover: "assets/images/cover-gameboost.webp",
     tags: ["C#", "Windows", "帧率防抖", "性能调优"],
     content: `
 ### 问题：平均帧率骗人
@@ -351,7 +353,8 @@ Ollama 装好、模型拉下来，聊天没问题。问题出在接进自己的�
 ### 结论
 这活真正难的不是「改哪一项」，是**改完还能完整还原**。所以花时间最多的不是优化逻辑，是备份、回读和状态验证——它们一点帧数都不产生，但决定了这东西敢不敢在自己机器上点下去。
     `
-  },
+  }
+,
   {
     id: "ai-concepts-primer",
     section: "ai",

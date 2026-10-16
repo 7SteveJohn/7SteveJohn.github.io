@@ -356,6 +356,45 @@ function buildArticleToc(modalContent) {
   body.parentNode.insertBefore(box, body);
 }
 
+// 目录高亮当前章节（2026-10-17 加）：滚动容器内取「距顶部最近的标题」，
+// 给对应目录项加 .is-current。用滚动容器自算而不是 IntersectionObserver —— 容器是
+// #article-modal-content（不是文档），观察器在嵌套滚动容器里要反复换算 root，反而更绕，
+// 而这里是「同一时刻只有一个当前章节」的场景，一行比较就够了。
+function initTocSpy(modalContent) {
+  const box = modalContent.querySelector('.toc-box');
+  if (!box) return;
+  const links = [...box.querySelectorAll('.toc-link[data-toc-id]')];
+  if (!links.length) return;
+
+  const heads = links.map((a) => ({ a, el: modalContent.querySelector('#' + CSS.escape(a.dataset.tocId)) }));
+  let raf = 0;
+  let currentId = '';
+
+  const paint = () => {
+    raf = 0;
+    const line = modalContent.getBoundingClientRect().top + 32;   // 容器顶部往下 32px 作为判读线
+    let cur = heads[0].a.dataset.tocId;
+    for (const h of heads) {
+      if (h.el && h.el.getBoundingClientRect().top <= line) cur = h.a.dataset.tocId;
+    }
+    if (cur === currentId) return;
+    currentId = cur;
+    links.forEach((a) => {
+      const on = a.dataset.tocId === cur;
+      a.classList.toggle('is-current', on);
+      if (on) a.setAttribute('aria-current', 'true');
+      else a.removeAttribute('aria-current');
+    });
+  };
+
+  modalContent.addEventListener('scroll', () => {
+    if (!raf) raf = requestAnimationFrame(paint);
+  }, { passive: true });
+  paint();
+  // 弹窗还在入场动画（transform 未归位）时首算会误判成最后一节，动画落定后再对一次
+  setTimeout(paint, 400);
+}
+
 // 文章结构化数据（Google 会执行 JS，可吃到每篇的富摘要）
 function injectArticleJsonLd(article) {
   let el = document.getElementById('json-ld-article');
@@ -602,6 +641,8 @@ function initGlassSpec() {
 
 // 单条内容卡片（技术手记 / 创作 / 随笔共用同一卡片样式）；可键盘聚焦，Enter/Space 触发打开
 // opts.hideCategory：分组头已表达分类时（创作模块），卡片内不再重复渲染分类 pill
+// 封面（2026-10-17 加）：art.cover 有图就渲染缩略图；没有就用「品牌渐变 + 栏目首字」——
+// 首字始终垫在图片下面，图 404 时 onerror 摘掉 img 就自然露出首字，不留破图框
 function articleCardHtml(art, opts = {}) {
   const metaLead = opts.hideCategory
     ? `<span>${escapeHtml(art.date)}</span><span>· ${escapeHtml(getReadTime(art))}</span>`
@@ -610,8 +651,14 @@ function articleCardHtml(art, opts = {}) {
        </span>
        <span>${escapeHtml(art.date)}</span>
        <span>· ${escapeHtml(getReadTime(art))}</span>`;
+  const cover = typeof art.cover === 'string' && art.cover ? art.cover : '';
+  const initial = escapeHtml((art.category || '技术手记').slice(0, 1));
   return `
-    <article tabindex="0" role="button" aria-label="阅读：${escapeHtml(art.title)}" data-open-article="${escapeHtml(art.id)}" class="bento-card reveal p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer group">
+    <article tabindex="0" role="button" aria-label="阅读：${escapeHtml(art.title)}" data-open-article="${escapeHtml(art.id)}" class="bento-card reveal ac-with-cover p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer group">
+      <div class="ac-media" aria-hidden="true">
+        <span class="ac-fallback">${initial}</span>
+        ${cover ? `<img src="${escapeHtml(cover)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ''}
+      </div>
       <div class="space-y-2 flex-1">
         <div class="flex items-center gap-2 text-xs font-mono text-[#86868b] flex-wrap">
           ${metaLead}
@@ -876,6 +923,7 @@ window.openArticleModal = function(id, skipUrlSync) {
   ensureHighlight(modalContent);
   addCopyButtons(modalContent);
   buildArticleToc(modalContent);
+  initTocSpy(modalContent);
   injectArticleJsonLd(article);
   initAnnotations(modalContent, article.id);
 
@@ -904,6 +952,7 @@ window.openArticleModal = function(id, skipUrlSync) {
           ensureHighlight(modalContent);
           addCopyButtons(modalContent);
           buildArticleToc(modalContent);
+          initTocSpy(modalContent);
           initAnnotations(modalContent, article.id);
           modalContent.scrollTop = 0;
           const bar = document.getElementById('article-progress');
@@ -1190,11 +1239,18 @@ function collectNavSections() {
 function initScrollSpy() {
   const { navLinks, sections } = collectNavSections();
   if (!navLinks.length || !sections.length) return;
+  // ❗一个区块对应多个链接（桌面导航 + 移动抽屉是两套 nav，href 相同）：
+  // 以前按 href 去重只留最后一个，于是 .nav-active 永远落在抽屉里那条上，
+  // 桌面导航其实从不高亮（2026-10-17 做导航胶囊时发现）。这里改成「同一 href 全部标记」。
   const byId = {};
-  navLinks.forEach((a) => { byId[a.getAttribute('href').slice(1)] = a; });
+  navLinks.forEach((a) => {
+    const id = a.getAttribute('href').slice(1);
+    (byId[id] = byId[id] || []).push(a);
+  });
 
   const setActive = (id) => {
-    navLinks.forEach((a) => a.classList.toggle('nav-active', a === byId[id]));
+    const hit = byId[id] || [];
+    navLinks.forEach((a) => a.classList.toggle('nav-active', hit.includes(a)));
   };
   let ticking = false;
   const update = () => {
