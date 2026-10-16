@@ -17,6 +17,7 @@
  - 🌌 背景光粒子、滚动浮现编排、导航整页换页等编辑风动效（全量尊重 `prefers-reduced-motion`）；
    - 🎬 **参考视频移植的四项效果**（沿用站点原有深色语言，不改成浅色动漫风）：深空壁纸层 + 桌面磨砂玻璃、右下角 Live2D 看板娘（鼠标跟随即时摆动、可一键关闭）、波浪曲线「归档」页、照片墙灯箱，外加**按住 Tab** 唤出的快速导航。每一项都可单独关闭，加载失败一律静默退回原观感；维护方式见下文「[🎬 视频里的效果怎么维护](#-视频里的效果怎么维护)」一节。
    - ⚙️ **显示设置面板**（左下角齿轮）：效果档位、壁纸模糊/亮度滑块、粒子/推理场/看板娘开关、一键还原；站名/社交/壁纸清单/页面清单收口在 `js/site-config.js`，`scripts/sync-chrome.mjs` 负责校验各页导航与页脚不漂移；文章卡支持封面图（没封面自动用品牌渐变 + 栏目首字）。见下文「[🧩 配置、观感与发布流程](#-配置观感与发布流程)」。
+   - 🌱 **花园页**（生命游戏 / 排序可视化 / 星空粒子，同一时刻只跑一个循环）与**链接页**（友情链接 + 收藏夹筛选搜索）：纯前端、零后端，见下文「[🌱 花园与链接页](#-花园与链接页第-2-轮)」。
    - 📱 完美适配 PC 电脑端、平板与手机端（移动端含汉堡导航菜单）。
 
 ---
@@ -135,7 +136,9 @@ node scripts/gen-rss.js
 | `js/wallpaper.js` + `assets/images/wallpaper*.webp` | 深空壁纸层门控、轮换、渐变兜底与档位判定（换壁纸=替换图片并在配置里登记） | 关闭开关：控制台 `localStorage['sj.wallpaper']='off'`，或左下角齿轮 |
 | `assets/vendor/live2d/`（运行时 + 官方示例模型，约 1.9MB） | 右下角 Live2D 看板娘资源（`waifu-tips.js` / `waifu.css` / `live2d.min.js` / `chunk/index.js` / `model/shizuku/**`） | 重建或换模型：`node scripts/vendor-live2d.js`；来源与授权见目录内 `SOURCE.txt` |
 | `scripts/vendor-live2d.js` | 从隔离 node 工作区把看板娘运行时与模型搬进 `assets/vendor/live2d/`（跳过 800KB 交互音效并摘掉 `sound` 引用） | 依赖 `npm i live2d-widgets@1.0.1 live2d-widget-model-shizuku@1.0.5` |
-| `scripts/video-fx-smoke.mjs` | 效果移植验收（63 项断言：壁纸轮换/看板娘/归档/照片墙/按住 Tab/手机档/离线/降级/配置与设置面板/胶囊/目录/封面/灯箱） | `node scripts/dev-server.js` + `node scripts/video-fx-smoke.mjs` |
+| `scripts/video-fx-smoke.mjs` | 效果移植验收（75 项断言：壁纸轮换/看板娘/归档/照片墙/按住 Tab/手机档/离线/降级/配置与设置面板/胶囊/目录/封面/灯箱/花园/链接页） | `node scripts/dev-server.js` + `node scripts/video-fx-smoke.mjs` |
+| `garden.html` + `js/garden.js` + `js/garden/{life,sorting,stars}.js` + `css/garden.css` | 花园页：三个 canvas 玩具，单循环、切页停帧、减少动效只画一帧 | 加玩具：新文件推进 `window.GardenToys` + 页面加一个 script 标签 |
+| `links.html` + `js/friends.js` + `js/bookmarks.js` + `js/links.js` + `css/links.css` | 链接页：友情链接（空态 + 申请说明）与收藏夹（分组筛选 + 关键词搜索） | 友链加 `js/friends.js`，收藏加 `js/bookmarks.js` |
 
 ---
 
@@ -299,10 +302,31 @@ python -m http.server 8327  →  node scripts/cosmos-scan.mjs      # 背景引�
 ### 验收
 
 ```bash
-node scripts/sync-chrome.mjs        # 站点外壳一致性（6 项）
+node scripts/sync-chrome.mjs        # 站点外壳一致性（页面入口/标记块）
 node scripts/dev-server.js          # 终端 A
-node scripts/video-fx-smoke.mjs     # 终端 B：63 项（含第 1 轮 J 段：配置/面板/胶囊/目录/封面/灯箱）
+node scripts/video-fx-smoke.mjs     # 终端 B：75 项（J 段第 1 轮、K 段第 2 轮：花园与链接页）
 ```
+
+## 🌱 花园与链接页（第 2 轮）
+
+### 花园 `garden.html`（`js/garden.js` + `js/garden/*.js`）
+
+一个页面装三个 canvas 玩具，**任何时刻只跑一个 rAF 循环**（站点背景已经在跑推理场/粒子，花园再加循环必须互相让路），标签页切走自动停帧，`prefers-reduced-motion` 下只画一帧、交互时补画。
+
+| 玩具 | 看点 | 操作 |
+| --- | --- | --- |
+| 康威生命游戏 | 三条规则长出滑翔机与振荡子 | 拖动画活细胞 · 空格播放/暂停 · R 随机 · C 清空 · 速度滑杆 |
+| 排序可视化 | 同一组随机数用三种算法排出来 | 冒泡/插入/快速切换 · 播放暂停 · 速度与规模滑杆 · 打乱重来 |
+| 星空粒子 | 三层视差 + 闪烁 + 拖尾 | 密度滑杆 · 视差/拖尾开关 · 鼠标移动给整场偏移 |
+
+- 玩具只需实现 `setup/draw/teardown`（可选 `controls()`／`pointer()`／`key()`），框架负责 DPR、尺寸、循环、控制条 DOM；加第四个玩具 = 新建一个文件推进 `window.GardenToys` + 在 `garden.html` 里加一个 `<script>`。
+- 切换器写 `location.hash`（`#life` / `#sorting` / `#stars`），可直接分享某个玩具的直链。
+
+### 链接页 `links.html`（`js/friends.js` + `js/bookmarks.js` + `js/links.js`）
+
+- **友情链接**：数据在 `js/friends.js`（`name/url/desc/avatar`）；为空时显示空态与申请方式（邮箱 + GitHub），倾向收录原创、可稳定访问的站点。
+- **收藏夹**：数据在 `js/bookmarks.js`（分组 → 条目：`name/url/desc/tags`）；分组胶囊筛选 + 本地关键词搜索（纯前端过滤，命中数实时显示）。
+- 全是外链入口，页面本身不加载任何第三方资源（零外链红线不受影响）；站内相对链接（如 `archive.html`）直接跳转，外链统一 `rel="noopener noreferrer"`。
 
 ## 🌐 如何免费部署上线到公网？
 

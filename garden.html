@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>花园 | 楠屿札记</title>
+
+  <script>
+    (function () {
+      document.documentElement.classList.add('js');
+      document.documentElement.classList.add('dark');
+    })();
+  </script>
+
+  <meta name="description" content="楠屿札记的花园：康威生命游戏、排序可视化与星空粒子三个纯前端交互演示，全部在浏览器里跑，不上传任何数据。" />
+  <link rel="canonical" href="https://7stevejohn.github.io/garden.html" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="楠屿札记" />
+  <meta property="og:title" content="花园 | 楠屿札记" />
+  <meta property="og:description" content="生命游戏、排序可视化、星空粒子——三个纯前端交互演示。" />
+  <meta property="og:url" content="https://7stevejohn.github.io/garden.html" />
+  <meta property="og:image" content="https://7stevejohn.github.io/og-image.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <meta name="theme-color" content="#0a0a0c" />
+
+  <link rel="shortcut icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="manifest" href="manifest.json" />
+
+  <link rel="stylesheet" href="assets/fonts/inter.css" />
+  <link rel="stylesheet" href="assets/vendor/tailwind.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/cosmos.css" />
+  <link rel="stylesheet" href="css/settings-panel.css" />
+  <link rel="stylesheet" href="css/garden.css" />
+</head>
+<body class="bg-white text-[#1d1d1f] dark:bg-[#0a0a0c] dark:text-[#f5f5f7] min-h-screen transition-colors duration-200 antialiased">
+
+  <div id="site-wallpaper" aria-hidden="true"></div>
+  <div id="cosmos-veil" class="cosmos-veil" aria-hidden="true"></div>
+  <canvas id="particle-canvas" aria-hidden="true"></canvas>
+  <div class="cosmos-hud tl" aria-hidden="true">// nanyu notes</div>
+  <div class="cosmos-hud tr" aria-hidden="true">///// garden</div>
+
+  <!-- 导航由 scripts/sync-chrome.mjs --write 按 js/site-config.js 注入 -->
+  <!-- chrome:nav:start -->  <header class="site-header sticky top-0 z-40 w-full site-nav glass-spec bg-white/80 dark:bg-[#0a0a0c]/80 border-b border-[#d2d2d7]/50 dark:border-white/10 transition-colors">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-12 flex items-center justify-between text-xs">
+      <a href="index.html" class="flex items-center gap-2 font-semibold text-sm tracking-tight text-[#1d1d1f] dark:text-white hover:opacity-80 transition">
+        <span>楠屿札记</span>
+      </a>
+      <nav class="flex items-center gap-4 sm:gap-6 text-[#1d1d1f] dark:text-[#86868b] text-xs">
+        <a href="index.html#blog" class="hidden sm:inline hover:text-black dark:hover:text-white transition">技术手记</a>
+        <a href="archive.html" class="hover:text-black dark:hover:text-white transition">归档</a>
+        <a href="gallery.html" class="hover:text-black dark:hover:text-white transition">照片墙</a>
+        <a href="garden.html" class="subpage-nav-active" aria-current="page">花园</a>
+        <a href="links.html" class="hover:text-black dark:hover:text-white transition">友链</a>
+        <a href="index.html" class="hover:text-black dark:hover:text-white transition">返回首页</a>
+      </nav>
+    </div>
+  </header><!-- chrome:nav:end -->
+
+  <main class="page-wrap">
+    <div class="page-head reveal">
+      <p class="page-eyebrow">// garden</p>
+      <h1 class="page-title">花园</h1>
+      <p class="page-sub">
+        几个能在浏览器里跑起来的交互演示：三条规则长出滑翔机的生命游戏、逐步演示的排序、
+        三层视差的星场。全部本地运行、零依赖、不上传任何数据；同一时刻只有一个在跑，
+        标签页切走会自动停帧。
+      </p>
+    </div>
+
+    <div id="garden-tabs" class="garden-tabs" role="group" aria-label="选择演示"></div>
+
+    <section class="garden-panel reveal" aria-label="演示区">
+      <header class="garden-head">
+        <h2 id="garden-title" class="garden-title">演示</h2>
+        <span id="garden-fps" class="garden-fps" aria-hidden="true"></span>
+      </header>
+      <div id="garden-stage" class="garden-stage"></div>
+      <p id="garden-hint" class="garden-hint"></p>
+      <div id="garden-controls" class="garden-controls" aria-label="演示控制"></div>
+    </section>
+  </main>
+
+  <!-- 页脚由 scripts/sync-chrome.mjs --write 按 js/site-config.js 注入 -->
+  <!-- chrome:footer:start -->  <footer class="border-t border-[#d2d2d7]/50 dark:border-white/10 py-12 bg-slate-50 dark:bg-[#0a0a0c] text-xs text-[#86868b]">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 space-y-4">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <span class="font-semibold text-black dark:text-white">楠屿札记</span>
+          <span> · 一隅存工码，亦叙尘世星文</span>
+        </div>
+        <div class="flex items-center gap-6">
+          <a href="index.html" class="hover:text-black dark:hover:text-white transition">首页</a>
+          <a href="archive.html" class="hover:text-black dark:hover:text-white transition">归档</a>
+          <a href="gallery.html" class="hover:text-black dark:hover:text-white transition">照片墙</a>
+          <a href="garden.html" class="hover:text-black dark:hover:text-white transition">花园</a>
+          <a href="links.html" class="hover:text-black dark:hover:text-white transition">友链</a>
+          <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="hover:text-black dark:hover:text-white transition">@7SteveJohn</a>
+          <a href="mailto:sevenksq@163.com" class="hover:text-black dark:hover:text-white transition">sevenksq@163.com</a>
+        </div>
+      </div>
+      <p class="text-[11px] text-[#86868b]/80 border-t border-[#d2d2d7]/30 dark:border-white/5 pt-4">
+        © <span id="footer-year">2026</span> 楠屿札记. 慢慢写，慢慢看。
+      </p>
+    </div>
+  </footer><!-- chrome:footer:end -->
+
+  <!-- defer 按文档顺序执行：先注册三个玩具，再启动花园框架 -->
+  <script src="js/site-config.js" defer></script>
+  <script src="js/subpage.js" defer></script>
+  <script src="js/tab-nav.js" defer></script>
+  <script src="js/settings-panel.js" defer></script>
+  <script src="js/garden/life.js" defer></script>
+  <script src="js/garden/sorting.js" defer></script>
+  <script src="js/garden/stars.js" defer></script>
+  <script src="js/garden.js" defer></script>
+  <script src="js/wallpaper.js" defer></script>
+  <script src="js/particles.js" defer></script>
+</body>
+</html>

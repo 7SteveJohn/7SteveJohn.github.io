@@ -68,7 +68,9 @@
     // ---- 站内正经入口：必须出现在「首页更多 + 次级页导航 + 所有页页脚」----
     entries: [
       { href: 'archive.html', label: '归档' },
-      { href: 'gallery.html', label: '照片墙' }
+      { href: 'gallery.html', label: '照片墙' },
+      { href: 'garden.html', label: '花园' },
+      { href: 'links.html', label: '友链' }
     ],
 
     // ---- 外链：必须出现在所有页页脚 ----
@@ -84,6 +86,8 @@
       { href: 'index.html', label: '首页', title: '楠屿札记 · 本地 AI 应用与桌面工具', sitemap: true, priority: '1.0', changefreq: 'weekly' },
       { href: 'archive.html', label: '归档', title: '归档 · 时间河', sitemap: true, priority: '0.8', changefreq: 'weekly' },
       { href: 'gallery.html', label: '照片墙', title: '照片墙', sitemap: true, priority: '0.7', changefreq: 'monthly' },
+      { href: 'garden.html', label: '花园', title: '花园', sitemap: true, priority: '0.6', changefreq: 'monthly' },
+      { href: 'links.html', label: '友链', title: '友链与收藏', sitemap: true, priority: '0.5', changefreq: 'monthly' },
       { href: '404.html', label: '404', sitemap: false, chrome: false },
       { href: 'cosmos-home.html', label: '星河随乐而舞（演示页）', sitemap: false, chrome: false }
     ]

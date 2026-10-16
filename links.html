@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>友链与收藏 | 楠屿札记</title>
+
+  <script>
+    (function () {
+      document.documentElement.classList.add('js');
+      document.documentElement.classList.add('dark');
+    })();
+  </script>
+
+  <meta name="description" content="楠屿札记的友情链接与收藏夹：常看的开发文档、本地工具与站内入口，可按分组筛选与关键词搜索。" />
+  <link rel="canonical" href="https://7stevejohn.github.io/links.html" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="楠屿札记" />
+  <meta property="og:title" content="友链与收藏 | 楠屿札记" />
+  <meta property="og:description" content="常看的开发文档、本地工具与站内入口，可按分组筛选与关键词搜索。" />
+  <meta property="og:url" content="https://7stevejohn.github.io/links.html" />
+  <meta property="og:image" content="https://7stevejohn.github.io/og-image.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <meta name="theme-color" content="#0a0a0c" />
+
+  <link rel="shortcut icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="manifest" href="manifest.json" />
+
+  <link rel="stylesheet" href="assets/fonts/inter.css" />
+  <link rel="stylesheet" href="assets/vendor/tailwind.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/cosmos.css" />
+  <link rel="stylesheet" href="css/settings-panel.css" />
+  <link rel="stylesheet" href="css/links.css" />
+</head>
+<body class="bg-white text-[#1d1d1f] dark:bg-[#0a0a0c] dark:text-[#f5f5f7] min-h-screen transition-colors duration-200 antialiased">
+
+  <div id="site-wallpaper" aria-hidden="true"></div>
+  <div id="cosmos-veil" class="cosmos-veil" aria-hidden="true"></div>
+  <canvas id="particle-canvas" aria-hidden="true"></canvas>
+  <div class="cosmos-hud tl" aria-hidden="true">// nanyu notes</div>
+  <div class="cosmos-hud tr" aria-hidden="true">///// links</div>
+
+  <!-- chrome:nav:start -->  <header class="site-header sticky top-0 z-40 w-full site-nav glass-spec bg-white/80 dark:bg-[#0a0a0c]/80 border-b border-[#d2d2d7]/50 dark:border-white/10 transition-colors">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-12 flex items-center justify-between text-xs">
+      <a href="index.html" class="flex items-center gap-2 font-semibold text-sm tracking-tight text-[#1d1d1f] dark:text-white hover:opacity-80 transition">
+        <span>楠屿札记</span>
+      </a>
+      <nav class="flex items-center gap-4 sm:gap-6 text-[#1d1d1f] dark:text-[#86868b] text-xs">
+        <a href="index.html#blog" class="hidden sm:inline hover:text-black dark:hover:text-white transition">技术手记</a>
+        <a href="archive.html" class="hover:text-black dark:hover:text-white transition">归档</a>
+        <a href="gallery.html" class="hover:text-black dark:hover:text-white transition">照片墙</a>
+        <a href="garden.html" class="hover:text-black dark:hover:text-white transition">花园</a>
+        <a href="links.html" class="subpage-nav-active" aria-current="page">友链</a>
+        <a href="index.html" class="hover:text-black dark:hover:text-white transition">返回首页</a>
+      </nav>
+    </div>
+  </header><!-- chrome:nav:end -->
+
+  <main class="page-wrap">
+    <div class="page-head reveal">
+      <p class="page-eyebrow">// links</p>
+      <h1 class="page-title">友链与收藏</h1>
+      <p class="page-sub">
+        上面是友情链接，下面是我自己常点的收藏夹（按分组筛选，或直接搜关键词）。
+        全部是外链入口，页面本身不加载任何第三方资源。
+      </p>
+    </div>
+
+    <section class="links-section reveal" aria-labelledby="friends-title">
+      <h2 id="friends-title">友情链接<span class="links-sub">还没开始交换，欢迎来当第一个</span></h2>
+      <div class="links-note">
+        申请方式：邮件到 <a href="mailto:sevenksq@163.com">sevenksq@163.com</a>，或到
+        <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer">GitHub</a> 提 Issue，
+        带上站点名、地址、一句话简介与头像地址即可。倾向收录：原创内容为主、能稳定访问、与「本地工具 / 开发手记」有点关系的站点；
+        纯采集站与广告站就不加了。
+      </div>
+      <div id="friends-grid" class="link-grid"></div>
+      <p id="friends-empty" class="links-empty" hidden>还没有友链，上面那条申请方式长期有效。</p>
+    </section>
+
+    <section class="links-section reveal" aria-labelledby="bm-title">
+      <h2 id="bm-title">收藏夹<span class="links-sub">共 <b id="bookmark-count">0</b> 条命中</span></h2>
+      <div class="bm-toolbar">
+        <div id="bookmark-filters" class="chips" role="group" aria-label="按分组筛选"></div>
+        <label class="bm-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+          <input id="bookmark-search" type="search" placeholder="搜名称 / 说明 / 标签" aria-label="搜索收藏" />
+        </label>
+      </div>
+      <div id="bookmark-list" class="bm-list"></div>
+      <p id="bookmark-empty" class="links-empty" hidden>没有匹配的条目，换个关键词试试。</p>
+    </section>
+  </main>
+
+  <!-- chrome:footer:start -->  <footer class="border-t border-[#d2d2d7]/50 dark:border-white/10 py-12 bg-slate-50 dark:bg-[#0a0a0c] text-xs text-[#86868b]">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 space-y-4">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <span class="font-semibold text-black dark:text-white">楠屿札记</span>
+          <span> · 一隅存工码，亦叙尘世星文</span>
+        </div>
+        <div class="flex items-center gap-6">
+          <a href="index.html" class="hover:text-black dark:hover:text-white transition">首页</a>
+          <a href="archive.html" class="hover:text-black dark:hover:text-white transition">归档</a>
+          <a href="gallery.html" class="hover:text-black dark:hover:text-white transition">照片墙</a>
+          <a href="garden.html" class="hover:text-black dark:hover:text-white transition">花园</a>
+          <a href="links.html" class="hover:text-black dark:hover:text-white transition">友链</a>
+          <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="hover:text-black dark:hover:text-white transition">@7SteveJohn</a>
+          <a href="mailto:sevenksq@163.com" class="hover:text-black dark:hover:text-white transition">sevenksq@163.com</a>
+        </div>
+      </div>
+      <p class="text-[11px] text-[#86868b]/80 border-t border-[#d2d2d7]/30 dark:border-white/5 pt-4">
+        © <span id="footer-year">2026</span> 楠屿札记. 慢慢写，慢慢看。
+      </p>
+    </div>
+  </footer><!-- chrome:footer:end -->
+
+  <script src="js/site-config.js" defer></script>
+  <script src="js/subpage.js" defer></script>
+  <script src="js/tab-nav.js" defer></script>
+  <script src="js/settings-panel.js" defer></script>
+  <script src="js/friends.js" defer></script>
+  <script src="js/bookmarks.js" defer></script>
+  <script src="js/links.js" defer></script>
+  <script src="js/wallpaper.js" defer></script>
+  <script src="js/particles.js" defer></script>
+</body>
+</html>

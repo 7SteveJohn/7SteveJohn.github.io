@@ -502,6 +502,97 @@ try {
     await page.context().close();
   }
 
+  // ---------------- K. 第 2 轮：花园（三个 canvas 玩具）与链接页 ----------------
+  {
+    const page = await (await browser.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
+    const errors = errorsOf(page);
+
+    // K1 花园：三个玩具、默认挂载、画布真的在画
+    await page.goto(BASE + 'garden.html', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(1800);
+    const painted = () => page.evaluate(() => {
+      const c = document.querySelector('.garden-canvas');
+      if (!c) return 0;
+      const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+      let n = 0;
+      for (let i = 3; i < d.length; i += 4 * 97) if (d[i] > 8) n++;
+      return n;
+    });
+    const g0 = await page.evaluate(() => ({
+      tabs: [...document.querySelectorAll('.garden-tab')].map((t) => t.textContent),
+      on: (document.querySelector('.garden-tab.is-on') || {}).textContent,
+      canvas: !!document.querySelector('.garden-canvas'),
+      fps: document.getElementById('garden-fps').textContent
+    }));
+    assert(g0.tabs.length === 3 && g0.canvas, 'K1a 花园三个玩具 + 画布就位', JSON.stringify(g0.tabs));
+    assert(await painted() > 50, 'K1b 默认玩具在真正绘制');
+    assert(/fps/.test(g0.fps), 'K1c 帧率指示在工作', g0.fps);
+
+    // K2 切换玩具：标题/hash/控制条都换，且新玩具开始绘制
+    await page.click('.garden-tab[data-toy="sorting"]');
+    await page.waitForTimeout(1200);
+    const g1 = await page.evaluate(() => ({
+      title: document.getElementById('garden-title').textContent,
+      hash: location.hash,
+      ranges: document.querySelectorAll('.garden-controls input[type="range"]').length
+    }));
+    assert(g1.title === '排序可视化' && g1.hash === '#sorting' && g1.ranges === 2, 'K2 切换玩具（标题/hash/控制条同步）', JSON.stringify(g1));
+    assert(await painted() > 50, 'K2b 排序演示在绘制');
+
+    // K3 控制条与键盘：拖尾按钮状态、空格暂停
+    await page.click('.garden-tab[data-toy="stars"]');
+    await page.waitForTimeout(800);
+    await page.evaluate(() => [...document.querySelectorAll('.garden-controls button')].find((b) => b.textContent === '拖尾').click());
+    await page.waitForTimeout(300);
+    const trail = await page.evaluate(() => [...document.querySelectorAll('.garden-controls button')].find((b) => b.textContent === '拖尾').getAttribute('aria-pressed'));
+    assert(trail === 'true', 'K3a 花园控制条生效（拖尾开关）', trail);
+
+    // K4 减少动效：只画一帧、不跑循环（帧率指示为空）
+    const rmCtx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
+    const rmPage = await rmCtx.newPage();
+    await rmPage.goto(BASE + 'garden.html', { waitUntil: 'load', timeout: 30000 });
+    await rmPage.waitForTimeout(1200);
+    const rmState = await rmPage.evaluate(() => ({
+      fps: document.getElementById('garden-fps').textContent,
+      canvas: !!document.querySelector('.garden-canvas')
+    }));
+    assert(rmState.fps === '' && rmState.canvas, 'K4 减少动态效果下只画一帧、不跑循环', JSON.stringify(rmState));
+    await rmCtx.close();
+
+    // K5 链接页：友链空态 + 收藏筛选与搜索
+    await page.goto(BASE + 'links.html', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(1400);
+    const l0 = await page.evaluate(() => ({
+      empty: !document.getElementById('friends-empty').hidden,
+      bm: document.querySelectorAll('.bm-card').length,
+      count: document.getElementById('bookmark-count').textContent,
+      chips: [...document.querySelectorAll('#bookmark-filters .arc-chip')].map((c) => c.textContent).length
+    }));
+    assert(l0.empty && l0.bm > 0 && Number(l0.count) === l0.bm && l0.chips >= 2, 'K5a 链接页：友链空态 + 收藏列表 + 分组胶囊', JSON.stringify(l0));
+
+    await page.click('#bookmark-filters .arc-chip:nth-child(3)');
+    await page.waitForTimeout(300);
+    const l1 = await page.evaluate(() => ({
+      cards: document.querySelectorAll('.bm-card').length,
+      count: document.getElementById('bookmark-count').textContent,
+      groups: [...new Set([...document.querySelectorAll('.bm-group')].map((g) => g.textContent))].length
+    }));
+    assert(Number(l1.count) === l1.cards && l1.groups === 1, 'K5b 分组筛选只留该组', JSON.stringify(l1));
+
+    await page.click('#bookmark-filters .arc-chip:nth-child(1)');
+    await page.fill('#bookmark-search', 'webp 图片');
+    await page.waitForTimeout(300);
+    const l2 = await page.evaluate(() => ({ cards: document.querySelectorAll('.bm-card').length, first: (document.querySelector('.bm-card b') || {}).textContent }));
+    await page.fill('#bookmark-search', 'zzz-nope');
+    await page.waitForTimeout(300);
+    const l3 = await page.evaluate(() => ({ cards: document.querySelectorAll('.bm-card').length, empty: !document.getElementById('bookmark-empty').hidden }));
+    assert(l2.cards === 1 && /Squoosh/.test(l2.first || ''), 'K5c 关键词搜索命中', JSON.stringify(l2));
+    assert(l3.cards === 0 && l3.empty, 'K5d 无结果给空态', JSON.stringify(l3));
+
+    assert(errors.length === 0, 'K6 花园与链接页无控制台错误', errors.slice(0, 2).join(' | '));
+    await page.context().close();
+  }
+
   // ---------------- H. 弱机路径（无硬件加速 → 软件合成）----------------
   // 2026-10-17 用户报「明显变卡」后实测出来的一条真实路径：
   // 卡片磨砂在软件合成下把滚动从 60 帧打到 16–34 帧，所以必须自动降档。

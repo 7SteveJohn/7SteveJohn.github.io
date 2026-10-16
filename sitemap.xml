@@ -19,6 +19,18 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
+    <loc>https://7stevejohn.github.io/garden.html</loc>
+    <lastmod>2026-10-05</lastmod>
+    <priority>0.6</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://7stevejohn.github.io/links.html</loc>
+    <lastmod>2026-10-05</lastmod>
+    <priority>0.5</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
     <loc>https://7stevejohn.github.io/?post=ai-frontier-mirror</loc>
     <lastmod>2026-10-05</lastmod>
   </url>

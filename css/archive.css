@@ -12,36 +12,7 @@
   margin-top: 0.5rem;
 }
 
-/* 分类筛选胶囊（全部 / 技术手记 / 创作 / 随笔 / AI 学习） */
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin: 1.5rem 0 1.9rem;
-}
-.arc-chip {
-  padding: 0.34rem 0.85rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.03);
-  color: #86868b;
-  font-size: 12px;
-  cursor: pointer;
-  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
-}
-.arc-chip:hover {
-  color: #f5f5f7;
-  border-color: rgba(255, 255, 255, 0.22);
-}
-.arc-chip[aria-pressed="true"] {
-  color: #8fb8ff;
-  border-color: rgba(143, 184, 255, 0.55);
-  background: rgba(143, 184, 255, 0.1);
-}
-.arc-chip:focus-visible {
-  outline: 2px solid rgba(143, 184, 255, 0.7);
-  outline-offset: 2px;
-}
+/* 分类筛选胶囊（.chips / .arc-chip）已挪到 css/style.css —— 链接页也要用同一套 */
 
 #archive-list {
   position: relative;
