@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>写作台 · 楠屿札记（本地）</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="/ui.css" />
+</head>
+<body>
+  <header class="bar">
+    <b class="brand">写作台<span>本地 · 只监听 127.0.0.1</span></b>
+    <span class="grow"></span>
+    <button id="btn-new-article" class="btn">新建文章</button>
+    <button id="btn-new-chapter" class="btn">新建章节</button>
+    <button id="btn-build" class="btn">仅生成</button>
+    <label class="chk"><input type="checkbox" id="dry" /> 演练</label>
+    <button id="btn-publish" class="btn primary">发布</button>
+  </header>
+
+  <main class="layout">
+    <aside class="pane list-pane">
+      <div class="pane-head">
+        <input id="search" class="input" type="search" placeholder="搜索标题 / id / 标签" />
+      </div>
+      <div id="list" class="list"></div>
+    </aside>
+
+    <section class="pane edit-pane">
+      <div class="pane-head">
+        <span id="cur-file" class="muted">未选择文件</span>
+        <span class="grow"></span>
+        <span id="words" class="muted"></span>
+        <button id="btn-save" class="btn primary">保存（Ctrl+S）</button>
+      </div>
+      <div id="meta" class="meta"></div>
+      <textarea id="md" class="md" spellcheck="false" placeholder="在这里写 Markdown 正文……"></textarea>
+    </section>
+
+    <section class="pane preview-pane">
+      <div class="pane-head"><span class="muted">预览（marked + purify，与站点同一套渲染）</span></div>
+      <div id="cover-box" class="cover-box" hidden></div>
+      <article id="preview" class="preview markdown-body"></article>
+    </section>
+  </main>
+
+  <footer class="log-pane">
+    <div class="pane-head">
+      <span class="muted">日志</span>
+      <span class="grow"></span>
+      <button id="btn-clear" class="btn">清空</button>
+    </div>
+    <pre id="log" class="log"></pre>
+  </footer>
+
+  <script src="/vendor/purify.min.js"></script>
+  <script src="/vendor/marked.min.js"></script>
+  <script src="/ui.js"></script>
+</body>
+</html>

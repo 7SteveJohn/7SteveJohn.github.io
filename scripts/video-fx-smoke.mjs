@@ -11,7 +11,10 @@
  *   G 降级   prefers-reduced-motion 不加载看板娘、粒子画布隐藏；file:// 下看板娘静默跳过
  * 用法：node scripts/dev-server.js（8328）→ node scripts/video-fx-smoke.mjs
  */
-import { spawnSync } from 'node:child_process';
+import { spawnSync, spawn } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { devRequire as require } from './_dev-require.mjs';
 const { chromium } = require('playwright-core');
 const BASE = 'http://localhost:8328/';
@@ -699,6 +702,117 @@ try {
 
     assert(errors.length === 0, 'L9 阅读器无控制台错误', errors.slice(0, 2).join(' | '));
     await page.context().close();
+  }
+
+  // ---------------- M. 第 4 轮：内容管线（posts/*.md → articles.js）与本地写作台 ----------------
+  {
+    // M1 校验通过（写作台保存前也走这条）
+    const chk = spawnSync(process.execPath, ['scripts/build-articles.mjs', '--check'], { cwd: process.cwd(), encoding: 'utf8' });
+    assert(chk.status === 0, 'M1 内容校验通过', (chk.stdout || '').trim());
+
+    // M2 幂等：连着生成两次，产物应完全一致（posts/ 是唯一真源）
+    const gen = spawnSync(process.execPath, ['scripts/build-articles.mjs'], { cwd: process.cwd(), encoding: 'utf8' });
+    const hash = () => createHash('sha256').update(fs.readFileSync('js/articles.js')).digest('hex').slice(0, 16);
+    const h1 = hash();
+    spawnSync(process.execPath, ['scripts/build-articles.mjs'], { cwd: process.cwd(), encoding: 'utf8' });
+    assert(gen.status === 0 && h1 === hash(), 'M2 生成幂等（两次产物哈希一致）', h1);
+
+    // M3 md 是唯一真源：随机取一篇，正文应与 md 内容一致（去掉首尾空白后比较）
+    const sample = 'posts/' + (fs.readdirSync('posts').filter((f) => f.endsWith('.md'))[0] || '');
+    const mdText = fs.readFileSync(sample, 'utf8');
+    const mdBody = mdText.slice(mdText.indexOf('\n---\n', 4) + 5).trim();
+    const runtime = (() => {
+      const win = {};
+      new Function('window', fs.readFileSync('js/articles.js', 'utf8'))(win);
+      const id = /(?:^|\n)id: (.+)/.exec(mdText)[1].trim();
+      return (win.ARTICLES_DATA.find((a) => a.id === id) || {}).content || '';
+    })();
+    assert(runtime.trim() === mdBody, 'M3 正文与 Markdown 源文件一致（去首尾空白）', sample);
+
+    // M4 写作台：起一个测试端口的实例，跑接口链路，最后自己收尾
+    const PORT = 8331;
+    const studio = spawn(process.execPath, ['scripts/studio/server.mjs', '--port', String(PORT)], { cwd: process.cwd(), stdio: 'ignore' });
+    const base = `http://127.0.0.1:${PORT}`;
+    const waitUp = async () => {
+      for (let i = 0; i < 40; i++) {
+        try {
+          const r = await fetch(base + '/api/list');
+          if (r.ok) return true;
+        } catch (e) { /* 还没起来 */ }
+        await new Promise((r) => setTimeout(r, 250));
+      }
+      return false;
+    };
+    try {
+      assert(await waitUp(), 'M4a 写作台可启动（127.0.0.1:' + PORT + '）');
+      const list = await (await fetch(base + '/api/list')).json();
+      const mdCount = fs.readdirSync('posts').filter((f) => f.endsWith('.md')).length;
+      assert(list.ok && list.articles.length === mdCount, 'M4b 清单覆盖全部 md 文件', `${list.articles.length}/${mdCount}`);
+      const one = await (await fetch(base + '/api/get?file=' + encodeURIComponent(list.articles[0].file))).json();
+      assert(one.ok && one.data.title && one.body.length > 10, 'M4c 取单篇返回 front matter 与正文', one.data.title.slice(0, 16));
+
+      // 非法内容必须被拦（校验失败 → 不生成）
+      const bad = await (await fetch(base + '/api/save', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file: 'posts/_smoke-bad.md', data: { id: '_smoke-bad', title: 'x', date: 'bad', summary: '', tags: [] }, body: 'x' })
+      })).json();
+      assert(bad.ok === false && /校验未通过|date/.test(bad.log + bad.error), 'M4d 非法内容被校验拦住', (bad.error || '').slice(0, 24));
+      // ❗校验失败时 md 已落盘但没生成（故意如此，方便手改），所以这里立刻删掉它，
+      //   否则后面的生成都会被这个坏文件拦住 —— 这也正是写作台里「保存失败」的场景
+      await fetch(base + '/api/delete', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file: 'posts/_smoke-bad.md' })
+      });
+
+      // 正常保存 → 出现在清单里 → 删除收尾
+      const good = await (await fetch(base + '/api/save', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          file: 'posts/_smoke-ok.md',
+          data: { id: '_smoke-ok', title: '验收草稿', date: '2026-10-17', readTime: '1 分钟', category: '随笔', section: 'essay', summary: '验收用，脚本结束会删掉。', tags: ['验收'] },
+          body: '### 标题\n\n正文 `code` 与 ${模板} 转义自测。\n'
+        })
+      })).json();
+      const after = await (await fetch(base + '/api/list')).json();
+      assert(good.ok && after.articles.some((a) => a.id === '_smoke-ok'), 'M4e 保存并生成后可读', (good.log || '').split('\n').pop());
+
+      const del = await (await fetch(base + '/api/delete', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file: 'posts/_smoke-ok.md' })
+      })).json();
+      const final = await (await fetch(base + '/api/list')).json();
+      assert(del.ok && !final.articles.some((a) => a.id.startsWith('_smoke')), 'M4f 删除走回收站并收尾干净', final.articles.length + ' 篇');
+
+      // 越界与发布演练
+      const evil = await (await fetch(base + '/api/save', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file: '../x.md', data: { id: 'x' }, body: 'x' })
+      })).json();
+      assert(evil.ok === false && /越界/.test(evil.error || ''), 'M4g 路径越界被拒', evil.error);
+      const dry = await (await fetch(base + '/api/publish', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dryRun: true, message: 'smoke' })
+      })).json();
+      assert(dry.ok && dry.dryRun && /git add/.test(dry.log || ''), 'M4h 发布演练（生成 + 列出待提交）');
+    } finally {
+      studio.kill();
+      // 清掉演练可能留下的暂存（只撤销暂存，不动工作区）
+      spawnSync('git', ['reset', '-q'], { cwd: process.cwd() });
+      // 回收站与测试图片一并清掉（.local 不入库，但别留噪声）
+      const trashDir = path.join(process.cwd(), '.local');
+      if (fs.existsSync(trashDir)) {
+        fs.readdirSync(trashDir).filter((d) => d.startsWith('trash-')).forEach((d) => {
+          const full = path.join(trashDir, d);
+          const names = [];
+          const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).forEach((e) => {
+            const q = path.join(dir, e.name);
+            if (e.isDirectory()) walk(q); else names.push(e.name);
+          });
+          walk(full);
+          if (names.every((n) => n.startsWith('_smoke') || n.startsWith('_studio'))) fs.rmSync(full, { recursive: true, force: true });
+        });
+      }
+    }
   }
 
   // ---------------- H. 弱机路径（无硬件加速 → 软件合成）----------------

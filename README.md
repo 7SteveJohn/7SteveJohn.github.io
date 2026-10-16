@@ -19,6 +19,7 @@
    - ⚙️ **显示设置面板**（左下角齿轮）：效果档位、壁纸模糊/亮度滑块、粒子/推理场/看板娘开关、一键还原；站名/社交/壁纸清单/页面清单收口在 `js/site-config.js`，`scripts/sync-chrome.mjs` 负责校验各页导航与页脚不漂移；文章卡支持封面图（没封面自动用品牌渐变 + 栏目首字）。见下文「[🧩 配置、观感与发布流程](#-配置观感与发布流程)」。
    - 🌱 **花园页**（生命游戏 / 排序可视化 / 星空粒子，同一时刻只跑一个循环）与**链接页**（友情链接 + 收藏夹筛选搜索）：纯前端、零后端，见下文「[🌱 花园与链接页](#-花园与链接页第-2-轮)」。
    - 📖 **连载阅读器**（`novel.html`）：书架 + 章节抽屉 + 键盘翻页 + 进度记忆 + 字号行高调节 + 沉浸模式，章节直接读 `js/novel-data.js` 的 Markdown，见下文「[📖 连载阅读器](#-连载阅读器第-3-轮)」。
+   - ✍️ **Markdown 写作管线 + 本地写作台**：文章与章节写在 `posts/*.md`，一条命令（或写作台的「保存/发布」）生成数据、RSS 与 sitemap；写作台只监听本机、界面里直接预览与上传图片，见下文「[✍️ 写作与发布](#️-写作与发布第-4-轮markdown-源文件--本地写作台)」。
    - 📱 完美适配 PC 电脑端、平板与手机端（移动端含汉堡导航菜单）。
 
 ---
@@ -70,7 +71,10 @@ npx serve .
 
 ## ✍️ 如何写新的文字内容（技术手记 / 小说 / 游戏创作 / 随笔）？
 
-全部文字内容都在 [`js/articles.js`](js/articles.js) 的 `ARTICLES_DATA` 数组里，用可选字段 `section` 决定出现在哪个模块：
+> ❗**2026-10-17 起写作入口变了**：文章写在 `posts/*.md`（front matter + Markdown 正文），
+> `js/articles.js` 是**生成物**，手改会在下次生成时被覆盖。用本地写作台最省事，见「[✍️ 写作与发布](#️-写作与发布第-4-轮markdown-源文件--本地写作台)」。
+
+每一篇是一个 Markdown 文件，front matter 里的 `section` 决定它出现在哪个模块：
 
 | 想发布到 | 怎么填 |
 | --- | --- |
@@ -78,23 +82,29 @@ npx serve .
 | 创作 → 小说 | `section: "creation"`，`category: "小说"` |
 | 创作 → 游戏创作 | `section: "creation"`，`category: "游戏创作"` |
 | 随笔 | `section: "essay"`，`category: "随笔"` |
+| AI 学习 | `section: "ai"` |
 
-```javascript
-{
-  id: "my-new-post",          // id 即深链：https://7stevejohn.github.io/?post=my-new-post
-  section: "creation",        // 可选，见上表；不填 = 技术手记
-  category: "小说",            // 创作模块必填（小说 / 游戏创作）；手记随笔随意
-  title: "作品名 · 第一章：启程",
-  date: "2026-03-03",
-  readTime: "5 分钟",
-  summary: "一句话概括本章或本篇内容...",
-  tags: ["连载中"],
-  content: `
+`posts/my-new-post.md`：
+
+```markdown
+---
+id: my-new-post              # 深链：https://7stevejohn.github.io/?post=my-new-post
+title: 作品名 · 第一章：启程
+date: 2026-03-03
+readTime: 5 分钟              # 可留空
+category: 小说                # 创作模块填 小说 / 游戏创作；手记随笔随意
+section: creation            # 可选，见上表；不填 = 技术手记
+summary: 一句话概括本章或本篇内容……   # 必填（列表与 RSS 都用它）
+tags: [连载中]
+cover: assets/images/xxx.webp  # 可选，卡片封面；不填用品牌渐变封面
+---
+
 ## 这里是 Markdown 正文
+
 支持 **粗体**、*斜体*、列表、代码块高亮。
-  `
-}
 ```
+
+写完跑 `node scripts/build-articles.mjs` 生成数据（或直接用写作台点保存）。
 
 > 💡 `articles.js` 里现存的就是正式文章；想新增时照上表追加数据即可。随笔模块在没有内容时会整体隐藏。
 
@@ -137,10 +147,14 @@ node scripts/gen-rss.js
 | `js/wallpaper.js` + `assets/images/wallpaper*.webp` | 深空壁纸层门控、轮换、渐变兜底与档位判定（换壁纸=替换图片并在配置里登记） | 关闭开关：控制台 `localStorage['sj.wallpaper']='off'`，或左下角齿轮 |
 | `assets/vendor/live2d/`（运行时 + 官方示例模型，约 1.9MB） | 右下角 Live2D 看板娘资源（`waifu-tips.js` / `waifu.css` / `live2d.min.js` / `chunk/index.js` / `model/shizuku/**`） | 重建或换模型：`node scripts/vendor-live2d.js`；来源与授权见目录内 `SOURCE.txt` |
 | `scripts/vendor-live2d.js` | 从隔离 node 工作区把看板娘运行时与模型搬进 `assets/vendor/live2d/`（跳过 800KB 交互音效并摘掉 `sound` 引用） | 依赖 `npm i live2d-widgets@1.0.1 live2d-widget-model-shizuku@1.0.5` |
-| `scripts/video-fx-smoke.mjs` | 效果移植验收（85 项断言：壁纸轮换/看板娘/归档/照片墙/按住 Tab/手机档/离线/降级/配置与设置面板/胶囊/目录/封面/灯箱/花园/链接页/连载阅读器） | `node scripts/dev-server.js` + `node scripts/video-fx-smoke.mjs` |
+| `scripts/video-fx-smoke.mjs` | 全站验收（96 项断言：壁纸轮换/看板娘/归档/照片墙/按住 Tab/手机档/离线/降级/配置与设置面板/胶囊/目录/封面/灯箱/花园/链接页/连载阅读器/内容管线与写作台） | `node scripts/dev-server.js` + `node scripts/video-fx-smoke.mjs` |
 | `garden.html` + `js/garden.js` + `js/garden/{life,sorting,stars}.js` + `css/garden.css` | 花园页：三个 canvas 玩具，单循环、切页停帧、减少动效只画一帧 | 加玩具：新文件推进 `window.GardenToys` + 页面加一个 script 标签 |
 | `links.html` + `js/friends.js` + `js/bookmarks.js` + `js/links.js` + `css/links.css` | 链接页：友情链接（空态 + 申请说明）与收藏夹（分组筛选 + 关键词搜索） | 友链加 `js/friends.js`，收藏加 `js/bookmarks.js` |
-| `novel.html` + `js/novel.js` + `js/novel-data.js` + `css/novel.css` | 连载阅读器：书架、章节抽屉、键盘翻页、进度记忆、字号行高、沉浸模式、章节深链 | 章节写进 `js/novel-data.js`（第 4 轮起由本地写作台生成） |
+| `novel.html` + `js/novel.js` + `js/novel-data.js` + `css/novel.css` | 连载阅读器：书架、章节抽屉、键盘翻页、进度记忆、字号行高、沉浸模式、章节深链 | 章节写进 `posts/novel/<书>/*.md`（生成到 `js/novel-data.js`） |
+| `posts/`（+ `posts/novel/`） | **写作入口**：文章与章节的 Markdown 源文件（front matter + 正文） | 手写或用本地写作台；改完跑 `node scripts/build-articles.mjs` |
+| `scripts/build-articles.mjs` + `scripts/lib/front-matter.mjs` | 内容生成：md → `js/articles.js` / `js/novel-data.js` / RSS / sitemap，含校验与等价性比对 | `--check` 只校验；`--compare <旧文件>` 逐字段比对 |
+| `scripts/migrate-to-markdown.mjs` | 一次性迁移（已执行）：`js/articles.js` → `posts/*.md`，备份到 `.local/` | 只在需要重做迁移时用（`--force` 覆盖） |
+| `scripts/studio/` | 本地写作台（界面 + 服务，127.0.0.1:8329）：列表、编辑器、实时预览、图片上传、保存与发布 | `node scripts/studio/server.mjs` |
 
 ---
 
@@ -306,7 +320,7 @@ python -m http.server 8327  →  node scripts/cosmos-scan.mjs      # 背景引�
 ```bash
 node scripts/sync-chrome.mjs        # 站点外壳一致性（页面入口/标记块）
 node scripts/dev-server.js          # 终端 A
-node scripts/video-fx-smoke.mjs     # 终端 B：85 项（J 段第 1 轮、K 段第 2 轮花园与链接页、L 段第 3 轮连载阅读器）
+node scripts/video-fx-smoke.mjs     # 终端 B：96 项（J/K/L/M 段分别覆盖第 1–4 轮）
 ```
 
 ## 🌱 花园与链接页（第 2 轮）
@@ -340,6 +354,43 @@ node scripts/video-fx-smoke.mjs     # 终端 B：85 项（J 段第 1 轮、K 段
 - **可分享深链**：`novel.html#<bookId>/<chapterId>`，翻章时用 `replaceState` 同步地址栏，深链可直接落到某一章。
 - **代码块**：正文里出现 ```` ``` ```` 时才按需加载 highlight（与首页手记同一套按需策略）。
 - **现状**：站内还没有真正的连载内容，所以书架里放了一本标注「示例」的两章短书用于验证阅读器（页面顶部有提示，可一键「知道了」）；第 4 轮的本地写作台会直接往 `js/novel-data.js` 生成章节，届时删掉示例书即可。
+
+## ✍️ 写作与发布（第 4 轮）：Markdown 源文件 + 本地写作台
+
+### 数据流（运行时零改动）
+
+```
+posts/*.md            ─┐
+posts/novel/<书>/*.md ─┼→ node scripts/build-articles.mjs ─→ js/articles.js（生成物）
+                       │                                     js/novel-data.js（生成物）
+                       └───────────────────────────────────→ rss.xml / sitemap.xml（顺带刷新）
+```
+
+- **站点运行时完全没变**：仍然只读 `window.ARTICLES_DATA` / `window.NOVEL_BOOKS`，字段与手写时代逐个一致。
+- 迁移时做过**逐字段等价性验收**：现在跑 `node scripts/build-articles.mjs --compare .local/articles.js.bak-<时间戳>` 仍会报「16 篇文章逐字段一致（含正文）」。
+
+### 命令
+
+| 命令 | 作用 |
+| --- | --- |
+| `node scripts/build-articles.mjs` | 从 `posts/` 生成 `js/articles.js` + `js/novel-data.js` + RSS/sitemap |
+| `node scripts/build-articles.mjs --check` | 只校验不写文件（id 唯一、日期格式、section 合法、摘要必填、tags 非空） |
+| `node scripts/migrate-to-markdown.mjs [--force]` | 一次性迁移（已跑过）：把 `js/articles.js` 导出为 `posts/*.md`，并备份到 `.local/` |
+| `node scripts/studio/server.mjs` | 启动本地写作台（见下） |
+
+### 本地写作台（`scripts/studio/`）
+
+```bash
+node scripts/studio/server.mjs      # http://127.0.0.1:8329
+node scripts/dev-server.js          # 另一个终端：预览线上效果 http://127.0.0.1:8328
+```
+
+- 三栏界面：左侧清单（文章 + 连载，可搜索）· 中间元信息表单 + Markdown 编辑器 · 右侧实时预览（用站点自托管的 marked + purify，渲染与线上一致）。
+- 按钮：**新建文章** / **新建章节** / **保存（Ctrl+S，写 md → 校验 → 生成）** / **仅生成** / **演练**（走一遍发布流程但不提交）/ **发布**（生成 + `git add` + commit + push）。
+- 图片：编辑封面时点「上传」，图片落 `assets/images/`；本机有 ffmpeg 会自动转 webp 并删掉原图。
+- 删除：不真删，移入 `.local/trash-<时间戳>/`（`.local/` 不入库），随后重新生成。
+- **安全边界**：只监听 `127.0.0.1`、无登录（本机工具）、读写路径限定在 `posts/**` 与 `assets/images/**`（拒绝 `..`）、git 命令用固定参数数组不经 shell。别把它暴露到公网。
+- **校验失败时**：md 已落盘但不重新生成（方便你接着改），界面会把校验错误原样显示；改完再保存即可。
 
 ## 🌐 如何免费部署上线到公网？
 
