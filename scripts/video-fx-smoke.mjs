@@ -20,8 +20,11 @@ const ok = (n, extra) => { pass++; console.log('PASS  ' + n + (extra ? '  ' + ex
 const bad = (n, extra) => { fail++; console.log('FAIL  ' + n + (extra ? '  ' + extra : '')); };
 const assert = (cond, name, extra) => (cond ? ok : bad)(name, extra);
 
+const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
+// 主实例走软件渲染（swiftshader）：结果稳定、不挑机器；强机档位用 ?fx=full 显式声明。
+// 弱机 / 无 WebGL 两条路径各自另起实例（见 H、I 段）。
 const browser = await chromium.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
+  executablePath: CHROME,
   args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader'],
 });
 
@@ -42,21 +45,29 @@ try {
   {
     const page = await (await browser.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
     const errors = errorsOf(page);
-    await page.goto(BASE + 'index.html', { waitUntil: 'load', timeout: 30000 });
+    // ?fx=full 显式声明「按强机走」：验收脚本的浏览器是软件渲染（swiftshader），
+    // 不声明的话会被 js/wallpaper.js 的弱机判定自动降到轻档（那时没有卡片磨砂）
+    await page.goto(BASE + 'index.html?fx=full', { waitUntil: 'load', timeout: 30000 });
     await page.waitForTimeout(1200);
 
     const wp = await page.evaluate(() => {
       const el = document.getElementById('site-wallpaper');
       const cs = el ? getComputedStyle(el) : null;
+      const card = document.querySelector('.bento-card');
       return {
         cls: document.documentElement.classList.contains('has-wallpaper'),
         opacity: cs ? Number(cs.opacity) : 0,
         blend: cs ? cs.mixBlendMode : '',
         img: cs ? cs.backgroundImage.includes('wallpaper.webp') : false,
+        lite: document.documentElement.classList.contains('wallpaper-lite'),
+        cardBlur: card ? (getComputedStyle(card).backdropFilter || 'none') : 'none',
+        tier: (window.__fxTier || {}).tier || '',
       };
     });
     assert(wp.cls && wp.opacity > 0 && wp.img, 'A1 深空壁纸层生效', `opacity=${wp.opacity}`);
     assert(wp.blend === 'screen', 'A2 桌面细指针用 screen 混合（壁纸从推理场深底透出）', wp.blend);
+    assert(!wp.lite && wp.tier === 'full' && /blur/.test(wp.cardBlur),
+      'A2b 强机档位：卡片磨砂在场、未被降成轻档', `tier=${wp.tier} blur=${wp.cardBlur.slice(0, 12)}`);
 
     // 看板娘：桌面档才会拉（首帧后 idle 加载，1.9MB 本地很快）
     let live = null;
@@ -352,6 +363,83 @@ try {
     assert(fileState.wp, 'G5 file:// 下壁纸仍生效（纯 CSS 层，无需 fetch）');
     assert(fileErrors.filter((e) => /live2d|waifu/i.test(e)).length === 0, 'G6 file:// 无看板娘相关报错', fileErrors.slice(0, 2).join(' | '));
     await fileCtx.close();
+  }
+
+  // ---------------- H. 弱机路径（无硬件加速 → 软件合成）----------------
+  // 2026-10-17 用户报「明显变卡」后实测出来的一条真实路径：
+  // 卡片磨砂在软件合成下把滚动从 60 帧打到 16–34 帧，所以必须自动降档。
+  {
+    const weakBrowser = await chromium.launch({ executablePath: CHROME, args: ['--disable-gpu'] });
+    const ctx = await weakBrowser.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await ctx.newPage();
+    const errors = errorsOf(page);
+    const l2dReqs = [];
+    page.on('request', (r) => { if (/vendor\/live2d/.test(r.url())) l2dReqs.push(r.url()); });
+
+    await page.goto(BASE + 'index.html', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(12000);          // 等壁纸层 + 静态弱机判定落地
+    const weak = await page.evaluate(() => {
+      const card = document.querySelector('.bento-card');
+      return {
+        wp: document.documentElement.classList.contains('has-wallpaper'),
+        lite: document.documentElement.classList.contains('wallpaper-lite'),
+        tier: (window.__fxTier || {}).tier || '',
+        cardBlur: card ? (getComputedStyle(card).backdropFilter || 'none') : 'none',
+      };
+    });
+    assert(weak.wp && weak.lite && weak.tier === 'lite', 'H1 软件合成自动降到轻档', JSON.stringify(weak));
+    assert(!/blur/.test(weak.cardBlur), 'H2 轻档下卡片不做磨砂（最贵的一笔）', weak.cardBlur.slice(0, 12));
+    assert(l2dReqs.length === 0, 'H3 轻档下不加载看板娘（省 1.9MB 与一份每帧渲染）', String(l2dReqs.length));
+
+    const fps = await page.evaluate(() => new Promise((res) => {
+      const t = document.querySelector('#products') || document.body;
+      window.scrollTo(0, t.getBoundingClientRect().top + window.scrollY - 40);
+      let n = 0; const t0 = performance.now();
+      const step = () => {
+        n++; window.scrollBy(0, 14);
+        if (performance.now() - t0 < 2500) requestAnimationFrame(step);
+        else res(+(n / ((performance.now() - t0) / 1000)).toFixed(1));
+      };
+      requestAnimationFrame(step);
+    }));
+    assert(fps >= 50, 'H4 轻档滚动帧率恢复到 60 帧档', fps + ' fps');
+
+    // 用户仍可显式要完整效果（覆盖自动判定）
+    await page.goto(BASE + 'index.html?fx=full', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(1500);
+    const forced = await page.evaluate(() => ({
+      lite: document.documentElement.classList.contains('wallpaper-lite'),
+      tier: (window.__fxTier || {}).tier || '',
+    }));
+    assert(!forced.lite && forced.tier === 'full', 'H5 ?fx=full 覆盖自动降档（用户说了算）', JSON.stringify(forced));
+    assert(errors.length === 0, 'H6 弱机路径无控制台错误', errors.slice(0, 2).join(' | '));
+    await weakBrowser.close();
+  }
+
+  // ---------------- I. 无 WebGL（完全跑不了看板娘）----------------
+  {
+    const noGl = await chromium.launch({ executablePath: CHROME, args: ['--disable-gpu', '--disable-software-rasterizer'] });
+    const ctx = await noGl.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await ctx.newPage();
+    const errors = errorsOf(page);
+    const l2dReqs = [];
+    page.on('request', (r) => { if (/vendor\/live2d/.test(r.url())) l2dReqs.push(r.url()); });
+    await page.goto(BASE + 'index.html', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(8000);
+    const st = await page.evaluate(() => {
+      const w = document.getElementById('waifu');
+      return {
+        webgl: !!document.createElement('canvas').getContext('webgl'),
+        waifu: !!w,
+        visibility: w ? getComputedStyle(w).visibility : '-',
+        close: !!document.getElementById('live2d-close'),
+      };
+    });
+    assert(!st.webgl, 'I1 该环境确实没有 WebGL', String(st.webgl));
+    assert(l2dReqs.length === 0, 'I2 无 WebGL 时零请求（不白下 1.9MB）', String(l2dReqs.length));
+    assert(!st.close && st.visibility !== 'visible', 'I3 不留空白看板娘、不出关闭键、不挡点击', JSON.stringify(st));
+    assert(errors.length === 0, 'I4 无 WebGL 路径无控制台错误', errors.slice(0, 2).join(' | '));
+    await noGl.close();
   }
 } finally {
   await browser.close();

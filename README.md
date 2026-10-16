@@ -188,10 +188,19 @@ node scripts/gen-rss.js
 - 层级：`#site-wallpaper`（z-index -1）压在推理场画布之上、暗角之下；桌面细指针设备用 `mix-blend-mode: screen`，壁纸亮部从推理场深底里透出来，触摸设备改用低透明度静态层（省一次每帧全屏混合）。
 - 桌面端内容卡片会额外补一层 10px 轻磨砂（`@supports` + `pointer: fine`），手机保持纯色卡片。
 - 关闭：控制台执行 `localStorage['sj.wallpaper']='off'` 后刷新；或直接删掉那张 webp（门控脚本探测不到图就不挂 `has-wallpaper`）。
-- 实现：`js/wallpaper.js`（门控）+ `css/style.css` 末尾「深空壁纸层」段。
+- 实现：`js/wallpaper.js`（门控 + 档位判定）+ `css/style.css` 末尾「深空壁纸层」段。
+- **效果分两档，自动判定**（2026-10-17 加，起因是用户报"明显变卡"）：
+  | 档位 | 什么时候用 | 表现 |
+  |---|---|---|
+  | `full` 完整档 | 有硬件加速的正常桌面 | 壁纸 `screen` 混合 + 内容卡片 10px 磨砂 + 看板娘 |
+  | `lite` 轻档 | 软件渲染（无硬件加速 / 驱动被回退 / 远程桌面 / 无 WebGL）、或首帧后帧率连测两段都低于 42 帧 | 保留壁纸氛围，但**不做混合、卡片不加磨砂**，也不加载看板娘（省 1.9MB + 一份每帧渲染） |
+  实测依据（软件合成路径下滚动帧率）：两者都上 = 33.8 帧（更差的一次 16.3 帧）；只去掉卡片磨砂 = 60.3 帧。所以最贵的就是卡片那层大面积 `backdrop-filter`，混合与壁纸模糊几乎免费。
+- **手动控制**（优先级最高，写了就沿用）：URL 加 `?fx=full` 强制完整效果、`?fx=lite` 强制轻档、`?fx=off` 彻底关掉壁纸层。控制台等价写法：`localStorage['sj.wallpaper']='on'|'lite'|'off'`。
+- 判定过弱机后会记住（`sj.fx-lite=1`），不再每次测；想重测就删掉这个键或加 `?fx=full`。
 
 ### 2. Live2D 看板娘（右下角）
-- 出现条件：桌面细指针 + 视口 ≥1024px + 没开「减少动态效果」+ 没开省流量 + 用户没关过；**首帧之后**才加载，且**不进 SW 预缓存**（和 three、mp3 同策略）。
+- 出现条件：桌面细指针 + 视口 ≥1024px + 没开「减少动态效果」+ 没开省流量 + **有 WebGL** + **不是轻档**（见上一条）+ 用户没关过；**首帧之后**才加载，且**不进 SW 预缓存**（和 three、mp3 同策略）。
+- 模型下载完（上游给 `#waifu` 挂 `waifu-active`）之前容器保持 `visibility:hidden`：慢网下不会先冒出一个挡点击的空方块，也不会让人以为"没有看板娘"。
 - 关闭：角色右上角的小叉（写 `sj.live2d=off` 持久化）。想找回来：`localStorage.removeItem('sj.live2d')` 后刷新。
 - ❗`file://` 双击打开时模型要 fetch，会被 CORS 挡 → 看板娘静默不出现；**要看她请用本地服务器预览**（`node scripts/dev-server.js` → http://localhost:8328）。
 - 换模型：把新模型的 `assets/**` 放进 `assets/vendor/live2d/model/<名字>/`，再改 `assets/vendor/live2d/waifu-tips.json` 里 `models[].paths` 指向新的 `*.model.json`；整体重建用 `node scripts/vendor-live2d.js`（依赖装在隔离 node 工作区，见脚本头注释）。
@@ -221,8 +230,9 @@ node scripts/gen-rss.js
 ### 6. 怎么验收
 ```bash
 node scripts/dev-server.js          # 终端 A：8328 静态服务（带 Range）
-node scripts/video-fx-smoke.mjs     # 终端 B：四项效果 40 项断言
+node scripts/video-fx-smoke.mjs     # 终端 B：四项效果 51 项断言
 ```
+含三条易回归的路径（2026-10-17 补）：**H 弱机自动降档**（软件合成下滚动帧率必须回到 60 帧档、不加载看板娘、`?fx=full` 能覆盖）、**I 无 WebGL**（零请求、零报错、不留空白看板娘）、A2b **强机档位**（卡片磨砂在场）。
 既有回归套件（本次改动全部通过）：
 ```bash
 node scripts/swr-check.mjs                                      # SW 策略（dev-server 8328）

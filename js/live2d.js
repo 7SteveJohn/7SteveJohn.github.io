@@ -29,10 +29,22 @@
   if (hit('(prefers-reduced-motion: reduce)')) return;
   if (!hit('(pointer: fine)') || !hit('(min-width: 1024px)')) return;
   if (conn.saveData === true) return;
+  // 没有 WebGL 就别开工：上游会静默失败，留下一个看不见的空白 canvas，
+  // 还白下 1.9MB（2026-10-17 用 --disable-gpu --disable-software-rasterizer 实测复现）
+  if (!hasWebGL()) return;
 
   const nodes = () => ['waifu', 'waifu-toggle', 'live2d-close']
     .map((id) => document.getElementById(id))
     .filter(Boolean);
+
+  // 能不能跑 WebGL：跑不了就当没这个功能
+  function hasWebGL() {
+    try {
+      return !!document.createElement('canvas').getContext('webgl');
+    } catch (e) {
+      return false;
+    }
+  }
 
   // 静默降级：清干净已插入的东西，页面上什么都不留
   const fail = () => {
@@ -58,15 +70,19 @@
     document.body.appendChild(btn);
   }
 
-  // 等 #waifu 真正插进 DOM：成功了才挂 has-live2d、才给关闭键，失败就静默收场
+  // 等模型真正落地（上游加载完会给 #waifu 挂 waifu-active）再显形：
+  // 在那之前 #waifu 保持 visibility:hidden（见 css/style.css），既不挡右下角点击，
+  // 也不会让人盯着一个透明空块。慢网下模型要下载好几秒，这里给足耐心（约 90 秒），
+  // 超时也不删节点、不报错 —— 就当没有这个功能。
   function settle(tries) {
-    if (document.getElementById('waifu')) {
+    const waifu = document.getElementById('waifu');
+    if (waifu && waifu.classList.contains('waifu-active')) {
       root.classList.add('has-live2d');
       addCloseButton();
       return;
     }
-    if (tries <= 0) return fail();
-    setTimeout(() => settle(tries - 1), 250);
+    if (tries <= 0) return;
+    setTimeout(() => settle(tries - 1), 400);
   }
 
   function boot() {
@@ -93,7 +109,7 @@
       } catch (e) {
         return fail();
       }
-      settle(48);   // 最多等 12 秒（模型 1.7MB，慢网络也够）
+      settle(225);   // 最多等约 90 秒（模型 1.7MB，慢网络也够）
     };
     document.head.appendChild(run);
   }
@@ -106,7 +122,16 @@
       .catch(fail);
   }
 
+  // 起动闸门：等壁纸脚本（js/wallpaper.js）给出档位结论 —— 弱机/被判定为轻档时
+  // 直接不加载运行时与模型（1.9MB 省下来，也少一份每帧渲染的开销）。
+  function start() {
+    const fx = window.__fxTier;
+    if (!fx || !fx.done) return probe();                       // 没有该模块（比如次级页）：照常
+    const guard = new Promise((r) => setTimeout(() => r('full'), 8000));   // 档位迟迟没结论就按强机走
+    Promise.race([fx.done, guard]).then((tier) => { if (tier !== 'lite') probe(); });
+  }
+
   const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 1500));
-  if (document.readyState === 'complete') idle(probe);
-  else window.addEventListener('load', () => idle(probe), { once: true });
+  if (document.readyState === 'complete') idle(start);
+  else window.addEventListener('load', () => idle(start), { once: true });
 })();

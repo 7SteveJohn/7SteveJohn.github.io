@@ -1657,16 +1657,20 @@ html.has-wallpaper #site-wallpaper {
   #site-wallpaper {
     filter: blur(26px) brightness(0.62) saturate(1.05);
   }
-  html.has-wallpaper #site-wallpaper {
+  /* ❗:not(.wallpaper-lite)：轻档（弱机 / 无硬件加速）不做全屏混合 */
+  html.has-wallpaper:not(.wallpaper-lite) #site-wallpaper {
     mix-blend-mode: screen;
     opacity: 0.55;
   }
 }
 /* 桌面端：卡片补一层轻磨砂，和壁纸/推理场形成玻璃层次。
-   触摸设备保持今天的纯色卡片（大面积 backdrop-filter 在手机上会掉帧） */
+   触摸设备保持今天的纯色卡片（大面积 backdrop-filter 在手机上会掉帧）。
+   ❗:not(.wallpaper-lite)：这层模糊是本站最贵的一笔——23 张卡每帧重算，
+   无硬件加速时实测把滚动从 60 帧打到 16–34 帧（2026-10-17），
+   所以弱机/软件合成一律不启用（js/wallpaper.js 判档） */
 @media (min-width: 1024px) and (pointer: fine) {
   @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    html.has-wallpaper .dark .bento-card {
+    html.has-wallpaper:not(.wallpaper-lite) .dark .bento-card {
       background: rgba(18, 20, 27, 0.58);
       border-color: rgba(255, 255, 255, 0.09);
       -webkit-backdrop-filter: blur(10px) saturate(1.3);
@@ -1692,6 +1696,11 @@ html body #waifu {
   left: auto;
   right: 0;
   z-index: 30;
+}
+/* 模型落地前不上屏：js/live2d.js 等到上游给 #waifu 挂 waifu-active 才加
+   html.has-live2d。这样慢网下载那几秒里既看不到空块，也不会挡住右下角点击 */
+html:not(.has-live2d) #waifu {
+  visibility: hidden;
 }
 /* 只在桌面出现（js/live2d.js 的闸门也认 1024px，这里兜住「开着窗口再缩窄」的情况） */
 @media (max-width: 1023px) {
