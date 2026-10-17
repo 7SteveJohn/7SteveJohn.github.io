@@ -499,13 +499,57 @@ try {
     // J7 灯箱入场动画
     await page.goto(BASE + 'gallery.html', { waitUntil: 'load', timeout: 30000 });
     await page.waitForTimeout(1500);
-    await page.click('.gal-tile:nth-child(2)');
-    await page.waitForTimeout(250);
+    // ❗必须在页面内「点开 + 立刻取样式」一次完成：
+    //   动画只有 0.34s，跨进程往返一次就播完了（早先只断言类名+动画名，等于没验到动画在跑）
     const zoom = await page.evaluate(() => {
+      document.querySelector('.gal-tile:nth-child(2)').click();
       const img = document.getElementById('gal-img');
-      return { cls: img.className, anim: getComputedStyle(img).animationName };
+      const a = img.getAnimations ? img.getAnimations().find((x) => x.animationName === 'gal-zoom') : null;
+      const cs = getComputedStyle(img);
+      return {
+        cls: img.classList.contains('is-in'),
+        anim: cs.animationName,
+        state: a ? a.playState : 'none',
+        opacity: Number(cs.opacity),
+        scaled: /matrix\(0?\.\d+/.test(cs.transform)     // scale(0.94) → matrix(0.94, …)
+      };
     });
-    assert(/is-in/.test(zoom.cls) && zoom.anim === 'gal-zoom', 'J7 灯箱大图入场缩放', JSON.stringify(zoom));
+    assert(zoom.cls && zoom.anim === 'gal-zoom' && zoom.state === 'running' && zoom.opacity < 0.95 && zoom.scaled,
+      'J7 灯箱大图入场缩放（动画确实在跑：0.94 → 1）', JSON.stringify(zoom));
+    await page.waitForTimeout(500);
+    const zoomEnd = await page.evaluate(() => {
+      const img = document.getElementById('gal-img');
+      return { opacity: Number(getComputedStyle(img).opacity), anims: img.getAnimations().length };
+    });
+    assert(zoomEnd.opacity === 1 && zoomEnd.anims === 0, 'J7b 入场动画会落定（不卡在中间态）', JSON.stringify(zoomEnd));
+
+    // J7c 换图重放：同一张 <img> 换 src 不会自动重播，必须由 gallery.js 重挂 is-in
+    await page.keyboard.press('ArrowRight');
+    const replay = await page.evaluate(() => {
+      const img = document.getElementById('gal-img');
+      return { anims: img.getAnimations().length, opacity: Number(getComputedStyle(img).opacity) };
+    });
+    assert(replay.anims === 1 && replay.opacity < 0.95, 'J7c 切换图片时重放入场动画', JSON.stringify(replay));
+
+    // J7d 减少动态效果：三项里两件有动画的都必须关掉（胶囊只留 opacity 过渡、灯箱不放动画）
+    const rmCtx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
+    const rmPage = await rmCtx.newPage();
+    await rmPage.goto(BASE + 'index.html?fx=full', { waitUntil: 'load', timeout: 30000 });
+    await rmPage.waitForTimeout(1800);
+    const rmPill = await rmPage.evaluate(() => {
+      const p = document.querySelector('.nav-pill');
+      return p ? { trans: getComputedStyle(p).transitionProperty, pos: p.style.transform } : { trans: 'none', pos: '' };
+    });
+    await rmPage.goto(BASE + 'gallery.html', { waitUntil: 'load', timeout: 30000 });
+    await rmPage.waitForTimeout(1200);
+    const rmLb = await rmPage.evaluate(() => {
+      document.querySelector('.gal-tile:nth-child(2)').click();
+      const img = document.getElementById('gal-img');
+      return { anim: getComputedStyle(img).animationName, anims: img.getAnimations().length };
+    });
+    await rmCtx.close();
+    assert(rmPill.trans === 'opacity' && /translate3d/.test(rmPill.pos) && rmLb.anim === 'none' && rmLb.anims === 0,
+      'J7d 减少动态效果下：胶囊只留透明度过渡、灯箱不放动画', JSON.stringify({ pill: rmPill, lightbox: rmLb }));
 
     assert(errors.length === 0, 'J8 第 1 轮新增功能无控制台错误', errors.slice(0, 2).join(' | '));
     await page.context().close();
