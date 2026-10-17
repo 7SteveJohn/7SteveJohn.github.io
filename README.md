@@ -21,6 +21,7 @@
    - 📖 **连载阅读器**（`novel.html`）：书架 + 章节抽屉 + 键盘翻页 + 进度记忆 + 字号行高调节 + 沉浸模式，章节直接读 `js/novel-data.js` 的 Markdown，见下文「[📖 连载阅读器](#-连载阅读器第-3-轮)」。
    - ✍️ **Markdown 写作管线 + 本地写作台**：文章与章节写在 `posts/*.md`，一条命令（或写作台的「保存/发布」）生成数据、RSS 与 sitemap；写作台只监听本机、界面里直接预览与上传图片，见下文「[✍️ 写作与发布](#️-写作与发布第-4-轮markdown-源文件--本地写作台)」。
   - 🖱️ **滚动保持原生**：不劫持滚轮、不做逐帧 `scrollTo` 的阻尼滚动（2026-10-17 撤掉 Lenis 式实现：实测滚轮停下后页面还会继续滑约 **989ms**、最长单帧 55ms，桌面指针手感发黏）。现在滚轮/触控板完全交给浏览器；只有锚点、回到顶部、Tab 快速导航这类**程序化跳转**才用原生 `scrollTo({ behavior: 'smooth' })`。想找回阻尼手感：控制台执行 `window.enableDampedScroll()`（仅当次会话）。
+  - 🚀 **首屏加载**（2026-10-17）：脚本合并成 6 个 bundle（首页 JS 请求 17 → 7、总请求 30 → 20）、marked/purify 改为打开文章/章节时才加载、字体 preload、音轨延后到首次交互、看板娘推后 3.5s 启动（**仍默认显示**）。❗改 `js/` 下源文件后必须跑 `node scripts/build-bundles.mjs` 重建，否则页面用旧包（`--check` 与 dev-server 都会提示）。见下文「[🚀 首屏加载与脚本合并](#-首屏加载与脚本合并)」。
    - 📱 完美适配 PC 电脑端、平板与手机端（移动端含汉堡导航菜单）。
 
 ---
@@ -149,7 +150,9 @@ node scripts/gen-rss.js
 | `js/wallpaper.js` + `assets/images/wallpaper*.webp` | 深空壁纸层门控、轮换、渐变兜底与档位判定（换壁纸=替换图片并在配置里登记） | 关闭开关：控制台 `localStorage['sj.wallpaper']='off'`，或左下角齿轮 |
 | `assets/vendor/live2d/`（运行时 + 官方示例模型，约 1.9MB） | 右下角 Live2D 看板娘资源（`waifu-tips.js` / `waifu.css` / `live2d.min.js` / `chunk/index.js` / `model/shizuku/**`） | 重建或换模型：`node scripts/vendor-live2d.js`；来源与授权见目录内 `SOURCE.txt` |
 | `scripts/vendor-live2d.js` | 从隔离 node 工作区把看板娘运行时与模型搬进 `assets/vendor/live2d/`（跳过 800KB 交互音效并摘掉 `sound` 引用） | 依赖 `npm i live2d-widgets@1.0.1 live2d-widget-model-shizuku@1.0.5` |
-| `scripts/video-fx-smoke.mjs` | 全站验收（101 项断言：壁纸轮换/看板娘/归档/照片墙/按住 Tab/手机档/离线/降级/配置与设置面板/胶囊/目录/封面/灯箱/原生滚动/花园/链接页/连载阅读器/内容管线与写作台） | `node scripts/dev-server.js` + `node scripts/video-fx-smoke.mjs` |
+| `scripts/video-fx-smoke.mjs` | 全站验收（112 项断言：壁纸轮换/看板娘/归档/照片墙/按住 Tab/手机档/离线/降级/配置与设置面板/胶囊/目录/封面/灯箱/原生滚动/花园/链接页/连载阅读器/内容管线与写作台/首屏 bundle 与按需加载） | `node scripts/dev-server.js` + `node scripts/video-fx-smoke.mjs` |
+| `scripts/build-bundles.mjs` + `js/bundles/*.js` | 首屏脚本拼接器与六个生成物（core/home/sub/garden/links/novel） | 改 `js/` 源文件后 `node scripts/build-bundles.mjs` 重建；`--check` 验过期 |
+| `js/markdown-loader.js` | marked + purify 的按需加载器（`window.ensureMarkdown()`，Promise 去重、失败可重试） | 打开文章/项目/章节时自动触发，无需手调 |
 | `garden.html` + `js/garden.js` + `js/garden/{life,sorting,stars}.js` + `css/garden.css` | 花园页：三个 canvas 玩具，单循环、切页停帧、减少动效只画一帧 | 加玩具：新文件推进 `window.GardenToys` + 页面加一个 script 标签 |
 | `links.html` + `js/friends.js` + `js/bookmarks.js` + `js/links.js` + `css/links.css` | 链接页：友情链接（空态 + 申请说明）与收藏夹（分组筛选 + 关键词搜索） | 友链加 `js/friends.js`，收藏加 `js/bookmarks.js` |
 | `novel.html` + `js/novel.js` + `js/novel-data.js` + `css/novel.css` | 连载阅读器：书架、章节抽屉、键盘翻页、进度记忆、字号行高、沉浸模式、章节深链 | 章节写进 `posts/novel/<书>/*.md`（生成到 `js/novel-data.js`） |
@@ -322,7 +325,7 @@ python -m http.server 8327  →  node scripts/cosmos-scan.mjs      # 背景引�
 ```bash
 node scripts/sync-chrome.mjs        # 站点外壳一致性（页面入口/标记块）
 node scripts/dev-server.js          # 终端 A
-node scripts/video-fx-smoke.mjs     # 终端 B：101 项（J/K/L/M 段分别覆盖第 1–4 轮）
+node scripts/video-fx-smoke.mjs     # 终端 B：112 项（J/K/L/M 段覆盖第 1–4 轮，N 段覆盖首屏加载优化）
 ```
 
 ## 🌱 花园与链接页（第 2 轮）
@@ -393,6 +396,39 @@ node scripts/dev-server.js          # 另一个终端：预览线上效果 http:
 - 删除：不真删，移入 `.local/trash-<时间戳>/`（`.local/` 不入库），随后重新生成。
 - **安全边界**：只监听 `127.0.0.1`、无登录（本机工具）、读写路径限定在 `posts/**` 与 `assets/images/**`（拒绝 `..`）、git 命令用固定参数数组不经 shell。别把它暴露到公网。
 - **校验失败时**：md 已落盘但不重新生成（方便你接着改），界面会把校验错误原样显示；改完再保存即可。
+
+## 🚀 首屏加载与脚本合并
+
+> 起因：在国内/代理链路上，**每个请求的固定延迟比体积更要命**（实测 2KB 的 `site-config.js` 也要等 5.6 秒），所以这一轮的目标是"减请求数"而不是"减体积"。
+
+### 做了什么
+
+| 项 | 做法 | 效果（受控 A/B：260ms RTT / 1.6Mbps / 关 SW） |
+| --- | --- | --- |
+| **A 合并首屏脚本** | `scripts/build-bundles.mjs` 把源文件按清单顺序拼成 `js/bundles/{core,home,sub,garden,links,novel}.js` | 脚本标签 21 → 10、**JS 请求 18 → 7**、总请求 33 → 20、传输 684 → 624KB |
+| **B marked/purify 按需** | `js/markdown-loader.js`（在 core 里）在打开文章/项目详情/连载章节时才拉两个库；三个渲染点改成"先骨架后正文"，失败回落纯文本 | 首屏少 2 个请求 / 61KB；弹窗打开时多约一次往返（本地几乎无感） |
+| **C 字体 preload** | 六页 `<head>` 加 `inter-var-latin.woff2` 的 preload（含 `crossorigin`） | 实测曾是最慢请求（7.2s）→ 与 HTML 并行 |
+| **D 音乐延后** | `player.js` 的 `restore()` 不再设 `audio.src`、不再让 SW 预热首曲；改由首次交互 / 打开面板 / 点播放触发 `prime()` | 首屏不再出现卡 10.5s、0 字节的 `/music/*.mp3` 请求 |
+| **E 看板娘推后** | `live2d.js` 改为「首次交互 / load 后 3.5s / 页面可见」启动 | 1.9MB 模型不与首屏脚本抢连接；**仍默认显示**，关闭开关语义不变 |
+
+### ❗改完源文件一定要重建 bundle
+
+```bash
+node scripts/build-bundles.mjs          # 重建全部（幂等：内容没变则产物逐字节相同）
+node scripts/build-bundles.mjs --check  # 校验是否过期（退出码 1 = 过期）
+node scripts/build-bundles.mjs --one core   # 只重建一组
+node scripts/build-bundles.mjs --list       # 看分组与源文件
+```
+
+- `js/` 下的源文件**永远保留**，bundle 只是生成物；工具链（gen-rss / sync-chrome / 写作台）仍读源文件。
+- bundle 头部写的是**内容哈希**（不是时间戳），所以重复构建不会让 git 变脏。
+- 清单顺序就是执行顺序：`site-config` 必须最前、garden 三个玩具在框架前、`app` 在 `nav-indicator` 前。
+- 重建后记得升 `sw.js` 的 `CACHE` 版本（当前 `v143`），否则老客户端继续用旧包。
+- `scripts/dev-server.js` 启动时会自动跑一次 `--check`，过期只提示不自动写。
+
+### 已知遗留（不在本轮范围）
+
+受控测量里 **DCL 仍有约 12–13 秒**（260ms RTT / 1.6Mbps 下），跟请求数无关：屏蔽 `home.js` 或 `articles.js` 就消失 —— 是**首屏一次性渲染 16 张文章卡**的执行开销（优化前 12.8s、优化后 13.2s，几乎相同，属既有问题）；真实链路（走代理）上 DCL 从 9.4s 降到 4.6s。若要继续压，方向是"文章卡增量渲染 / 首屏只渲染前 6 张 + 滚动补齐"，留作下一轮。
 
 ## 🌐 如何免费部署上线到公网？
 
