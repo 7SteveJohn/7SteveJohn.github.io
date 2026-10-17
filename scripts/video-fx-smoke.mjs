@@ -1056,7 +1056,34 @@ try {
     assert(gone.length === 0 && !/(garden|links|novel)\.html/.test(sm),
       'P9 花园/友链/连载已从入口与 sitemap 下线', JSON.stringify({ links: gone.length }));
 
-    assert(errors.length === 0, 'P10 产品页无控制台错误', errors.slice(0, 2).join(' | '));
+    // P10 版式契约（2026-10-17 用户反馈「电脑上一列到底太冗余」）：
+    //     桌面 索引 3 列 / 详情 2 栏（左信息栏 sticky）；手机 都单列
+    await page.goto(BASE + 'products.html', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(1000);
+    const wideCols = await page.evaluate(() => getComputedStyle(document.querySelector('.prod-grid')).gridTemplateColumns.split(' ').length);
+    await page.goto(BASE + 'product.html?id=filebutler', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(1600);
+    const wideLayout = await page.evaluate(() => ({
+      cols: getComputedStyle(document.querySelector('.prod-layout')).gridTemplateColumns.split(' ').length,
+      sticky: getComputedStyle(document.querySelector('.prod-rail')).position
+    }));
+    const mCtx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const mPage = await mCtx.newPage();
+    await mPage.goto(BASE + 'products.html', { waitUntil: 'load', timeout: 30000 });
+    await mPage.waitForTimeout(900);
+    const mCols = await mPage.evaluate(() => getComputedStyle(document.querySelector('.prod-grid')).gridTemplateColumns.split(' ').length);
+    await mPage.goto(BASE + 'product.html?id=filebutler', { waitUntil: 'load', timeout: 30000 });
+    await mPage.waitForTimeout(1500);
+    const mLayout = await mPage.evaluate(() => ({
+      cols: getComputedStyle(document.querySelector('.prod-layout')).gridTemplateColumns.split(' ').length,
+      sticky: getComputedStyle(document.querySelector('.prod-rail')).position
+    }));
+    await mCtx.close();
+    assert(wideCols === 3 && wideLayout.cols === 2 && wideLayout.sticky === 'sticky' && mCols === 1 && mLayout.cols === 1 && mLayout.sticky === 'static',
+      'P10 版式：桌面索引 3 列 + 详情双栏，手机单列',
+      JSON.stringify({ wideCols, wideLayout, mCols, mLayout }));
+
+    assert(errors.length === 0, 'P11 产品页无控制台错误', errors.slice(0, 2).join(' | '));
     await ctx.close();
   }
 

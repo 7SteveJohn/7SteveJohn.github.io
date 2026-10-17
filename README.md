@@ -150,7 +150,7 @@ node scripts/gen-rss.js
 | `js/wallpaper.js` + `assets/images/wallpaper*.webp` | 深空壁纸层门控、轮换、渐变兜底与档位判定（换壁纸=替换图片并在配置里登记） | 关闭开关：控制台 `localStorage['sj.wallpaper']='off'`，或左下角齿轮 |
 | `assets/vendor/live2d/`（运行时 + 官方示例模型，约 1.9MB） | 右下角 Live2D 看板娘资源（`waifu-tips.js` / `waifu.css` / `live2d.min.js` / `chunk/index.js` / `model/shizuku/**`） | 重建或换模型：`node scripts/vendor-live2d.js`；来源与授权见目录内 `SOURCE.txt` |
 | `scripts/vendor-live2d.js` | 从隔离 node 工作区把看板娘运行时与模型搬进 `assets/vendor/live2d/`（跳过 800KB 交互音效并摘掉 `sound` 引用） | 依赖 `npm i live2d-widgets@1.0.1 live2d-widget-model-shizuku@1.0.5` |
-| `scripts/video-fx-smoke.mjs` | 全站验收（122 项断言：壁纸轮换/看板娘/归档/照片墙/按住 Tab/手机档/离线/降级/配置与设置面板/胶囊/目录/封面/灯箱/原生滚动/花园/链接页/连载阅读器/内容管线与写作台/首屏 bundle 与按需加载/产品页与下线校验） | `node scripts/dev-server.js` + `node scripts/video-fx-smoke.mjs` |
+| `scripts/video-fx-smoke.mjs` | 全站验收（123 项断言：壁纸轮换/看板娘/归档/照片墙/按住 Tab/手机档/离线/降级/配置与设置面板/胶囊/目录/封面/灯箱/原生滚动/花园/链接页/连载阅读器/内容管线与写作台/首屏 bundle 与按需加载/产品页与下线校验） | `node scripts/dev-server.js` + `node scripts/video-fx-smoke.mjs` |
 | `products.html` + `product.html` + `js/product.js` + `css/product.css` | 产品索引与产品详情（`?id=`）：版本与更新日志、相关手记、上下产品、JSON-LD | 数据在 `js/projects.js`；更新日志写 `changelog` 数组 |
 | `scripts/build-bundles.mjs` + `js/bundles/*.js` | 首屏脚本拼接器与六个生成物（core/home/sub/garden/links/novel） | 改 `js/` 源文件后 `node scripts/build-bundles.mjs` 重建；`--check` 验过期 |
 | `js/markdown-loader.js` | marked + purify 的按需加载器（`window.ensureMarkdown()`，Promise 去重、失败可重试） | 打开文章/项目/章节时自动触发，无需手调 |
@@ -326,7 +326,7 @@ python -m http.server 8327  →  node scripts/cosmos-scan.mjs      # 背景引�
 ```bash
 node scripts/sync-chrome.mjs        # 站点外壳一致性（页面入口/标记块）
 node scripts/dev-server.js          # 终端 A
-node scripts/video-fx-smoke.mjs     # 终端 B：122 项（J/K/L/M 段覆盖第 1–4 轮，N 段首屏加载优化，P 段产品页与下线校验）
+node scripts/video-fx-smoke.mjs     # 终端 B：123 项（J/K/L/M 段覆盖第 1–4 轮，N 段首屏加载优化，P 段产品页与下线校验）
 ```
 
 ## 🧭 产品页与更新日志
@@ -340,6 +340,7 @@ node scripts/video-fx-smoke.mjs     # 终端 B：122 项（J/K/L/M 段覆盖第 
 | `products.html` | 产品索引：按分类分组（桌面应用 / Android 应用），每张卡显示封面、一句简介、版本与更新日期 |
 | `product.html?id=<产品 id>` | 产品详情：封面与版本头、下载/GitHub/发布页、`details` 正文（Markdown 按需渲染）、技术难点与解法、**版本与更新**、相关手记、上一个/下一个产品 |
 
+- **版式按屏幕分**（2026-10-17 按反馈改）：索引页桌面 **3 列**、平板 2 列、手机 1 列；详情页桌面 **左信息栏（封面/版本/下载/环境，sticky）+ 右内容栏**，平板竖屏与手机退回单列。手机仍是自然上下排列，桌面不再一列到底。
 - 数据只读 `js/projects.js`（首页卡片用的同一份），**改产品只改那一处**；新增产品 = 数组里加一条。
 - 详情页会按 `?id=` 改写 title / description / canonical / OG，并注入 `SoftwareApplication` 的结构化数据（搜索引擎可读）。
 - 相关手记按「标签 + 标题」重合度自动挑最多 3 篇；`js/articles.js` 只在需要时才异步加载，不占产品页首屏。

@@ -152,6 +152,8 @@
     const prev = DATA[(idx - 1 + DATA.length) % DATA.length];
     const next = DATA[(idx + 1) % DATA.length];
 
+    // 桌面：左栏「封面 + 标题 + 版本 + 下载 + 标签」，右栏「正文与更新日志」；
+    // 手机：单列（封面 → 标题 → 按钮 → 正文），避免宽屏下一列到底、页面被拉得过长
     root.innerHTML = `
       <nav class="prod-crumb" aria-label="面包屑">
         <a href="index.html">首页</a><span>/</span>
@@ -159,35 +161,41 @@
         <span aria-current="page">${esc(p.title)}</span>
       </nav>
 
-      <header class="prod-hero">
-        <div class="prod-hero-cover">${coverHtml(p)}</div>
-        <div class="prod-hero-body">
-          <div class="prod-hero-meta">
-            ${p.categoryName ? `<span class="prod-chip">${esc(p.categoryName)}</span>` : ''}
-            ${p.version ? `<span class="prod-chip prod-chip-quiet">${esc(p.version)}</span>` : ''}
-            ${p.updated ? `<span class="prod-chip prod-chip-quiet">更新于 ${esc(p.updated)}</span>` : ''}
-          </div>
-          <h1>${esc(p.title)}</h1>
-          <p class="prod-lede">${esc(p.description)}</p>
+      <div class="prod-layout">
+        <aside class="prod-rail">
+          <div class="prod-hero-cover">${coverHtml(p)}</div>
+
+          <header class="prod-hero">
+            <div class="prod-hero-meta">
+              ${p.categoryName ? `<span class="prod-chip">${esc(p.categoryName)}</span>` : ''}
+              ${p.version ? `<span class="prod-chip prod-chip-quiet">${esc(p.version)}</span>` : ''}
+              ${p.updated ? `<span class="prod-chip prod-chip-quiet">更新于 ${esc(p.updated)}</span>` : ''}
+            </div>
+            <h1>${esc(p.title)}</h1>
+            <p class="prod-lede">${esc(p.description)}</p>
+          </header>
+
           ${(p.tags || []).length ? `<ul class="prod-tags">${p.tags.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
           <div class="prod-actions">${actionsHtml(p)}</div>
           ${p.requires ? `<p class="prod-req">运行环境：${esc(p.requires)}</p>` : ''}
-        </div>
-      </header>
+        </aside>
 
-      <section class="prod-section">
-        <div class="prod-section-head"><h2>它能做什么</h2>${p.role ? `<span class="prod-role">我的角色：${esc(p.role)}</span>` : ''}</div>
-        <div class="markdown-body prod-md" id="product-details"><p class="md-pending">正在准备阅读器…</p></div>
-      </section>
+        <article class="prod-main">
+          <section class="prod-section">
+            <div class="prod-section-head"><h2>它能做什么</h2>${p.role ? `<span class="prod-role">我的角色：${esc(p.role)}</span>` : ''}</div>
+            <div class="markdown-body prod-md" id="product-details"><p class="md-pending">正在准备阅读器…</p></div>
+          </section>
 
-      ${p.challenge ? `<section class="prod-section">
-        <div class="prod-section-head"><h2>技术难点与解法</h2></div>
-        <p class="prod-challenge">${esc(p.challenge)}</p>
-      </section>` : ''}
+          ${p.challenge ? `<section class="prod-section">
+            <div class="prod-section-head"><h2>技术难点与解法</h2></div>
+            <p class="prod-challenge">${esc(p.challenge)}</p>
+          </section>` : ''}
 
-      <section class="prod-section" id="product-changelog">${changelogHtml(p)}</section>
+          <section class="prod-section" id="product-changelog">${changelogHtml(p)}</section>
 
-      <div id="product-related"></div>
+          <div id="product-related"></div>
+        </article>
+      </div>
 
       <nav class="prod-pager" aria-label="产品翻页">
         <a class="prod-pager-item" href="product.html?id=${encodeURIComponent(prev.id)}">

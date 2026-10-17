@@ -26,12 +26,19 @@
   font-weight: 400;
   color: rgba(158, 176, 202, 0.45);
 }
+/* 桌面 3 列（一屏能看到 6 个产品），平板 2 列，手机 1 列。
+   2026-10-17：原先 2 列 + 16:9 大封面，1440 宽下每张卡近 500px 高，显得冗余 */
 .prod-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
 }
-@media (max-width: 719px) {
+@media (max-width: 1079px) {
+  .prod-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 639px) {
   .prod-grid {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -145,19 +152,46 @@
   color: rgba(245, 245, 247, 0.72);
 }
 
-.prod-hero {
+/* 桌面：左信息栏（sticky）+ 右内容栏；手机：单列。
+   左栏只放「读之前要决定的事」（版本/下载/环境），右栏放要读的内容 */
+.prod-layout {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  gap: 1.6rem;
+  grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+  gap: 2.4rem;
   align-items: start;
-  padding-bottom: 1.6rem;
+}
+/* 平板竖屏（<1024）退回单列：两栏会把正文压到 480px 内，长文很难读 */
+@media (max-width: 1023px) {
+  .prod-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.4rem;
+  }
+}
+.prod-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding-bottom: 1.2rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
-@media (max-width: 799px) {
-  .prod-hero {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1.1rem;
+@media (min-width: 1024px) {
+  /* 左栏跟随滚动，右栏读到哪里都能随手点下载 */
+  .prod-rail {
+    position: sticky;
+    top: 4.2rem;
+    border-bottom: none;
+    padding-bottom: 0;
   }
+}
+.prod-main {
+  min-width: 0;
+}
+.prod-main .prod-section:first-child {
+  padding-top: 0;
+}
+
+.prod-hero {
+  margin: 0;
 }
 .prod-hero-cover {
   position: relative;
@@ -175,10 +209,10 @@
   height: 100%;
   object-fit: cover;
 }
-.prod-hero-body h1 {
+.prod-hero h1 {
   margin: 0.55rem 0 0.6rem;
-  font-size: 26px;
-  line-height: 1.25;
+  font-size: clamp(21px, 2.1vw, 26px);
+  line-height: 1.28;
   font-weight: 750;
   letter-spacing: -0.02em;
   color: #f5f5f7;
@@ -264,7 +298,7 @@
 }
 
 .prod-section {
-  padding: 2rem 0 0.4rem;
+  padding: 1.7rem 0 0.3rem;
 }
 .prod-section-head {
   display: flex;
