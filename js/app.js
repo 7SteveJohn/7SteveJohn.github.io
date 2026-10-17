@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. 初始化移动端抽屉菜单与滚动状态导航
   initNavigation();
   initNavScrollState();
-  initDampedScroll();   // 先建阻尼系统，smoothScrollTo 检测后统一走 lerp
+  // 2026-10-17：滚轮阻尼滚动已撤（见 smoothScrollTo 处注释），滚动交回浏览器原生
   initSmoothAnchors();
   initScrollSpy();
   initPageNext();
@@ -1336,11 +1336,18 @@ function initPageNext() {
   });
 }
 
-// 锚点滚动：替换浏览器原生 smooth，改用 easeOutQuint 缓动（快起长滑），滚轮/触摸可随时打断
+// 锚点/按钮滚动：直接用**原生平滑滚动**（合成器线程驱动，不逐帧写 scrollTo）
+// ----------------------------------------------------
+// 2026-10-17 撤掉原先的 Lenis 式阻尼滚动（滚轮 preventDefault + 每帧 scrollTo 追 150ms lerp）。
+// 实测代价（1440×900 / 165Hz）：滚轮停下后页面还会继续滑 ~989ms，最长单帧 55ms ——
+// 桌面指针与触控板的手感会明显发黏，且与系统惯性、无障碍设置打架。
+// 现在：滚轮完全交给浏览器；只有锚点/回顶/翻页这类"程序化跳转"才做平滑，且由合成器执行。
+// 想找回阻尼版：git show 7f1e57e:js/app.js（initDampedScroll 仍在历史里）。
 let smoothScrollTo = function (targetY) {
-  window.scrollTo(0, targetY);
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  window.scrollTo({ top: targetY, behavior: reduce ? 'auto' : 'smooth' });
 };
-// 暴露给 search.js 等模块复用
+// 暴露给 search.js / tab-nav.js 等模块复用
 window.smoothScrollTo = function (y) { smoothScrollTo(y); };
 
 // 阻尼滚动：滚轮驱动目标位，页面每帧向目标指数趋近（Lenis 手法，自写精简版）
@@ -1410,49 +1417,15 @@ function initDampedScroll() {
   }, { passive: true });
 }
 
+// 兜底入口：默认关闭（原生滚动），想找回"阻尼手感"可在控制台执行 window.enableDampedScroll()
+// —— 只影响滚动条以外的滚轮，弹窗内滚动始终原生；刷新即恢复默认。
+window.enableDampedScroll = function () {
+  if (window.__dampedScroll) return '阻尼滚动已启用';
+  initDampedScroll();
+  return window.__dampedScroll ? '阻尼滚动已启用（本次会话生效）' : '当前环境不适用（触摸设备或已开减少动效）';
+};
+
 function initSmoothAnchors() {
-  let rafId = null;
-
-  function stop() {
-    if (rafId) {
-      cancelAnimationFrame(rafId);
-      rafId = null;
-    }
-    document.documentElement.style.scrollBehavior = '';
-  }
-
-  smoothScrollTo = function (targetY) {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      window.scrollTo(0, targetY);
-      return;
-    }
-    // 阻尼滚动在场：锚点/箭头统一驱动目标位，由同一套 lerp 收敛（观感一致）
-    if (window.__dampedScroll) {
-      window.__dampedScroll.setTarget(targetY);
-      return;
-    }
-    stop();
-    const startY = window.scrollY;
-    const delta = targetY - startY;
-    if (Math.abs(delta) < 2) return;
-    const duration = Math.min(900, Math.max(450, Math.abs(delta) * 0.35));
-    const t0 = performance.now();
-    document.documentElement.style.scrollBehavior = 'auto';
-    const easeOutQuint = (t) => 1 - Math.pow(1 - t, 5);
-    const step = (now) => {
-      const p = Math.min((now - t0) / duration, 1);
-      window.scrollTo(0, startY + delta * easeOutQuint(p));
-      if (p < 1) {
-        rafId = requestAnimationFrame(step);
-      } else {
-        stop();
-      }
-    };
-    rafId = requestAnimationFrame(step);
-    window.addEventListener('wheel', stop, { once: true, passive: true });
-    window.addEventListener('touchstart', stop, { once: true, passive: true });
-  };
-
   document.addEventListener('click', (e) => {
     const anchor = e.target.closest('a[href^="#"]');
     if (!anchor) return;

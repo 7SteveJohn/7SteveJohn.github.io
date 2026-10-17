@@ -551,6 +551,36 @@ try {
     assert(rmPill.trans === 'opacity' && /translate3d/.test(rmPill.pos) && rmLb.anim === 'none' && rmLb.anims === 0,
       'J7d 减少动态效果下：胶囊只留透明度过渡、灯箱不放动画', JSON.stringify({ pill: rmPill, lightbox: rmLb }));
 
+    // J9 滚动必须是原生的：滚轮不被劫持、松手即停（2026-10-17 撤掉 Lenis 式阻尼滚动）
+    //    背景：阻尼版会让滚轮停下后页面继续滑约 1 秒（实测 989ms），桌面指针手感发黏。
+    await page.goto(BASE + 'index.html', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(1600);
+    const dampedType = await page.evaluate(() => typeof window.__dampedScroll);
+    const hasSmoothApi = await page.evaluate(() => typeof window.smoothScrollTo);
+    // 合成 wheel：旧实现会 preventDefault，这里断言没有被拦截
+    const wheelPrevented = await page.evaluate(() => {
+      let flag = null;
+      const h = (e) => { flag = e.defaultPrevented; };
+      window.addEventListener('wheel', h);
+      window.dispatchEvent(new WheelEvent('wheel', { deltaY: 120, bubbles: true, cancelable: true }));
+      window.removeEventListener('wheel', h);
+      return flag;
+    });
+    // 真滚轮：松手后 400ms 内不应再有大位移（>200ms 的拖尾就是阻尼）
+    await page.evaluate(() => window.scrollTo(0, document.querySelector('#products').getBoundingClientRect().top + window.scrollY - 80));
+    await page.waitForTimeout(700);
+    await page.mouse.move(720, 450);
+    const yBefore = await page.evaluate(() => window.scrollY);
+    for (let i = 0; i < 6; i++) { await page.mouse.wheel(0, 120); await page.waitForTimeout(16); }
+    await page.waitForTimeout(220);
+    const yAfter = await page.evaluate(() => window.scrollY);
+    await page.waitForTimeout(420);
+    const yTail = await page.evaluate(() => window.scrollY);
+    assert(dampedType === 'undefined' && hasSmoothApi === 'function' && wheelPrevented === false,
+      'J9a 滚动为原生：无阻尼系统、滚轮未被拦截、smoothScrollTo 仍在', JSON.stringify({ dampedType, hasSmoothApi, wheelPrevented }));
+    assert(yAfter > yBefore + 100 && Math.abs(yTail - yAfter) < 30,
+      'J9b 停手即停（无阻尼拖尾）', JSON.stringify({ yBefore, yAfter, yTail }));
+
     assert(errors.length === 0, 'J8 第 1 轮新增功能无控制台错误', errors.slice(0, 2).join(' | '));
     await page.context().close();
   }

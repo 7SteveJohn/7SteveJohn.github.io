@@ -161,11 +161,11 @@
       }
       const y = it.el.id === 'home' ? 0
         : it.el.getBoundingClientRect().top + window.scrollY - 64;
-      if (reduce() || !window.__dampedScroll) {
-        window.scrollTo({ top: y, behavior: reduce() ? 'auto' : 'smooth' });
-      } else {
-        window.__dampedScroll(y);
-      }
+      // 统一走 app.js 暴露的 smoothScrollTo（原生平滑滚动）。
+      // ❗原先这里调用 window.__dampedScroll(y)，但它是对象不是函数 —— 选中"章节"项时会抛
+      //   TypeError 导致跳转静默失败（2026-10-17 随滚轮阻尼一起修正）。
+      if (window.smoothScrollTo) window.smoothScrollTo(y);
+      else window.scrollTo({ top: y, behavior: reduce() ? 'auto' : 'smooth' });
       if (it.el.id) history.pushState(null, '', '#' + it.el.id);
       return;
     }
