@@ -244,6 +244,11 @@ window.openProjectModal = function(id) {
 
       <!-- 操作链接栏 -->
       <div class="pt-6 border-t border-black/10 dark:border-white/10 flex flex-wrap gap-3 items-center justify-end">
+        <a href="product.html?id=${encodeURIComponent(project.id)}"
+           class="btn-secondary px-4 py-2 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white flex items-center gap-1.5 border border-black/10 dark:border-white/10">
+          <span>产品页与更新日志</span>
+          <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+        </a>
         ${project.downloadUrl ? `
           <a href="${project.downloadUrl}" target="_blank" rel="noopener noreferrer"
              class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5">

@@ -1,0 +1,472 @@
+/* ============================================================
+   产品页与产品索引（products.html / product.html?id=…）
+   ----------------------------------------------------
+   与站点同一套深空底 + 液态玻璃语言；刻意不用大面积 backdrop-filter
+   （2026-10-17 实测：卡片磨砂在软件合成下会把滚动打到 16–33 帧）。
+   ============================================================ */
+
+/* ---------------- 索引页分组 ---------------- */
+.prod-group {
+  margin: 2.4rem 0 0;
+}
+.prod-group-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(158, 176, 202, 0.72);
+}
+.prod-group-title span {
+  font-family: ui-monospace, Consolas, "Courier New", monospace;
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(158, 176, 202, 0.45);
+}
+.prod-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+@media (max-width: 719px) {
+  .prod-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.prod-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  text-decoration: none;
+  transition: transform 0.25s var(--ease-swift), border-color 0.25s ease, background-color 0.25s ease;
+}
+.prod-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(143, 184, 255, 0.32);
+  background: rgba(255, 255, 255, 0.05);
+}
+.prod-card-cover {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: linear-gradient(135deg, #14203a 0%, #1b2140 45%, #2a2350 100%);
+}
+.prod-card-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.45s var(--ease-swift);
+}
+.prod-card:hover .prod-card-cover img {
+  transform: scale(1.03);
+}
+.prod-card-body {
+  padding: 0.95rem 1.05rem 1.1rem;
+}
+.prod-card-body b {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 14.5px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: #f5f5f7;
+}
+.prod-card-body p {
+  margin: 0 0 0.7rem;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: #86868b;
+}
+.prod-card-meta {
+  display: flex;
+  gap: 0.6rem;
+  font-family: ui-monospace, Consolas, "Courier New", monospace;
+  font-size: 11px;
+  color: rgba(158, 176, 202, 0.55);
+}
+.prod-card-meta span + span::before {
+  content: "·";
+  margin-right: 0.6rem;
+  opacity: 0.6;
+}
+
+/* 封面兜底：图裂/没图时露出品牌渐变 + 首字 */
+.prod-cover-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: rgba(255, 255, 255, 0.16);
+  background: linear-gradient(135deg, #14203a 0%, #1b2140 45%, #2a2350 100%);
+}
+.prod-card-cover img + .prod-cover-fallback,
+.prod-hero-cover img + .prod-cover-fallback {
+  z-index: 0;
+}
+.prod-card-cover img,
+.prod-hero-cover img {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------------- 详情页 ---------------- */
+.prod-crumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 2rem 0 1.2rem;
+  font-size: 11.5px;
+  color: #86868b;
+}
+.prod-crumb a {
+  color: #86868b;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.prod-crumb a:hover {
+  color: #8fb8ff;
+}
+.prod-crumb span[aria-current] {
+  color: rgba(245, 245, 247, 0.72);
+}
+
+.prod-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 1.6rem;
+  align-items: start;
+  padding-bottom: 1.6rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+@media (max-width: 799px) {
+  .prod-hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.1rem;
+  }
+}
+.prod-hero-cover {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: linear-gradient(135deg, #14203a 0%, #1b2140 45%, #2a2350 100%);
+}
+.prod-hero-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.prod-hero-body h1 {
+  margin: 0.55rem 0 0.6rem;
+  font-size: 26px;
+  line-height: 1.25;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: #f5f5f7;
+}
+.prod-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.prod-chip {
+  padding: 0.22rem 0.6rem;
+  border: 1px solid rgba(143, 184, 255, 0.4);
+  border-radius: 9999px;
+  background: rgba(143, 184, 255, 0.1);
+  color: #8fb8ff;
+  font-size: 11px;
+  font-family: ui-monospace, Consolas, "Courier New", monospace;
+}
+.prod-chip-quiet {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  color: #86868b;
+}
+.prod-lede {
+  margin: 0 0 0.9rem;
+  font-size: 13.5px;
+  line-height: 1.85;
+  color: #b9bcc4;
+}
+.prod-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+.prod-tags li {
+  padding: 0.18rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(158, 176, 202, 0.85);
+  font-size: 11px;
+  font-family: ui-monospace, Consolas, "Courier New", monospace;
+}
+.prod-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.prod-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.95rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #f5f5f7;
+  font-size: 12.5px;
+  text-decoration: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s var(--ease-swift);
+}
+.prod-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+.prod-btn-primary {
+  border-color: transparent;
+  background: #8fb8ff;
+  color: #06101f;
+  font-weight: 650;
+}
+.prod-btn-primary:hover {
+  background: #a4c6ff;
+  color: #06101f;
+}
+.prod-req {
+  margin: 0.85rem 0 0;
+  font-size: 11.5px;
+  color: #86868b;
+}
+
+.prod-section {
+  padding: 2rem 0 0.4rem;
+}
+.prod-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-bottom: 0.9rem;
+}
+.prod-section-head h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: #f5f5f7;
+}
+.prod-version,
+.prod-role,
+.prod-more {
+  font-family: ui-monospace, Consolas, "Courier New", monospace;
+  font-size: 11px;
+  color: rgba(158, 176, 202, 0.6);
+  text-decoration: none;
+}
+.prod-more:hover {
+  color: #8fb8ff;
+}
+.prod-md {
+  font-size: 13.5px;
+  line-height: 1.85;
+}
+.prod-challenge {
+  margin: 0;
+  padding: 0.95rem 1.1rem;
+  border-left: 2px solid rgba(143, 184, 255, 0.5);
+  border-radius: 0 12px 12px 0;
+  background: rgba(143, 184, 255, 0.06);
+  font-size: 13px;
+  line-height: 1.9;
+  color: #c9ccd4;
+}
+
+/* 版本记录 */
+.prod-releases {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+.prod-release {
+  position: relative;
+  padding: 0 0 1.1rem 1.1rem;
+}
+.prod-release::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: 0.42rem;
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: rgba(143, 184, 255, 0.75);
+  box-shadow: 0 0 0 3px rgba(143, 184, 255, 0.14);
+}
+.prod-release-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  margin-bottom: 0.35rem;
+}
+.prod-release-head b {
+  font-size: 13px;
+  font-weight: 650;
+  color: #f5f5f7;
+}
+.prod-release-head span {
+  font-family: ui-monospace, Consolas, "Courier New", monospace;
+  font-size: 11px;
+  color: rgba(158, 176, 202, 0.55);
+}
+.prod-release ul {
+  margin: 0;
+  padding-left: 1.05rem;
+}
+.prod-release li {
+  margin: 0.2rem 0;
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: #a9adb7;
+}
+
+.prod-hint {
+  margin: 0.9rem 0 0;
+  font-size: 11.5px;
+  line-height: 1.8;
+  color: rgba(158, 176, 202, 0.55);
+}
+.prod-hint code {
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(245, 245, 247, 0.8);
+}
+
+/* 相关手记 */
+.prod-related {
+  display: grid;
+  gap: 0.55rem;
+}
+.prod-related-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.55rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  text-decoration: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.prod-related-item:hover {
+  border-color: rgba(143, 184, 255, 0.3);
+  background: rgba(143, 184, 255, 0.05);
+}
+.prod-related-item b {
+  font-size: 13px;
+  font-weight: 550;
+  color: #e6e8ec;
+}
+.prod-related-item span {
+  font-family: ui-monospace, Consolas, "Courier New", monospace;
+  font-size: 10.5px;
+  color: rgba(158, 176, 202, 0.55);
+}
+
+/* 上下一个产品 */
+.prod-pager {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin: 2.2rem 0 3rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.prod-pager-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 0.95rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  text-decoration: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.prod-pager-item:hover {
+  border-color: rgba(143, 184, 255, 0.3);
+  background: rgba(255, 255, 255, 0.03);
+}
+.prod-pager-item span {
+  font-family: ui-monospace, Consolas, "Courier New", monospace;
+  font-size: 10.5px;
+  color: rgba(158, 176, 202, 0.55);
+}
+.prod-pager-item b {
+  font-size: 12.5px;
+  font-weight: 550;
+  color: #f5f5f7;
+}
+.prod-pager-next {
+  text-align: right;
+}
+
+/* 找不到产品 */
+.prod-missing {
+  padding: 4rem 0 6rem;
+}
+.prod-missing h1 {
+  margin: 0 0 0.6rem;
+  font-size: 24px;
+  font-weight: 700;
+  color: #f5f5f7;
+}
+.prod-missing p {
+  margin: 0 0 1.2rem;
+  font-size: 13px;
+  line-height: 1.8;
+  color: #86868b;
+}
+.prod-missing code {
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prod-card,
+  .prod-card-cover img,
+  .prod-btn {
+    transition: none;
+  }
+  .prod-card:hover,
+  .prod-btn:hover {
+    transform: none;
+  }
+}

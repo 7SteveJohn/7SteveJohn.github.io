@@ -1,9 +1,9 @@
-// build-bundles: {"name":"core","version":"b6d049bbabc1","sources":[{"path":"js/site-config.js","sha256":"3f333ce189808815d02defc274727aeee40cc577f5f18141d60a40a04ff8c57c"},{"path":"js/markdown-loader.js","sha256":"9149bca09b58fc21ff58cd7071d9f9470acdb9f4067856265a14260f99cca272"},{"path":"js/wallpaper.js","sha256":"994e9d8228801ad2c5c5ce7c63bfaead43b3286bc35bb14b6d251200e1fe8f80"},{"path":"js/particles.js","sha256":"5e95471046e40560408eeca8895a2541057a6028973ef7ff9dc240c3dd2f5f98"},{"path":"js/settings-panel.js","sha256":"b1e519e075e6e7418f49969fb5108ea7bd6392e39a7014ad7fe885a0309f6747"},{"path":"js/tab-nav.js","sha256":"61be36cf6c8375241ee34eda74c16856d4d8bfc84f4ef967e9bb7511bd082956"}]}
+// build-bundles: {"name":"core","version":"3a3171698dc3","sources":[{"path":"js/site-config.js","sha256":"697afc5470b3963b76f033ef2a44c071a8ea340a28fafcd0997092905e1e405d"},{"path":"js/markdown-loader.js","sha256":"9149bca09b58fc21ff58cd7071d9f9470acdb9f4067856265a14260f99cca272"},{"path":"js/wallpaper.js","sha256":"994e9d8228801ad2c5c5ce7c63bfaead43b3286bc35bb14b6d251200e1fe8f80"},{"path":"js/particles.js","sha256":"5e95471046e40560408eeca8895a2541057a6028973ef7ff9dc240c3dd2f5f98"},{"path":"js/settings-panel.js","sha256":"b1e519e075e6e7418f49969fb5108ea7bd6392e39a7014ad7fe885a0309f6747"},{"path":"js/tab-nav.js","sha256":"61be36cf6c8375241ee34eda74c16856d4d8bfc84f4ef967e9bb7511bd082956"}]}
 /* 6 页共用：配置 → Markdown 按需加载器 → 壁纸 → 粒子 → 设置面板 → 按住 Tab
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/site-config.js → js/markdown-loader.js → js/wallpaper.js → js/particles.js → js/settings-panel.js → js/tab-nav.js */
 
-// ---- js/site-config.js (3f333ce18980) ----
+// ---- js/site-config.js (697afc5470b3) ----
 /**
  * 站点配置唯一来源（浏览器与 Node 共用，零依赖）
  * ----------------------------------------------------
@@ -73,11 +73,12 @@
 
     // ---- 站内正经入口：必须出现在「首页更多 + 次级页导航 + 所有页页脚」----
     entries: [
+      { href: 'products.html', label: '产品' },
       { href: 'archive.html', label: '归档' },
       { href: 'gallery.html', label: '照片墙' },
-      { href: 'garden.html', label: '花园' },
-      { href: 'links.html', label: '友链' },
-      { href: 'novel.html', label: '连载' }
+      // 2026-10-17 收回：花园 / 友链 / 连载 属于"社交与娱乐"，不服务本站「技术 + 产品分享」的定位，
+      // 已从所有入口下线（文件与样式仍留在仓库，需要时可一键恢复；也仍可直达 URL 访问）。
+      // 恢复方法：把这三条加回 entries + pages，再跑 node scripts/sync-chrome.mjs --write。
     ],
 
     // ---- 外链：必须出现在所有页页脚 ----
@@ -91,11 +92,15 @@
     // sitemap:true = 写进 sitemap.xml
     pages: [
       { href: 'index.html', label: '首页', title: '楠屿札记 · 本地 AI 应用与桌面工具', sitemap: true, priority: '1.0', changefreq: 'weekly' },
+      { href: 'products.html', label: '产品', title: '产品 · 本地优先的工具', sitemap: true, priority: '0.9', changefreq: 'weekly' },
+      // 产品详情是「单模板 + ?id=」，逐条 URL 由 scripts/gen-rss.js 从 js/projects.js 生成
+      { href: 'product.html', label: '产品详情', title: '产品', sitemap: false },
       { href: 'archive.html', label: '归档', title: '归档 · 时间河', sitemap: true, priority: '0.8', changefreq: 'weekly' },
       { href: 'gallery.html', label: '照片墙', title: '照片墙', sitemap: true, priority: '0.7', changefreq: 'monthly' },
-      { href: 'garden.html', label: '花园', title: '花园', sitemap: true, priority: '0.6', changefreq: 'monthly' },
-      { href: 'links.html', label: '友链', title: '友链与收藏', sitemap: true, priority: '0.5', changefreq: 'monthly' },
-      { href: 'novel.html', label: '连载', title: '连载', sitemap: true, priority: '0.7', changefreq: 'weekly' },
+      // 已下线的三页不写进 sitemap（避免搜索引擎继续收录），页面本身仍在仓库里
+      { href: 'garden.html', label: '花园', title: '花园', sitemap: false, chrome: false },
+      { href: 'links.html', label: '友链', title: '友链与收藏', sitemap: false, chrome: false },
+      { href: 'novel.html', label: '连载', title: '连载', sitemap: false, chrome: false },
       { href: '404.html', label: '404', sitemap: false, chrome: false },
       { href: 'cosmos-home.html', label: '星河随乐而舞（演示页）', sitemap: false, chrome: false }
     ]

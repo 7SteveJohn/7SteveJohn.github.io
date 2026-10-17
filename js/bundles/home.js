@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"5569519084ff","sources":[{"path":"js/status.js","sha256":"903fcd0cfc3ad2419011a6e6418699e4b3f42502e2576450b825bda80a4b0afc"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"df5cc2d245bceb7b0264a0b3c5b91f2d16fda415ef648ff3c7503e955f674090"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"c1e0fc6b32f552a10af1a3ac20909ecf9baec8cfd1b5a2c77f42b07f9770ab8e"}]}
+// build-bundles: {"name":"home","version":"c71df56f1c9c","sources":[{"path":"js/status.js","sha256":"903fcd0cfc3ad2419011a6e6418699e4b3f42502e2576450b825bda80a4b0afc"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"6114f427268e7f038ba3ae523d44d46c1e994a829de745b22c69be2325389205"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"c1e0fc6b32f552a10af1a3ac20909ecf9baec8cfd1b5a2c77f42b07f9770ab8e"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -380,7 +380,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (df5cc2d245bc) ----
+// ---- js/app.js (6114f427268e) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -627,6 +627,11 @@ window.openProjectModal = function(id) {
 
       <!-- 操作链接栏 -->
       <div class="pt-6 border-t border-black/10 dark:border-white/10 flex flex-wrap gap-3 items-center justify-end">
+        <a href="product.html?id=${encodeURIComponent(project.id)}"
+           class="btn-secondary px-4 py-2 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white flex items-center gap-1.5 border border-black/10 dark:border-white/10">
+          <span>产品页与更新日志</span>
+          <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+        </a>
         ${project.downloadUrl ? `
           <a href="${project.downloadUrl}" target="_blank" rel="noopener noreferrer"
              class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5">

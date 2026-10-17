@@ -76,8 +76,19 @@ const pageEntries = CFG.pages
     return { loc, lastmod: latest, extra };
   });
 
+// 产品详情页（product.html?id=…）：从 js/projects.js 逐条生成，改产品信息后重跑本脚本即可
+global.window = global.window || {};
+require('../js/projects.js');
+const projects = global.window.PROJECTS_DATA || [];
+const productEntries = projects.map((p) => ({
+  loc: `${SITE_URL}/product.html?id=${encodeURIComponent(p.id)}`,
+  lastmod: p.updated || latest,
+  extra: '\n    <priority>0.8</priority>\n    <changefreq>monthly</changefreq>'
+}));
+
 const sitemapUrls = [
   ...pageEntries,
+  ...productEntries,
   ...articles.map((a) => ({ loc: postUrl(a.id), lastmod: a.date, extra: '' }))
 ]
   .map(
@@ -97,4 +108,4 @@ ${sitemapUrls}
 const root = path.join(__dirname, '..');
 fs.writeFileSync(path.join(root, 'rss.xml'), rss);
 fs.writeFileSync(path.join(root, 'sitemap.xml'), sitemap);
-console.log(`✓ rss.xml / sitemap.xml 已生成（${CFG.pages.filter((p) => p.sitemap).length} 个页面 + ${articles.length} 篇文章）`);
+console.log(`✓ rss.xml / sitemap.xml 已生成（${CFG.pages.filter((p) => p.sitemap).length} 个页面 + ${projects.length} 个产品 + ${articles.length} 篇文章）`);

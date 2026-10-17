@@ -67,11 +67,12 @@
 
     // ---- 站内正经入口：必须出现在「首页更多 + 次级页导航 + 所有页页脚」----
     entries: [
+      { href: 'products.html', label: '产品' },
       { href: 'archive.html', label: '归档' },
       { href: 'gallery.html', label: '照片墙' },
-      { href: 'garden.html', label: '花园' },
-      { href: 'links.html', label: '友链' },
-      { href: 'novel.html', label: '连载' }
+      // 2026-10-17 收回：花园 / 友链 / 连载 属于"社交与娱乐"，不服务本站「技术 + 产品分享」的定位，
+      // 已从所有入口下线（文件与样式仍留在仓库，需要时可一键恢复；也仍可直达 URL 访问）。
+      // 恢复方法：把这三条加回 entries + pages，再跑 node scripts/sync-chrome.mjs --write。
     ],
 
     // ---- 外链：必须出现在所有页页脚 ----
@@ -85,11 +86,15 @@
     // sitemap:true = 写进 sitemap.xml
     pages: [
       { href: 'index.html', label: '首页', title: '楠屿札记 · 本地 AI 应用与桌面工具', sitemap: true, priority: '1.0', changefreq: 'weekly' },
+      { href: 'products.html', label: '产品', title: '产品 · 本地优先的工具', sitemap: true, priority: '0.9', changefreq: 'weekly' },
+      // 产品详情是「单模板 + ?id=」，逐条 URL 由 scripts/gen-rss.js 从 js/projects.js 生成
+      { href: 'product.html', label: '产品详情', title: '产品', sitemap: false },
       { href: 'archive.html', label: '归档', title: '归档 · 时间河', sitemap: true, priority: '0.8', changefreq: 'weekly' },
       { href: 'gallery.html', label: '照片墙', title: '照片墙', sitemap: true, priority: '0.7', changefreq: 'monthly' },
-      { href: 'garden.html', label: '花园', title: '花园', sitemap: true, priority: '0.6', changefreq: 'monthly' },
-      { href: 'links.html', label: '友链', title: '友链与收藏', sitemap: true, priority: '0.5', changefreq: 'monthly' },
-      { href: 'novel.html', label: '连载', title: '连载', sitemap: true, priority: '0.7', changefreq: 'weekly' },
+      // 已下线的三页不写进 sitemap（避免搜索引擎继续收录），页面本身仍在仓库里
+      { href: 'garden.html', label: '花园', title: '花园', sitemap: false, chrome: false },
+      { href: 'links.html', label: '友链', title: '友链与收藏', sitemap: false, chrome: false },
+      { href: 'novel.html', label: '连载', title: '连载', sitemap: false, chrome: false },
       { href: '404.html', label: '404', sitemap: false, chrome: false },
       { href: 'cosmos-home.html', label: '星河随乐而舞（演示页）', sitemap: false, chrome: false }
     ]

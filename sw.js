@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v143';   // 2026-10-17 首屏脚本合并成 bundle（加载优化）；改源文件后必须重建 bundle 再升版本
+const CACHE = 'sevenjohn-v144';   // 2026-10-17 收回到「技术 + 产品分享」：下线花园/友链/连载，新增产品页与更新日志
 const CORE = [
   './',
   'index.html',
@@ -19,6 +19,10 @@ const CORE = [
   // 归档与照片墙（2026-10-16 新增）：文本资源很小，直接预缓存，断网可翻
   'archive.html',
   'gallery.html',
+  // 产品页（2026-10-17 新增）：索引 + 单模板详情（?id=）
+  'products.html',
+  'product.html',
+  // 已下线的三页仍留在仓库、仍可直达，但不再进预缓存（避免离线包变胖又没人用）
   'garden.html',
   'links.html',
   'novel.html',
@@ -29,6 +33,7 @@ const CORE = [
   'css/garden.css',
   'css/links.css',
   'css/novel.css',
+  'css/product.css',
   'css/settings-panel.css',
   'js/cosmos.js',        // 手机 / 无 WebGL 时的 2D 星河回退（js/cosmos/main.js 引导层按需加载）
   'js/cosmos/config.js',
@@ -61,6 +66,7 @@ const CORE = [
   'js/novel-data.js',
   'js/archive.js',
   'js/gallery.js',
+  'js/product.js',         // 产品页与产品索引（2026-10-17 新增）
   'js/live2d.js',          // 看板娘引导层（1.9MB 运行时/模型不进预缓存）
   // 壁纸图与 Live2D 看板娘（运行时 + 模型约 1.9MB）不进预缓存：
   // 壁纸由 img 预载后自然入库，看板娘只在桌面首次在线加载后入缓存（与 three/mp3 同策略）
@@ -282,7 +288,9 @@ self.addEventListener('fetch', (event) => {
       '/gallery.html': './gallery.html',
       '/garden.html': './garden.html',
       '/links.html': './links.html',
-      '/novel.html': './novel.html'
+      '/novel.html': './novel.html',
+      '/products.html': './products.html',
+      '/product.html': './product.html'
     };
     const key = SWR_KEYS[path];
     if (key) {

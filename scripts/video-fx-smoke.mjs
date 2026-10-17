@@ -974,6 +974,92 @@ try {
     await ctx.close();
   }
 
+  // ---------------- P. 产品页与更新日志（2026-10-17 回到「技术 + 产品分享」）----------------
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 950 } });
+    const page = await ctx.newPage();
+    const errors = errorsOf(page);
+
+    // P1 产品索引：按分类分组、卡片可点、导航有「产品」
+    await page.goto(BASE + 'products.html', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(1400);
+    const idx = await page.evaluate(() => ({
+      cards: document.querySelectorAll('.prod-card').length,
+      groups: [...document.querySelectorAll('.prod-group-title')].map((g) => g.textContent.trim()),
+      nav: [...document.querySelectorAll('header.site-header nav a')].map((a) => a.textContent.trim()),
+      firstHref: (document.querySelector('.prod-card') || {}).getAttribute?.('href') || ''
+    }));
+    assert(idx.cards === 6 && idx.groups.length >= 1 && idx.nav.includes('产品') && /^product\.html\?id=/.test(idx.firstHref),
+      'P1 产品索引：6 个产品分组列出，卡片链到详情', JSON.stringify({ cards: idx.cards, groups: idx.groups }));
+
+    // P2 产品详情：版本、下载、正文渲染、JSON-LD、canonical 带 id
+    await page.goto(BASE + 'product.html?id=filebutler', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(2400);
+    const det = await page.evaluate(() => ({
+      h1: (document.querySelector('.prod-hero h1') || {}).textContent || '',
+      version: (document.querySelector('.prod-version') || {}).textContent || '',
+      actions: document.querySelectorAll('.prod-actions a').length,
+      blocks: document.querySelectorAll('#product-details h3, #product-details p, #product-details li').length,
+      pending: !!document.querySelector('#product-details .md-pending'),
+      jsonld: !!document.querySelector('script[type="application/ld+json"]'),
+      canonical: (document.querySelector('link[rel="canonical"]') || {}).href || '',
+      title: document.title
+    }));
+    assert(/FileButler/.test(det.h1) && /v1\.2\.1/.test(det.version) && det.actions >= 2 && det.blocks > 5 && !det.pending,
+      'P2 产品详情：标题/版本/下载/正文都渲染', JSON.stringify({ v: det.version, blocks: det.blocks }));
+    assert(det.jsonld && /id=filebutler/.test(det.canonical) && /FileButler/.test(det.title),
+      'P3 产品页 SEO：JSON-LD + 带 id 的 canonical + 标题', JSON.stringify({ canonical: det.canonical }));
+
+    // P4 版本与更新：每个产品都至少有一条「当前版本」记录（不编造历史，但没有空块）
+    const rel = await page.evaluate(() => ({
+      releases: document.querySelectorAll('#product-changelog .prod-release').length,
+      hint: !!document.querySelector('#product-changelog .prod-hint'),
+      head: (document.querySelector('#product-changelog .prod-release-head b') || {}).textContent || ''
+    }));
+    assert(rel.releases >= 1 && /v\d/.test(rel.head), 'P4 版本与更新：显示当前版本记录', JSON.stringify(rel));
+
+    // P5 相关手记（按标签/标题匹配，最多 3 条）
+    const related = await page.evaluate(() => document.querySelectorAll('.prod-related-item').length);
+    assert(related >= 1 && related <= 3, 'P5 相关手记联动（1–3 条）', String(related));
+
+    // P6 未知 id 给「没有这个产品」，不白屏
+    await page.goto(BASE + 'product.html?id=does-not-exist', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(800);
+    const miss = await page.evaluate(() => ({
+      missing: !!document.querySelector('.prod-missing'),
+      back: !!document.querySelector('.prod-missing a[href="products.html"]')
+    }));
+    assert(miss.missing && miss.back, 'P6 未知 id 显示空态并可返回列表', JSON.stringify(miss));
+
+    // P7 首页入口：工具区「全部产品」+ 项目弹窗里的产品页链接
+    await page.goto(BASE + 'index.html', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(1800);
+    const entry = await page.evaluate(() => ({
+      section: !!document.querySelector('#products a[href="products.html"]'),
+      more: [...document.querySelectorAll('#nav-more .nav-menu a')].map((a) => a.textContent.trim())
+    }));
+    assert(entry.section && entry.more.includes('产品'), 'P7 首页有「全部产品」入口且导航含产品', JSON.stringify(entry.more));
+    await page.evaluate(() => window.openProjectModal('filebutler'));
+    await page.waitForTimeout(1200);
+    const modalLink = await page.evaluate(() => {
+      const a = document.querySelector('#project-modal-content a[href^="product.html?id="]');
+      return a ? a.getAttribute('href') : '';
+    });
+    assert(modalLink === 'product.html?id=filebutler', 'P8 项目弹窗链到对应产品页', modalLink);
+
+    // P9 已下线的三页：不在任何导航/页脚/sitemap 里（页面本身仍可直达）
+    const gone = await page.evaluate(() => {
+      const links = [...document.querySelectorAll('a[href]')].map((a) => a.getAttribute('href'));
+      return links.filter((h) => /^(garden|links|novel)\.html/.test(h));
+    });
+    const sm = fs.readFileSync(path.join(process.cwd(), 'sitemap.xml'), 'utf8');
+    assert(gone.length === 0 && !/(garden|links|novel)\.html/.test(sm),
+      'P9 花园/友链/连载已从入口与 sitemap 下线', JSON.stringify({ links: gone.length }));
+
+    assert(errors.length === 0, 'P10 产品页无控制台错误', errors.slice(0, 2).join(' | '));
+    await ctx.close();
+  }
+
   // ---------------- H. 弱机路径（无硬件加速 → 软件合成）----------------
   // 2026-10-17 用户报「明显变卡」后实测出来的一条真实路径：
   // 卡片磨砂在软件合成下把滚动从 60 帧打到 16–34 帧，所以必须自动降档。

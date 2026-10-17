@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>产品 | 楠屿札记</title>
+
+  <script>
+    (function () {
+      document.documentElement.classList.add('js');
+      document.documentElement.classList.add('dark');
+    })();
+  </script>
+
+  <!-- 以下 title/description/canonical/og 会被 js/product.js 按 ?id= 改写 -->
+  <meta name="description" content="楠屿札记的产品页：一个工具解决什么问题、用了什么技术、每一版改了什么。" />
+  <link rel="canonical" href="https://7stevejohn.github.io/products.html" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="楠屿札记" />
+  <meta property="og:title" content="产品 | 楠屿札记" />
+  <meta property="og:description" content="一个工具解决什么问题、用了什么技术、每一版改了什么。" />
+  <meta property="og:url" content="https://7stevejohn.github.io/products.html" />
+  <meta property="og:image" content="https://7stevejohn.github.io/og-image.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <meta name="theme-color" content="#0a0a0c" />
+
+  <link rel="shortcut icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="manifest" href="manifest.json" />
+
+  <link rel="preload" href="assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="assets/fonts/inter.css" />
+  <link rel="stylesheet" href="assets/vendor/tailwind.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/cosmos.css" />
+  <link rel="stylesheet" href="css/settings-panel.css" />
+  <link rel="stylesheet" href="css/product.css" />
+</head>
+<body class="bg-white text-[#1d1d1f] dark:bg-[#0a0a0c] dark:text-[#f5f5f7] min-h-screen transition-colors duration-200 antialiased">
+
+  <div id="site-wallpaper" aria-hidden="true"></div>
+  <div id="cosmos-veil" class="cosmos-veil" aria-hidden="true"></div>
+  <canvas id="particle-canvas" aria-hidden="true"></canvas>
+  <div class="cosmos-hud tl" aria-hidden="true">// nanyu notes</div>
+  <div class="cosmos-hud tr" aria-hidden="true">///// product</div>
+
+  <!-- chrome:nav:start -->  <header class="site-header sticky top-0 z-40 w-full site-nav glass-spec bg-white/80 dark:bg-[#0a0a0c]/80 border-b border-[#d2d2d7]/50 dark:border-white/10 transition-colors">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-12 flex items-center justify-between text-xs">
+      <a href="index.html" class="flex items-center gap-2 font-semibold text-sm tracking-tight text-[#1d1d1f] dark:text-white hover:opacity-80 transition">
+        <span>楠屿札记</span>
+      </a>
+      <nav class="flex flex-wrap items-center justify-end gap-x-4 gap-y-1 sm:gap-x-6 text-[#1d1d1f] dark:text-[#86868b] text-xs">
+        <a href="index.html#blog" class="hidden sm:inline hover:text-black dark:hover:text-white transition">技术手记</a>
+        <a href="products.html" class="hover:text-black dark:hover:text-white transition">产品</a>
+        <a href="archive.html" class="hover:text-black dark:hover:text-white transition">归档</a>
+        <a href="gallery.html" class="hover:text-black dark:hover:text-white transition">照片墙</a>
+        <a href="index.html" class="hover:text-black dark:hover:text-white transition">返回首页</a>
+      </nav>
+    </div>
+  </header><!-- chrome:nav:end -->
+
+  <main class="page-wrap">
+    <div id="product-detail"></div>
+  </main>
+
+  <!-- chrome:footer:start -->  <footer class="border-t border-[#d2d2d7]/50 dark:border-white/10 py-12 bg-slate-50 dark:bg-[#0a0a0c] text-xs text-[#86868b]">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 space-y-4">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <span class="font-semibold text-black dark:text-white">楠屿札记</span>
+          <span> · 一隅存工码，亦叙尘世星文</span>
+        </div>
+        <div class="flex items-center gap-6">
+          <a href="index.html" class="hover:text-black dark:hover:text-white transition">首页</a>
+          <a href="products.html" class="hover:text-black dark:hover:text-white transition">产品</a>
+          <a href="archive.html" class="hover:text-black dark:hover:text-white transition">归档</a>
+          <a href="gallery.html" class="hover:text-black dark:hover:text-white transition">照片墙</a>
+          <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="hover:text-black dark:hover:text-white transition">@7SteveJohn</a>
+          <a href="mailto:sevenksq@163.com" class="hover:text-black dark:hover:text-white transition">sevenksq@163.com</a>
+        </div>
+      </div>
+      <p class="text-[11px] text-[#86868b]/80 border-t border-[#d2d2d7]/30 dark:border-white/5 pt-4">
+        © <span id="footer-year">2026</span> 楠屿札记. 慢慢写，慢慢看。
+      </p>
+    </div>
+  </footer><!-- chrome:footer:end -->
+
+  <!-- 首屏脚本走 bundle（改 js/ 源文件后跑 node scripts/build-bundles.mjs 重建） -->
+  <script src="js/bundles/core.js" defer></script>
+  <script src="js/bundles/sub.js" defer></script>
+  <script src="js/projects.js" defer></script>
+  <script src="js/product.js" defer></script>
+</body>
+</html>
