@@ -76,9 +76,15 @@
     document.head.appendChild(s);
   }
 
-  function renderMarkdown(md) {
-    if (!window.marked || !window.DOMPurify) return '<p>（Markdown 渲染器未加载）</p>';
-    return window.DOMPurify.sanitize(window.marked.parse(md || ''));
+  // Markdown 渲染器按需加载（2026-10-17）：章节正文才需要 marked + purify，
+  // 图书架与目录不依赖它们，所以首屏不再加载这两个库。
+  function paintBody(chapter) {
+    const body = document.getElementById('novel-body');
+    if (!body) return;
+    body.innerHTML = (window.marked && window.DOMPurify)
+      ? window.DOMPurify.sanitize(window.marked.parse(chapter.content || ''))
+      : `<p>${esc(chapter.content || '')}</p>`;      // 加载失败：纯文本兜底，不白屏
+    ensureHighlight();
   }
 
   // ---- 书架 ----
@@ -166,8 +172,16 @@
     state.index = Math.max(0, Math.min(state.chapters.length - 1, i));
     const c = state.chapters[state.index];
     titleEl.textContent = c.title || c.id;
-    body.innerHTML = renderMarkdown(c.content);
-    ensureHighlight();
+    // 渲染器未就绪就先出占位，加载完再补写（期间又翻章则放弃，避免覆盖错章节）
+    if (window.marked && window.DOMPurify) {
+      paintBody(c);
+    } else {
+      body.innerHTML = '<p class="md-pending">正在准备阅读器…</p>';
+      const load = window.ensureMarkdown ? window.ensureMarkdown() : Promise.resolve(false);
+      load.then(() => {
+        if (state.chapters[state.index] === c) paintBody(c);
+      });
+    }
     renderDrawer();
 
     const prev = document.getElementById('novel-prev');

@@ -253,6 +253,26 @@
     }, 2500);
   });
 
+  // 首曲预热（2026-10-17 加）：只在「用户真的可能听」时才发起网络 ——
+  // 首次交互 / 打开播放面板 / 点播放三者任一，且只做一次。
+  let primed = false;
+  function prime() {
+    if (primed) return;
+    primed = true;
+    try { audio.preload = 'metadata'; } catch (e) {}
+    audio.src = SONGS[current].src;
+    const swRef = navigator.serviceWorker;
+    const warmUp = function () {
+      try {
+        const conn = navigator.connection;
+        if (conn && (conn.saveData || /2g$/i.test(conn.effectiveType || ''))) return;   // 省流模式不预热
+        if (swRef && swRef.controller) swRef.controller.postMessage({ type: 'warm-media', url: SONGS[current].src });
+      } catch (e) {}
+    };
+    if (swRef && swRef.controller) warmUp();
+    else if (swRef) swRef.addEventListener('controllerchange', warmUp, { once: true });
+  }
+
   function togglePlay() {
     if (!audio.src) { load(current, true); return; }
     if (audio.paused) audio.play().catch(() => {});
@@ -262,22 +282,12 @@
   function restore() {
     clearResume();          // 零播放记录：老访客的续听键一并清掉
     applyOrder();
-    // 秒开策略（2026-10-01 重做，替换 preload='auto'）：
-    // 旧法「加载即全曲缓冲」让没点播放的访客也被动下 ~4MB（体检 PERF-1/2）。
-    // 新法三段式：metadata 只取时长（几 KB）→ SW 预热首曲前 256KB（点播放零网络等待、
-    // 立刻出声，见 sw.js warmPartial）→ 真实播放 2.5s 后才全量入库（下方 playing 监听）。
-    audio.preload = 'metadata';
-    audio.src = SONGS[current].src;
-    const swRef = navigator.serviceWorker;
-    const warmUp = function () {
-      try {
-        const conn = navigator.connection;
-        if (conn && (conn.saveData || /2g$/i.test(conn.effectiveType || ''))) return;   // 省流模式不预热
-        if (swRef.controller) swRef.controller.postMessage({ type: 'warm-media', url: SONGS[current].src });
-      } catch (e) {}
-    };
-    if (swRef && swRef.controller) warmUp();
-    else if (swRef) swRef.addEventListener('controllerchange', warmUp, { once: true });   // 首次访问：SW 接管页面后再预热
+    // 2026-10-17 加载优化（D）：首屏**不再**设 audio.src、也不再让 SW 预热首曲。
+    // 原先恢复阶段就 `preload='metadata'; audio.src=…` 并 postMessage 预热 256KB，
+    // 实测首屏会发起一个卡住 10.5 秒、0 字节的 /music/*.mp3 请求，白占一个连接槽。
+    // 现在改成「首次交互 / 打开播放面板 / 点播放」时才 prime()：
+    //   交互时 prime() → metadata 只取时长（几 KB）+ SW 预热首曲前 256KB（点播放零等待）
+    //   真实播放 2.5s 后再全量入库（下方 playing 监听不变）。
     try { mode = (localStorage.getItem(LS_MODE) || legacy(LS_MODE)) === 'one' ? 'one' : 'list'; } catch (e) {}
     titleEl.textContent = SONGS[current].title;
     applyMode();
@@ -339,6 +349,12 @@
     if (dragMoved) { dragMoved = false; return; }
     const open = panel.classList.toggle('music-open');
     fab.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) prime();          // 打开面板 = 有听歌意图，这时才开始加载音轨
+  });
+
+  // 首次交互也预热：通常早于"点播放"，给 SW 留出把首曲前 256KB 拿到手的窗口
+  ['pointerdown', 'keydown', 'wheel'].forEach((ev) => {
+    window.addEventListener(ev, prime, { once: true, passive: true });
   });
   closeBtn.addEventListener('click', () => {
     panel.classList.remove('music-open');

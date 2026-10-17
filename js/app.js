@@ -192,8 +192,12 @@ window.openProjectModal = function(id) {
   modal.classList.remove('is-closing');
   modal._lastFocus = document.activeElement;
 
+  // Markdown 渲染器按需加载（2026-10-17）：先出骨架，正文等渲染器就绪后补写
+  const needMd = !(window.marked && window.DOMPurify);
   const detailsHtml = project.details
-    ? sanitizeMarkdownHtml(window.marked ? window.marked.parse(project.details) : `<p>${project.details}</p>`)
+    ? (needMd
+      ? '<p class="md-pending">正在准备阅读器…</p>'
+      : sanitizeMarkdownHtml(window.marked.parse(project.details)))
     : `<p class="text-[#86868b]">暂无更多详细说明。</p>`;
 
   const factsHtml = buildProjectFacts(project);
@@ -265,12 +269,29 @@ window.openProjectModal = function(id) {
     </div>
   `;
 
+  modalContent.dataset.openProject = project.id;   // 供延时补写正文时校验（防止串篇）
   modalContent.classList.remove('modal-content-in');
   void modalContent.offsetWidth;
   modalContent.classList.add('modal-content-in');
 
   addCopyButtons(modalContent);
   ensureHighlight(modalContent);
+
+  // 渲染器就绪后补写正文（期间又点了别的项目就放弃，避免覆盖错内容）
+  if (needMd && project.details) {
+    const token = project.id;
+    window.ensureMarkdown().then((ok) => {
+      if (modalContent.dataset.openProject !== token) return;
+      const body = modalContent.querySelector('.markdown-body');
+      if (!body) return;
+      body.innerHTML = ok
+        ? sanitizeMarkdownHtml(window.marked.parse(project.details))
+        : `<p>${escapeHtml(project.details)}</p>`;
+      addCopyButtons(modalContent);
+      ensureHighlight(modalContent);
+      if (window.lucide) window.lucide.createIcons();
+    });
+  }
 
   modal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
@@ -843,7 +864,11 @@ window.openArticleModal = function(id, skipUrlSync) {
   activeArticle = article;
   activeVersion = 0;
 
-  const parsedMarkdown = sanitizeMarkdownHtml(window.marked ? window.marked.parse(versionedContent(article)) : `<p>${versionedContent(article)}</p>`);
+  // Markdown 渲染器按需加载（2026-10-17）：先出骨架，正文等渲染器就绪后补写
+  const needMd = !(window.marked && window.DOMPurify);
+  const parsedMarkdown = needMd
+    ? '<p class="md-pending">正在准备阅读器…</p>'
+    : sanitizeMarkdownHtml(window.marked.parse(versionedContent(article)));
 
   // 同模块翻页：首篇无上一篇、末篇无下一篇，仅一篇时不显示翻页栏
   const siblings = getSiblingList(article);
@@ -927,6 +952,22 @@ window.openArticleModal = function(id, skipUrlSync) {
   injectArticleJsonLd(article);
   initAnnotations(modalContent, article.id);
 
+  // 渲染器就绪后补写正文，并重建依赖正文的目录/复制按钮/高亮
+  if (needMd) {
+    ensureMarkdown().then((ok) => {
+      if (activeArticle !== article) return;           // 期间切篇了就放弃，避免覆盖
+      const body = modalContent.querySelector('.markdown-body');
+      if (!body) return;
+      body.innerHTML = ok
+        ? sanitizeMarkdownHtml(window.marked.parse(versionedContent(article)))
+        : `<p>${escapeHtml(versionedContent(article))}</p>`;
+      ensureHighlight(modalContent);
+      addCopyButtons(modalContent);
+      buildArticleToc(modalContent);
+      initTocSpy(modalContent);
+    });
+  }
+
   // 情绪标记：单选可取消，仅写本机 LocalStorage
   modalContent.querySelectorAll('[data-emotion]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -947,17 +988,26 @@ window.openArticleModal = function(id, skipUrlSync) {
         modalContent.querySelectorAll('[data-version]').forEach((b) => b.classList.toggle('is-active', Number(b.dataset.version) === activeVersion));
         // 正文区上下交替过渡：旧内容先淡出，再换内容淡入
         swapModalContent(modalContent, () => {
-          const body = modalContent.querySelector('.markdown-body');
-          if (body) body.innerHTML = sanitizeMarkdownHtml(window.marked.parse(versionedContent(activeArticle)));
-          ensureHighlight(modalContent);
-          addCopyButtons(modalContent);
-          buildArticleToc(modalContent);
-          initTocSpy(modalContent);
-          initAnnotations(modalContent, article.id);
-          modalContent.scrollTop = 0;
-          const bar = document.getElementById('article-progress');
-          if (bar) bar.style.width = '0%';
-          delete modalContent.dataset.thanked;
+          const write = () => {
+            const body = modalContent.querySelector('.markdown-body');
+            if (body) {
+              body.innerHTML = window.marked
+                ? sanitizeMarkdownHtml(window.marked.parse(versionedContent(activeArticle)))
+                : `<p>${escapeHtml(versionedContent(activeArticle))}</p>`;
+            }
+            ensureHighlight(modalContent);
+            addCopyButtons(modalContent);
+            buildArticleToc(modalContent);
+            initTocSpy(modalContent);
+            initAnnotations(modalContent, article.id);
+            modalContent.scrollTop = 0;
+            const bar = document.getElementById('article-progress');
+            if (bar) bar.style.width = '0%';
+            delete modalContent.dataset.thanked;
+          };
+          // 同首次打开：渲染器没就绪就先等它（切换版本也可能发生在懒加载完成前）
+          if (window.marked && window.DOMPurify) write();
+          else ensureMarkdown().then(write);
         }, 'fade');
       });
     });

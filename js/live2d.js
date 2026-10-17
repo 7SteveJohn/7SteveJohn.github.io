@@ -131,7 +131,31 @@
     Promise.race([fx.done, guard]).then((tier) => { if (tier !== 'lite') probe(); });
   }
 
-  const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 1500));
-  if (document.readyState === 'complete') idle(start);
-  else window.addEventListener('load', () => idle(start), { once: true });
+  // ---- 起跑时机（2026-10-17 加载优化 E）----
+  // 运行时 + 模型共 1.9MB。原先「load 之后立刻 idle 加载」，会和首屏剩下的资源抢连接
+  // （实测首页每请求要等 3–7 秒，多一个 1.9MB 的请求影响很明显）。
+  // 现在改为三个条件谁先到就用谁：首次交互 / load 后 3.5 秒 / 页面重新可见时的 idle。
+  // ❗看板娘**仍然默认出现**，这里没有、也不要加任何「默认关闭」逻辑。
+  let fired = false;
+  function fire() {
+    if (fired) return;
+    fired = true;
+    ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach((ev) => window.removeEventListener(ev, fire));
+    const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 200));
+    idle(start);
+  }
+
+  function arm() {
+    ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach((ev) => {
+      window.addEventListener(ev, fire, { once: true, passive: true });
+    });
+    setTimeout(fire, 3500);
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (!fired && document.visibilityState === 'visible' && document.readyState === 'complete') fire();
+  });
+
+  if (document.readyState === 'complete') arm();
+  else window.addEventListener('load', arm, { once: true });
 })();

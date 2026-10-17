@@ -29,6 +29,7 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="manifest" href="manifest.json" />
 
+  <link rel="preload" href="assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="assets/fonts/inter.css" />
   <link rel="stylesheet" href="assets/vendor/tailwind.css" />
   <link rel="stylesheet" href="css/style.css" />
@@ -149,15 +150,11 @@
     </div>
   </footer><!-- chrome:footer:end -->
 
-  <script src="js/site-config.js" defer></script>
-  <script src="assets/vendor/marked.min.js" defer></script>
-  <script src="assets/vendor/purify.min.js" defer></script>
-  <script src="js/subpage.js" defer></script>
-  <script src="js/tab-nav.js" defer></script>
-  <script src="js/settings-panel.js" defer></script>
+  <!-- 2026-10-17 加载优化：共用脚本与阅读器合并进 bundle；marked/purify 由
+       core 里的 markdown-loader.js 在打开章节时才拉（源文件仍在 js/，改完跑 build-bundles.mjs） -->
+  <script src="js/bundles/core.js" defer></script>
+  <script src="js/bundles/sub.js" defer></script>
   <script src="js/novel-data.js" defer></script>
-  <script src="js/novel.js" defer></script>
-  <script src="js/wallpaper.js" defer></script>
-  <script src="js/particles.js" defer></script>
+  <script src="js/bundles/novel.js" defer></script>
 </body>
 </html>

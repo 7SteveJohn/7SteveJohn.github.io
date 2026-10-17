@@ -1949,6 +1949,14 @@ html.has-live2d #live2d-close {
   font-weight: 600;
 }
 
+/* Markdown 渲染器按需加载时的占位（打开文章/章节的一瞬间） */
+.md-pending {
+  margin: 0.2rem 0 1rem;
+  color: #86868b;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
 /* 空态（链接页的友链/收藏、连载页的书架共用） */
 .empty-state {
   padding: 1.2rem 1rem;

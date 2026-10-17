@@ -29,6 +29,7 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="manifest" href="manifest.json" />
 
+  <link rel="preload" href="assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="assets/fonts/inter.css" />
   <link rel="stylesheet" href="assets/vendor/tailwind.css" />
   <link rel="stylesheet" href="css/style.css" />
@@ -125,12 +126,9 @@
     </div>
   </div>
 
-  <script src="js/site-config.js" defer></script>
-  <script src="js/subpage.js" defer></script>
-  <script src="js/tab-nav.js" defer></script>
-  <script src="js/settings-panel.js" defer></script>
+  <!-- 2026-10-17 加载优化：共用脚本已合并进 bundle（源文件仍在 js/，改完跑 node scripts/build-bundles.mjs） -->
+  <script src="js/bundles/core.js" defer></script>
+  <script src="js/bundles/sub.js" defer></script>
   <script src="js/gallery.js" defer></script>
-  <script src="js/wallpaper.js" defer></script>
-  <script src="js/particles.js" defer></script>
 </body>
 </html>

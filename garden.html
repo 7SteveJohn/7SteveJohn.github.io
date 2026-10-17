@@ -29,6 +29,7 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="manifest" href="manifest.json" />
 
+  <link rel="preload" href="assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="assets/fonts/inter.css" />
   <link rel="stylesheet" href="assets/vendor/tailwind.css" />
   <link rel="stylesheet" href="css/style.css" />
@@ -112,15 +113,10 @@
   </footer><!-- chrome:footer:end -->
 
   <!-- defer 按文档顺序执行：先注册三个玩具，再启动花园框架 -->
-  <script src="js/site-config.js" defer></script>
-  <script src="js/subpage.js" defer></script>
-  <script src="js/tab-nav.js" defer></script>
-  <script src="js/settings-panel.js" defer></script>
-  <script src="js/garden/life.js" defer></script>
-  <script src="js/garden/sorting.js" defer></script>
-  <script src="js/garden/stars.js" defer></script>
-  <script src="js/garden.js" defer></script>
-  <script src="js/wallpaper.js" defer></script>
-  <script src="js/particles.js" defer></script>
+  <!-- 2026-10-17 加载优化：共用脚本与三个玩具都合并进 bundle
+       （源文件仍在 js/，改完跑 node scripts/build-bundles.mjs 重建） -->
+  <script src="js/bundles/core.js" defer></script>
+  <script src="js/bundles/sub.js" defer></script>
+  <script src="js/bundles/garden.js" defer></script>
 </body>
 </html>

@@ -74,17 +74,20 @@ try {
     assert(!wp.lite && wp.tier === 'full' && /blur/.test(wp.cardBlur),
       'A2b 强机档位：卡片磨砂在场、未被降成轻档', `tier=${wp.tier} blur=${wp.cardBlur.slice(0, 12)}`);
 
-    // 看板娘：桌面档才会拉（首帧后 idle 加载，1.9MB 本地很快）
+    // 看板娘：桌面档才会拉（2026-10-17 起改为「首次交互 / 3.5s 后」才启动，
+    // 所以要等到模型真正落地（waifu-active）而不是只等容器出现 —— 最多等 20 秒）
     let live = null;
-    for (let i = 0; i < 24 && !live; i++) {
+    for (let i = 0; i < 40 && !live; i++) {
       await page.waitForTimeout(500);
-      live = await page.evaluate(() => document.getElementById('waifu') ? {
+      const s = await page.evaluate(() => (document.getElementById('waifu') ? {
         hasClass: document.documentElement.classList.contains('has-live2d'),
         close: !!document.getElementById('live2d-close'),
         backTop: getComputedStyle(document.getElementById('back-to-top')).right,
-      } : null);
+        active: document.getElementById('waifu').className || ''
+      } : null));
+      if (s && s.hasClass && s.close && /waifu-active/.test(s.active)) live = s;
     }
-    assert(!!live && live.hasClass && live.close, 'A3 Live2D 看板娘加载（含关闭键）', JSON.stringify(live));
+    assert(!!live, 'A3 Live2D 看板娘加载（含关闭键）', JSON.stringify(live));
     assert(live && parseFloat(live.backTop) > 100, 'A4 看板娘在场时「回到顶部」让位', live && live.backTop);
 
     if (live) {
@@ -887,6 +890,88 @@ try {
         });
       }
     }
+  }
+
+  // ---------------- N. 加载优化（bundle / 按需 / preload / 音乐 / 看板娘）----------------
+  {
+    // N1 构建产物与源文件一致（改了源文件忘了重建，页面就会用旧包）
+    const chk = spawnSync(process.execPath, ['scripts/build-bundles.mjs', '--check'], { cwd: process.cwd(), encoding: 'utf8' });
+    assert(chk.status === 0, 'N1 bundle 与源文件一致（--check）', (chk.stdout || '').trim().split('\n').pop());
+
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await ctx.newPage();
+    const errors = errorsOf(page);
+    const reqs = [];
+    page.on('request', (r) => reqs.push(r.url()));
+
+    await page.goto(BASE + 'index.html', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(3200);
+
+    // N2 首页只引用 bundle + 数据/页面脚本，不再逐个引用源文件
+    const scripts = await page.evaluate(() => [...document.scripts].map((s) => s.getAttribute('src')).filter(Boolean));
+    const merged = ['js/site-config.js', 'js/app.js', 'js/player.js', 'js/tab-nav.js', 'js/settings-panel.js', 'js/nav-indicator.js', 'js/wallpaper.js', 'js/particles.js', 'js/search.js', 'js/status.js', 'js/video-gate.js'];
+    const leftovers = scripts.filter((s) => merged.includes(s));
+    assert(scripts.includes('js/bundles/core.js') && scripts.includes('js/bundles/home.js') && leftovers.length === 0,
+      'N2 首页只引用 bundle（源文件标签已移除）', JSON.stringify({ scripts: scripts.length, leftovers }));
+
+    // N3 首屏不含 marked / purify；打开文章后按需加载并渲染
+    const beforeOpen = await page.evaluate(() => ({ marked: typeof window.marked, purify: typeof window.DOMPurify }));
+    assert(beforeOpen.marked === 'undefined' && beforeOpen.purify === 'undefined',
+      'N3a 首屏未加载 marked / purify', JSON.stringify(beforeOpen));
+    assert(!reqs.some((u) => /marked\.min\.js|purify\.min\.js/.test(u)), 'N3b 首屏网络无 marked / purify 请求');
+    await page.evaluate(() => window.openArticleModal('filebutler-local-rag'));
+    await page.waitForTimeout(2200);
+    const afterOpen = await page.evaluate(() => ({
+      marked: typeof window.marked,
+      purify: typeof window.DOMPurify,
+      blocks: document.querySelectorAll('#article-modal-content .markdown-body h3').length,
+      bodyLen: (document.querySelector('#article-modal-content .markdown-body') || {}).textContent.trim().length || 0,
+      pending: !!document.querySelector('#article-modal-content .md-pending')
+    }));
+    assert(afterOpen.marked === 'object' && afterOpen.purify === 'function' && afterOpen.blocks > 0 && afterOpen.bodyLen > 200 && !afterOpen.pending,
+      'N3c 打开文章后按需加载并正常渲染', JSON.stringify(afterOpen));
+
+    // N4 字体 preload（缺 crossorigin 会被二次请求）
+    const preload = await page.evaluate(() => {
+      const l = document.querySelector('link[rel="preload"][as="font"]');
+      return l ? { href: l.getAttribute('href'), cross: l.getAttribute('crossorigin') } : null;
+    });
+    assert(!!preload && /inter-var-latin\.woff2/.test(preload.href) && preload.cross !== null,
+      'N4 字体 preload（含 crossorigin）', JSON.stringify(preload));
+
+    // N5 首屏无音轨请求（预热已后移到首次交互/打开面板/点播放）
+    assert(!reqs.some((u) => /\/music\/[^/]+\.mp3/.test(u)), 'N5 首屏无 /music/*.mp3 请求', String(reqs.filter((u) => /\.mp3/.test(u)).length));
+
+    // N6 看板娘仍默认出现（推后加载，最多等 20 秒）
+    //    注意：验收浏览器是软件渲染（swiftshader），默认会被判成轻档而按设计跳过看板娘，
+    //    所以这里用 ?fx=full 走强机档 —— 与 A3 同一个前提，验证的是「没有变成默认关闭」。
+    await page.goto(BASE + 'index.html?fx=full', { waitUntil: 'load', timeout: 30000 });
+    let live2d = false;
+    for (let i = 0; i < 40 && !live2d; i++) {
+      await page.waitForTimeout(500);
+      live2d = await page.evaluate(() => { const w = document.getElementById('waifu'); return !!w && w.classList.contains('waifu-active'); });
+    }
+    assert(live2d, 'N6 看板娘仍默认出现（仅推后加载时机）');
+
+    // N7 SW 清单：bundle 在、marked/purify 已移出
+    const swText = fs.readFileSync(path.join(process.cwd(), 'sw.js'), 'utf8');
+    const core = (/const CORE = \[([\s\S]*?)\n\];/.exec(swText) || [])[1] || '';
+    assert(/js\/bundles\/core\.js/.test(core) && /js\/bundles\/home\.js/.test(core)
+      && !/assets\/vendor\/marked\.min\.js/.test(core) && !/assets\/vendor\/purify\.min\.js/.test(core),
+      'N7 SW 预缓存：bundle 已登记、marked/purify 已移出');
+
+    // N8 其余页面同样正常（不报错、bundle 生效）
+    const pages = ['archive.html', 'gallery.html', 'garden.html', 'links.html', 'novel.html'];
+    const bad = [];
+    for (const p of pages) {
+      await page.goto(BASE + p, { waitUntil: 'load', timeout: 30000 });
+      await page.waitForTimeout(900);
+      const ok = await page.evaluate(() => !!document.querySelector('script[src="js/bundles/core.js"]'));
+      if (!ok) bad.push(p);
+    }
+    assert(bad.length === 0, 'N8 五个次级页均引用 core bundle', bad.join(','));
+    assert(errors.length === 0, 'N9 加载优化后全站无控制台错误', errors.slice(0, 2).join(' | '));
+    await ctx.close();
   }
 
   // ---------------- H. 弱机路径（无硬件加速 → 软件合成）----------------

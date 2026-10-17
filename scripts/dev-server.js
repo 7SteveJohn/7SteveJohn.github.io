@@ -27,4 +27,16 @@ http.createServer((req, res) => {
       fs.createReadStream(abs).pipe(res);
     }
   });
-}).listen(8328, '127.0.0.1', () => console.log('node static server (Range OK) on http://localhost:8328'));
+}).listen(8328, '127.0.0.1', () => {
+  console.log('node static server (Range OK) on http://localhost:8328');
+  // 首屏脚本已合并成 bundle（2026-10-17）：启动时提醒一次是否过期，只提示不自动写（避免静默改工作区）
+  const { spawnSync } = require('child_process');
+  const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts/build-bundles.mjs'), '--check'], { encoding: 'utf8' });
+  if (r.status !== 0) {
+    console.warn('\n⚠ 首屏 bundle 与源文件不一致（页面用的是旧包）：');
+    console.warn((r.stdout || '').trim().split('\n').filter((l) => l.startsWith('FAIL')).join('\n'));
+    console.warn('  修：node scripts/build-bundles.mjs\n');
+  } else {
+    console.log('✓ bundle 与源文件一致');
+  }
+});
