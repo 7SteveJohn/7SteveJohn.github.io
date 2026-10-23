@@ -1,7 +1,7 @@
 {
   "name": "楠屿札记",
   "short_name": "楠屿札记",
-  "description": "自己做的一些小工具与技术手记：本地 AI、游戏优化、网络入门手册，还有小说和随笔。",
+  "description": "本地 AI 应用与桌面工具，Python / C# / Android：本地文件管家、离线网络手册、游戏性能工具，AI 全部在本机运行。",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

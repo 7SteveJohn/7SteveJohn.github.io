@@ -13,3 +13,5 @@ holo-preview.png
 .local/
 # 本地测试脚手架（Playwright 冒烟脚本与截图产物，不入库）
 Temp/
+
+.codebuddy/
