@@ -1,0 +1,151 @@
+{
+    "Version": 3,
+    "FileReferences": {
+        "Moc": "7steve.moc3",
+        "Textures": [
+            "7steve.4096/texture_00.png"
+        ],
+        "Physics": "7steve.physics3.json",
+        "DisplayInfo": "7steve.cdi3.json",
+        "Expressions": [
+            {
+                "Name": "smile",
+                "File": "exp/smile.exp3.json"
+            },
+            {
+                "Name": "shy",
+                "File": "exp/shy.exp3.json"
+            },
+            {
+                "Name": "focus",
+                "File": "exp/focus.exp3.json"
+            },
+            {
+                "Name": "wink",
+                "File": "exp/wink.exp3.json"
+            }
+        ],
+        "Motions": {
+            "Idle": [
+                {
+                    "File": "7steve.idle.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                }
+            ],
+            "Blink": [
+                {
+                    "File": "7steve.blink.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                }
+            ],
+            "Nod": [
+                {
+                    "File": "7steve.nod.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                }
+            ],
+            "Shake": [
+                {
+                    "File": "7steve.shake.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                }
+            ],
+            "HeadPat": [
+                {
+                    "File": "7steve.nod.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                }
+            ],
+            "HeadTilt": [
+                {
+                    "File": "7steve.headTilt.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                }
+            ],
+            "FlickHead": [
+                {
+                    "File": "7steve.flick_head.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                }
+            ],
+            "TapBody": [
+                {
+                    "File": "7steve.tap_body.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                }
+            ],
+            "GeekTyping": [
+                {
+                    "File": "7steve.geek_typing.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                }
+            ],
+            "TapTablet": [
+                {
+                    "File": "7steve.geek_typing.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                }
+            ],
+            "Wave": [
+                {
+                    "File": "7steve.wave.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                }
+            ],
+            "Cheer": [
+                {
+                    "File": "7steve.cheer.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                }
+            ],
+            "Shy": [
+                {
+                    "File": "7steve.shy.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                }
+            ],
+            "Sway": [
+                {
+                    "File": "7steve.sway.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                }
+            ]
+        }
+    },
+    "HitAreas": [
+        {
+            "Name": "Head",
+            "Id": "HitAreaHead",
+            "Motion": "FlickHead"
+        },
+        {
+            "Name": "Body",
+            "Id": "HitAreaBody",
+            "Motion": "TapBody"
+        },
+        {
+            "Name": "Tablet",
+            "Id": "HitAreaTablet",
+            "Motion": "TapTablet"
+        }
+    ],
+    "Layout": {
+        "width": 1.44,
+        "center_x": 0,
+        "center_y": 0
+    }
+}

@@ -13,9 +13,10 @@
  *   assets/vendor/live2d/waifu.css          运行时基础样式（被 css/style.css 高特指度覆盖）
  *   assets/vendor/live2d/live2d.min.js      Live2D Cubism 2 core（live2d-widgets 随包分发）
  *   assets/vendor/live2d/chunk/index.js     Cubism 2 模型层（waifu-tips.js 动态 import）
+ *   assets/vendor/live2d/chunk/index2.js    Cubism 4/5 模型层（支持 7steve .moc3 模型）
  *   assets/vendor/live2d/model/shizuku/**   Live2D 官方示例模型「Shizuku」
  *
- * ❗只搬 Cubism 2 这一路：chunk/index2.js（Cubism 5 模型层，204KB）不复制，本站不用
+ * ❗支持 Cubism 2 与 Cubism 4/5 双模型运行时
  * ❗不复制 snd/**（约 800KB 交互音效），并摘掉模型清单里的 "sound" 字段：
  *   站点自带音乐播放器，看板娘再出声会打架；摘掉后动作照播，只是静音
  */
@@ -48,12 +49,13 @@ function sizeOf(dir) {
   return total;
 }
 
-// ---- 1. 运行时四件套 ----
+// ---- 1. 运行时组件（Cubism 2 + Cubism 5）----
 const files = [
   [must(WIDGET + '/dist/waifu-tips.js'), path.join(OUT, 'waifu-tips.js')],
   [must(WIDGET + '/dist/waifu.css'), path.join(OUT, 'waifu.css')],
   [must(WIDGET + '/dist/live2d.min.js'), path.join(OUT, 'live2d.min.js')],
-  [must(WIDGET + '/dist/chunk/index.js'), path.join(OUT, 'chunk/index.js')]
+  [must(WIDGET + '/dist/chunk/index.js'), path.join(OUT, 'chunk/index.js')],
+  [must(WIDGET + '/dist/chunk/index2.js'), path.join(OUT, 'chunk/index2.js')]
 ];
 for (const [src, dest] of files) {
   fs.mkdirSync(path.dirname(dest), { recursive: true });

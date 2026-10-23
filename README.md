@@ -17,11 +17,11 @@
  - 🌌 背景光粒子、滚动浮现编排、导航整页换页等编辑风动效（全量尊重 `prefers-reduced-motion`）；
    - 🎬 **参考视频移植的四项效果**（沿用站点原有深色语言，不改成浅色动漫风）：深空壁纸层 + 桌面磨砂玻璃、右下角 Live2D 看板娘（鼠标跟随即时摆动、可一键关闭）、波浪曲线「归档」页、照片墙灯箱，外加**按住 Tab** 唤出的快速导航。每一项都可单独关闭，加载失败一律静默退回原观感；维护方式见下文「[🎬 视频里的效果怎么维护](#-视频里的效果怎么维护)」一节。
    - ⚙️ **显示设置面板**（左下角齿轮）：效果档位、壁纸模糊/亮度滑块、粒子/推理场/看板娘开关、一键还原；站名/社交/壁纸清单/页面清单收口在 `js/site-config.js`，`scripts/sync-chrome.mjs` 负责校验各页导航与页脚不漂移；文章卡支持封面图（没封面自动用品牌渐变 + 栏目首字）。见下文「[🧩 配置、观感与发布流程](#-配置观感与发布流程)」。
-   - 🧭 **产品页与更新日志**（`products.html` / `product.html?id=`）：每个工具一页，写清"解决什么问题、用了什么技术、哪一版改了什么"，并自动关联相关手记；首页工具区有「全部产品」入口，项目弹窗也链到对应产品页。见下文「[🧭 产品页与更新日志](#-产品页与更新日志)」。
    - 🗂️ **已下线（2026-10-17 收回）**：花园（`garden.html`）、链接页（`links.html`，友链 + 收藏）、连载（`novel.html`）。它们属于"社交与娱乐"，不服务本站「技术 + 产品分享」的定位，已从导航、页脚与 sitemap 摘除；**文件与样式仍在仓库、URL 仍可直达**，需要时按下方说明一键恢复。
    - ✍️ **Markdown 写作管线 + 本地写作台**：文章与章节写在 `posts/*.md`，一条命令（或写作台的「保存/发布」）生成数据、RSS 与 sitemap；写作台只监听本机、界面里直接预览与上传图片，见下文「[✍️ 写作与发布](#️-写作与发布第-4-轮markdown-源文件--本地写作台)」。
   - 🖱️ **滚动保持原生**：不劫持滚轮、不做逐帧 `scrollTo` 的阻尼滚动（2026-10-17 撤掉 Lenis 式实现：实测滚轮停下后页面还会继续滑约 **989ms**、最长单帧 55ms，桌面指针手感发黏）。现在滚轮/触控板完全交给浏览器；只有锚点、回到顶部、Tab 快速导航这类**程序化跳转**才用原生 `scrollTo({ behavior: 'smooth' })`。想找回阻尼手感：控制台执行 `window.enableDampedScroll()`（仅当次会话）。
-  - 🚀 **首屏加载**（2026-10-17）：脚本合并成 6 个 bundle（首页 JS 请求 17 → 7、总请求 30 → 20）、marked/purify 改为打开文章/章节时才加载、字体 preload、音轨延后到首次交互、看板娘推后 3.5s 启动（**仍默认显示**）。❗改 `js/` 下源文件后必须跑 `node scripts/build-bundles.mjs` 重建，否则页面用旧包（`--check` 与 dev-server 都会提示）。见下文「[🚀 首屏加载与脚本合并](#-首屏加载与脚本合并)」。
+   - **唯一例外：产品区整屏翻页**（2026-10-17）：桌面且视口 ≥760px 高时，6 张产品卡各占一屏，用**标准 CSS Scroll Snap** 吸附 —— `html { scroll-snap-type: y proximity }` + 卡片 `scroll-snap-align: start / scroll-snap-stop: always / scroll-margin-top: 64px`（见 `css/style.css` 那条媒体查询）。`js/app.js` 的 `initProjectSnap()` 只补两个 CSS 自己做不到的点：① **滚轮一格 = 翻一屏**（proximity 在整屏卡片上会留死区：单次滚 500px 会停在半张卡上）；② **到头逃生口**（滚到最后一张还想往下 / 第一张往上时，先给 `html` 挂 `.no-snap` 摘掉吸附再滚出阈值，否则会被吸回原卡 —— 实测滚 240px 位移为 0）。为什么是 proximity 不是 mandatory：mandatory 会把**程序化滚动**也钉在最近的卡上（在产品区点导航「技术手记」，落到 `#blog` 后被吸回最后一张卡）。手机 / 矮视口 / 减少动效不参与。
+  - 🚀 **首屏加载**（2026-10-17）：脚本合并成 6 个 bundle（首页 JS 请求 17 → 7、总请求 30 → 20，本地口径；弱网受控 A/B 的 18 → 7 / 33 → 20 见下节表格）、marked/purify 改为打开文章/章节时才加载、字体 preload、音轨延后到首次交互、看板娘推后 3.5s 启动（**仍默认显示**）。❗改 `js/` 下源文件后必须跑 `node scripts/build-bundles.mjs` 重建，否则页面用旧包（`--check` 与 dev-server 都会提示）。见下文「[🚀 首屏加载与脚本合并](#-首屏加载与脚本合并)」。
    - 📱 完美适配 PC 电脑端、平板与手机端（移动端含汉堡导航菜单）。
 
 ---
@@ -148,10 +148,9 @@ node scripts/gen-rss.js
 | `js/nav-indicator.js` | 导航当前项胶囊（跟 ScrollSpy 的 `.nav-active`，只动 transform/width） | 桌面细指针才启用；样式在 `css/style.css` 的 `.nav-pill` |
 | `scripts/make-wallpapers.mjs` + `assets/images/wallpaper-2/3.webp` | 程序化生成深空壁纸（ffmpeg 逐像素合成，零版权风险） | `node scripts/make-wallpapers.mjs [--force]`；轮换清单在 `SITE_CONFIG.wallpapers` |
 | `js/wallpaper.js` + `assets/images/wallpaper*.webp` | 深空壁纸层门控、轮换、渐变兜底与档位判定（换壁纸=替换图片并在配置里登记） | 关闭开关：控制台 `localStorage['sj.wallpaper']='off'`，或左下角齿轮 |
-| `assets/vendor/live2d/`（运行时 + 官方示例模型，约 1.9MB） | 右下角 Live2D 看板娘资源（`waifu-tips.js` / `waifu.css` / `live2d.min.js` / `chunk/index.js` / `model/shizuku/**`） | 重建或换模型：`node scripts/vendor-live2d.js`；来源与授权见目录内 `SOURCE.txt` |
+| `assets/vendor/live2d/`（运行时 + 模型，约 1.9MB） | 右下角 Live2D 看板娘资源（`waifu-tips.js` / `waifu.css` / `live2d.min.js` / `chunk/index.js` / `model/7steve/**` 自制模型 + `model/shizuku/**` 官方示例备用） | 重建或换模型：`node scripts/vendor-live2d.js`；来源与授权见目录内 `SOURCE.txt` |
 | `scripts/vendor-live2d.js` | 从隔离 node 工作区把看板娘运行时与模型搬进 `assets/vendor/live2d/`（跳过 800KB 交互音效并摘掉 `sound` 引用） | 依赖 `npm i live2d-widgets@1.0.1 live2d-widget-model-shizuku@1.0.5` |
-| `scripts/video-fx-smoke.mjs` | 全站验收（123 项断言：壁纸轮换/看板娘/归档/照片墙/按住 Tab/手机档/离线/降级/配置与设置面板/胶囊/目录/封面/灯箱/原生滚动/花园/链接页/连载阅读器/内容管线与写作台/首屏 bundle 与按需加载/产品页与下线校验） | `node scripts/dev-server.js` + `node scripts/video-fx-smoke.mjs` |
-| `products.html` + `product.html` + `js/product.js` + `css/product.css` | 产品索引与产品详情（`?id=`）：版本与更新日志、相关手记、上下产品、JSON-LD | 数据在 `js/projects.js`；更新日志写 `changelog` 数组 |
+| `scripts/video-fx-smoke.mjs` | 全站验收：壁纸轮换/看板娘/归档/照片墙/按住 Tab/手机档/离线/降级/配置与设置面板/胶囊/目录/封面/灯箱/原生滚动/花园/链接页/连载阅读器/内容管线与写作台/首屏 bundle 与按需加载/弱机降档/下线校验 | `node scripts/dev-server.js` + `node scripts/video-fx-smoke.mjs` |
 | `scripts/build-bundles.mjs` + `js/bundles/*.js` | 首屏脚本拼接器与六个生成物（core/home/sub/garden/links/novel） | 改 `js/` 源文件后 `node scripts/build-bundles.mjs` 重建；`--check` 验过期 |
 | `js/markdown-loader.js` | marked + purify 的按需加载器（`window.ensureMarkdown()`，Promise 去重、失败可重试） | 打开文章/项目/章节时自动触发，无需手调 |
 | `garden.html` + `js/garden.js` + `js/garden/{life,sorting,stars}.js` + `css/garden.css` | 花园页：三个 canvas 玩具，单循环、切页停帧、减少动效只画一帧 | 加玩具：新文件推进 `window.GardenToys` + 页面加一个 script 标签 |
@@ -326,39 +325,17 @@ python -m http.server 8327  →  node scripts/cosmos-scan.mjs      # 背景引�
 ```bash
 node scripts/sync-chrome.mjs        # 站点外壳一致性（页面入口/标记块）
 node scripts/dev-server.js          # 终端 A
-node scripts/video-fx-smoke.mjs     # 终端 B：123 项（J/K/L/M 段覆盖第 1–4 轮，N 段首屏加载优化，P 段产品页与下线校验）
+node scripts/video-fx-smoke.mjs     # 终端 B：全量断言（J/K/L/M 段覆盖第 1–4 轮，N 段首屏加载优化，H 段弱机降档，另有下线校验）
 ```
 
-## 🧭 产品页与更新日志
+## 🧭 产品介绍放在哪（2026-10-17 收敛）
 
-> 2026-10-17 的方向修正：本站是**技术 + 产品分享**，不是社交站。参考站那套（花园玩具、友链、收藏、连载）属于社交与娱乐，已整体下线；产品线才是这里的主语。
+产品索引与详情页（`products.html` / `product.html?id=…`）**已下线**：这套内容和首页「工具」区 + 项目弹窗讲的是同一件事，两处维护必然漂移。现在产品只有两个展示位，数据只有一份：
 
-### 页面
+- **首页 `#products`**：六张卡片（封面、分类、标签、下载 / 仓库入口、「技术规格详情」）。
+- **项目弹窗**：分类、版本 / 运行环境 / SHA256、技术难点与解法、`details` 正文、下载 / GitHub / Releases。
 
-| 地址 | 内容 |
-| --- | --- |
-| `products.html` | 产品索引：按分类分组（桌面应用 / Android 应用），每张卡显示封面、一句简介、版本与更新日期 |
-| `product.html?id=<产品 id>` | 产品详情：封面与版本头、下载/GitHub/发布页、`details` 正文（Markdown 按需渲染）、技术难点与解法、**版本与更新**、相关手记、上一个/下一个产品 |
-
-- **版式按屏幕分**（2026-10-17 按反馈改）：索引页桌面 **3 列**、平板 2 列、手机 1 列；详情页桌面 **左信息栏（封面/版本/下载/环境，sticky）+ 右内容栏**，平板竖屏与手机退回单列。手机仍是自然上下排列，桌面不再一列到底。
-- 数据只读 `js/projects.js`（首页卡片用的同一份），**改产品只改那一处**；新增产品 = 数组里加一条。
-- 详情页会按 `?id=` 改写 title / description / canonical / OG，并注入 `SoftwareApplication` 的结构化数据（搜索引擎可读）。
-- 相关手记按「标签 + 标题」重合度自动挑最多 3 篇；`js/articles.js` 只在需要时才异步加载，不占产品页首屏。
-- 未知 `id` 显示「没有这个产品」空态，不白屏。
-- `sitemap.xml` 会为每个产品生成一条 `product.html?id=…`（`node scripts/gen-rss.js` 或 `node scripts/build-articles.mjs` 时自动写入）。
-
-### 怎么记「更新日志」
-
-在 `js/projects.js` 的产品对象里加一个可选数组（不写也能用，页面会显示当前版本并提示如何补）：
-
-```js
-changelog: [
-  { version: 'v1.2.1', date: '2026-10-01', items: ['文件搜索支持按内容找图', '整理方案支持整批撤销'] },
-  { version: 'v1.2.0', date: '2026-09-18', items: ['索引重建改为后台空闲执行'] }
-]
-```
-
-页面按数组顺序列出（建议新的在上面）。`version` / `updated` 会作为"当前版本"显示在页面头部与索引卡上。
+维护仍然只改 `js/projects.js`：改文案、链接、截图只改这一个文件；新增产品 = 数组里加一条，首页自动渲染。`changelog` 字段保留在数据结构里（当前没有产品写它），页面不再单独渲染版本时间线；要恢复时间线，直接拿这条数据渲染即可，旧页面的完整实现可从 `git log -- products.html` 取回。`sitemap.xml` 也不再为单个产品生成 URL。
 
 ### 恢复已下线的三页（花园 / 链接页 / 连载）
 
@@ -468,7 +445,7 @@ node scripts/build-bundles.mjs --list       # 看分组与源文件
 - `js/` 下的源文件**永远保留**，bundle 只是生成物；工具链（gen-rss / sync-chrome / 写作台）仍读源文件。
 - bundle 头部写的是**内容哈希**（不是时间戳），所以重复构建不会让 git 变脏。
 - 清单顺序就是执行顺序：`site-config` 必须最前、garden 三个玩具在框架前、`app` 在 `nav-indicator` 前。
-- 重建后记得升 `sw.js` 的 `CACHE` 版本（当前 `v143`），否则老客户端继续用旧包。
+- 重建后记得升 `sw.js` 的 `CACHE` 版本（当前 `v147`），否则老客户端继续用旧包。
 - `scripts/dev-server.js` 启动时会自动跑一次 `--check`，过期只提示不自动写。
 
 ### 已知遗留（不在本轮范围）

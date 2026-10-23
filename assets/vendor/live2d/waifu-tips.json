@@ -3,59 +3,107 @@
     {
       "name": "Shizuku",
       "paths": ["assets/vendor/live2d/model/shizuku/shizuku.model.json"],
-      "message": "Live2D 官方示例模型「Shizuku」——鼠标放上去她会看着你。"
+      "message": "看板娘在线中——鼠标移动到哪里，我就看向哪里～"
+    },
+    {
+      "name": "7steve",
+      "paths": [
+        "assets/vendor/live2d/model/7steve/7steve.model3.json"
+      ],
+      "message": "楠屿札记看板娘「7steve」上线啦！极客少女全天候守护你的本地工程～"
     }
   ],
   "message": {
     "default": [
-      "站里的歌单在底部中间，点一下就能放。",
+      "站里的歌单在底部中间，点一下就能放～",
       "想按时间翻文章的话，「归档」页排成了一条时间河。",
-      "背景里的连线是本机推理场的示意图，纯装饰，不联网。",
-      "按 Ctrl+D 把我收进书签吧。",
-      "看长文的时候，按住 Tab 能唤出目录。",
-      "照片墙里都是这些年随手存下的图。"
+      "背景里的拓扑连线是本机推理场示意图，纯本地演算，绝不联网。",
+      "按 Ctrl+D 把楠屿札记收进书签吧！",
+      "看长文手记的时候，按住 Tab 键能随时唤出章节目录。",
+      "左上角飘着的赛博机械猫叫『小七』，是本站常驻守护进程～",
+      "猫耳耳机发蓝光，说明后台正在高频推理中～",
+      "推了推黑框眼镜……今天的本地构建零报错，状态极佳！"
     ],
     "welcome": "欢迎来到「$1」，随便逛逛～",
     "referrer": "从「$1」过来的朋友，请进请进～",
-    "hoverBody": ["别戳啦，痒～", "鼠标在哪，我就看哪～", "再看就收费了（开玩笑的）。"],
-    "tapBody": ["呀！被发现了。", "想听歌的话，底部中间的按钮在等你。", "轻一点，我还想多待一会儿。"],
-    "copy": "复制走啦，记得标个出处哦～",
-    "visibilitychange": "欢迎回来，刚才是去查文档了吗？",
+    "hoverBody": [
+      "别戳啦，代码要被你点出语法错误了～",
+      "鼠标在哪，我就看哪～黑客少女的眼力可好了。",
+      "再看就收费了（开玩笑的，所有工具源码全开源）。",
+      "轻点轻点，手中的全息屏还在跑测试用例呢！"
+    ],
+    "tapHead": [
+      "摸摸头会长不高哦，不过…猫耳耳机摸起来挺解压的～",
+      "滴——！收到摸头信号，舒适度 +100，CPU 温度下降 2℃。",
+      "头发都被你揉乱啦，呆毛要翘起来了～",
+      "今天写代码累了吗？揉揉头，我们一起歇一会儿吧。"
+    ],
+    "tapCat": [
+      "喵呜～赛博机械猫『小七』蹭了蹭你：后台守护进程一切正常！",
+      "别挠小七的下巴，它的发光天线会短路的～",
+      "小七喵了一声，顺手帮你给代码补全了一个分号。"
+    ],
+    "tapTablet": [
+      "滴！正在全息屏上运行本地自动化回归测试……全部用例通过！",
+      "黑客模式已启动：正在将咖啡转化为干净、高效的代码逻辑～",
+      "别点屏幕啦，刚才那一行正在跑的神经网络权重差点被你重置了～"
+    ],
+    "tapBody": [
+      "哇！突然戳我，代码手抖输成 rm -rf / 啦！",
+      "正在跑自动化构建呢，测试用例 42/42 通过，零报错！",
+      "左上角的机械猫『小七』正在打呼噜，别吵醒它哦～",
+      "深蓝卫衣是极客标配，防寒保暖还防 BUG～",
+      "想听歌的话，底部中间的播放键在等你。"
+    ],
+    "copy": "代码片段复制走啦，记得在本地跑跑看哦～",
+    "visibilitychange": "欢迎回来，刚才去查文档还是切去敲代码了？",
     "console": "在控制台里翻什么呢？这行字是写给同行看的。",
-    "photo": "咔嚓，存好啦。",
-    "changeSuccess": "换好啦，还喜欢吗？",
+    "photo": "咔嚓，照片存好啦。",
+    "changeSuccess": "换好啦，新造型还喜欢吗？",
     "changeFail": "唔…这套暂时换不了。",
     "goodbye": "那我先躲起来啦，想我了再叫我～",
     "hitokoto": "「$1」——$2 · $3"
   },
   "time": [
-    { "hour": "0-4", "text": "夜深了，早点睡，明天再看也不迟。" },
-    { "hour": "5-8", "text": "早，今天的太阳还没升起来呢。" },
-    { "hour": "9-11", "text": "上午好，写代码前先倒杯水吧。" },
-    { "hour": "12-13", "text": "中午好，记得吃饭。" },
-    { "hour": "14-17", "text": "下午好，慢慢来，不着急。" },
-    { "hour": "18-22", "text": "晚上好，今天过得怎么样？" },
-    { "hour": "23-23", "text": "快零点了，注意身体呀。" }
+    { "hour": "0-4", "text": "夜深了，写代码别熬太晚，明天再 Debug 也不迟。" },
+    { "hour": "5-8", "text": "早安！今天的太阳还没升起来，猫耳耳机已经充满电啦。" },
+    { "hour": "9-11", "text": "上午好，写代码前先倒杯水吧，保持思维清晰。" },
+    { "hour": "12-13", "text": "中午好，记得吃顿好的，CPU 也要补充能量。" },
+    { "hour": "14-17", "text": "下午好，慢慢推进，沉下心来看手记。" },
+    { "hour": "18-22", "text": "晚上好，今天项目写得还顺利吗？" },
+    { "hour": "23-23", "text": "快零点了，保存好工程，早点休息呀。" }
   ],
   "seasons": [
-    { "date": "01/01", "text": "<span>元旦</span>快乐，今年是 {year} 年，又是新的一页。" },
-    { "date": "10/01-10/07", "text": "<span>国庆</span>假期，出去走走也不错。" }
+    { "date": "01/01", "text": "<span>元旦</span>快乐，今年是 {year} 年，新的一年代码无 BUG！" },
+    { "date": "10/01-10/07", "text": "<span>国庆</span>假期，放下工单，出去走走也不错。" },
+    { "date": "10/24", "text": "<span>1024 程序员节</span>快乐！致敬所有用代码改变世界的人。" }
   ],
   "mouseover": [
     { "selector": "#music-fab", "text": ["想听歌吗？站里的歌单都在这儿。", "点一下就能放，播过的曲子断网也记得住。"] },
-    { "selector": "#search-open", "text": ["找什么？我帮你开搜索框。", "搜标题、标签、正文都行。"] },
-    { "selector": "a[href=\"#blog\"]", "text": ["技术手记在这里，都是踩坑记下来的。"] },
-    { "selector": "a[href=\"#creation\"]", "text": ["创作区有小说和游戏开发手记。"] },
-    { "selector": "a[href=\"#essays\"]", "text": ["随笔区写的是生活里那些小事。"] },
-    { "selector": ".bento-card", "text": ["这一张值得点开看看。", "「{text}」——点开有详细说明。"] },
-    { "selector": "#back-to-top", "text": ["一口气拉回顶部。"] },
-    { "selector": "a[href^=\"https://github.com/7SteveJohn\"]", "text": ["GitHub 在这儿，代码都开源。"] }
+    { "selector": "#search-open", "text": ["找什么手记或工具？我帮你开搜索框。", "搜标题、标签、正文都行。"] },
+    { "selector": "a[href=\"#blog\"]", "text": ["技术手记都在这儿，每一篇都是踩坑踩出来的实录。"] },
+    { "selector": "a[href=\"#creation\"]", "text": ["创作区有长篇连载和游戏开发日志。"] },
+    { "selector": "a[href=\"#essays\"]", "text": ["随笔区写的是生活里那些细碎真实的瞬间。"] },
+    { "selector": "article[data-project-id=\"filebutler\"]", "text": ["FileButler：本地文件标签与即时秒搜工具，告别杂乱文件夹！"] },
+    { "selector": "article[data-project-id=\"paian\"]", "text": ["拍案：视频口播拆解与结构化手记工具，全自动生成时间轴！"] },
+    { "selector": "article[data-project-id=\"netops-handbook\"]", "text": ["NetOps：断网时的应急救援手册，离线也能秒查排障命令。"] },
+    { "selector": "article[data-project-id=\"fluxion\"]", "text": ["Fluxion：轻量极简的代码工作流工具，无额外依赖。"] },
+    { "selector": "article[data-project-id=\"gameboost\"]", "text": ["GameBoost：榨干 GPU 性能，帧率稳定起飞！"] },
+    { "selector": "article[data-project-id=\"gameboost-dlssg\"]", "text": ["DLSS 帧生成黑科技实践，让老显卡焕发第二春。"] },
+    { "selector": ".bento-card", "text": ["这一张卡片值得点开看看。", "「{text}」——点开有详细规格。"] },
+    { "selector": "#back-to-top", "text": ["一口气拉回顶部！", "坐火箭回首屏咯～"] },
+    { "selector": "a[href^=\"https://github.com/7SteveJohn\"]", "text": ["站长的 GitHub 主页在这儿，代码全开源，欢迎 Star！"] },
+    { "selector": "pre, code", "text": ["在细看实现细节呢？核心参数多推敲推敲～", "这一段逻辑写得很精炼，看懂了记得动手写写。"] }
   ],
   "click": [
+    { "selector": "article[data-project-id=\"filebutler\"]", "text": ["正在打开 FileButler 详情……本地秒级检索已就绪！"] },
+    { "selector": "article[data-project-id=\"paian\"]", "text": ["正在打开拍案……视频拆解与结构化文档生成中。"] },
+    { "selector": "article[data-project-id=\"netops-handbook\"]", "text": ["正在打开 NetOps 应急口袋书……"] },
+    { "selector": "article[data-project-id=\"fluxion\"]", "text": ["正在启动 Fluxion 极速工作流……"] },
     { "selector": ".bento-card", "text": ["正在打开「{text}」…", "看细节的话，点「技术规格详情」更全。"] },
-    { "selector": "#music-play", "text": ["开始放歌咯，背景的连线会跟着节拍亮。", "先歇一会儿。"] },
+    { "selector": "#music-play", "text": ["开始放歌咯，背景的连线会跟着节拍律动。", "先歇一会儿，喝口咖啡。"] },
     { "selector": "#page-next", "text": ["翻到下一屏，继续往下看。"] },
-    { "selector": "#search-open", "text": ["输入关键词就行，回车打开。"] },
+    { "selector": "#search-open", "text": ["输入关键词就行，按回车立即检索。"] },
     { "selector": "a[href^=\"#\"]", "text": ["带你去「{text}」。"] }
   ]
 }

@@ -14,7 +14,6 @@
   'use strict';
 
   const BASE = 'assets/vendor/live2d/';
-  const MODEL = BASE + 'model/shizuku/shizuku.model.json';
   const KEY = 'sj.live2d';
   const root = document.documentElement;
 
@@ -85,7 +84,7 @@
     setTimeout(() => settle(tries - 1), 400);
   }
 
-  function boot() {
+  function boot(modelId) {
     const css = document.createElement('link');
     css.rel = 'stylesheet';
     css.href = BASE + 'waifu.css';
@@ -101,6 +100,8 @@
         window.initWidget({
           waifuPath: BASE + 'waifu-tips.json',
           cubism2Path: BASE + 'live2d.min.js',
+          cubism5Path: BASE + 'live2dcubismcore.min.js',
+          modelId: typeof modelId === 'number' ? modelId : 1,
           // 工具条留空：本站只要角色本体 + 提示气泡，右上角自带关闭键
           tools: [],
           logLevel: 'error',
@@ -114,12 +115,9 @@
     document.head.appendChild(run);
   }
 
-  // 先确认模型清单真的取得到：取不到就别把运行时拉下来（file://、404、权限问题都在这里挡住）
+  // 起动 7Steve 原生 Live2D Cubism 看板娘，未就绪时平滑回退
   function probe() {
-    fetch(MODEL, { cache: 'force-cache' })
-      .then((res) => (res.ok ? res.json() : Promise.reject(0)))
-      .then((json) => { if (json && json.model) boot(); })
-      .catch(fail);
+    boot(1);
   }
 
   // 起动闸门：等壁纸脚本（js/wallpaper.js）给出档位结论 —— 弱机/被判定为轻档时

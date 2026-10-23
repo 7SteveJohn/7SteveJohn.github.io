@@ -67,7 +67,8 @@
 
     // ---- 站内正经入口：必须出现在「首页更多 + 次级页导航 + 所有页页脚」----
     entries: [
-      { href: 'products.html', label: '产品' },
+      // 2026-10-17 下线「产品」：产品索引/详情与首页 #products + 项目弹窗重复，
+      // 六款工具的介绍只在 js/projects.js 维护一份，入口收回首页「工具」区。
       { href: 'archive.html', label: '归档' },
       { href: 'gallery.html', label: '照片墙' },
       // 2026-10-17 收回：花园 / 友链 / 连载 属于"社交与娱乐"，不服务本站「技术 + 产品分享」的定位，
@@ -86,9 +87,6 @@
     // sitemap:true = 写进 sitemap.xml
     pages: [
       { href: 'index.html', label: '首页', title: '楠屿札记 · 本地 AI 应用与桌面工具', sitemap: true, priority: '1.0', changefreq: 'weekly' },
-      { href: 'products.html', label: '产品', title: '产品 · 本地优先的工具', sitemap: true, priority: '0.9', changefreq: 'weekly' },
-      // 产品详情是「单模板 + ?id=」，逐条 URL 由 scripts/gen-rss.js 从 js/projects.js 生成
-      { href: 'product.html', label: '产品详情', title: '产品', sitemap: false },
       { href: 'archive.html', label: '归档', title: '归档 · 时间河', sitemap: true, priority: '0.8', changefreq: 'weekly' },
       { href: 'gallery.html', label: '照片墙', title: '照片墙', sitemap: true, priority: '0.7', changefreq: 'monthly' },
       // 已下线的三页不写进 sitemap（避免搜索引擎继续收录），页面本身仍在仓库里

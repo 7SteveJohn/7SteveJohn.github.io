@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initSmoothAnchors();
   initScrollSpy();
   initPageNext();
+  initProjectSnap();   // 产品区滚动吸附（snap-products 只在这一段挂）
 
  // 5. 滚动浮现编排（ section reveal，含错峰）
   observeReveals();
@@ -244,11 +245,6 @@ window.openProjectModal = function(id) {
 
       <!-- 操作链接栏 -->
       <div class="pt-6 border-t border-black/10 dark:border-white/10 flex flex-wrap gap-3 items-center justify-end">
-        <a href="product.html?id=${encodeURIComponent(project.id)}"
-           class="btn-secondary px-4 py-2 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white flex items-center gap-1.5 border border-black/10 dark:border-white/10">
-          <span>产品页与更新日志</span>
-          <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
-        </a>
         ${project.downloadUrl ? `
           <a href="${project.downloadUrl}" target="_blank" rel="noopener noreferrer"
              class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5">
@@ -1389,6 +1385,91 @@ function initPageNext() {
     smoothScrollTo(Math.max(0, y));
     history.pushState(null, '', next.id ? '#' + next.id : location.pathname);
   });
+}
+
+// 产品区滚动吸附：CSS Scroll Snap 的两个补丁（吸附本体在 css/style.css）
+// ----------------------------------------------------
+// 吸附本身是标准 CSS：html { scroll-snap-type: y proximity } + 卡片 scroll-snap-align: start。
+// 这里只补两件 CSS 自己做不到的事（2026-10-17 实测 1440×900）：
+//   ① 滚轮一格 = 翻一屏：proximity 在整屏卡片上会留死区（单次滚 500px 停在半张卡上，
+//      既不翻页也不自由），鼠标滚轮两格之间还会被回弹吃掉（连滚 5 格位移 0）；
+//   ② 到头逃生口：滚到最后一张还想往下（或第一张往上）时先给 html 挂 .no-snap 摘掉吸附，
+//      否则 proximity 会把页面吸回原卡（实测滚 240px 位移 0）；回到卡序列里再恢复。
+// 锚点 / 键盘 / 触屏全程原生，不接管。断点与 CSS 那条媒体查询一致。
+function initProjectSnap() {
+  const section = document.getElementById('products');
+  if (!section) return;
+  const cards = [...section.querySelectorAll(':scope > article.bento-card')];
+  if (cards.length < 2) return;
+
+  const root = document.documentElement;
+  const mq = window.matchMedia('(min-width: 640px) and (min-height: 760px) and (prefers-reduced-motion: no-preference)');
+  const HEADER = 64;   // 吸顶导航高度：翻页后卡片顶边落在导航下方
+  // 每次现算（6 个 rect）：卡片是一屏高，行距只随窗口尺寸变，不需要缓存
+  const tops = () => {
+    const y = window.scrollY;
+    return cards.map((c) => c.getBoundingClientRect().top + y - HEADER);
+  };
+
+  // ---- 到头逃生口：摘掉吸附 + 主动滚出一段（两保险）----
+  // 只摘吸附不够：Chrome 对"当前这次"滚动仍会按吸附落位（实测滚 240px 仍被吸回原卡），
+  // 所以这里 preventDefault 后自己滚到阈值之外，并把 .no-snap 保留 900ms。
+  let snapOff = 0;
+  const escape = (dir, list) => {
+    root.classList.add('no-snap');
+    clearTimeout(snapOff);
+    snapOff = setTimeout(() => root.classList.remove('no-snap'), 900);
+    const vh = window.innerHeight;
+    const top = dir > 0
+      ? list[list.length - 1] + vh * 0.78
+      : Math.max(0, list[0] - vh * 0.78);
+    lockUntil = performance.now() + 520;
+    window.scrollTo({ top, behavior: 'smooth' });
+  };
+
+  // ---- 补丁 ①：滚轮一格 = 翻一屏 ----
+  // 只在产品区窗口内接管 wheel：累计到 45px 就翻一张卡（鼠标一格 100–120 立刻翻页，
+  // 触控板小增量累计到 45 也翻一页），420ms 冷却吃掉同一手势的连发。
+  let acc = 0;
+  let lockUntil = 0;
+  let idle = 0;
+  window.addEventListener('wheel', (e) => {
+    if (!mq.matches) return;
+    if (e.ctrlKey || e.metaKey) return;                        // 捏合缩放
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;       // 横向手势不管
+    if (!e.deltaY) return;
+
+    const list = tops();
+    const y = window.scrollY;
+    // 只在卡片序列（上下各留 40px）里接管；产品区之外一律原生滚动
+    if (y < list[0] - 40 || y > list[list.length - 1] + 40) return;
+
+    const dir = e.deltaY > 0 ? 1 : -1;
+    // 「已经翻过线的最后一张」（留 24px 容差：懒加载会让上方内容浮动十几像素）
+    let idx = -1;
+    list.forEach((t, i) => { if (t <= y + 24) idx = i; });
+    const target = Math.min(cards.length - 1, Math.max(0, idx + dir));
+    if (target === idx) {
+      // ---- 补丁 ②：到头 → 摘吸附 + 自己滚出阈值，顺势离开产品区 ----
+      if (performance.now() < lockUntil) return;
+      e.preventDefault();
+      escape(dir, list);
+      return;
+    }
+
+    e.preventDefault();
+    const now = performance.now();
+    if (now < lockUntil) { acc = 0; return; }
+
+    acc += e.deltaY;
+    clearTimeout(idle);
+    idle = setTimeout(() => { acc = 0; }, 200);
+    if (Math.abs(acc) < 45) return;
+
+    acc = 0;
+    lockUntil = now + 420;
+    window.scrollTo({ top: Math.max(0, list[target]), behavior: 'smooth' });
+  }, { passive: false });
 }
 
 // 锚点/按钮滚动：直接用**原生平滑滚动**（合成器线程驱动，不逐帧写 scrollTo）

@@ -1,9 +1,9 @@
-// build-bundles: {"name":"core","version":"3a3171698dc3","sources":[{"path":"js/site-config.js","sha256":"697afc5470b3963b76f033ef2a44c071a8ea340a28fafcd0997092905e1e405d"},{"path":"js/markdown-loader.js","sha256":"9149bca09b58fc21ff58cd7071d9f9470acdb9f4067856265a14260f99cca272"},{"path":"js/wallpaper.js","sha256":"994e9d8228801ad2c5c5ce7c63bfaead43b3286bc35bb14b6d251200e1fe8f80"},{"path":"js/particles.js","sha256":"5e95471046e40560408eeca8895a2541057a6028973ef7ff9dc240c3dd2f5f98"},{"path":"js/settings-panel.js","sha256":"b1e519e075e6e7418f49969fb5108ea7bd6392e39a7014ad7fe885a0309f6747"},{"path":"js/tab-nav.js","sha256":"61be36cf6c8375241ee34eda74c16856d4d8bfc84f4ef967e9bb7511bd082956"}]}
+// build-bundles: {"name":"core","version":"10958e8e588d","sources":[{"path":"js/site-config.js","sha256":"8891893d9d99ff5e6c66dc5bf2748bbd44771d48c7105ac433010ab74971b725"},{"path":"js/markdown-loader.js","sha256":"9149bca09b58fc21ff58cd7071d9f9470acdb9f4067856265a14260f99cca272"},{"path":"js/wallpaper.js","sha256":"994e9d8228801ad2c5c5ce7c63bfaead43b3286bc35bb14b6d251200e1fe8f80"},{"path":"js/particles.js","sha256":"5e95471046e40560408eeca8895a2541057a6028973ef7ff9dc240c3dd2f5f98"},{"path":"js/settings-panel.js","sha256":"b1e519e075e6e7418f49969fb5108ea7bd6392e39a7014ad7fe885a0309f6747"},{"path":"js/tab-nav.js","sha256":"61be36cf6c8375241ee34eda74c16856d4d8bfc84f4ef967e9bb7511bd082956"}]}
 /* 6 页共用：配置 → Markdown 按需加载器 → 壁纸 → 粒子 → 设置面板 → 按住 Tab
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/site-config.js → js/markdown-loader.js → js/wallpaper.js → js/particles.js → js/settings-panel.js → js/tab-nav.js */
 
-// ---- js/site-config.js (697afc5470b3) ----
+// ---- js/site-config.js (8891893d9d99) ----
 /**
  * 站点配置唯一来源（浏览器与 Node 共用，零依赖）
  * ----------------------------------------------------
@@ -73,7 +73,8 @@
 
     // ---- 站内正经入口：必须出现在「首页更多 + 次级页导航 + 所有页页脚」----
     entries: [
-      { href: 'products.html', label: '产品' },
+      // 2026-10-17 下线「产品」：产品索引/详情与首页 #products + 项目弹窗重复，
+      // 六款工具的介绍只在 js/projects.js 维护一份，入口收回首页「工具」区。
       { href: 'archive.html', label: '归档' },
       { href: 'gallery.html', label: '照片墙' },
       // 2026-10-17 收回：花园 / 友链 / 连载 属于"社交与娱乐"，不服务本站「技术 + 产品分享」的定位，
@@ -92,9 +93,6 @@
     // sitemap:true = 写进 sitemap.xml
     pages: [
       { href: 'index.html', label: '首页', title: '楠屿札记 · 本地 AI 应用与桌面工具', sitemap: true, priority: '1.0', changefreq: 'weekly' },
-      { href: 'products.html', label: '产品', title: '产品 · 本地优先的工具', sitemap: true, priority: '0.9', changefreq: 'weekly' },
-      // 产品详情是「单模板 + ?id=」，逐条 URL 由 scripts/gen-rss.js 从 js/projects.js 生成
-      { href: 'product.html', label: '产品详情', title: '产品', sitemap: false },
       { href: 'archive.html', label: '归档', title: '归档 · 时间河', sitemap: true, priority: '0.8', changefreq: 'weekly' },
       { href: 'gallery.html', label: '照片墙', title: '照片墙', sitemap: true, priority: '0.7', changefreq: 'monthly' },
       // 已下线的三页不写进 sitemap（避免搜索引擎继续收录），页面本身仍在仓库里

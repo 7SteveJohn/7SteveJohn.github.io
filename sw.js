@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v145';   // 2026-10-17 产品页版式：桌面索引 3 列 / 详情双栏（手机仍单列）
+const CACHE = 'sevenjohn-v147';   // 2026-10-23 孤儿页出清：garden/links/novel 三页及其 css/bundle/novel-data 移出 CORE（对齐下方注释）
 const CORE = [
   './',
   'index.html',
@@ -19,21 +19,13 @@ const CORE = [
   // 归档与照片墙（2026-10-16 新增）：文本资源很小，直接预缓存，断网可翻
   'archive.html',
   'gallery.html',
-  // 产品页（2026-10-17 新增）：索引 + 单模板详情（?id=）
-  'products.html',
-  'product.html',
-  // 已下线的三页仍留在仓库、仍可直达，但不再进预缓存（避免离线包变胖又没人用）
-  'garden.html',
-  'links.html',
-  'novel.html',
+  // 已下线的三页（garden/links/novel）仍留在仓库、仍可直达，但不再进预缓存
+  //（2026-10-23 对齐：此前注释说不预缓存、清单却照收，离线包在为无入口页面付费）。
+  // 访问时由导航 SWR 分支照常入库，断网后最近访问的仍可看
   'css/style.css',
   'css/cosmos.css',
   'css/archive.css',
   'css/gallery.css',
-  'css/garden.css',
-  'css/links.css',
-  'css/novel.css',
-  'css/product.css',
   'css/settings-panel.css',
   'js/cosmos.js',        // 手机 / 无 WebGL 时的 2D 星河回退（js/cosmos/main.js 引导层按需加载）
   'js/cosmos/config.js',
@@ -57,16 +49,12 @@ const CORE = [
   'js/bundles/core.js',    // site-config / markdown-loader / wallpaper / particles / settings-panel / tab-nav
   'js/bundles/home.js',    // status / search / video-gate / app / nav-indicator / player
   'js/bundles/sub.js',     // subpage（次级页外壳）
-  'js/bundles/garden.js',  // 三个玩具 + 框架
-  'js/bundles/links.js',   // friends / bookmarks / links
-  'js/bundles/novel.js',   // 阅读器
+  // garden/links/novel 三个 bundle 与 novel-data.js 随三页一起移出预缓存（2026-10-23）
   // 数据文件与页面专属逻辑仍独立（工具链依赖数据文件，页面逻辑单请求即可）
   'js/articles.js',
   'js/projects.js',
-  'js/novel-data.js',
   'js/archive.js',
   'js/gallery.js',
-  'js/product.js',         // 产品页与产品索引（2026-10-17 新增）
   'js/live2d.js',          // 看板娘引导层（1.9MB 运行时/模型不进预缓存）
   // 壁纸图与 Live2D 看板娘（运行时 + 模型约 1.9MB）不进预缓存：
   // 壁纸由 img 预载后自然入库，看板娘只在桌面首次在线加载后入缓存（与 three/mp3 同策略）
@@ -288,9 +276,7 @@ self.addEventListener('fetch', (event) => {
       '/gallery.html': './gallery.html',
       '/garden.html': './garden.html',
       '/links.html': './links.html',
-      '/novel.html': './novel.html',
-      '/products.html': './products.html',
-      '/product.html': './product.html'
+      '/novel.html': './novel.html'
     };
     const key = SWR_KEYS[path];
     if (key) {
