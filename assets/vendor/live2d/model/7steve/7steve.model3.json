@@ -47,6 +47,21 @@
                     "File": "7steve.idle3.motion3.json",
                     "FadeInTime": 0.4,
                     "FadeOutTime": 0.4
+                },
+                {
+                    "File": "7steve.shizuku_idle_00.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                },
+                {
+                    "File": "7steve.shizuku_idle_01.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                },
+                {
+                    "File": "7steve.shizuku_idle_02.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
                 }
             ],
             "Blink": [
@@ -66,6 +81,16 @@
             "Shake": [
                 {
                     "File": "7steve.shake.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                },
+                {
+                    "File": "7steve.shizuku_shake_00.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                },
+                {
+                    "File": "7steve.shizuku_shake_01.motion3.json",
                     "FadeInTime": 0.4,
                     "FadeOutTime": 0.4
                 }
@@ -94,6 +119,21 @@
                     "File": "7steve.flick_head2.motion3.json",
                     "FadeInTime": 0.4,
                     "FadeOutTime": 0.4
+                },
+                {
+                    "File": "7steve.shizuku_flick_00.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                },
+                {
+                    "File": "7steve.shizuku_flick_01.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                },
+                {
+                    "File": "7steve.shizuku_flick_02.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
                 }
             ],
             "TapBody": [
@@ -104,6 +144,21 @@
                 },
                 {
                     "File": "7steve.tap_body2.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                },
+                {
+                    "File": "7steve.shizuku_tap_00.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                },
+                {
+                    "File": "7steve.shizuku_tap_01.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                },
+                {
+                    "File": "7steve.shizuku_tap_02.motion3.json",
                     "FadeInTime": 0.4,
                     "FadeOutTime": 0.4
                 }
