@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>看板娘调试台 · 楠屿札记</title>
+<!--
+  Live2D 看板娘专用调试/预览页（开发用，不进站点导航）
+  ----------------------------------------------------
+  正式页面的看板娘有三道省电闸（js/live2d.js）：
+    ① 系统开启「减少动态效果」→ 不加载（无障碍尊重）
+    ② 壁纸引擎判定弱机档（软渲染/无 WebGL）→ 不加载
+    ③ 右上角 × 写过 sj.live2d=off → 永久关闭
+  本页全部绕过：强制视作"强机 + 未减少动效"，并清掉关闭标记。
+  用途：换模型/调动作后快速看效果，或排查"正式页面为什么看不见看板娘"。
+  本地预览：仓库根 `python -m http.server 8327` → http://localhost:8327/live2d-preview.html
+-->
+<style>
+  :root { color-scheme: dark; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; flex-direction: column;
+    justify-content: center; align-items: center; gap: 10px;
+    background: #0a0a0c; color: #b8bcc4;
+    font: 14px/1.8 "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  h1 { font-size: 17px; color: #e8eaee; font-weight: 600; margin: 0; }
+  p { margin: 0; color: #7c8089; font-size: 13px; }
+  code { background: #17181d; border: 1px solid #2a2c33; border-radius: 4px; padding: 1px 6px; font-size: 12px; }
+  .status { margin-top: 18px; font-size: 12px; color: #5b5f68; }
+  .status b { color: #8fd0ff; font-weight: 600; }
+  /* 调试台没有主站 css/style.css 的覆盖，原生 waifu.css 把她摆在左下——这里对齐正式站的右下角 */
+  #waifu { left: auto !important; right: 0 !important; bottom: 0 !important; z-index: 30 !important; }
+  #waifu-tips { left: auto !important; right: 24px !important; }
+  #live2d-close { right: 6px !important; left: auto !important; }
+</style>
+</head>
+<body>
+  <h1>看板娘调试台</h1>
+  <p>右下角就是她。绕过了全部三道闸：<code>减少动效</code> / <code>弱机档位</code> / <code>关闭开关</code>。</p>
+  <p>摸头 = 蹭手心 · 戳身体 = 惊跳 · 点全息屏 = 打字 · 鼠标移动 = 视线跟随</p>
+  <p class="status" id="status">正在加载运行时与模型（约 1.9MB，首次要几秒）…</p>
+
+  <script>
+  (function () {
+    'use strict';
+    // ① 绕过「减少动态效果」闸
+    var orig = window.matchMedia.bind(window);
+    window.matchMedia = function (q) {
+      var m = orig(q);
+      if (q.indexOf('prefers-reduced-motion') !== -1) {
+        return { matches: false, media: q, onchange: null,
+          addEventListener: function(){}, removeEventListener: function(){},
+          addListener: function(){}, removeListener: function(){}, dispatchEvent: function(){ return false; } };
+      }
+      return m;
+    };
+    // ② 绕过弱机档：不加载 wallpaper.js，live2d.js 见不到 __fxTier 会直接按强机走
+    // ③ 清掉历史关闭标记（本页每次打开都重置，方便调试）
+    try { localStorage.removeItem('sj.live2d'); } catch (e) {}
+
+    var status = document.getElementById('status');
+    var s = document.createElement('script');
+    s.src = 'js/live2d.js';
+    s.onload = function () {
+      // live2d.js 自己会在模型就绪后给 <html> 挂 has-live2d，这里轮询给个反馈
+      var n = 0;
+      var timer = setInterval(function () {
+        n++;
+        var waifu = document.getElementById('waifu');
+        if (waifu && waifu.classList.contains('waifu-active')) {
+          status.innerHTML = '看板娘已上线 —— 没出现的话检查一下右下角，或按 <b>F12</b> 看 Network 里模型请求';
+          clearInterval(timer);
+        } else if (n > 45) {
+          status.innerHTML = '45 秒还没就绪：确认是通过 <b>http://localhost:8327</b> 访问的（file:// 会被 CORS 挡）';
+          clearInterval(timer);
+        }
+      }, 1000);
+    };
+    s.onerror = function () {
+      status.innerHTML = 'js/live2d.js 加载失败 —— 必须通过本地服务器访问，不能双击文件打开';
+    };
+    document.head.appendChild(s);
+  })();
+  </script>
+</body>
+</html>
