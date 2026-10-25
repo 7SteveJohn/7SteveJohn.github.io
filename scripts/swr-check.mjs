@@ -16,7 +16,7 @@ import { devRequire as require } from './_dev-require.mjs';
 const { chromium } = require('playwright-core');
 const BASE = 'http://localhost:8328/';
 const PROBE = 'swr-probe.txt';
-const CACHE_NAME = 'sevenjohn-v147';   // 与 sw.js 顶部 CACHE 同步改
+const CACHE_NAME = 'sevenjohn-v148';   // 与 sw.js 顶部 CACHE 同步改
 
 let pass = 0, fail = 0;
 const ok = (n, extra) => { pass++; console.log('PASS  ' + n + (extra ? '  ' + extra : '')); };
