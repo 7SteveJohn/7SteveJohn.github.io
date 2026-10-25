@@ -230,7 +230,15 @@
     fired = true;
     ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach((ev) => window.removeEventListener(ev, fire));
     const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 200));
-    idle(start);
+    idle(() => {
+      if (warmPromise) {
+        // 预热在途：等它收敛再启动——运行时随后的请求全部命中 SW 缓存，
+        // 否则预热与运行时各拉一份（实测冷启动 moc3/index2/core 双下载白扔 ~700KB）。8s 兜底防卡。
+        Promise.race([warmPromise, new Promise((r) => setTimeout(r, 8000))]).then(start);
+      } else {
+        start();
+      }
+    });
   }
 
   function arm() {
@@ -243,11 +251,12 @@
 
   // ---- 模型资产预热（2026-10-26 性能优化）----
   // load 之后空闲时，以低优先级把模型全套资产预取进 SW 缓存。热访问（缓存命中）预热
-  // 秒完 → 立即启动看板娘，不再干等 3.5 秒定时器（实测热访问 5.8s → ~2s）；冷访问在
-  // 3.5 秒启动时资产多半已在途，与运行时自己的请求自然合流。预热全部 low priority +
+  // 秒完 → 立即启动看板娘，不再干等 3.5 秒定时器（实测热访问 5.8s → ~0.7s）；冷访问的
+  // 预热就是正式下载（启动等它收敛，见 fire()），杜绝双下载。预热全部 low priority +
   // idle 回调，绝不与首屏争带宽；静态兜底/弱机/pages.dev 路径根本不会走到这里。
   let warmStarted = false;
   let warmDoneFlag = false;
+  let warmPromise = null;
   function warmAssets() {
     if (warmStarted) return;
     warmStarted = true;
@@ -259,30 +268,23 @@
     };
     const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 50));
     idle(() => {
-      for (const u of [BASE + 'waifu.css', BASE + 'waifu-tips.js', BASE + 'live2dcubismcore.min.js',
-                       BASE + 'chunk/index.js', BASE + 'chunk/index2.js']) {
-        fetch(u, { priority: 'low' }).catch(() => {});
-      }
-      fetch(modelBase + '7steve.model3.json', { priority: 'low' })
+      const head = [BASE + 'waifu.css', BASE + 'waifu-tips.js', BASE + 'waifu-tips.json',
+                    BASE + 'live2dcubismcore.min.js', BASE + 'chunk/index.js',
+                    BASE + 'chunk/index2.js'].map((u) => fetch(u, { priority: 'low' }).catch(() => {}));
+      const model = fetch(modelBase + '7steve.model3.json', { priority: 'low' })
         .then((r) => (r.ok ? r.json() : null))
         .then((j) => {
-          if (!j || !j.FileReferences) return done();
+          if (!j || !j.FileReferences) return;
           const fr = j.FileReferences;
           const urls = [fr.Moc, fr.Physics, fr.DisplayInfo, ...(fr.Textures || []),
                         ...(fr.Expressions || []).map((e) => e.File)];
           for (const g of Object.values(fr.Motions || {})) {
             for (const m of g) urls.push(m.File);
           }
-          const list = urls.filter(Boolean);
-          let pending = list.length;
-          if (!pending) return done();
-          for (const u of list) {
-            fetch(modelBase + u, { priority: 'low' }).catch(() => {}).finally(() => {
-              if (--pending === 0) done();
-            });
-          }
+          return Promise.all(urls.filter(Boolean).map((u) => fetch(modelBase + u, { priority: 'low' }).catch(() => {})));
         })
-        .catch(() => done());
+        .catch(() => {});
+      warmPromise = Promise.all([Promise.all(head), model]).then(() => done());
     });
   }
 
