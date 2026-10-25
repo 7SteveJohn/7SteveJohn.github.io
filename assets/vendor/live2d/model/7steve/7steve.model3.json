@@ -3,9 +3,9 @@
     "FileReferences": {
         "Moc": "7steve.moc3",
         "Textures": [
-            "7steve.4096/texture_00.png",
-            "7steve.4096/texture_01.png",
-            "7steve.4096/texture_02.png"
+            "7steve.4096/texture_00.webp",
+            "7steve.4096/texture_01.webp",
+            "7steve.4096/texture_02.webp"
         ],
         "Physics": "7steve.physics3.json",
         "DisplayInfo": "7steve.cdi3.json",
@@ -25,6 +25,10 @@
             {
                 "Name": "wink",
                 "File": "exp/wink.exp3.json"
+            },
+            {
+                "Name": "surprised",
+                "File": "exp/surprised.exp3.json"
             }
         ],
         "Motions": {
@@ -36,6 +40,11 @@
                 },
                 {
                     "File": "7steve.idle2.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                },
+                {
+                    "File": "7steve.idle3.motion3.json",
                     "FadeInTime": 0.4,
                     "FadeOutTime": 0.4
                 }
