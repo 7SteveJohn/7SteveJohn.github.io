@@ -131,23 +131,6 @@
     });
   }
 
-  function addCloseButton() {
-    if (document.getElementById('live2d-close')) return;
-    const btn = document.createElement('button');
-    btn.id = 'live2d-close';
-    btn.type = 'button';
-    btn.title = '关闭看板娘（以后不再出现）';
-    btn.setAttribute('aria-label', '关闭看板娘');
-    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
-    btn.addEventListener('click', () => {
-      try { localStorage.setItem(KEY, 'off'); } catch (e) { /* 存不下也只是这次躲起来 */ }
-      const waifu = document.getElementById('waifu');
-      if (waifu) waifu.classList.add('waifu-hidden');   // 用上游自己的隐藏类，不动它的渲染循环
-      btn.remove();
-      root.classList.remove('has-live2d');
-    });
-    document.body.appendChild(btn);
-  }
 
   // 等模型真正可画再显形：waifu-active 只是模型 setup 开始的信号（气泡会先出来、人还是空的——
   // 线上实测挂载后仍有 5-10s 贴图加载隐形窗口）；真正的绘制就绪是贴图全部上传显卡，
@@ -160,7 +143,6 @@
     const painted = !!(app && typeof app._state === 'number' && app._state >= 22);
     if (waifu && waifu.classList.contains('waifu-active') && painted) {
       root.classList.add('has-live2d');
-      addCloseButton();
       bindReactions();
       return;
     }

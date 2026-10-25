@@ -1858,9 +1858,6 @@ html:not(.has-live2d) #waifu {
 /* 只在桌面出现（js/live2d.js 的闸门也认 1024px，这里兜住「开着窗口再缩窄」的情况） */
 @media (max-width: 1023px) {
   html body #waifu,
-  html body #live2d-close {
-    display: none;
-  }
 }
 
 /* 左侧那个黄色小页签不用：本站用角色右上角自己的关闭键 */
@@ -1889,36 +1886,6 @@ html body #waifu-tips span {
 }
 
 /* 关闭键：贴在角色右上角，出现得比角色慢一点，避免和入场动画抢注意力 */
-#live2d-close {
-  position: fixed;
-  right: 14px;
-  bottom: 356px;
-  z-index: 31;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 9999px;
-  background: rgba(20, 22, 30, 0.55);
-  color: #86868b;
-  cursor: pointer;
-  transition: color 0.2s ease, background-color 0.2s ease;
-}
-html.has-live2d #live2d-close {
-  display: flex;
-  animation: fade-in 0.6s var(--ease-swift) 0.8s backwards;
-}
-#live2d-close:hover {
-  background: rgba(20, 22, 30, 0.9);
-  color: #fff;
-}
-#live2d-close svg {
-  width: 13px;
-  height: 13px;
-}
 
 /* 看板娘在场时，右下角的「回到顶部」让开它的位置（否则会压在角色身上） */
 @media (min-width: 1024px) {
