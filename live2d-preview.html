@@ -106,6 +106,11 @@
         '<br><span class="fix">↑ 本页不受这些闸影响，右下角照样加载；但正式页面会被挡。</span>';
     }
 
+    // 简历镜像档不放看板娘（与 js/live2d.js 的闸门一致）
+    if (/(^|\.)pages\.dev$/.test(location.hostname)) {
+      document.getElementById('status').innerHTML = 'pages.dev 是简历用的干净镜像，不放看板娘——去 <b>7stevejohn.github.io</b> 看。';
+      return;
+    }
     // ---- 绕闸加载 ----
     var orig = window.matchMedia.bind(window);
     window.matchMedia = function (q) {

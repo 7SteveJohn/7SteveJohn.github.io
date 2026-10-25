@@ -31,6 +31,11 @@
   } catch (e) { /* 隐私模式：当作没关过 */ }
 
   if (closed) return;
+  // 简历镜像档：pages.dev 是简历对外的干净版，不放看板娘；主站 github.io / 本地预览专属
+  if (/(^|\.)pages\.dev$/.test(location.hostname)) {
+    console.info('[live2d] 简历镜像（pages.dev）不放看板娘');
+    return;
+  }
   // 手机/窄窗：维持原设计不出现（静态立绘也只给桌面宽窗，避免压到内容）
   if (!hit('(pointer: fine)') || !hit('(min-width: 1024px)')) { console.info('[live2d] 未加载：视口 <1024px 或非鼠标设备'); return; }
   const reduced = hit('(prefers-reduced-motion: reduce)');
@@ -75,7 +80,7 @@
     img.id = 'waifu-static';
     img.src = BASE + '7steve-static.webp';
     img.alt = '';
-    img.style.cssText = 'position:fixed;right:6px;bottom:0;width:170px;z-index:29;'
+    img.style.cssText = 'position:fixed;right:6px;bottom:0;width:132px;z-index:29;'
       + (upgradable ? 'cursor:pointer;' : 'pointer-events:none;') + 'user-select:none;';
     document.body.appendChild(img);
     if (upgradable) {
