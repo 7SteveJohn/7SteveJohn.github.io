@@ -59,17 +59,21 @@
     var closedRaw = null;
     try { closedRaw = localStorage.getItem('sj.live2d'); } catch (e) {}
     if (closedRaw === 'off') {
-      lines.push('<span class="fix">[已修复]</span> 关闭标记 sj.live2d=off —— 你之前点过她右上角的 ×。本页已清除，<b style="color:#e8eaee">回去刷新正式页面她就会回来</b>。');
+      lines.push('<span class="fix">[已修复]</span> 关闭标记 sj.live2d=off —— 你之前点过她右上角的 ×。本页已改为显式开启，<b style="color:#e8eaee">回去刷新正式页面她就会回来</b>。');
+    } else if (closedRaw === 'on') {
+      lines.push('<span class="ok">[通过]</span> 显式开启中（sj.live2d=on）——正式页面会加载她，即使系统开了减少动效。');
     } else {
       lines.push('<span class="ok">[通过]</span> 关闭标记：未设置');
     }
-    try { localStorage.removeItem('sj.live2d'); } catch (e) {}
 
     var reduced = false;
     try { reduced = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
     if (reduced) {
-      lines.push('<span class="warn">[被挡]</span> 系统开了「减少动态效果」——正式页按无障碍规范不加载看板娘。')
-      lines.push('　　想让她出现：Windows 设置 → 辅助功能 → 视觉效果 → 打开「动画效果」，然后刷新正式页。');
+      if (closedRaw === 'on') {
+        lines.push('<span class="ok">[已放行]</span> 系统开了「减少动态效果」，但你显式开启过看板娘——正式页面照样加载。');
+      } else {
+        lines.push('<span class="warn">[被挡]</span> 系统开了「减少动态效果」——正式页默认按无障碍规范不加载。本页已帮你写入显式开启（sj.live2d=on），<b style="color:#e8eaee">刷新正式页面即可出现</b>；不想开了在左下角齿轮面板关掉即可。');
+      }
     } else {
       lines.push('<span class="ok">[通过]</span> 减少动态效果：未开启');
     }
@@ -110,6 +114,8 @@
       return m;
     };
     // 不加载 wallpaper.js → live2d.js 见不到 __fxTier，直接按强机走
+    // 写入显式开启：正式页面从此豁免减少动效闸（本页的核心修复动作）
+    try { localStorage.setItem('sj.live2d', 'on'); } catch (e) {}
 
     var status = document.getElementById('status');
     var s = document.createElement('script');

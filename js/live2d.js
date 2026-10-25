@@ -1,7 +1,9 @@
 /**
  * Live2D 看板娘（自托管运行时 + Live2D 官方示例模型，右下角）
  * ----------------------------------------------------
- * - 只在对的环境出现：桌面细指针 + 视口 ≥1024px + 没开「减少动态效果」+ 没开省流量 + 用户没关过
+ * - 只在对的环境出现：桌面细指针 + 视口 ≥1024px + 没开省流量 + 用户没关过 + WebGL 可用；
+ *   「减少动态效果」默认尊重系统偏好不加载，但设置面板/调试台显式开启（sj.live2d=on）可覆盖——
+ *   否则系统动画关闭的机器（如游戏性能优化党）永远看不到她，且无从得知被挡原因（每道闸都有 console.info）
  * - 首帧之后（requestIdleCallback）才注入 waifu.css 与 ESM 运行时：不抢首屏带宽；
  *   资源不进 sw.js 预缓存，首次在线加载后由 SW 静态资源分支自动入库（断网可复用）
  * - 任何一步失败都静默收场：把已插入的节点收干净，不弹提示、不刷 console.error
@@ -21,16 +23,28 @@
   const hit = (q) => !!(window.matchMedia && window.matchMedia(q).matches);
   const conn = navigator.connection || navigator.mozConnection || {};
   let closed = false;
-  try { closed = localStorage.getItem(KEY) === 'off'; } catch (e) { /* 隐私模式：当作没关过 */ }
+  let optedIn = false;
+  try {
+    const v = localStorage.getItem(KEY);
+    closed = v === 'off';
+    optedIn = v === 'on';   // 设置面板/调试台写入：用户知情显式开启
+  } catch (e) { /* 隐私模式：当作没关过 */ }
 
   if (closed) return;
   if (location.protocol === 'file:') return;
-  if (hit('(prefers-reduced-motion: reduce)')) return;
-  if (!hit('(pointer: fine)') || !hit('(min-width: 1024px)')) return;
-  if (conn.saveData === true) return;
+  // 减少动效：默认尊重系统偏好（无障碍）；显式开启（sj.live2d=on）视为知情选择，允许覆盖——
+  // 否则像"系统动画关了但就想看板娘"的站主永远被挡在外面还无从得知原因
+  if (optedIn) {
+    console.info('[live2d] 显式开启（sj.live2d=on）：跳过减少动效闸');
+  } else if (hit('(prefers-reduced-motion: reduce)')) {
+    console.info('[live2d] 未加载：系统开启了减少动态效果。想开她：左下角齿轮面板开一次看板娘开关，或访问 live2d-preview.html');
+    return;
+  }
+  if (!hit('(pointer: fine)') || !hit('(min-width: 1024px)')) { console.info('[live2d] 未加载：视口 <1024px 或非鼠标设备'); return; }
+  if (conn.saveData === true) { console.info('[live2d] 未加载：浏览器省流量模式'); return; }
   // 没有 WebGL 就别开工：上游会静默失败，留下一个看不见的空白 canvas，
   // 还白下 1.9MB（2026-10-17 用 --disable-gpu --disable-software-rasterizer 实测复现）
-  if (!hasWebGL()) return;
+  if (!hasWebGL()) { console.info('[live2d] 未加载：无 WebGL（浏览器硬件加速关闭或环境不支持）'); return; }
 
   const nodes = () => ['waifu', 'waifu-toggle', 'live2d-close']
     .map((id) => document.getElementById(id))
