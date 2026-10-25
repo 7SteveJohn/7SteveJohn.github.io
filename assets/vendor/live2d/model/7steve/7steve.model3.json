@@ -33,6 +33,11 @@
                     "File": "7steve.idle.motion3.json",
                     "FadeInTime": 0.4,
                     "FadeOutTime": 0.4
+                },
+                {
+                    "File": "7steve.idle2.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
                 }
             ],
             "Blink": [
@@ -75,11 +80,21 @@
                     "File": "7steve.flick_head.motion3.json",
                     "FadeInTime": 0.4,
                     "FadeOutTime": 0.4
+                },
+                {
+                    "File": "7steve.flick_head2.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
                 }
             ],
             "TapBody": [
                 {
                     "File": "7steve.tap_body.motion3.json",
+                    "FadeInTime": 0.4,
+                    "FadeOutTime": 0.4
+                },
+                {
+                    "File": "7steve.tap_body2.motion3.json",
                     "FadeInTime": 0.4,
                     "FadeOutTime": 0.4
                 }
