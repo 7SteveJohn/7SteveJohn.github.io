@@ -38,6 +38,10 @@
   .fix  { color: #8fd0ff; }
   .status { font-size: 12px; color: #5b5f68; }
   .status b { color: #8fd0ff; font-weight: 600; }
+  /* 调试台没有主站 css/style.css 的覆盖，原生 waifu.css 把她摆在左下——这里对齐正式站的右下角 */
+  #waifu { left: auto !important; right: 0 !important; bottom: 0 !important; z-index: 30 !important; }
+  #waifu-tips { left: auto !important; right: 24px !important; }
+  #live2d-close { right: 6px !important; left: auto !important; }
 </style>
 </head>
 <body>

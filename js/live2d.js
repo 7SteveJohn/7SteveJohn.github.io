@@ -65,6 +65,39 @@
     root.classList.remove('has-live2d');
   };
 
+  // 语义表情与连戳反应链（站点层：监听 vendor 派发的点击事件，调 app 的表情/动作接口）
+  // 表情下标 = model3.json Expressions 顺序：0 smile 1 shy 2 focus 3 wink 4 surprised
+  function bindReactions() {
+    const app = window.__live2d_app;
+    if (!app || typeof app.setExpression !== 'function' || bindReactions.done) return;
+    bindReactions.done = true;
+    let resetTimer = null;
+    let pokeTimes = [];
+    let lastAnnoy = 0;
+    const setFace = (idx) => { try { app.setExpression(idx); } catch (e) { /* 表情失败静默 */ } };
+    const faceThen = (idx, holdMs) => {
+      setFace(idx);
+      clearTimeout(resetTimer);
+      resetTimer = setTimeout(() => setFace(0), holdMs);   // 归位到微笑
+    };
+    window.addEventListener('live2d:taphead', () => faceThen(Math.random() < 0.5 ? 1 : 3, 4200));   // 摸头：害羞/眨眼
+    window.addEventListener('live2d:taptablet', () => faceThen(2, 4200));                            // 敲屏：专注
+    window.addEventListener('live2d:tapcat', () => faceThen(0, 2600));                               // 戳猫：微笑
+    window.addEventListener('live2d:tapbody', () => {
+      const now = Date.now();
+      pokeTimes = pokeTimes.filter((t) => now - t < 6000);
+      pokeTimes.push(now);
+      if (pokeTimes.length >= 3 && now - lastAnnoy > 6000) {
+        lastAnnoy = now;                       // 连戳三次：烦了——瞪眼 + 摇晃抗议，6 秒冷却
+        pokeTimes = [];
+        faceThen(4, 3200);
+        try { app.startRandomMotion('Shake', 2); } catch (e) { /* 动作失败静默 */ }
+      } else {
+        faceThen(4, 2400);                     // 单戳：惊吓脸
+      }
+    });
+  }
+
   function addCloseButton() {
     if (document.getElementById('live2d-close')) return;
     const btn = document.createElement('button');
@@ -92,6 +125,7 @@
     if (waifu && waifu.classList.contains('waifu-active')) {
       root.classList.add('has-live2d');
       addCloseButton();
+      bindReactions();
       return;
     }
     if (tries <= 0) return;
