@@ -1834,16 +1834,17 @@ html body #waifu {
   left: auto;
   right: 0;
   z-index: 30;
-  /* 半身像裁切窗：模型 2 倍渲染、顶部对齐，只露头到腰——腿在窗外不渲染 */
-  width: 220px;
-  height: 220px;
+  /* 半身像裁切窗：模型 2 倍渲染、顶部对齐，只露头到腰——腿在窗外不渲染。
+     340px 窗 = 完善方案的「头部 ~140px」黄金构图 */
+  width: 340px;
+  height: 340px;
   overflow: hidden;
 }
 /* 看板娘画布 2 倍渲染（waifu.css 原生 300px 全身太小占角落）：运行时会把 backing 以
    内联样式写回画布，必须 !important 才压得住；backing 随 clientWidth 重算保持锐度 */
 html body #live2d {
-  width: 440px !important;
-  height: 440px !important;
+  width: 680px !important;
+  height: 680px !important;
   position: absolute;
   left: 50%;
   top: 0;
@@ -1891,7 +1892,7 @@ html body #waifu-tips span {
 #live2d-close {
   position: fixed;
   right: 14px;
-  bottom: 236px;
+  bottom: 356px;
   z-index: 31;
   display: none;
   align-items: center;
@@ -1922,7 +1923,7 @@ html.has-live2d #live2d-close {
 /* 看板娘在场时，右下角的「回到顶部」让开它的位置（否则会压在角色身上） */
 @media (min-width: 1024px) {
   html.has-live2d #back-to-top {
-    right: 15rem;
+    right: 22rem;
   }
 }
 

@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v152';   // 2026-10-24 看板娘画布缩至 220px（style.css 覆盖）
+const CACHE = 'sevenjohn-v153';   // 2026-10-26 半身像 340px 窗（完善方案头部 140px 规格）
 const CORE = [
   './',
   'index.html',
