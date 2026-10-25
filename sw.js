@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v148';   // 2026-10-24 强制清场：live2d.js 换显式开启语义，bump 让 SW 全量重拉 CORE
+const CACHE = 'sevenjohn-v149';   // 2026-10-24 显形逻辑修复（等贴图上 GPU），再 bump 让修复立即生效
 const CORE = [
   './',
   'index.html',

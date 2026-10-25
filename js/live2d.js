@@ -116,20 +116,23 @@
     document.body.appendChild(btn);
   }
 
-  // 等模型真正落地（上游加载完会给 #waifu 挂 waifu-active）再显形：
-  // 在那之前 #waifu 保持 visibility:hidden（见 css/style.css），既不挡右下角点击，
-  // 也不会让人盯着一个透明空块。慢网下模型要下载好几秒，这里给足耐心（约 90 秒），
-  // 超时也不删节点、不报错 —— 就当没有这个功能。
+  // 等模型真正可画再显形：waifu-active 只是模型 setup 开始的信号（气泡会先出来、人还是空的——
+  // 线上实测挂载后仍有 5-10s 贴图加载隐形窗口）；真正的绘制就绪是贴图全部上传显卡，
+  // 即运行时状态机走到 CompleteSetup（__live2d_app._state = 22，bindTexture 计数齐才置位）。
+  // 两个条件都满足才挂 has-live2d 显形，气泡与角色同帧出现。慢网下模型要下载好几秒，
+  // 超时（约 90s）静默放弃——与上游失败行为一致，不显形不报错。
   function settle(tries) {
     const waifu = document.getElementById('waifu');
-    if (waifu && waifu.classList.contains('waifu-active')) {
+    const app = window.__live2d_app;
+    const painted = !!(app && typeof app._state === 'number' && app._state >= 22);
+    if (waifu && waifu.classList.contains('waifu-active') && painted) {
       root.classList.add('has-live2d');
       addCloseButton();
       bindReactions();
       return;
     }
     if (tries <= 0) return;
-    setTimeout(() => settle(tries - 1), 400);
+    setTimeout(() => settle(tries - 1), 250);
   }
 
   function boot(modelId) {
@@ -158,7 +161,7 @@
       } catch (e) {
         return fail();
       }
-      settle(225);   // 最多等约 90 秒（模型 1.7MB，慢网络也够）
+      settle(360);   // 250ms 一轮，360 轮 = 90s（模型 0.8MB，慢网络也够）
     };
     document.head.appendChild(run);
   }
