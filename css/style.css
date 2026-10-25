@@ -1835,6 +1835,12 @@ html body #waifu {
   right: 0;
   z-index: 30;
 }
+/* 看板娘画布缩到 220px（waifu.css 原生 300px 太占角落）：模型按画布等比缩放。
+   运行时会把 backing 值以内联样式写回画布，必须 !important 才压得住 */
+html body #live2d {
+  width: 220px !important;
+  height: 220px !important;
+}
 /* 模型落地前不上屏：js/live2d.js 等到上游给 #waifu 挂 waifu-active 才加
    html.has-live2d。这样慢网下载那几秒里既看不到空块，也不会挡住右下角点击 */
 html:not(.has-live2d) #waifu {
