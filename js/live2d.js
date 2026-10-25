@@ -80,7 +80,7 @@
     img.id = 'waifu-static';
     img.src = BASE + '7steve-static.webp';
     img.alt = '';
-    img.style.cssText = 'position:fixed;right:6px;bottom:0;width:132px;z-index:29;'
+    img.style.cssText = 'position:fixed;right:6px;bottom:0;width:220px;height:220px;object-fit:cover;z-index:29;'
       + (upgradable ? 'cursor:pointer;' : 'pointer-events:none;') + 'user-select:none;';
     document.body.appendChild(img);
     if (upgradable) {
@@ -92,7 +92,7 @@
       const hint = document.createElement('div');
       hint.id = 'waifu-static-hint';
       hint.textContent = '点我开启动态版';
-      hint.style.cssText = 'position:fixed;right:10px;bottom:330px;z-index:29;font-size:11px;color:#9aa0aa;'
+      hint.style.cssText = 'position:fixed;right:10px;bottom:232px;z-index:29;font-size:11px;color:#9aa0aa;'
         + 'background:rgba(16,17,22,.85);border:1px solid #2a2c33;border-radius:6px;padding:2px 8px;pointer-events:none;';
       document.body.appendChild(hint);
     }
