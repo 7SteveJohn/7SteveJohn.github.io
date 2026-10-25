@@ -3,7 +3,9 @@
     "FileReferences": {
         "Moc": "7steve.moc3",
         "Textures": [
-            "7steve.4096/texture_00.png"
+            "7steve.4096/texture_00.png",
+            "7steve.4096/texture_01.png",
+            "7steve.4096/texture_02.png"
         ],
         "Physics": "7steve.physics3.json",
         "DisplayInfo": "7steve.cdi3.json",

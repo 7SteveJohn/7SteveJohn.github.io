@@ -180,6 +180,14 @@
 	],
 	"Drawables": [
 		{
+			"Id": "ArtMeshHeadwearL",
+			"Name": "headwear_cat_ear_l"
+		},
+		{
+			"Id": "ArtMeshHeadwearR",
+			"Name": "headwear_cat_ear_r"
+		},
+		{
 			"Id": "ArtMeshEarwearL",
 			"Name": "earwear_cup_l"
 		},
@@ -189,7 +197,7 @@
 		},
 		{
 			"Id": "ArtMeshHeadwear",
-			"Name": "headwear_headset"
+			"Name": "headwear_band"
 		},
 		{
 			"Id": "ArtMeshFrontHairL",
@@ -264,10 +272,6 @@
 			"Name": "face"
 		},
 		{
-			"Id": "ArtMeshObjects",
-			"Name": "prop_tablet"
-		},
-		{
 			"Id": "ArtMeshTopwear",
 			"Name": "topwear_hoodie"
 		},
@@ -280,15 +284,23 @@
 			"Name": "back hair"
 		},
 		{
-			"Id": "ArtMeshBackHairL",
-			"Name": "hair_back_l"
+			"Id": "ArtMeshObjectsR",
+			"Name": "prop_holo_bg_r"
 		},
 		{
-			"Id": "ArtMeshBackHairR",
-			"Name": "hair_back_r"
+			"Id": "ArtMeshObjectsL",
+			"Name": "prop_holo_bg_l"
 		},
 		{
-			"Id": "ArtMeshObjects2",
+			"Id": "ArtMeshLayerL",
+			"Name": "twintail_l"
+		},
+		{
+			"Id": "ArtMeshLayerR",
+			"Name": "twintail_r"
+		},
+		{
+			"Id": "ArtMeshObjects",
 			"Name": "prop_cyber_cat"
 		}
 	]
