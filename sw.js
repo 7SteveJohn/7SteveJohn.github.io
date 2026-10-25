@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v155';   // 2026-10-26 修复脸部 X 极限关键形撕裂（PSD2Live MCP 重绑定 234+36 键）
+const CACHE = 'sevenjohn-v156';   // 2026-10-26 抹除模型贴图中的外围漂浮物件（半身窗不再有切碎碎片）
 const CORE = [
   './',
   'index.html',
