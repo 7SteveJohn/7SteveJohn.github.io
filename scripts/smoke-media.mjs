@@ -10,7 +10,7 @@ import fs from 'node:fs';
 import { devRequire as require } from './_dev-require.mjs';
 const { chromium } = require('playwright-core');
 const BASE = 'http://localhost:8328/';   // localhost（app.js 仅 localhost/HTTPS 注册 SW）+ Range 服务器（贴近生产行为）
-const CACHE_NAME = 'sevenjohn-v149';     // 与 sw.js 顶部 CACHE 同步改
+const CACHE_NAME = 'sevenjohn-v150';     // 与 sw.js 顶部 CACHE 同步改
 
 let pass = 0, fail = 0;
 const ok = (n, extra) => { pass++; console.log('PASS  ' + n + (extra ? '  ' + extra : '')); };
@@ -24,7 +24,7 @@ const b = await chromium.launch({
 
 async function cacheKeys(pg, filter) {
   return pg.evaluate(async (f) => {
-    const cache = await caches.open('sevenjohn-v149');
+    const cache = await caches.open('sevenjohn-v150');
     return (await cache.keys()).map((r) => r.url).filter((u) => u.includes(f));
   }, filter);
 }
@@ -98,7 +98,7 @@ let playMs = -1;
       const b64 = fs.readFileSync('D:/HTML/music/attention.mp3').toString('base64');
       await pg.evaluate(async (b64) => {
         const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-        const cache = await caches.open('sevenjohn-v149');
+        const cache = await caches.open('sevenjohn-v150');
         await cache.put(location.origin + '/music/attention.mp3', new Response(bytes, { headers: { 'Content-Type': 'audio/mpeg' } }));
         return (await cache.match(location.origin + '/music/attention.mp3')) !== null;
       }, b64);
@@ -287,7 +287,7 @@ await ctx.close();
     const b64 = fs.readFileSync('D:/HTML/music/attention.mp3').toString('base64');
     await p3.evaluate(async (b64) => {
       const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-      const cache = await caches.open('sevenjohn-v149');
+      const cache = await caches.open('sevenjohn-v150');
       await cache.put(location.origin + '/music/attention.mp3', new Response(bytes, { headers: { 'Content-Type': 'audio/mpeg' } }));
     }, b64);
   } catch (e) { console.log('      [seed err]', String(e).slice(0, 80)); }

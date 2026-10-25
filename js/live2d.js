@@ -31,20 +31,16 @@
   } catch (e) { /* 隐私模式：当作没关过 */ }
 
   if (closed) return;
-  if (location.protocol === 'file:') return;
-  // 减少动效：默认尊重系统偏好（无障碍）；显式开启（sj.live2d=on）视为知情选择，允许覆盖——
-  // 否则像"系统动画关了但就想看板娘"的站主永远被挡在外面还无从得知原因
-  if (optedIn) {
-    console.info('[live2d] 显式开启（sj.live2d=on）：跳过减少动效闸');
-  } else if (hit('(prefers-reduced-motion: reduce)')) {
-    console.info('[live2d] 未加载：系统开启了减少动态效果。想开她：左下角齿轮面板开一次看板娘开关，或访问 live2d-preview.html');
-    return;
-  }
+  // 手机/窄窗：维持原设计不出现（静态立绘也只给桌面宽窗，避免压到内容）
   if (!hit('(pointer: fine)') || !hit('(min-width: 1024px)')) { console.info('[live2d] 未加载：视口 <1024px 或非鼠标设备'); return; }
-  if (conn.saveData === true) { console.info('[live2d] 未加载：浏览器省流量模式'); return; }
-  // 没有 WebGL 就别开工：上游会静默失败，留下一个看不见的空白 canvas，
-  // 还白下 1.9MB（2026-10-17 用 --disable-gpu --disable-software-rasterizer 实测复现）
-  if (!hasWebGL()) { console.info('[live2d] 未加载：无 WebGL（浏览器硬件加速关闭或环境不支持）'); return; }
+  const reduced = hit('(prefers-reduced-motion: reduce)');
+  // 各类环境限制一律降级为静态立绘兜底——她永远在场，只是不动画；
+  // 只有用户点过 ×（sj.live2d=off）才彻底消失
+  if (location.protocol === 'file:') return staticFallback('file:// 环境');
+  if (!optedIn && reduced) return staticFallback('系统减少动效（左下角齿轮面板可显式开启动态版）');
+  if (conn.saveData === true) return staticFallback('省流量模式');
+  if (!hasWebGL()) return staticFallback('无 WebGL');
+  if (optedIn) console.info('[live2d] 显式开启（sj.live2d=on）：跳过减少动效闸');
 
   const nodes = () => ['waifu', 'waifu-toggle', 'live2d-close']
     .map((id) => document.getElementById(id))
@@ -64,6 +60,20 @@
     nodes().forEach((el) => el.remove());
     root.classList.remove('has-live2d');
   };
+
+  // 静态立绘兜底：动态版被环境闸挡住时，用同一角色的静帧顶上（零 WebGL/零循环/26KB）。
+  // 她永远在场，只是不动画；has-live2d 让「回到顶部」按钮照常让位
+  function staticFallback(reason) {
+    console.info('[live2d] 动态版未加载（' + reason + '）：显示静态立绘');
+    if (document.getElementById('waifu-static')) return;
+    root.classList.add('has-live2d');
+    const img = document.createElement('img');
+    img.id = 'waifu-static';
+    img.src = BASE + '7steve-static.webp';
+    img.alt = '';
+    img.style.cssText = 'position:fixed;right:6px;bottom:0;width:170px;z-index:29;pointer-events:none;user-select:none;';
+    document.body.appendChild(img);
+  }
 
   // 语义表情与连戳反应链（站点层：监听 vendor 派发的点击事件，调 app 的表情/动作接口）
   // 表情下标 = model3.json Expressions 顺序：0 smile 1 shy 2 focus 3 wink 4 surprised

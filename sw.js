@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v149';   // 2026-10-24 显形逻辑修复（等贴图上 GPU），再 bump 让修复立即生效
+const CACHE = 'sevenjohn-v150';   // 2026-10-24 静态立绘兜底（环境受限永可见）+ 显形时机修复
 const CORE = [
   './',
   'index.html',
