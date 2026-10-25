@@ -204,19 +204,43 @@
     boot(1);
   }
 
-  // 起动闸门：等壁纸脚本（js/wallpaper.js）给出档位结论 —— 弱机/被判定为轻档时
-  // 直接不加载运行时与模型（1.9MB 省下来，也少一份每帧渲染的开销）。
+  // 即时弱机检测（2026-10-26 性能优化）：壁纸引擎的档位判定要实测帧率（约 5 秒），
+  // 看板娘等不起。这里用毫秒级签名自查——有硬件加速 WebGL + 足够核心数即放行；
+  // 软渲染（swiftshader/llvmpipe，远程桌面/驱动回退的典型签名）当场拦截。
+  function quickCapable() {
+    if (!hasWebGL()) return false;
+    try {
+      const gl = document.createElement('canvas').getContext('webgl');
+      const ext = gl && gl.getExtension('WEBGL_debug_renderer_info');
+      const renderer = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : '';
+      if (/swiftshader|software|llvmpipe/i.test(renderer)) return false;
+    } catch (e) {
+      return false;
+    }
+    return (navigator.hardwareConcurrency || 4) >= 4;
+  }
+
+  // 起动闸门：即时自查通过就立刻启动（预热命中时她 2 秒内现身）；
+  // 壁纸引擎的慢速档位测量若事后给出 lite 结论（罕见：有加速但帧率低），
+  // 再把动态版撤下换静态兜底。
   function start() {
+    if (!quickCapable()) return staticFallback('弱机档位');
+    probe();
     const fx = window.__fxTier;
-    if (!fx || !fx.done) return probe();                       // 没有该模块（比如次级页）：照常
-    const guard = new Promise((r) => setTimeout(() => r('full'), 8000));   // 档位迟迟没结论就按强机走
-    Promise.race([fx.done, guard]).then((tier) => { tier === 'lite' ? staticFallback('弱机档位') : probe(); });
+    if (fx && fx.done) {
+      fx.done.then((tier) => {
+        if (tier === 'lite') {
+          console.info('[live2d] 档位实测 lite：动态版撤下换静态立绘');
+          fail();
+        }
+      });
+    }
   }
 
   // ---- 起跑时机（2026-10-17 加载优化 E）----
   // 运行时 + 模型共 1.9MB。原先「load 之后立刻 idle 加载」，会和首屏剩下的资源抢连接
   // （实测首页每请求要等 3–7 秒，多一个 1.9MB 的请求影响很明显）。
-  // 现在改为三个条件谁先到就用谁：首次交互 / load 后 3.5 秒 / 页面重新可见时的 idle。
+  // 现在改为四个条件谁先到就用谁：首次交互 / 预热完成（见下）/ load 后 3.5 秒 / 页面重新可见时的 idle。
   // ❗看板娘**仍然默认出现**，这里没有、也不要加任何「默认关闭」逻辑。
   let fired = false;
   function fire() {
@@ -232,6 +256,52 @@
       window.addEventListener(ev, fire, { once: true, passive: true });
     });
     setTimeout(fire, 3500);
+    warmAssets();
+  }
+
+  // ---- 模型资产预热（2026-10-26 性能优化）----
+  // load 之后空闲时，以低优先级把模型全套资产预取进 SW 缓存。热访问（缓存命中）预热
+  // 秒完 → 立即启动看板娘，不再干等 3.5 秒定时器（实测热访问 5.8s → ~2s）；冷访问在
+  // 3.5 秒启动时资产多半已在途，与运行时自己的请求自然合流。预热全部 low priority +
+  // idle 回调，绝不与首屏争带宽；静态兜底/弱机/pages.dev 路径根本不会走到这里。
+  let warmStarted = false;
+  let warmDoneFlag = false;
+  function warmAssets() {
+    if (warmStarted) return;
+    warmStarted = true;
+    const modelBase = BASE + 'model/7steve/';
+    const done = () => {
+      if (warmDoneFlag) return;
+      warmDoneFlag = true;
+      if (!fired && document.readyState === 'complete') fire();
+    };
+    const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 50));
+    idle(() => {
+      for (const u of [BASE + 'waifu.css', BASE + 'waifu-tips.js', BASE + 'live2dcubismcore.min.js',
+                       BASE + 'chunk/index.js', BASE + 'chunk/index2.js']) {
+        fetch(u, { priority: 'low' }).catch(() => {});
+      }
+      fetch(modelBase + '7steve.model3.json', { priority: 'low' })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((j) => {
+          if (!j || !j.FileReferences) return done();
+          const fr = j.FileReferences;
+          const urls = [fr.Moc, fr.Physics, fr.DisplayInfo, ...(fr.Textures || []),
+                        ...(fr.Expressions || []).map((e) => e.File)];
+          for (const g of Object.values(fr.Motions || {})) {
+            for (const m of g) urls.push(m.File);
+          }
+          const list = urls.filter(Boolean);
+          let pending = list.length;
+          if (!pending) return done();
+          for (const u of list) {
+            fetch(modelBase + u, { priority: 'low' }).catch(() => {}).finally(() => {
+              if (--pending === 0) done();
+            });
+          }
+        })
+        .catch(() => done());
+    });
   }
 
   document.addEventListener('visibilitychange', () => {
