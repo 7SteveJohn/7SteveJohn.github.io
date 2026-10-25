@@ -37,7 +37,7 @@
   // 各类环境限制一律降级为静态立绘兜底——她永远在场，只是不动画；
   // 只有用户点过 ×（sj.live2d=off）才彻底消失
   if (location.protocol === 'file:') return staticFallback('file:// 环境');
-  if (!optedIn && reduced) return staticFallback('系统减少动效（左下角齿轮面板可显式开启动态版）');
+  if (!optedIn && reduced) return staticFallback('系统减少动效');
   if (conn.saveData === true) return staticFallback('省流量模式');
   if (!hasWebGL()) return staticFallback('无 WebGL');
   if (optedIn) console.info('[live2d] 显式开启（sj.live2d=on）：跳过减少动效闸');
@@ -55,24 +55,42 @@
     }
   }
 
-  // 静默降级：清干净已插入的东西，页面上什么都不留
+  // 静默降级：动态版任何一步失败，都兜底到静态立绘——她可以不动画，但不能不在场
   const fail = () => {
     nodes().forEach((el) => el.remove());
     root.classList.remove('has-live2d');
+    staticFallback('动态版加载失败');
   };
 
   // 静态立绘兜底：动态版被环境闸挡住时，用同一角色的静帧顶上（零 WebGL/零循环/26KB）。
-  // 她永远在场，只是不动画；has-live2d 让「回到顶部」按钮照常让位
+  // 她永远在场，只是不动画；has-live2d 让「回到顶部」按钮照常让位。
+  // 只有"系统减少动效"这一种降级（机器本身带得动）给升级入口：点立绘 = 写显式开启并刷新。
+  // 其余降级（弱机/无 WebGL/加载失败）说明机器带不动，点了也不升级，防刷新循环。
   function staticFallback(reason) {
     console.info('[live2d] 动态版未加载（' + reason + '）：显示静态立绘');
     if (document.getElementById('waifu-static')) return;
     root.classList.add('has-live2d');
+    const upgradable = reason.indexOf('系统减少动效') === 0;
     const img = document.createElement('img');
     img.id = 'waifu-static';
     img.src = BASE + '7steve-static.webp';
     img.alt = '';
-    img.style.cssText = 'position:fixed;right:6px;bottom:0;width:170px;z-index:29;pointer-events:none;user-select:none;';
+    img.style.cssText = 'position:fixed;right:6px;bottom:0;width:170px;z-index:29;'
+      + (upgradable ? 'cursor:pointer;' : 'pointer-events:none;') + 'user-select:none;';
     document.body.appendChild(img);
+    if (upgradable) {
+      img.title = '点我开启动态版';
+      img.addEventListener('click', () => {
+        try { localStorage.setItem(KEY, 'on'); } catch (e) { /* 存不了就算了 */ }
+        location.reload();
+      });
+      const hint = document.createElement('div');
+      hint.id = 'waifu-static-hint';
+      hint.textContent = '点我开启动态版';
+      hint.style.cssText = 'position:fixed;right:10px;bottom:330px;z-index:29;font-size:11px;color:#9aa0aa;'
+        + 'background:rgba(16,17,22,.85);border:1px solid #2a2c33;border-radius:6px;padding:2px 8px;pointer-events:none;';
+      document.body.appendChild(hint);
+    }
   }
 
   // 语义表情与连戳反应链（站点层：监听 vendor 派发的点击事件，调 app 的表情/动作接口）
@@ -141,7 +159,7 @@
       bindReactions();
       return;
     }
-    if (tries <= 0) return;
+    if (tries <= 0) return staticFallback('动态版就绪超时');
     setTimeout(() => settle(tries - 1), 250);
   }
 
@@ -187,7 +205,7 @@
     const fx = window.__fxTier;
     if (!fx || !fx.done) return probe();                       // 没有该模块（比如次级页）：照常
     const guard = new Promise((r) => setTimeout(() => r('full'), 8000));   // 档位迟迟没结论就按强机走
-    Promise.race([fx.done, guard]).then((tier) => { if (tier !== 'lite') probe(); });
+    Promise.race([fx.done, guard]).then((tier) => { tier === 'lite' ? staticFallback('弱机档位') : probe(); });
   }
 
   // ---- 起跑时机（2026-10-17 加载优化 E）----
