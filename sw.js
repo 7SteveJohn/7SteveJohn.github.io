@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v157';   // 2026-10-26 Y 轴关键形修复 + 零代损贴图 + 移除叉号
+const CACHE = 'sevenjohn-v158';   // 2026-10-30 照片墙上线二次元角色画廊（星锑/蕾姆/六花/碧翠丝）
 const CORE = [
   './',
   'index.html',
@@ -19,6 +19,14 @@ const CORE = [
   // 归档与照片墙（2026-10-16 新增）：文本资源很小，直接预缓存，断网可翻
   'archive.html',
   'gallery.html',
+  // 二次元照片墙精选
+  'assets/images/anime/regulus-insight2.webp',
+  'assets/images/anime/regulus-default.webp',
+  'assets/images/anime/rem-enhanced.webp',
+  'assets/images/anime/rikka-enhanced.webp',
+  'assets/images/anime/beatrice.webp',
+  'assets/images/anime/rikka.webp',
+  'assets/images/anime/rem.webp',
   // 已下线的三页（garden/links/novel）仍留在仓库、仍可直达，但不再进预缓存
   //（2026-10-23 对齐：此前注释说不预缓存、清单却照收，离线包在为无入口页面付费）。
   // 访问时由导航 SWR 分支照常入库，断网后最近访问的仍可看

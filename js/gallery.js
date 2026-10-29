@@ -12,6 +12,18 @@
   'use strict';
 
   window.GALLERY_DATA = [
+    { src: 'assets/images/anime/regulus-insight2.webp', caption: '星锑 · 飞帽狂欢', meta: '重返未来：1999 · 洞悉二', span: 'wide' },
+    { src: 'assets/images/anime/regulus-default.webp', caption: '星锑 & APPLe先生', meta: '重返未来：1999 · 初始立绘', pos: 'center 15%' },
+    { src: 'assets/images/anime/rem-enhanced.webp', caption: '蕾姆 · 繁星夜幕', meta: 'Re:从零开始的异世界生活', span: 'tall' },
+    { src: 'assets/images/anime/rikka-enhanced.webp', caption: '小鸟游六花 · 漆黑泽克斯', meta: '中二病也要谈恋爱！ · 邪王真眼', span: 'tall' },
+    { src: 'assets/images/anime/beatrice.webp', caption: '碧翠丝 · 禁书库', meta: 'Re:从零开始的异世界生活 · 贝蒂', span: 'tall' },
+    { src: 'assets/images/anime/rikka.webp', caption: '小鸟游六花 · 邪王真眼', meta: '中二病也要谈恋爱！ · 天台夜幕' },
+    { src: 'assets/images/anime/rem.webp', caption: '蕾姆 · 晨光微漾', meta: 'Re:从零开始的异世界生活 · 花园' },
+    { src: 'assets/images/avatar.webp', caption: '作者头像 · 楠屿', meta: '自留地' }
+  ];
+
+  // 历史/首版项目封面留底备份（按需随时恢复或做 Tab 切换）
+  window.GALLERY_PROJECTS_BACKUP = [
     { src: 'assets/images/cover-filebutler.webp', caption: 'FileButler · 本地文件管家', meta: '项目封面 · 桌面应用', span: 'wide' },
     { src: 'assets/images/filebutler-tour-poster.jpg', caption: 'FileButler · 功能导览', meta: '介绍视频封面' },
     { src: 'assets/images/cover-netops.webp', caption: 'NetOps Handbook · 离线网络手册', meta: '项目封面 · Android' },
@@ -21,8 +33,7 @@
     { src: 'assets/images/paian-tour-poster.jpg', caption: '拍案 · 网文创作工作台', meta: '介绍视频封面', span: 'wide' },
     { src: 'assets/images/cover-paian.webp', caption: '拍案 · 封面', meta: '项目封面 · 桌面应用' },
     { src: 'assets/images/cover-fluxion.webp', caption: 'Fluxion · 完整版性能套件', meta: '项目封面 · 桌面应用' },
-    { src: 'assets/images/fluxion-tour-poster.jpg', caption: 'Fluxion · 功能导览', meta: '介绍视频封面' },
-    { src: 'assets/images/avatar.webp', caption: '作者头像', meta: '自留地' }
+    { src: 'assets/images/fluxion-tour-poster.jpg', caption: 'Fluxion · 功能导览', meta: '介绍视频封面' }
   ];
 
   const GRID = document.getElementById('gallery-grid');
@@ -51,6 +62,8 @@
     const img = document.createElement('img');
     img.src = item.src;
     img.alt = item.caption || '';
+    if (item.pos) img.style.objectPosition = item.pos;
+    if (item.fit) img.style.objectFit = item.fit;
     img.loading = i < 3 ? 'eager' : 'lazy';
     img.decoding = 'async';
     img.addEventListener('error', () => { tile.remove(); });   // 图没了就别留破框
