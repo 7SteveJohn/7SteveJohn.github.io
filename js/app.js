@@ -702,6 +702,26 @@ function articleCardHtml(art, opts = {}) {
 
 // 通用单列表块渲染（AI 学习 / 技术手记 / 随笔）：过滤 → 渲染 → 空则连导航一起隐藏
 // useArrayOrder: 系列模块（AI 学习）按数组序渲染，阅读顺序写死在数组里，不随日期变
+// 提取标题序号（一、二、三... 或 1、2、3...），供系列文章排序与同系列翻页
+function getTitleOrder(title) {
+  if (!title) return Infinity;
+  const CN_MAP = {
+    '一': 1, '二': 2, '三': 3, '四': 4, '五': 5,
+    '六': 6, '七': 7, '八': 8, '九': 9, '十': 10
+  };
+  const mCn = String(title).match(/^([一二三四五六七八九十]+)[、.·\s]/);
+  if (mCn) {
+    const s = mCn[1];
+    if (s.length === 1 && CN_MAP[s]) return CN_MAP[s];
+    if (s.length === 2 && s[0] === '十' && CN_MAP[s[1]]) return 10 + CN_MAP[s[1]];
+    if (s.length === 2 && CN_MAP[s[0]] && s[1] === '十') return CN_MAP[s[0]] * 10;
+    if (s.length === 3 && CN_MAP[s[0]] && s[1] === '十' && CN_MAP[s[2]]) return CN_MAP[s[0]] * 10 + CN_MAP[s[2]];
+  }
+  const mNum = String(title).match(/^(\d+)[、.·\s]/);
+  if (mNum) return parseInt(mNum[1], 10);
+  return Infinity;
+}
+
 function renderArticleSection({ match, sectionId, navHref, listId, useArrayOrder = false }) {
   const sectionEl = document.getElementById(sectionId);
   if (!sectionEl) return;
@@ -709,7 +729,17 @@ function renderArticleSection({ match, sectionId, navHref, listId, useArrayOrder
   const navLinks = document.querySelectorAll(`a[href="${navHref}"]`);
   const listContainer = document.getElementById(listId);
   const source = useArrayOrder ? (window.ARTICLES_DATA || []) : getSortedArticles();
-  const items = source.filter(match);
+  let items = source.filter(match);
+
+  if (useArrayOrder) {
+    // 系列文章：若包含标题序号（如 一、二、三...），按标题序号严格升序，确保展示与章节标题对齐
+    items = items.slice().sort((a, b) => {
+      const oa = getTitleOrder(a.title);
+      const ob = getTitleOrder(b.title);
+      if (oa !== ob) return oa - ob;
+      return (a.date || '').localeCompare(b.date || '');
+    });
+  }
 
   if (items.length === 0) {
     sectionEl.style.display = 'none';
@@ -813,7 +843,16 @@ function getSiblingList(article) {
   }
   if (article.section === 'ai') {
     // AI 学习系列：按数组顺序翻页即阅读顺序（一→七），与列表渲染同序，日期只作展示
-    return (window.ARTICLES_DATA || []).filter(a => a.section === 'ai');
+    // AI 学习系列：按标题序号顺序（一→七）翻页即阅读顺序，与列表渲染同序，日期只作展示
+    return (window.ARTICLES_DATA || [])
+      .filter(a => a.section === 'ai')
+      .slice()
+      .sort((a, b) => {
+        const oa = getTitleOrder(a.title);
+        const ob = getTitleOrder(b.title);
+        if (oa !== ob) return oa - ob;
+        return (a.date || '').localeCompare(b.date || '');
+      });
   }
   return all.filter(a => !a.section);
 }

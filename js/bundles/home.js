@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"01264c36db56","sources":[{"path":"js/status.js","sha256":"a7c77fe6d3562d4cfa45a24a7dc2005a7f0a0d7290daca20a77d2c95f22d5900"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"7096483e30821a0230229daa1825f1fe23b329fa6d02a81859fd7b473364fc50"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"c1e0fc6b32f552a10af1a3ac20909ecf9baec8cfd1b5a2c77f42b07f9770ab8e"}]}
+// build-bundles: {"name":"home","version":"2accdc3dd138","sources":[{"path":"js/status.js","sha256":"a7c77fe6d3562d4cfa45a24a7dc2005a7f0a0d7290daca20a77d2c95f22d5900"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"cdc9e951db65fddd78b316b24ee111c42a688c3a2104b61d7aedc50a6f73f7be"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"c1e0fc6b32f552a10af1a3ac20909ecf9baec8cfd1b5a2c77f42b07f9770ab8e"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -380,7 +380,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (7096483e3082) ----
+// ---- js/app.js (cdc9e951db65) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -1085,6 +1085,26 @@ function articleCardHtml(art, opts = {}) {
 
 // 通用单列表块渲染（AI 学习 / 技术手记 / 随笔）：过滤 → 渲染 → 空则连导航一起隐藏
 // useArrayOrder: 系列模块（AI 学习）按数组序渲染，阅读顺序写死在数组里，不随日期变
+// 提取标题序号（一、二、三... 或 1、2、3...），供系列文章排序与同系列翻页
+function getTitleOrder(title) {
+  if (!title) return Infinity;
+  const CN_MAP = {
+    '一': 1, '二': 2, '三': 3, '四': 4, '五': 5,
+    '六': 6, '七': 7, '八': 8, '九': 9, '十': 10
+  };
+  const mCn = String(title).match(/^([一二三四五六七八九十]+)[、.·\s]/);
+  if (mCn) {
+    const s = mCn[1];
+    if (s.length === 1 && CN_MAP[s]) return CN_MAP[s];
+    if (s.length === 2 && s[0] === '十' && CN_MAP[s[1]]) return 10 + CN_MAP[s[1]];
+    if (s.length === 2 && CN_MAP[s[0]] && s[1] === '十') return CN_MAP[s[0]] * 10;
+    if (s.length === 3 && CN_MAP[s[0]] && s[1] === '十' && CN_MAP[s[2]]) return CN_MAP[s[0]] * 10 + CN_MAP[s[2]];
+  }
+  const mNum = String(title).match(/^(\d+)[、.·\s]/);
+  if (mNum) return parseInt(mNum[1], 10);
+  return Infinity;
+}
+
 function renderArticleSection({ match, sectionId, navHref, listId, useArrayOrder = false }) {
   const sectionEl = document.getElementById(sectionId);
   if (!sectionEl) return;
@@ -1092,7 +1112,17 @@ function renderArticleSection({ match, sectionId, navHref, listId, useArrayOrder
   const navLinks = document.querySelectorAll(`a[href="${navHref}"]`);
   const listContainer = document.getElementById(listId);
   const source = useArrayOrder ? (window.ARTICLES_DATA || []) : getSortedArticles();
-  const items = source.filter(match);
+  let items = source.filter(match);
+
+  if (useArrayOrder) {
+    // 系列文章：若包含标题序号（如 一、二、三...），按标题序号严格升序，确保展示与章节标题对齐
+    items = items.slice().sort((a, b) => {
+      const oa = getTitleOrder(a.title);
+      const ob = getTitleOrder(b.title);
+      if (oa !== ob) return oa - ob;
+      return (a.date || '').localeCompare(b.date || '');
+    });
+  }
 
   if (items.length === 0) {
     sectionEl.style.display = 'none';
@@ -1196,7 +1226,16 @@ function getSiblingList(article) {
   }
   if (article.section === 'ai') {
     // AI 学习系列：按数组顺序翻页即阅读顺序（一→七），与列表渲染同序，日期只作展示
-    return (window.ARTICLES_DATA || []).filter(a => a.section === 'ai');
+    // AI 学习系列：按标题序号顺序（一→七）翻页即阅读顺序，与列表渲染同序，日期只作展示
+    return (window.ARTICLES_DATA || [])
+      .filter(a => a.section === 'ai')
+      .slice()
+      .sort((a, b) => {
+        const oa = getTitleOrder(a.title);
+        const ob = getTitleOrder(b.title);
+        if (oa !== ob) return oa - ob;
+        return (a.date || '').localeCompare(b.date || '');
+      });
   }
   return all.filter(a => !a.section);
 }

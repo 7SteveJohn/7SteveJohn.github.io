@@ -38,6 +38,26 @@ const warn = (msg) => problems.push('  ✗ ' + msg);
 
 const escTemplate = (s) => String(s).replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
 
+const CN_NUM_MAP = {
+  '一': 1, '二': 2, '三': 3, '四': 4, '五': 5,
+  '六': 6, '七': 7, '八': 8, '九': 9, '十': 10
+};
+
+function parseTitleOrder(title) {
+  if (!title) return Infinity;
+  const mCn = String(title).match(/^([一二三四五六七八九十]+)[、.·\s]/);
+  if (mCn) {
+    const s = mCn[1];
+    if (s.length === 1 && CN_NUM_MAP[s]) return CN_NUM_MAP[s];
+    if (s.length === 2 && s[0] === '十' && CN_NUM_MAP[s[1]]) return 10 + CN_NUM_MAP[s[1]];
+    if (s.length === 2 && CN_NUM_MAP[s[0]] && s[1] === '十') return CN_NUM_MAP[s[0]] * 10;
+    if (s.length === 3 && CN_NUM_MAP[s[0]] && s[1] === '十' && CN_NUM_MAP[s[2]]) return CN_NUM_MAP[s[0]] * 10 + CN_NUM_MAP[s[2]];
+  }
+  const mNum = String(title).match(/^(\d+)[、.·\s]/);
+  if (mNum) return parseInt(mNum[1], 10);
+  return Infinity;
+}
+
 function listMd(dir) {
   if (!fs.existsSync(dir)) return [];
   return fs.readdirSync(dir).filter((f) => f.endsWith('.md')).map((f) => path.join(dir, f));
@@ -81,7 +101,21 @@ function loadArticles() {
     art.content = body.replace(/^\n+/, '').replace(/\s+$/, '');
     arts.push(art);
   });
-  return arts;
+  // 排序保持结构确定性：
+  // 1. 普通文章（手记、随笔、创作）按日期升序（与手写时代保持完全一致）
+  // 2. AI 学习系列（section=ai）作为系列文章，必须按标题序号（一→七）严格升序排在手记之后
+  const normal = arts.filter((a) => a.section !== 'ai');
+  const ai = arts.filter((a) => a.section === 'ai');
+
+  normal.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  ai.sort((a, b) => {
+    const oa = parseTitleOrder(a.title);
+    const ob = parseTitleOrder(b.title);
+    if (oa !== ob) return oa - ob;
+    return (a.date || '').localeCompare(b.date || '');
+  });
+
+  return [...normal, ...ai];
 }
 
 function renderArticles(arts) {
