@@ -385,15 +385,14 @@ html:not(.dark) .bento-card:hover {
   }
 }
 
-/* ===== 滚动吸附 Scroll Snap（标准 CSS）+ 整页滚轮翻页 =====
-   · 吸附本体是 CSS：根节点 `scroll-snap-type: y proximity`，产品卡 `scroll-snap-align: start`
+/* ===== 滚动吸附 Scroll Snap（标准 CSS）+ 滚轮翻页补丁 =====
+   · 吸附本体就是 CSS：根节点 `scroll-snap-type: y proximity`，产品卡 `scroll-snap-align: start`
    · 为什么是 proximity 不是 mandatory：mandatory 会把**程序化滚动**也钉在最近的卡上 ——
      实测在产品区里点导航「技术手记」，落到 #blog 后又被吸回最后一张卡，等于导航失效
-   · 程序化翻页（滚轮/箭头）会临时给 html 挂 .no-snap，滚完 1100ms 再恢复：
-     否则 proximity 会把落点拽回上一张卡（实测滚 240px 位移为 0）
-   · 滚轮一屏一停由 js/app.js 的 initWheelPaging() 负责：一次手势走一屏，
-     优先落在下一个页单位（区块 / 产品卡）顶部；长区块中间补停靠点，不跳内容
-   · 拖动滚动条松手后由 initScrollSettle() 吸附到最近停靠点（键盘/触屏不接管）
+   · .no-snap 是"到头逃生口"：滚到最后一张还想往下（或第一张往上）时，JS 先摘掉吸附再放行，
+     否则 proximity 会把页面吸回原卡（实测滚 240px 位移为 0）。回到卡序列里 JS 再恢复
+   · 滚轮一格 = 翻一屏由 js/app.js 的 initProjectSnap() 负责：proximity 在整屏卡片上
+     会留死区（单次滚 500px 停在半张卡上），补丁把它变成精确翻页
    · 矮视口 / 手机 / 减少动态效果：整块不生效 */
 @media (min-width: 640px) and (min-height: 760px) and (prefers-reduced-motion: no-preference) {
   html {

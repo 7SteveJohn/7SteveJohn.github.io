@@ -46,8 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initSmoothAnchors();
   initScrollSpy();
   initPageNext();
-  initWheelPaging();   // 滚轮一屏一停（页单位 = 区块 / 产品卡）
-  initScrollSettle();  // 滚动条/键盘松手后吸附到停靠点
+  initProjectSnap();   // 产品区滚动吸附（snap-products 只在这一段挂）
 
  // 5. 滚动浮现编排（ section reveal，含错峰）
   observeReveals();
@@ -1511,121 +1510,89 @@ function initPageNext() {
   });
 }
 
-// 翻页停靠点：页单位顶 + 高页内的补点（滚轮 / 滚动条 / 键盘共用同一份）
+// 产品区滚动吸附：CSS Scroll Snap 的两个补丁（吸附本体在 css/style.css）
 // ----------------------------------------------------
-// 页单位复用 collectPageUnits()（与底部箭头、ScrollSpy 同一份序列）：
-//   · 产品卡一律单独一停（保持「一屏一卡」）
-//   · 普通区块只有 ≥45% 视口高才单独停；百来像素的矮页并进相邻一屏，避免连跳
-//   · 比一屏高的区块（AI / 手记）在中间按 ~0.82 屏补点，不跳内容
-const HEADER_OFFSET = 64;          // 吸顶导航高度
-let scrollHoldUntil = 0;           // 程序化滚动期间暂停「停手吸附」
+// 吸附本身是标准 CSS：html { scroll-snap-type: y proximity } + 卡片 scroll-snap-align: start。
+// 这里只补两件 CSS 自己做不到的事（2026-10-17 实测 1440×900）：
+//   ① 滚轮一格 = 翻一屏：proximity 在整屏卡片上会留死区（单次滚 500px 停在半张卡上，
+//      既不翻页也不自由），鼠标滚轮两格之间还会被回弹吃掉（连滚 5 格位移 0）；
+//   ② 到头逃生口：滚到最后一张还想往下（或第一张往上）时先给 html 挂 .no-snap 摘掉吸附，
+//      否则 proximity 会把页面吸回原卡（实测滚 240px 位移 0）；回到卡序列里再恢复。
+// 锚点 / 键盘 / 触屏全程原生，不接管。断点与 CSS 那条媒体查询一致。
+function initProjectSnap() {
+  const section = document.getElementById('products');
+  if (!section) return;
+  const cards = [...section.querySelectorAll(':scope > article.bento-card')];
+  if (cards.length < 2) return;
 
-function pageStops() {
-  const vh = window.innerHeight;
-  const y = window.scrollY;
-  const gap = vh * 0.3;
-  const stops = [{ y: 0, soft: false }];
-  const addHard = (t) => {
-    if (t < 4) return;
-    // 高页补点如果紧贴在这个区块顶前面，让位给区块顶
-    while (stops.length > 1 && t - stops[stops.length - 1].y < gap && stops[stops.length - 1].soft) stops.pop();
-    if (t - stops[stops.length - 1].y >= 4) stops.push({ y: t, soft: false });
-  };
-  const addSoft = (t) => {
-    if (t - stops[stops.length - 1].y >= gap) stops.push({ y: t, soft: true });
-  };
-  for (const el of collectPageUnits()) {
-    const h = el.offsetHeight;
-    const top = el.getBoundingClientRect().top + y - HEADER_OFFSET;
-    const card = el.matches('#products > article.bento-card');
-    if (card || h >= vh * 0.45) addHard(top);
-    if (h > vh * 1.05) {
-      for (let t = top + vh * 0.82; t < top + h - 40; t += vh * 0.82) addSoft(t);
-    }
-  }
-  return stops.map((s) => s.y);
-}
-
-// 滚轮：一次手势 = 一屏，落在下一个/上一个停靠点；触屏 / 减少动效 / 弹层内原生
-function initWheelPaging() {
-  const mq = window.matchMedia('(min-width: 900px) and (pointer: fine) and (prefers-reduced-motion: no-preference)');
-  const step = () => window.innerHeight * 0.82;
-  const maxScroll = () => document.documentElement.scrollHeight - window.innerHeight;
   const root = document.documentElement;
-
-  const nextTop = (y, dir) => {
-    const list = pageStops();
-    const cap = window.innerHeight * 1.5;
-    if (dir > 0) {
-      for (const t of list) if (t > y + 8 && t <= y + cap) return t;
-      return Math.min(maxScroll(), y + step());
-    }
-    for (let i = list.length - 1; i >= 0; i--) if (list[i] < y - 8 && list[i] >= y - cap) return list[i];
-    return Math.max(0, y - step());
+  const mq = window.matchMedia('(min-width: 640px) and (min-height: 760px) and (prefers-reduced-motion: no-preference)');
+  const HEADER = 64;   // 吸顶导航高度：翻页后卡片顶边落在导航下方
+  // 每次现算（6 个 rect）：卡片是一屏高，行距只随窗口尺寸变，不需要缓存
+  const tops = () => {
+    const y = window.scrollY;
+    return cards.map((c) => c.getBoundingClientRect().top + y - HEADER);
   };
 
-  // 程序化翻页期间临时摘掉 CSS 吸附：否则 proximity 会把落点拽回上一张卡
+  // ---- 到头逃生口：摘掉吸附 + 主动滚出一段（两保险）----
+  // 只摘吸附不够：Chrome 对"当前这次"滚动仍会按吸附落位（实测滚 240px 仍被吸回原卡），
+  // 所以这里 preventDefault 后自己滚到阈值之外，并把 .no-snap 保留 900ms。
   let snapOff = 0;
-  const jump = (top) => {
+  const escape = (dir, list) => {
     root.classList.add('no-snap');
     clearTimeout(snapOff);
-    snapOff = setTimeout(() => root.classList.remove('no-snap'), 1100);
-    smoothScrollTo(Math.max(0, top));
+    snapOff = setTimeout(() => root.classList.remove('no-snap'), 900);
+    const vh = window.innerHeight;
+    const top = dir > 0
+      ? list[list.length - 1] + vh * 0.78
+      : Math.max(0, list[0] - vh * 0.78);
+    lockUntil = performance.now() + 520;
+    window.scrollTo({ top, behavior: 'smooth' });
   };
 
+  // ---- 补丁 ①：滚轮一格 = 翻一屏 ----
+  // 只在产品区窗口内接管 wheel：累计到 45px 就翻一张卡（鼠标一格 100–120 立刻翻页，
+  // 触控板小增量累计到 45 也翻一页），420ms 冷却吃掉同一手势的连发。
   let acc = 0;
   let lockUntil = 0;
   let idle = 0;
   window.addEventListener('wheel', (e) => {
     if (!mq.matches) return;
-    if (e.ctrlKey || e.metaKey) return;                      // 捏合缩放
-    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;     // 横向手势不管
+    if (e.ctrlKey || e.metaKey) return;                        // 捏合缩放
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;       // 横向手势不管
     if (!e.deltaY) return;
-    if (e.target.closest('.modal-overlay, #music-panel, #settings-panel, .tabnav-panel')) return;
 
+    const list = tops();
     const y = window.scrollY;
-    if ((y <= 0 && e.deltaY < 0) || (y >= maxScroll() - 1 && e.deltaY > 0)) return;  // 到头放行
-    e.preventDefault();
+    // 只在卡片序列（上下各留 40px）里接管；产品区之外一律原生滚动
+    if (y < list[0] - 40 || y > list[list.length - 1] + 40) return;
 
+    const dir = e.deltaY > 0 ? 1 : -1;
+    // 「已经翻过线的最后一张」（留 24px 容差：懒加载会让上方内容浮动十几像素）
+    let idx = -1;
+    list.forEach((t, i) => { if (t <= y + 24) idx = i; });
+    const target = Math.min(cards.length - 1, Math.max(0, idx + dir));
+    if (target === idx) {
+      // ---- 补丁 ②：到头 → 摘吸附 + 自己滚出阈值，顺势离开产品区 ----
+      if (performance.now() < lockUntil) return;
+      e.preventDefault();
+      escape(dir, list);
+      return;
+    }
+
+    e.preventDefault();
     const now = performance.now();
-    if (now < lockUntil) { acc = 0; return; }                // 同一手势的连发
+    if (now < lockUntil) { acc = 0; return; }
+
     acc += e.deltaY;
     clearTimeout(idle);
     idle = setTimeout(() => { acc = 0; }, 200);
-    if (Math.abs(acc) < 45) return;                          // 触控板小增量先累计
+    if (Math.abs(acc) < 45) return;
 
     acc = 0;
-    lockUntil = now + 430;
-    jump(nextTop(y, e.deltaY > 0 ? 1 : -1));
+    lockUntil = now + 420;
+    window.scrollTo({ top: Math.max(0, list[target]), behavior: 'smooth' });
   }, { passive: false });
-}
-
-// 滚动条 / 键盘 / 触控板惯性：滚动停手 240ms 后，若没停在停靠点上，补一段平滑吸附
-// （原生滚动条没法拦截步进，只能在松手后对齐；触屏与减少动效不接管）
-function initScrollSettle() {
-  const mq = window.matchMedia('(min-width: 900px) and (pointer: fine) and (prefers-reduced-motion: no-preference)');
-  let timer = 0;
-  // 键盘是细粒度阅读工具：方向键 / 翻页键 / 空格 / Home / End 之后不做停手吸附
-  window.addEventListener('keydown', (e) => {
-    if (/^(ArrowDown|ArrowUp|PageDown|PageUp|Home|End| |Spacebar)$/.test(e.key)) {
-      scrollHoldUntil = performance.now() + 700;
-    }
-  }, { passive: true });
-  window.addEventListener('scroll', () => {
-    if (!mq.matches) return;
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      if (performance.now() < scrollHoldUntil) return;       // 程序化滚动还没结束
-      const y = window.scrollY;
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      if (y <= 1 || y >= max - 1) return;                    // 首尾不吸
-      let best = null;
-      for (const t of pageStops()) {
-        if (best === null || Math.abs(t - y) < Math.abs(best - y)) best = t;
-      }
-      if (best !== null && Math.abs(best - y) > 3) smoothScrollTo(best);
-    }, 240);
-  }, { passive: true });
 }
 
 // 锚点/按钮滚动：直接用**原生平滑滚动**（合成器线程驱动，不逐帧写 scrollTo）
@@ -1636,7 +1603,6 @@ function initScrollSettle() {
 // 现在：滚轮完全交给浏览器；只有锚点/回顶/翻页这类"程序化跳转"才做平滑，且由合成器执行。
 // 想找回阻尼版：git show 7f1e57e:js/app.js（initDampedScroll 仍在历史里）。
 let smoothScrollTo = function (targetY) {
-  scrollHoldUntil = performance.now() + 900;
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   window.scrollTo({ top: targetY, behavior: reduce ? 'auto' : 'smooth' });
 };
