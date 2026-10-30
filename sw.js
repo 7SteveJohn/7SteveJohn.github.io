@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v163';   // 2026-10-30 回滚强制翻页：恢复原生滚动（保留产品卡 CSS 吸附）
+const CACHE = 'sevenjohn-v164';   // 2026-10-30 FileButler 更新记录（10 个版本）+ 公告入口
 const CORE = [
   './',
   'index.html',

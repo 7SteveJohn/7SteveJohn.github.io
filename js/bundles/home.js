@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"3a6d6df7b0cc","sources":[{"path":"js/status.js","sha256":"a7c77fe6d3562d4cfa45a24a7dc2005a7f0a0d7290daca20a77d2c95f22d5900"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"21bdfa62c2a7e88dc7056a7315c2a011f4bdb7463e6bade701ad80c639d36f6d"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"c1e0fc6b32f552a10af1a3ac20909ecf9baec8cfd1b5a2c77f42b07f9770ab8e"}]}
+// build-bundles: {"name":"home","version":"5c22796f328e","sources":[{"path":"js/status.js","sha256":"a7c77fe6d3562d4cfa45a24a7dc2005a7f0a0d7290daca20a77d2c95f22d5900"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"cd3223fa4c6adbca630bdb7c81ed7848fa4eb743098cb87a424b2b6ab4f7c969"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"c1e0fc6b32f552a10af1a3ac20909ecf9baec8cfd1b5a2c77f42b07f9770ab8e"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -380,7 +380,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (21bdfa62c2a7) ----
+// ---- js/app.js (cd3223fa4c6a) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -544,13 +544,33 @@ function buildAnnouncement(project) {
   const items = a.items.map(t => `<li>${escapeHtml(t)}</li>`).join('');
   const date = a.date ? `<div class="announce-date">${escapeHtml(a.date)}</div>` : '';
   const line = ['更新', a.version, a.summary || a.items.join(' / ')].filter(Boolean).map(escapeHtml).join(' · ');
+  const more = Array.isArray(project.changelog) && project.changelog.length
+    ? `<button class="announce-more" data-open-project="${escapeHtml(project.id)}" data-open-changelog>全部 ${project.changelog.length} 个版本 →</button>`
+    : '';
   return `
     <div class="announce-card">
       <div class="announce-top"><span class="announce-label">更新公告</span>${ver}</div>
       <ul class="announce-items">${items}</ul>
       ${date}
+      ${more}
     </div>
     <p class="announce-line"><span class="announce-dot" aria-hidden="true"></span><span class="announce-line-text">${line}</span></p>`;
+}
+
+// 更新记录（全部版本）：来自 projects.js 的 changelog，弹窗里折叠展示
+function buildChangelog(project) {
+  const list = Array.isArray(project.changelog) ? project.changelog : [];
+  if (!list.length) return '';
+  const items = list.map((e) => `
+    <div class="cl-item">
+      <div class="cl-head"><span class="cl-v">${escapeHtml(e.v || '')}</span><span class="cl-date">${escapeHtml(e.date || '')}</span></div>
+      ${Array.isArray(e.items) && e.items.length ? `<ul class="cl-list">${e.items.map((t) => `<li>${escapeHtml(t)}</li>`).join('')}</ul>` : ''}
+    </div>`).join('');
+  return `
+    <details class="changelog">
+      <summary><span>更新记录</span><span class="cl-count">${list.length} 个版本</span></summary>
+      <div class="cl-body">${items}</div>
+    </details>`;
 }
 
 function hydrateProductLinks() {
@@ -649,6 +669,8 @@ window.openProjectModal = function(id) {
         ${project.sha256 ? `<div class="flex gap-2"><span class="text-[#86868b] shrink-0">SHA256</span><span class="font-mono text-[#1d1d1f] dark:text-[#f5f5f7] break-all">${escapeHtml(project.sha256)}</span></div>` : ''}
       </div>
       ` : ''}
+      ${buildChangelog(project)}
+
       <!-- Markdown 正文内容 -->
       <div class="markdown-body text-[#1d1d1f] dark:text-[#f5f5f7]">
         ${detailsHtml}
@@ -704,6 +726,15 @@ window.openProjectModal = function(id) {
       if (window.lucide) window.lucide.createIcons();
       modal.scrollTop = 0;
       modalContent.scrollTop = 0;
+      // 从公告「全部 N 个版本」进来：正文补写完后展开更新记录并滚到它
+      if (modalContent.dataset.openChangelog === '1') {
+        delete modalContent.dataset.openChangelog;
+        const box = modalContent.querySelector('.changelog');
+        if (box) {
+          box.open = true;
+          setTimeout(() => box.scrollIntoView({ block: 'start', behavior: 'smooth' }), 30);
+        }
+      }
     });
   }
 
@@ -1649,6 +1680,12 @@ function initNavigation() {
     const projectTrigger = e.target.closest?.('[data-open-project]');
     if (projectTrigger) {
       window.openProjectModal(projectTrigger.getAttribute('data-open-project'));
+      if (projectTrigger.hasAttribute('data-open-changelog')) {
+        const content = document.getElementById('project-modal-content');
+        if (content) content.dataset.openChangelog = '1';
+        const box = document.querySelector('#project-modal .changelog');
+        if (box) box.open = true;
+      }
       return;
     }
     const closeTrigger = e.target.closest?.('[data-close-modal]');

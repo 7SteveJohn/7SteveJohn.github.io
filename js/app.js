@@ -161,13 +161,33 @@ function buildAnnouncement(project) {
   const items = a.items.map(t => `<li>${escapeHtml(t)}</li>`).join('');
   const date = a.date ? `<div class="announce-date">${escapeHtml(a.date)}</div>` : '';
   const line = ['更新', a.version, a.summary || a.items.join(' / ')].filter(Boolean).map(escapeHtml).join(' · ');
+  const more = Array.isArray(project.changelog) && project.changelog.length
+    ? `<button class="announce-more" data-open-project="${escapeHtml(project.id)}" data-open-changelog>全部 ${project.changelog.length} 个版本 →</button>`
+    : '';
   return `
     <div class="announce-card">
       <div class="announce-top"><span class="announce-label">更新公告</span>${ver}</div>
       <ul class="announce-items">${items}</ul>
       ${date}
+      ${more}
     </div>
     <p class="announce-line"><span class="announce-dot" aria-hidden="true"></span><span class="announce-line-text">${line}</span></p>`;
+}
+
+// 更新记录（全部版本）：来自 projects.js 的 changelog，弹窗里折叠展示
+function buildChangelog(project) {
+  const list = Array.isArray(project.changelog) ? project.changelog : [];
+  if (!list.length) return '';
+  const items = list.map((e) => `
+    <div class="cl-item">
+      <div class="cl-head"><span class="cl-v">${escapeHtml(e.v || '')}</span><span class="cl-date">${escapeHtml(e.date || '')}</span></div>
+      ${Array.isArray(e.items) && e.items.length ? `<ul class="cl-list">${e.items.map((t) => `<li>${escapeHtml(t)}</li>`).join('')}</ul>` : ''}
+    </div>`).join('');
+  return `
+    <details class="changelog">
+      <summary><span>更新记录</span><span class="cl-count">${list.length} 个版本</span></summary>
+      <div class="cl-body">${items}</div>
+    </details>`;
 }
 
 function hydrateProductLinks() {
@@ -266,6 +286,8 @@ window.openProjectModal = function(id) {
         ${project.sha256 ? `<div class="flex gap-2"><span class="text-[#86868b] shrink-0">SHA256</span><span class="font-mono text-[#1d1d1f] dark:text-[#f5f5f7] break-all">${escapeHtml(project.sha256)}</span></div>` : ''}
       </div>
       ` : ''}
+      ${buildChangelog(project)}
+
       <!-- Markdown 正文内容 -->
       <div class="markdown-body text-[#1d1d1f] dark:text-[#f5f5f7]">
         ${detailsHtml}
@@ -321,6 +343,15 @@ window.openProjectModal = function(id) {
       if (window.lucide) window.lucide.createIcons();
       modal.scrollTop = 0;
       modalContent.scrollTop = 0;
+      // 从公告「全部 N 个版本」进来：正文补写完后展开更新记录并滚到它
+      if (modalContent.dataset.openChangelog === '1') {
+        delete modalContent.dataset.openChangelog;
+        const box = modalContent.querySelector('.changelog');
+        if (box) {
+          box.open = true;
+          setTimeout(() => box.scrollIntoView({ block: 'start', behavior: 'smooth' }), 30);
+        }
+      }
     });
   }
 
@@ -1266,6 +1297,12 @@ function initNavigation() {
     const projectTrigger = e.target.closest?.('[data-open-project]');
     if (projectTrigger) {
       window.openProjectModal(projectTrigger.getAttribute('data-open-project'));
+      if (projectTrigger.hasAttribute('data-open-changelog')) {
+        const content = document.getElementById('project-modal-content');
+        if (content) content.dataset.openChangelog = '1';
+        const box = document.querySelector('#project-modal .changelog');
+        if (box) box.open = true;
+      }
       return;
     }
     const closeTrigger = e.target.closest?.('[data-close-modal]');

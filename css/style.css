@@ -2201,3 +2201,69 @@ html body #waifu-tips span {
     color: #6e6e73;
   }
 }
+
+/* ============================================================
+   更新记录（弹窗内，全部版本）与公告底部入口
+   ============================================================ */
+.announce-more {
+  margin-top: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 11px;
+  color: var(--accent);
+  cursor: pointer;
+}
+.announce-more:hover { text-decoration: underline; }
+
+.changelog {
+  border: 1px solid var(--hairline);
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+.changelog summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  list-style: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: #d2d2d7;
+}
+.changelog summary::-webkit-details-marker { display: none; }
+.changelog[open] summary { border-bottom: 1px solid var(--hairline); }
+.cl-count {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: #86868b;
+}
+.cl-count::after { content: " +"; }
+.changelog[open] .cl-count::after { content: " −"; }
+.cl-body { padding: 2px 16px 6px; }
+.cl-item { padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+.cl-item:last-child { border-bottom: 0; }
+.cl-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cl-v {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: var(--accent);
+}
+.cl-date {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: #6e6e73;
+}
+.cl-list {
+  margin: 6px 0 0;
+  padding-left: 1.1em;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: #b4b4b9;
+}
