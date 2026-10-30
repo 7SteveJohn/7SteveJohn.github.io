@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v158';   // 2026-10-30 照片墙上线二次元角色画廊（星锑/蕾姆/六花/碧翠丝）
+const CACHE = 'sevenjohn-v159';   // 2026-10-30 FileButler 介绍片改口径（云端可选）+ 片尾 v1.4，换缓存键以清掉旧片
 const CORE = [
   './',
   'index.html',
