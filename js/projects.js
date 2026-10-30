@@ -41,6 +41,13 @@ window.PROJECTS_DATA = [
     // ↓ 版本/运行环境/校验码：填上即显示在弹窗里，留空自动隐藏
     version: "v1.4.2",
     updated: "2026-10-27",
+    // 更新公告：桌面贴在卡片右上侧（窄屏收成一行）；items 建议 3–4 条，summary 用于窄屏
+    announcement: {
+      version: "v1.4.2",
+      date: "2026-10-27",
+      items: ["中英双语界面", "拼音 / 首字母搜文件", "云端 API 可选", "检索可选 rerank 精排"],
+      summary: "中英双语 / 拼音搜索 / 云端可选"
+    },
     requires: "",
     sha256: "",
     details: `

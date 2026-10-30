@@ -153,6 +153,23 @@ function buildProjectFacts(project, hookOnly) {
     .join('');
 }
 
+// 更新公告：桌面贴在卡片右上侧，窄屏收成一行；没填 announcement 就不渲染
+function buildAnnouncement(project) {
+  const a = project.announcement;
+  if (!a || !Array.isArray(a.items) || !a.items.length) return '';
+  const ver = a.version ? `<span class="announce-ver">${escapeHtml(a.version)}</span>` : '';
+  const items = a.items.map(t => `<li>${escapeHtml(t)}</li>`).join('');
+  const date = a.date ? `<div class="announce-date">${escapeHtml(a.date)}</div>` : '';
+  const line = ['更新', a.version, a.summary || a.items.join(' / ')].filter(Boolean).map(escapeHtml).join(' · ');
+  return `
+    <div class="announce-card">
+      <div class="announce-top"><span class="announce-label">更新公告</span>${ver}</div>
+      <ul class="announce-items">${items}</ul>
+      ${date}
+    </div>
+    <p class="announce-line"><span class="announce-dot" aria-hidden="true"></span><span class="announce-line-text">${line}</span></p>`;
+}
+
 function hydrateProductLinks() {
   document.querySelectorAll('article[data-project-id]').forEach(card => {
     const project = (window.PROJECTS_DATA || []).find(p => p.id === card.dataset.projectId);
@@ -178,6 +195,17 @@ function hydrateProductLinks() {
 
     const pwd = card.querySelector('[data-pwd]');
     if (pwd) pwd.textContent = project.downloadPwd ? ` (提取码: ${project.downloadPwd})` : '';
+
+    // 更新公告（数据驱动：只给写了 announcement 的项目渲染）
+    const announceHtml = buildAnnouncement(project);
+    if (announceHtml) {
+      const aside = document.createElement('aside');
+      aside.className = 'card-announce';
+      aside.setAttribute('aria-label', '更新公告');
+      aside.innerHTML = announceHtml;
+      card.firstElementChild.appendChild(aside);
+      card.classList.add('has-announce');
+    }
   });
 }
 

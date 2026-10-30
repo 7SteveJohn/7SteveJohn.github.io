@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"61f0d5ee4028","sources":[{"path":"js/status.js","sha256":"a7c77fe6d3562d4cfa45a24a7dc2005a7f0a0d7290daca20a77d2c95f22d5900"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"07db7106b860db67de88ede12f9fb4042cbf5edc11aad1a9de38370355be4d7c"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"c1e0fc6b32f552a10af1a3ac20909ecf9baec8cfd1b5a2c77f42b07f9770ab8e"}]}
+// build-bundles: {"name":"home","version":"3a6d6df7b0cc","sources":[{"path":"js/status.js","sha256":"a7c77fe6d3562d4cfa45a24a7dc2005a7f0a0d7290daca20a77d2c95f22d5900"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"21bdfa62c2a7e88dc7056a7315c2a011f4bdb7463e6bade701ad80c639d36f6d"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"c1e0fc6b32f552a10af1a3ac20909ecf9baec8cfd1b5a2c77f42b07f9770ab8e"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -380,7 +380,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (07db7106b860) ----
+// ---- js/app.js (21bdfa62c2a7) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -536,6 +536,23 @@ function buildProjectFacts(project, hookOnly) {
     .join('');
 }
 
+// 更新公告：桌面贴在卡片右上侧，窄屏收成一行；没填 announcement 就不渲染
+function buildAnnouncement(project) {
+  const a = project.announcement;
+  if (!a || !Array.isArray(a.items) || !a.items.length) return '';
+  const ver = a.version ? `<span class="announce-ver">${escapeHtml(a.version)}</span>` : '';
+  const items = a.items.map(t => `<li>${escapeHtml(t)}</li>`).join('');
+  const date = a.date ? `<div class="announce-date">${escapeHtml(a.date)}</div>` : '';
+  const line = ['更新', a.version, a.summary || a.items.join(' / ')].filter(Boolean).map(escapeHtml).join(' · ');
+  return `
+    <div class="announce-card">
+      <div class="announce-top"><span class="announce-label">更新公告</span>${ver}</div>
+      <ul class="announce-items">${items}</ul>
+      ${date}
+    </div>
+    <p class="announce-line"><span class="announce-dot" aria-hidden="true"></span><span class="announce-line-text">${line}</span></p>`;
+}
+
 function hydrateProductLinks() {
   document.querySelectorAll('article[data-project-id]').forEach(card => {
     const project = (window.PROJECTS_DATA || []).find(p => p.id === card.dataset.projectId);
@@ -561,6 +578,17 @@ function hydrateProductLinks() {
 
     const pwd = card.querySelector('[data-pwd]');
     if (pwd) pwd.textContent = project.downloadPwd ? ` (提取码: ${project.downloadPwd})` : '';
+
+    // 更新公告（数据驱动：只给写了 announcement 的项目渲染）
+    const announceHtml = buildAnnouncement(project);
+    if (announceHtml) {
+      const aside = document.createElement('aside');
+      aside.className = 'card-announce';
+      aside.setAttribute('aria-label', '更新公告');
+      aside.innerHTML = announceHtml;
+      card.firstElementChild.appendChild(aside);
+      card.classList.add('has-announce');
+    }
   });
 }
 

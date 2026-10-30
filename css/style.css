@@ -2105,3 +2105,99 @@ html body #waifu-tips span {
     animation: none;
   }
 }
+
+/* ============================================================
+   更新公告：桌面贴在产品卡右上角，窄屏收成一行
+   （数据在 projects.js 的 announcement；没填不渲染）
+   ============================================================ */
+.card-announce { margin: 0; }
+.announce-card { display: none; }
+.announce-line {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: #86868b;
+}
+.announce-line-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.announce-dot {
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+/* 桌面：便签贴在卡片外侧（奇数卡在右、偶数卡在左），卡片本身不收窄；
+   窄屏退回卡片内一行 */
+@media (min-width: 1024px) {
+  .bento-card.has-announce { position: relative; overflow: visible; }
+  .bento-card.has-announce > div:first-child > .card-announce {
+    position: absolute;
+    top: 0;
+    width: 200px;
+    margin: 0;
+  }
+  #products article:nth-of-type(odd) .card-announce { left: calc(100% + 20px); }
+  #products article:nth-of-type(even) .card-announce { right: calc(100% + 20px); }
+  .announce-card {
+    display: block;
+    padding: 14px 16px 12px;
+    border: 1px solid var(--hairline);
+    border-radius: 0.75rem;
+    background: #141415;
+  }
+  .announce-line { display: none; }
+  .announce-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .announce-label {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: #86868b;
+  }
+  .announce-ver {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px;
+    color: var(--accent);
+  }
+  .announce-items {
+    display: grid;
+    gap: 6px;
+    margin: 10px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .announce-items li {
+    position: relative;
+    padding-left: 12px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #b4b4b9;
+  }
+  .announce-items li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent-dim);
+  }
+  .announce-date {
+    margin-top: 10px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 10.5px;
+    color: #6e6e73;
+  }
+}
