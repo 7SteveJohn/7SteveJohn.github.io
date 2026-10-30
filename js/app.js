@@ -320,7 +320,7 @@ window.openProjectModal = function(id) {
     </div>
   `;
 
-  modalContent.dataset.openProject = project.id;   // 供延时补写正文时校验（防止串篇）
+  modalContent._projectToken = project.id;   // 供延时补写正文时校验（防止串篇；别用 data-*，会撞上点击委托的选择器）
   modalContent.classList.remove('modal-content-in');
   void modalContent.offsetWidth;
   modalContent.classList.add('modal-content-in');
@@ -332,7 +332,7 @@ window.openProjectModal = function(id) {
   if (needMd && project.details) {
     const token = project.id;
     window.ensureMarkdown().then((ok) => {
-      if (modalContent.dataset.openProject !== token) return;
+      if (modalContent._projectToken !== token) return;
       const body = modalContent.querySelector('.markdown-body');
       if (!body) return;
       body.innerHTML = ok

@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"5c22796f328e","sources":[{"path":"js/status.js","sha256":"a7c77fe6d3562d4cfa45a24a7dc2005a7f0a0d7290daca20a77d2c95f22d5900"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"cd3223fa4c6adbca630bdb7c81ed7848fa4eb743098cb87a424b2b6ab4f7c969"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"c1e0fc6b32f552a10af1a3ac20909ecf9baec8cfd1b5a2c77f42b07f9770ab8e"}]}
+// build-bundles: {"name":"home","version":"622d680d748c","sources":[{"path":"js/status.js","sha256":"a7c77fe6d3562d4cfa45a24a7dc2005a7f0a0d7290daca20a77d2c95f22d5900"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"6f5b28dc5b24c50891a87c04d76a1e1cdf4e1eebcf93e6a727024847fc8d8577"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"c1e0fc6b32f552a10af1a3ac20909ecf9baec8cfd1b5a2c77f42b07f9770ab8e"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -380,7 +380,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (cd3223fa4c6a) ----
+// ---- js/app.js (6f5b28dc5b24) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -703,7 +703,7 @@ window.openProjectModal = function(id) {
     </div>
   `;
 
-  modalContent.dataset.openProject = project.id;   // 供延时补写正文时校验（防止串篇）
+  modalContent._projectToken = project.id;   // 供延时补写正文时校验（防止串篇；别用 data-*，会撞上点击委托的选择器）
   modalContent.classList.remove('modal-content-in');
   void modalContent.offsetWidth;
   modalContent.classList.add('modal-content-in');
@@ -715,7 +715,7 @@ window.openProjectModal = function(id) {
   if (needMd && project.details) {
     const token = project.id;
     window.ensureMarkdown().then((ok) => {
-      if (modalContent.dataset.openProject !== token) return;
+      if (modalContent._projectToken !== token) return;
       const body = modalContent.querySelector('.markdown-body');
       if (!body) return;
       body.innerHTML = ok
