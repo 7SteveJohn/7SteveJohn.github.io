@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"34ae23137d00","sources":[{"path":"js/status.js","sha256":"a7c77fe6d3562d4cfa45a24a7dc2005a7f0a0d7290daca20a77d2c95f22d5900"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"b28a3920452763cc5b50235189a7fc6ea8b4f7a9a2c7700342b2db6cda47ffe4"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"c1e0fc6b32f552a10af1a3ac20909ecf9baec8cfd1b5a2c77f42b07f9770ab8e"}]}
+// build-bundles: {"name":"home","version":"995e8b5cbe38","sources":[{"path":"js/status.js","sha256":"a7c77fe6d3562d4cfa45a24a7dc2005a7f0a0d7290daca20a77d2c95f22d5900"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"04baff858aca573af985148a961e480c10e6eccd3e48275900feb7004bef1f90"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"c1e0fc6b32f552a10af1a3ac20909ecf9baec8cfd1b5a2c77f42b07f9770ab8e"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -380,7 +380,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (b28a39204527) ----
+// ---- js/app.js (04baff858aca) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -430,6 +430,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initScrollSpy();
   initPageNext();
   initWheelPaging();   // 滚轮一屏一停（页单位 = 区块 / 产品卡）
+  initScrollSettle();  // 滚动条/键盘松手后吸附到停靠点
 
  // 5. 滚动浮现编排（ section reveal，含错峰）
   observeReveals();
@@ -1893,57 +1894,56 @@ function initPageNext() {
   });
 }
 
-// 整页滚轮翻页：一次手势 = 一屏，优先落在下一个页单位（区块 / 产品卡）顶部
+// 翻页停靠点：页单位顶 + 高页内的补点（滚轮 / 滚动条 / 键盘共用同一份）
 // ----------------------------------------------------
 // 页单位复用 collectPageUnits()（与底部箭头、ScrollSpy 同一份序列）：
-//   · 产品卡每张一页（force：距离再近也单独停，保持「一屏一卡」）
-//   · 普通区块顶是候选停靠点；两个区块离得太近（<35% 视口）就合并，避免连跳
-//   · 比一屏还高的区块（AI / 手记）在中间按 ~0.82 屏补停靠点，不跳内容
-// 吸附本体仍是 css/style.css 的 CSS proximity（只作用于产品卡）；这里负责滚轮落位。
-// 触屏 / 减少动态效果 / 弹层内滚动：全部原生。
+//   · 产品卡一律单独一停（保持「一屏一卡」）
+//   · 普通区块只有 ≥45% 视口高才单独停；百来像素的矮页并进相邻一屏，避免连跳
+//   · 比一屏高的区块（AI / 手记）在中间按 ~0.82 屏补点，不跳内容
+const HEADER_OFFSET = 64;          // 吸顶导航高度
+let scrollHoldUntil = 0;           // 程序化滚动期间暂停「停手吸附」
+
+function pageStops() {
+  const vh = window.innerHeight;
+  const y = window.scrollY;
+  const gap = vh * 0.3;
+  const stops = [{ y: 0, soft: false }];
+  const addHard = (t) => {
+    if (t < 4) return;
+    // 高页补点如果紧贴在这个区块顶前面，让位给区块顶
+    while (stops.length > 1 && t - stops[stops.length - 1].y < gap && stops[stops.length - 1].soft) stops.pop();
+    if (t - stops[stops.length - 1].y >= 4) stops.push({ y: t, soft: false });
+  };
+  const addSoft = (t) => {
+    if (t - stops[stops.length - 1].y >= gap) stops.push({ y: t, soft: true });
+  };
+  for (const el of collectPageUnits()) {
+    const h = el.offsetHeight;
+    const top = el.getBoundingClientRect().top + y - HEADER_OFFSET;
+    const card = el.matches('#products > article.bento-card');
+    if (card || h >= vh * 0.45) addHard(top);
+    if (h > vh * 1.05) {
+      for (let t = top + vh * 0.82; t < top + h - 40; t += vh * 0.82) addSoft(t);
+    }
+  }
+  return stops.map((s) => s.y);
+}
+
+// 滚轮：一次手势 = 一屏，落在下一个/上一个停靠点；触屏 / 减少动效 / 弹层内原生
 function initWheelPaging() {
   const mq = window.matchMedia('(min-width: 900px) and (pointer: fine) and (prefers-reduced-motion: no-preference)');
-  const HEADER = 64;                       // 吸顶导航高度
-  const minStep = () => window.innerHeight * 0.35;
-  const maxStep = () => window.innerHeight * 1.5;
   const step = () => window.innerHeight * 0.82;
+  const maxScroll = () => document.documentElement.scrollHeight - window.innerHeight;
   const root = document.documentElement;
 
-  const maxScroll = () => document.documentElement.scrollHeight - window.innerHeight;
-
-  const stops = () => {
-    const y = window.scrollY;
-    return collectPageUnits()
-      .map((el) => {
-        const h = el.offsetHeight;
-        // 产品卡默认一张一停；卡比视口高时不再强制，交给下面的「一屏一步」切分，避免跳过内容
-        const force = el.matches('#products > article.bento-card') && h <= window.innerHeight * 1.05;
-        return { y: el.getBoundingClientRect().top + y - HEADER, h, force };
-      })
-      // 太矮的页（产品区标题、理念/关于这类百来像素的区块）不单独停，并进相邻一屏
-      .filter((s) => s.y > -2 && (s.force || s.h >= window.innerHeight * 0.45))
-      .sort((a, b) => a.y - b.y);
-  };
-
   const nextTop = (y, dir) => {
-    const list = stops();
-    // 当前所处页比自己高（矮视口下的产品卡）：这一屏只走 0.9 屏，别整张跳过去
-    const inTall = list.some((s) => s.h > window.innerHeight * 1.05 && y >= s.y - 2 && y < s.y + s.h - 2);
-    const cap = inTall ? window.innerHeight * 0.9 : maxStep();
+    const list = pageStops();
+    const cap = window.innerHeight * 1.5;
     if (dir > 0) {
-      const limit = y + cap;
-      for (const s of list) {
-        if (s.y <= y + 8 || s.y > limit) continue;
-        if (s.force || s.y - y >= minStep()) return s.y;
-      }
+      for (const t of list) if (t > y + 8 && t <= y + cap) return t;
       return Math.min(maxScroll(), y + step());
     }
-    const limit = y - cap;
-    for (let i = list.length - 1; i >= 0; i--) {
-      const s = list[i];
-      if (s.y >= y - 8 || s.y < limit) continue;
-      if (s.force || y - s.y >= minStep()) return s.y;
-    }
+    for (let i = list.length - 1; i >= 0; i--) if (list[i] < y - 8 && list[i] >= y - cap) return list[i];
     return Math.max(0, y - step());
   };
 
@@ -1983,6 +1983,34 @@ function initWheelPaging() {
   }, { passive: false });
 }
 
+// 滚动条 / 键盘 / 触控板惯性：滚动停手 240ms 后，若没停在停靠点上，补一段平滑吸附
+// （原生滚动条没法拦截步进，只能在松手后对齐；触屏与减少动效不接管）
+function initScrollSettle() {
+  const mq = window.matchMedia('(min-width: 900px) and (pointer: fine) and (prefers-reduced-motion: no-preference)');
+  let timer = 0;
+  // 键盘是细粒度阅读工具：方向键 / 翻页键 / 空格 / Home / End 之后不做停手吸附
+  window.addEventListener('keydown', (e) => {
+    if (/^(ArrowDown|ArrowUp|PageDown|PageUp|Home|End| |Spacebar)$/.test(e.key)) {
+      scrollHoldUntil = performance.now() + 700;
+    }
+  }, { passive: true });
+  window.addEventListener('scroll', () => {
+    if (!mq.matches) return;
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      if (performance.now() < scrollHoldUntil) return;       // 程序化滚动还没结束
+      const y = window.scrollY;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      if (y <= 1 || y >= max - 1) return;                    // 首尾不吸
+      let best = null;
+      for (const t of pageStops()) {
+        if (best === null || Math.abs(t - y) < Math.abs(best - y)) best = t;
+      }
+      if (best !== null && Math.abs(best - y) > 3) smoothScrollTo(best);
+    }, 240);
+  }, { passive: true });
+}
+
 // 锚点/按钮滚动：直接用**原生平滑滚动**（合成器线程驱动，不逐帧写 scrollTo）
 // ----------------------------------------------------
 // 2026-10-17 撤掉原先的 Lenis 式阻尼滚动（滚轮 preventDefault + 每帧 scrollTo 追 150ms lerp）。
@@ -1991,6 +2019,7 @@ function initWheelPaging() {
 // 现在：滚轮完全交给浏览器；只有锚点/回顶/翻页这类"程序化跳转"才做平滑，且由合成器执行。
 // 想找回阻尼版：git show 7f1e57e:js/app.js（initDampedScroll 仍在历史里）。
 let smoothScrollTo = function (targetY) {
+  scrollHoldUntil = performance.now() + 900;
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   window.scrollTo({ top: targetY, behavior: reduce ? 'auto' : 'smooth' });
 };

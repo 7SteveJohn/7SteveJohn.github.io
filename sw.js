@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v161';   // 2026-10-30 滚轮整页一屏一停（app.js + home bundle）
+const CACHE = 'sevenjohn-v162';   // 2026-10-30 滚动条松手吸附 + 滚轮一屏一停（app.js + home bundle）
 const CORE = [
   './',
   'index.html',

@@ -393,6 +393,7 @@ html:not(.dark) .bento-card:hover {
      否则 proximity 会把落点拽回上一张卡（实测滚 240px 位移为 0）
    · 滚轮一屏一停由 js/app.js 的 initWheelPaging() 负责：一次手势走一屏，
      优先落在下一个页单位（区块 / 产品卡）顶部；长区块中间补停靠点，不跳内容
+   · 拖动滚动条松手后由 initScrollSettle() 吸附到最近停靠点（键盘/触屏不接管）
    · 矮视口 / 手机 / 减少动态效果：整块不生效 */
 @media (min-width: 640px) and (min-height: 760px) and (prefers-reduced-motion: no-preference) {
   html {
