@@ -5,8 +5,40 @@
     <link>https://7stevejohn.github.io/</link>
     <description>技术手记、小说、游戏创作与随笔，想到什么写什么。</description>
     <language>zh-cn</language>
-    <lastBuildDate>Mon, 05 Oct 2026 00:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 18 Oct 2026 00:00:00 GMT</lastBuildDate>
     <atom:link href="https://7stevejohn.github.io/rss.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>本地视频阅读工作流：从镜头切分到端侧多模态理解</title>
+      <link>https://7stevejohn.github.io/?post=local-video-reading-pipeline</link>
+      <guid isPermaLink="false">local-video-reading-pipeline</guid>
+      <pubDate>Sun, 18 Oct 2026 00:00:00 GMT</pubDate>
+      <category>架构设计</category>
+      <description>长视频直接塞给模型又慢又费显存。记录一条数据不出机的端侧流水线：PySceneDetect 找切镜点、faster-whisper 离线转写、本地 Qwen2.5-VL 读关键帧与向量索引检索。</description>
+    </item>
+    <item>
+      <title>像素叙事游戏开发手记：从引擎选型到工程化落地</title>
+      <link>https://7stevejohn.github.io/?post=pixel-narrative-devlog</link>
+      <guid isPermaLink="false">pixel-narrative-devlog</guid>
+      <pubDate>Sat, 17 Oct 2026 00:00:00 GMT</pubDate>
+      <category>游戏创作</category>
+      <description>从 Godot 4 换到 RPG Maker MZ 的技术考量，以及 2D 像素叙事工程的踩坑细节：外挂脚本管理数据、定制全屏暗色阅读器、修复行走图下沉步态与材质脚步声。</description>
+    </item>
+    <item>
+      <title>纯本地提示词优化器：零模型依赖的规则诊断与重组引擎</title>
+      <link>https://7stevejohn.github.io/?post=prompt-optimizer-engine</link>
+      <guid isPermaLink="false">prompt-optimizer-engine</guid>
+      <pubDate>Thu, 15 Oct 2026 00:00:00 GMT</pubDate>
+      <category>技术手记</category>
+      <description>改提示词不想联网调 API。记录一个零依赖、纯本地单页的 JavaScript 规则引擎：10 项结构要素排查、6 组互斥矛盾识别、自动格式清洗与两级修复。</description>
+    </item>
+    <item>
+      <title>纯前端 60KB 矢量 Roguelike：零依赖地牢引擎实现手记</title>
+      <link>https://7stevejohn.github.io/?post=abysswalker-roguelike-engine</link>
+      <guid isPermaLink="false">abysswalker-roguelike-engine</guid>
+      <pubDate>Mon, 12 Oct 2026 00:00:00 GMT</pubDate>
+      <category>游戏创作</category>
+      <description>不放任何外部图片与音频，用 60KB 原生 HTML/JS 实现完整地牢肉鸽：Canvas 纯代码矢量画怪、WebAudio 现场合成打击音效、Bresenham 视线迷雾与确定性随机种子。</description>
+    </item>
     <item>
       <title>七、AI 的下一程：算力的账、走出屏幕的智能与治理的规则</title>
       <link>https://7stevejohn.github.io/?post=ai-frontier-mirror</link>
@@ -110,14 +142,6 @@
       <pubDate>Sat, 12 Sep 2026 00:00:00 GMT</pubDate>
       <category>本地 AI</category>
       <description>模型跑起来了，但接进自己程序之后开始变慢、偶发失败。记录我在 8GB 上收回来的几个参数，以及把本地模型当「可选项」设计这条底线。</description>
-    </item>
-    <item>
-      <title>像素叙事游戏开发手记</title>
-      <link>https://7stevejohn.github.io/?post=pixel-narrative-devlog</link>
-      <guid isPermaLink="false">pixel-narrative-devlog</guid>
-      <pubDate>Wed, 09 Sep 2026 00:00:00 GMT</pubDate>
-      <category>游戏创作</category>
-      <description>在做的 2D 像素叙事游戏，Godot 4 引擎。记录大纲与卷零的进度，完成后先放卷一 Demo。</description>
     </item>
     <item>
       <title>本地文件管家：秒搜与可撤销怎么同时成立</title>

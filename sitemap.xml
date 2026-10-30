@@ -2,21 +2,37 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://7stevejohn.github.io/</loc>
-    <lastmod>2026-10-05</lastmod>
+    <lastmod>2026-10-18</lastmod>
     <priority>1.0</priority>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>https://7stevejohn.github.io/archive.html</loc>
-    <lastmod>2026-10-05</lastmod>
+    <lastmod>2026-10-18</lastmod>
     <priority>0.8</priority>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>https://7stevejohn.github.io/gallery.html</loc>
-    <lastmod>2026-10-05</lastmod>
+    <lastmod>2026-10-18</lastmod>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://7stevejohn.github.io/?post=local-video-reading-pipeline</loc>
+    <lastmod>2026-10-18</lastmod>
+  </url>
+  <url>
+    <loc>https://7stevejohn.github.io/?post=pixel-narrative-devlog</loc>
+    <lastmod>2026-10-17</lastmod>
+  </url>
+  <url>
+    <loc>https://7stevejohn.github.io/?post=prompt-optimizer-engine</loc>
+    <lastmod>2026-10-15</lastmod>
+  </url>
+  <url>
+    <loc>https://7stevejohn.github.io/?post=abysswalker-roguelike-engine</loc>
+    <lastmod>2026-10-12</lastmod>
   </url>
   <url>
     <loc>https://7stevejohn.github.io/?post=ai-frontier-mirror</loc>
@@ -69,10 +85,6 @@
   <url>
     <loc>https://7stevejohn.github.io/?post=ollama-vram-fit</loc>
     <lastmod>2026-09-12</lastmod>
-  </url>
-  <url>
-    <loc>https://7stevejohn.github.io/?post=pixel-narrative-devlog</loc>
-    <lastmod>2026-09-09</lastmod>
   </url>
   <url>
     <loc>https://7stevejohn.github.io/?post=filebutler-local-rag</loc>
