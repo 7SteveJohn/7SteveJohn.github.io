@@ -4,6 +4,7 @@ title: 两年刷机记：从 K60 Pro 到拯救者 Y700
 date: 2026-09-30
 readTime: 4 分钟
 category: 随笔
+cover: "assets/images/covers/cover-two-years-flashing.svg"
 section: essay
 summary: 一台手机、一块平板，从装个 Magisk 开始，到能自己写模块、自己签 vbmeta。记一下这两年是怎么被具体问题推着往前走的。
 tags: [刷机, 随笔]

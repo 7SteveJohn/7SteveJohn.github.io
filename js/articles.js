@@ -78,6 +78,7 @@ window.ARTICLES_DATA = [
     readTime: "7 分钟",
     category: "本地 AI",
     summary: "模型跑起来了，但接进自己程序之后开始变慢、偶发失败。记录我在 8GB 上收回来的几个参数，以及把本地模型当「可选项」设计这条底线。",
+    cover: "assets/images/covers/cover-ollama.svg",
     tags: ["Ollama", "显存", "量化", "端侧AI"],
     content: `
 ### 问题：能跑，但跑不稳
@@ -111,6 +112,7 @@ Ollama 装好、模型拉下来，聊天没问题。问题出在接进自己的�
     readTime: "8 分钟",
     category: "AIGC",
     summary: "一键出图工具满足不了「固定画风 + 保持构图 + 能复用」，换成节点式工作流之后才有解。记录 SDXL 在 8GB 上的节点排法与显存坑。",
+    cover: "assets/images/covers/cover-comfyui.svg",
     tags: ["ComfyUI", "SDXL", "工作流", "显存"],
     content: `
 ### 问题：一键工具不够用
@@ -147,6 +149,7 @@ Ollama 装好、模型拉下来，聊天没问题。问题出在接进自己的�
     readTime: "8 分钟",
     category: "本地 AI",
     summary: "第一次拉模型下来加载失败，才知道参数量不等于显存占用。记录 8GB 显卡上按任务分层选型的思路，以及我踩反过的顺序。",
+    cover: "assets/images/covers/cover-local-llm.svg",
     tags: ["本地大模型", "显存", "量化", "Ollama"],
     content: `
 ### 问题：8GB 到底能跑多大的模型
@@ -183,6 +186,7 @@ Ollama 装好、模型拉下来，聊天没问题。问题出在接进自己的�
     readTime: "6 分钟",
     category: "刷机",
     summary: "改完分区开不了机，问题通常不在分区写错，在于校验没过。记录 Android 13 的 init_boot 拆分与 AVB 2.0 的校验顺序，以及 9008 这条底层通道到底强在哪。",
+    cover: "assets/images/covers/cover-flashing.svg",
     tags: ["刷机", "AVB", "init_boot", "分区", "9008"],
     content: `
 ### 问题：改完分区开不了机
@@ -231,6 +235,7 @@ Ollama 装好、模型拉下来，聊天没问题。问题出在接进自己的�
     readTime: "5 分钟",
     category: "刷机",
     summary: "装了 root 之后支付和银行就不让用，于是有了隐藏。记录注入、命名空间、内核三个层次各自解决什么，以及跨过本机之后那道改不了的云端校验。",
+    cover: "assets/images/covers/cover-root-hiding.svg",
     tags: ["root", "隐藏", "KernelSU", "Play Integrity", "刷机"],
     content: `
 ### 问题：root 装上了，应用不让用
@@ -274,6 +279,7 @@ Ollama 装好、模型拉下来，聊天没问题。问题出在接进自己的�
     category: "随笔",
     section: "essay",
     summary: "一台手机、一块平板，从装个 Magisk 开始，到能自己写模块、自己签 vbmeta。记一下这两年是怎么被具体问题推着往前走的。",
+    cover: "assets/images/covers/cover-two-years-flashing.svg",
     tags: ["刷机", "随笔"],
     content: `
 入手 K60 Pro 那会儿，我对刷机的理解只停留在「能 root」。真正动手的原因很普通：想装的东西越来越多，系统自带的不够用。
@@ -321,6 +327,7 @@ C16 那条线走到某个版本之后，底层锁死了——分区改不动，�
     category: "游戏创作",
     section: "creation",
     summary: "不放任何外部图片与音频，用 60KB 原生 HTML/JS 实现完整地牢肉鸽：Canvas 纯代码矢量画怪、WebAudio 现场合成打击音效、Bresenham 视线迷雾与确定性随机种子。",
+    cover: "assets/images/covers/cover-abysswalker.svg",
     tags: ["JavaScript", "Canvas", "Roguelike", "WebAudio", "独立游戏"],
     content: `
 ### 问题：不用任何素材包做个地牢 Demo
@@ -354,6 +361,7 @@ C16 那条线走到某个版本之后，底层锁死了——分区改不动，�
     readTime: "4 分钟",
     category: "技术手记",
     summary: "改提示词不想联网调 API。记录一个零依赖、纯本地单页的 JavaScript 规则引擎：10 项结构要素排查、6 组互斥矛盾识别、自动格式清洗与两级修复。",
+    cover: "assets/images/covers/cover-prompt-optimizer.svg",
     tags: ["提示词工程", "规则引擎", "纯本地", "静态单页", "端侧AI"],
     content: `
 ### 问题：改个提示词不想联网调 API
@@ -389,6 +397,7 @@ C16 那条线走到某个版本之后，底层锁死了——分区改不动，�
     category: "游戏创作",
     section: "creation",
     summary: "从 Godot 4 换到 RPG Maker MZ 的技术考量，以及 2D 像素叙事工程的踩坑细节：外挂脚本管理数据、定制全屏暗色阅读器、修复行走图下沉步态与材质脚步声。",
+    cover: "assets/images/covers/cover-pixel-narrative.svg",
     tags: ["像素", "叙事", "RPG Maker MZ", "游戏开发", "独立游戏"],
     content: `
 ### 问题：Godot 4 一个人写太重，RM MZ 默认对话框又太简陋
@@ -424,6 +433,7 @@ C16 那条线走到某个版本之后，底层锁死了——分区改不动，�
     readTime: "4 分钟",
     category: "架构设计",
     summary: "长视频直接塞给模型又慢又费显存。记录一条数据不出机的端侧流水线：PySceneDetect 找切镜点、faster-whisper 离线转写、本地 Qwen2.5-VL 读关键帧与向量索引检索。",
+    cover: "assets/images/covers/cover-video-reading.svg",
     tags: ["Python", "ffmpeg", "PySceneDetect", "Whisper", "端侧AI", "本地模型"],
     content: `
 ### 问题：长视频送进大模型又慢又费显存
@@ -459,6 +469,7 @@ C16 那条线走到某个版本之后，底层锁死了——分区改不动，�
     category: "AI 学习",
     section: "ai",
     summary: "AI 圈一半争论源于词没对齐。拆解 Token、上下文窗口、温度系数，以及三个流传最广的误区。",
+    cover: "assets/images/covers/ai-01-token.svg",
     tags: ["AI", "Token", "上下文窗口", "幻觉"],
     content: `
 第一次给大模型的 API 充值，账单上只有两个词：input tokens 和 output tokens。我对着那行数字愣了半天——我到底在为什么付费？这个当时没答上来的问题，后来发现正是理解这一轮 AI 的起点：先把词搞清楚，判断才有地方落。
@@ -538,6 +549,7 @@ Token 同时是计价单位，开头那笔账就记在它头上：API 按 Token 
     category: "AI 学习",
     section: "ai",
     summary: "预训练给智力，后训练给性格。拆解数据清洗到人类对齐这条流水线，以及越狱的本质、对齐税和训练与推理两本算力账。",
+    cover: "assets/images/covers/ai-02-training.svg",
     tags: ["AI", "RLHF", "预训练", "数据清洗"],
     content: `
 我第一次在本地跑开源模型时踩过一个很典型的坑：拉了一个 7B（约 70 亿参数）的基座模型下来，问它中国的首都是哪里，它没有回答，而是接着往下写——一会儿续成一道地理考题，一会儿续成百科词条的下一句。模型明明装着一肚子知识，就是不理你。
@@ -615,6 +627,7 @@ Token 同时是计价单位，开头那笔账就记在它头上：API 按 Token 
     category: "AI 学习",
     section: "ai",
     summary: "先选路，再补课。拆四条学习路径的门槛与回报，主推深耕行业叠加 AI 的复合路线，附避坑与免费资源清单。",
+    cover: "assets/images/covers/ai-03-learning.svg",
     tags: ["AI", "学习路径", "行业复合型", "自学避坑"],
     content: `
 前阵子有同学来问我：想学 AI，是不是得先把高数捡起来重修一遍。我没直接回答，先给他看了我的收藏夹——一门线性代数课，收藏了半年，进度 5%。真正把我领进门的，反倒是几门不讲数学的通识课。
@@ -702,6 +715,7 @@ Token 同时是计价单位，开头那笔账就记在它头上：API 按 Token 
     category: "AI 学习",
     section: "ai",
     summary: "智能体翻车是常态而非意外：拆解函数调用与规划幻觉的机制、实验室与现场的落差，以及复合型人才的机会。",
+    cover: "assets/images/covers/ai-04-agent.svg",
     tags: ["AI", "Agent", "规划幻觉", "私有化部署"],
     content: `
 我头一回认真把活儿交给编码智能体，是让它改我自己博客里的一个小功能。它先列了一份像模像样的计划，接着一步步调工具、读文件、改代码，动作很专业，我全程盯着，像带一个什么都敢试、又什么都得盯着的实习生。坏就坏在第四步：它顺手改了一行不该动的配置，之后的自查一路全绿，直到我手动验证才露馅。四十分钟后我关掉它的窗口，自己十分钟改完。我不觉得它笨，它单看每一步都做得像样。我意识到的是另一件事：**会聊天和会做事之间隔着的东西，比大多数人想的多得多**。这一篇就沿着这个落差往下写：智能体怎么干活，会在哪一步翻车，为什么现阶段别神化它。
@@ -773,6 +787,7 @@ Devin 这个案例两面同体。2024 年 3 月 Cognition 公司发布它，宣�
     category: "AI 学习",
     section: "ai",
     summary: "中国 AI 的真实画像是落地快、原创少——同一结构的一体两面；拆开长板与短板，以及对普通人的含义。",
+    cover: "assets/images/covers/ai-05-china.svg",
     tags: ["AI", "中国 AI", "算力", "开源"],
     content: `
 我在这台电脑上本地跑的模型，是 Qwen 的蒸馏版——模型蒸馏，就是把大模型的知识压缩进一个小模型，好让它塞进消费级显卡。往上翻它的家族树，底座是杭州的团队开源的；再往上翻一层，支撑整个体系的那篇注意力机制论文，2017 年出自 Google。中国 AI 最有意思的地方就藏在这两层之间：应用和工程长得飞快，地基大半是别人打的。
@@ -857,6 +872,7 @@ Devin 这个案例两面同体。2024 年 3 月 Cognition 公司发布它，宣�
     category: "AI 学习",
     section: "ai",
     summary: "AI 抢的是任务，不是岗位。拆解电网、矿山、政务、医疗落地案例，看清行业复合型人才为何最缺。",
+    cover: "assets/images/covers/ai-06-jobs.svg",
     tags: ["AI", "就业", "岗位迭代", "行业复合型"],
     content: `
 这半年，身边人问得最多的一句话是：现在转行做 AI，还来得及吗。问的人里有快毕业的同学，也有干了多年别的行业、三十岁上下的亲友，语气里都揣着同一个默认前提——不转，饭碗就保不住了。我起初也这么想，直到为写这篇把能查到的落地案例翻了一遍，才发现这个问题的方向，很可能整个问反了。
@@ -947,6 +963,7 @@ Klarna 是「替代之后又回头」。这家瑞典消费金融公司 2024 年 
     category: "AI 学习",
     section: "ai",
     summary: "AI 的下一程看三件事：算力的账、走出屏幕的智能、治理的规则；系列收尾落回终身学习与人机协同。",
+    cover: "assets/images/covers/ai-07-frontier.svg",
     tags: ["AI", "算力", "具身智能", "AI 治理"],
     content: `
 2025 年 1 月 27 日，英伟达市值单日蒸发约 5890 亿美元，创下当时全球公司单日市值损失的纪录，导火索是一份技术报告——DeepSeek 在其中把 V3 正式训练一次的算力账，算到了 557.6 万美元的租用价级（这个数只含那一次正式训练，不含前期研究和失败实验，第五篇拆过口径）。一家卖算力的公司一天跌掉近六千亿，一家用算力的公司说训练没花多少钱。那天市场用恐慌投了一次票，我盯着新闻刷了一晚上，越刷越觉得大家盯错了地方。

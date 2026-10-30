@@ -4,6 +4,7 @@ title: 三、学 AI 要不要先啃高数：普通人现实可走的四条路
 date: 2026-09-27
 readTime: 10 分钟
 category: AI 学习
+cover: "assets/images/covers/ai-03-learning.svg"
 section: ai
 summary: 先选路，再补课。拆四条学习路径的门槛与回报，主推深耕行业叠加 AI 的复合路线，附避坑与免费资源清单。
 tags: [AI, 学习路径, 行业复合型, 自学避坑]

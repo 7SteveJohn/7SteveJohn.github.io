@@ -4,6 +4,7 @@ title: 刷机为什么会卡开机：验证启动的信任链从哪开始
 date: 2026-09-30
 readTime: 6 分钟
 category: 刷机
+cover: "assets/images/covers/cover-flashing.svg"
 summary: 改完分区开不了机，问题通常不在分区写错，在于校验没过。记录 Android 13 的 init_boot 拆分与 AVB 2.0 的校验顺序，以及 9008 这条底层通道到底强在哪。
 tags: [刷机, AVB, init_boot, 分区, 9008]
 ---

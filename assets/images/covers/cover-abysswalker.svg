@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#070913"/>
+      <stop offset="50%" stop-color="#0c1122"/>
+      <stop offset="100%" stop-color="#05070e"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fb923c" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#f43f5e" stop-opacity="0.4"/>
+    </linearGradient>
+    <radialGradient id="spot" cx="80%" cy="20%" r="60%">
+      <stop offset="0%" stop-color="#fb923c" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#070913" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="rgba(255, 255, 255, 0.04)" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="640" height="360" fill="url(#bg)"/>
+  <rect width="640" height="360" fill="url(#spot)"/>
+  <rect width="640" height="360" fill="url(#grid)"/>
+
+  <!-- Geometric Motif -->
+  <g opacity="0.6">
+    
+      <g stroke="rgba(251, 146, 60, 0.25)" fill="none" stroke-width="1.5">
+        <polygon points="500,85 550,115 550,165 500,195 450,165 450,115"/>
+        <polygon points="500,105 530,125 530,155 500,175 470,155 470,125" fill="rgba(251, 146, 60, 0.1)"/>
+      </g>
+  </g>
+
+  <!-- Top Badge -->
+  <g transform="translate(40, 42)">
+    <rect width="130" height="24" rx="12" fill="rgba(255, 255, 255, 0.06)" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1"/>
+    <circle cx="14" cy="12" r="3" fill="#fb923c"/>
+    <text x="26" y="16" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" font-weight="600" letter-spacing="1.2">WEB GAME</text>
+  </g>
+
+  <!-- Big Number -->
+  <text x="590" y="70" text-anchor="end" fill="url(#glow)" font-family="Inter, -apple-system, sans-serif" font-size="44" font-weight="800" letter-spacing="-1">ROGUELIKE</text>
+
+  <!-- Content Group -->
+  <g transform="translate(40, 230)">
+    <!-- English Subtitle -->
+    <text x="0" y="0" fill="#fb923c" font-family="Inter, -apple-system, sans-serif" font-size="12" font-weight="700" letter-spacing="2.5" opacity="0.9">60KB ZERO-DEPENDENCY DUNGEON</text>
+    <!-- Chinese Main Title -->
+    <text x="0" y="38" fill="#f8fafc" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="25" font-weight="700" letter-spacing="0.5">纯前端 60KB 矢量 Roguelike</text>
+    <!-- Decorative underline -->
+    <rect x="0" y="58" width="48" height="3" rx="1.5" fill="url(#glow)"/>
+    <rect x="54" y="58" width="12" height="3" rx="1.5" fill="rgba(255,255,255,0.2)"/>
+  </g>
+</svg>

@@ -4,6 +4,7 @@ title: ComfyUI 工作流实践：把一次出图拆成能复用的节点
 date: 2026-09-18
 readTime: 8 分钟
 category: AIGC
+cover: "assets/images/covers/cover-comfyui.svg"
 summary: 一键出图工具满足不了「固定画风 + 保持构图 + 能复用」，换成节点式工作流之后才有解。记录 SDXL 在 8GB 上的节点排法与显存坑。
 tags: [ComfyUI, SDXL, 工作流, 显存]
 ---

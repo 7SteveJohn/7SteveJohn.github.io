@@ -4,6 +4,7 @@ title: 纯本地提示词优化器：零模型依赖的规则诊断与重组引�
 date: 2026-10-15
 readTime: 4 分钟
 category: 技术手记
+cover: "assets/images/covers/cover-prompt-optimizer.svg"
 summary: 改提示词不想联网调 API。记录一个零依赖、纯本地单页的 JavaScript 规则引擎：10 项结构要素排查、6 组互斥矛盾识别、自动格式清洗与两级修复。
 tags: [提示词工程, 规则引擎, 纯本地, 静态单页, 端侧AI]
 ---

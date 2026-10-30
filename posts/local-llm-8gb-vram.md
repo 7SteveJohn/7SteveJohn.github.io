@@ -4,6 +4,7 @@ title: 8GB 显存跑本地大模型：先算显存账，再挑模型
 date: 2026-09-26
 readTime: 8 分钟
 category: 本地 AI
+cover: "assets/images/covers/cover-local-llm.svg"
 summary: 第一次拉模型下来加载失败，才知道参数量不等于显存占用。记录 8GB 显卡上按任务分层选型的思路，以及我踩反过的顺序。
 tags: [本地大模型, 显存, 量化, Ollama]
 ---

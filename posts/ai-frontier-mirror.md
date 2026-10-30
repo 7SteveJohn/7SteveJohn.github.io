@@ -4,6 +4,7 @@ title: 七、AI 的下一程：算力的账、走出屏幕的智能与治理的�
 date: 2026-10-05
 readTime: 11 分钟
 category: AI 学习
+cover: "assets/images/covers/ai-07-frontier.svg"
 section: ai
 summary: AI 的下一程看三件事：算力的账、走出屏幕的智能、治理的规则；系列收尾落回终身学习与人机协同。
 tags: [AI, 算力, 具身智能, AI 治理]

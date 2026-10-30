@@ -4,6 +4,7 @@ title: root 藏不住的原因：三层隐藏各管哪一段
 date: 2026-09-30
 readTime: 5 分钟
 category: 刷机
+cover: "assets/images/covers/cover-root-hiding.svg"
 summary: 装了 root 之后支付和银行就不让用，于是有了隐藏。记录注入、命名空间、内核三个层次各自解决什么，以及跨过本机之后那道改不了的云端校验。
 tags: [root, 隐藏, KernelSU, Play Integrity, 刷机]
 ---

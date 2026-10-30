@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"2accdc3dd138","sources":[{"path":"js/status.js","sha256":"a7c77fe6d3562d4cfa45a24a7dc2005a7f0a0d7290daca20a77d2c95f22d5900"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"cdc9e951db65fddd78b316b24ee111c42a688c3a2104b61d7aedc50a6f73f7be"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"c1e0fc6b32f552a10af1a3ac20909ecf9baec8cfd1b5a2c77f42b07f9770ab8e"}]}
+// build-bundles: {"name":"home","version":"61f0d5ee4028","sources":[{"path":"js/status.js","sha256":"a7c77fe6d3562d4cfa45a24a7dc2005a7f0a0d7290daca20a77d2c95f22d5900"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"07db7106b860db67de88ede12f9fb4042cbf5edc11aad1a9de38370355be4d7c"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"c1e0fc6b32f552a10af1a3ac20909ecf9baec8cfd1b5a2c77f42b07f9770ab8e"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -380,7 +380,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (cdc9e951db65) ----
+// ---- js/app.js (07db7106b860) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -674,11 +674,19 @@ window.openProjectModal = function(id) {
       addCopyButtons(modalContent);
       ensureHighlight(modalContent);
       if (window.lucide) window.lucide.createIcons();
+      modal.scrollTop = 0;
+      modalContent.scrollTop = 0;
     });
   }
 
   modal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
+  modal.scrollTop = 0;
+  modalContent.scrollTop = 0;
+  requestAnimationFrame(() => {
+    modal.scrollTop = 0;
+    modalContent.scrollTop = 0;
+  });
   if (window.lucide) window.lucide.createIcons();
   modal.querySelector('button[aria-label="关闭"]')?.focus({ preventScroll: true });
 };
@@ -686,7 +694,11 @@ window.openProjectModal = function(id) {
 window.closeProjectModal = function() {
   // 关闭时必须停掉弹窗内所有视频，否则声音会在背后继续
   document.querySelectorAll('#project-modal video').forEach(v => { try { v.pause(); } catch (e) {} });
-  animateModalClose(document.getElementById('project-modal'));
+  const modal = document.getElementById('project-modal');
+  const modalContent = document.getElementById('project-modal-content');
+  if (modal) modal.scrollTop = 0;
+  if (modalContent) modalContent.scrollTop = 0;
+  animateModalClose(modal);
 };
 
 /* ============================================================
@@ -792,9 +804,15 @@ function initTocSpy(modalContent) {
     });
   };
 
+  const modal = document.getElementById('article-modal');
   modalContent.addEventListener('scroll', () => {
     if (!raf) raf = requestAnimationFrame(paint);
   }, { passive: true });
+  if (modal) {
+    modal.addEventListener('scroll', () => {
+      if (!raf) raf = requestAnimationFrame(paint);
+    }, { passive: true });
+  }
   paint();
   // 弹窗还在入场动画（transform 未归位）时首算会误判成最后一节，动画落定后再对一次
   setTimeout(paint, 400);
@@ -1240,6 +1258,27 @@ function getSiblingList(article) {
   return all.filter(a => !a.section);
 }
 
+// 复位文章弹窗滚动位置（包含外层遮罩容器与内层滚动容器，彻底杜绝切篇/重开时保留滚动位置）
+function resetArticleModalScroll() {
+  const modal = document.getElementById('article-modal');
+  const modalContent = document.getElementById('article-modal-content');
+  if (modal) {
+    modal.scrollTop = 0;
+    if (typeof modal.scrollTo === 'function') {
+      try { modal.scrollTo({ top: 0, left: 0, behavior: 'instant' }); } catch (_) { modal.scrollTop = 0; }
+    }
+  }
+  if (modalContent) {
+    modalContent.scrollTop = 0;
+    if (typeof modalContent.scrollTo === 'function') {
+      try { modalContent.scrollTo({ top: 0, left: 0, behavior: 'instant' }); } catch (_) { modalContent.scrollTop = 0; }
+    }
+    delete modalContent.dataset.thanked;
+  }
+  const progress = document.getElementById('article-progress');
+  if (progress) progress.style.width = '0%';
+}
+
 // 弹窗内容方向性切换
 // 首选 View Transitions API：新旧快照真·交叉溶解（旧滑出的同时新滑入，无两段式空档）
 // 回退：立即换内容 + 单段淡入
@@ -1249,6 +1288,7 @@ function swapModalContent(el, mutate, dir = 'fade') {
   // 减少动效 / 弹窗不可见时直接换内容，不做过渡
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !el.offsetParent) {
     mutate();
+    resetArticleModalScroll();
     return;
   }
   if (el._swapTimer) { clearTimeout(el._swapTimer); el._swapTimer = null; }
@@ -1258,17 +1298,25 @@ function swapModalContent(el, mutate, dir = 'fade') {
     const apply = () => {
       CLS.forEach((c) => el.classList.remove(c));
       mutate();
+      resetArticleModalScroll();
     };
     document.documentElement.classList.add('vt-' + dir);
     const vt = document.startViewTransition(apply);
-    vt.finished.finally(() => document.documentElement.classList.remove('vt-' + dir));
+    vt.finished.finally(() => {
+      document.documentElement.classList.remove('vt-' + dir);
+      resetArticleModalScroll();
+    });
     return;
   }
 
   mutate();
+  resetArticleModalScroll();
   void el.offsetWidth; // 强制回流，确保入场动画从头播放
   el.classList.add('content-in-' + dir);
-  el._swapTimer = setTimeout(() => el.classList.remove('content-in-' + dir), 450);
+  el._swapTimer = setTimeout(() => {
+    el.classList.remove('content-in-' + dir);
+    resetArticleModalScroll();
+  }, 450);
 }
 
 window.openArticleModal = function(id, skipUrlSync) {
@@ -1281,6 +1329,7 @@ window.openArticleModal = function(id, skipUrlSync) {
   if (modal._closeTimer) { clearTimeout(modal._closeTimer); modal._closeTimer = null; }
   modal.classList.remove('is-closing');
   modal._lastFocus = document.activeElement;
+  resetArticleModalScroll();
   // 记录切换前的状态：弹窗已打开时切篇走方向性交叉过渡
   const wasOpen = !modal.classList.contains('hidden') && !modal.classList.contains('is-closing');
   const prevActiveArticle = activeArticle;
@@ -1361,6 +1410,10 @@ window.openArticleModal = function(id, skipUrlSync) {
         <h1 class="text-2xl sm:text-3xl font-extrabold text-[#1d1d1f] dark:text-white tracking-tight">${escapeHtml(article.title)}</h1>
         ${versionChips}
       </div>
+      ${article.cover ? `
+      <div class="w-full rounded-xl overflow-hidden border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 aspect-[16/9] max-h-72">
+        <img src="${escapeHtml(article.cover)}" alt="${escapeHtml(article.title)}" class="w-full h-full object-cover">
+      </div>` : ''}
       <div class="markdown-body text-[#1d1d1f] dark:text-[#f5f5f7]">
         ${parsedMarkdown}
       </div>
@@ -1388,6 +1441,7 @@ window.openArticleModal = function(id, skipUrlSync) {
       addCopyButtons(modalContent);
       buildArticleToc(modalContent);
       initTocSpy(modalContent);
+      resetArticleModalScroll();
     });
   }
 
@@ -1437,10 +1491,7 @@ window.openArticleModal = function(id, skipUrlSync) {
   }
 
   // 切换篇目后回到正文顶部、复位进度条与致谢状态
-  modalContent.scrollTop = 0;
-  delete modalContent.dataset.thanked;
-  const progress = document.getElementById('article-progress');
-  if (progress) progress.style.width = '0%';
+  resetArticleModalScroll();
   if (window.lucide) window.lucide.createIcons();
   };
 
@@ -1460,6 +1511,10 @@ window.openArticleModal = function(id, skipUrlSync) {
 
   modal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
+  resetArticleModalScroll();
+  requestAnimationFrame(() => {
+    resetArticleModalScroll();
+  });
   if (!skipUrlSync) {
     const url = new URL(location.href);
     url.searchParams.set('post', id);
@@ -1472,6 +1527,7 @@ window.openArticleModal = function(id, skipUrlSync) {
 window.closeArticleModal = function(skipUrlSync) {
   const modal = document.getElementById('article-modal');
   const wasOpen = modal && !modal.classList.contains('hidden') && !modal.classList.contains('is-closing');
+  resetArticleModalScroll();
   if (modal) animateModalClose(modal);
   if (wasOpen && !skipUrlSync) {
     if (modal && modal._urlPushed) {
@@ -2001,19 +2057,26 @@ function initSmoothAnchors() {
 
 // 文章弹窗阅读进度条：随弹窗内滚动更新宽度（内容不满一屏时保持 0）
 function initArticleProgress() {
+  const modal = document.getElementById('article-modal');
   const content = document.getElementById('article-modal-content');
   const bar = document.getElementById('article-progress');
-  if (!content || !bar) return;
-  content.addEventListener('scroll', () => {
-    const max = content.scrollHeight - content.clientHeight;
-    const ratio = max > 40 ? Math.min(content.scrollTop / max, 1) : 0;
-    bar.style.width = `${ratio * 100}%`;
+  if (!bar) return;
+
+  const onScroll = () => {
+    const scroller = (modal && modal.scrollTop > 5) ? modal : (content || modal);
+    if (!scroller) return;
+    const max = scroller.scrollHeight - scroller.clientHeight;
+    const ratio = max > 40 ? Math.min(Math.max(scroller.scrollTop / max, 0), 1) : 0;
+    bar.style.width = `${(ratio * 100).toFixed(1)}%`;
     // 读完致谢：滚动到底一次性提示
-    if (max > 40 && ratio >= 0.985 && !content.dataset.thanked) {
+    if (max > 40 && ratio >= 0.985 && content && !content.dataset.thanked) {
       content.dataset.thanked = '1';
       showToast('读完了，谢谢你 ❤');
     }
-  }, { passive: true });
+  };
+
+  if (content) content.addEventListener('scroll', onScroll, { passive: true });
+  if (modal) modal.addEventListener('scroll', onScroll, { passive: true });
 }
 
 // 为弹窗内的代码块追加一键复制按钮（剪贴板 API 不可用时静默跳过）
@@ -2063,6 +2126,9 @@ function animateModalClose(modal) {
     modal.classList.add('hidden');
     modal.classList.remove('is-closing');
     modal._closeTimer = null;
+    modal.scrollTop = 0;
+    const inner = modal.querySelector('#article-modal-content, #project-modal-content');
+    if (inner) inner.scrollTop = 0;
   }, 240);
 }
 

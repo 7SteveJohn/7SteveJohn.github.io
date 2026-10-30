@@ -4,6 +4,7 @@ title: 四、Agent 为什么会翻车：智能体的能力边界在哪
 date: 2026-09-29
 readTime: 9 分钟
 category: AI 学习
+cover: "assets/images/covers/ai-04-agent.svg"
 section: ai
 summary: 智能体翻车是常态而非意外：拆解函数调用与规划幻觉的机制、实验室与现场的落差，以及复合型人才的机会。
 tags: [AI, Agent, 规划幻觉, 私有化部署]

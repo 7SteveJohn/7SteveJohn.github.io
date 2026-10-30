@@ -4,6 +4,7 @@ title: 纯前端 60KB 矢量 Roguelike：零依赖地牢引擎实现手记
 date: 2026-10-12
 readTime: 4 分钟
 category: 游戏创作
+cover: "assets/images/covers/cover-abysswalker.svg"
 section: creation
 summary: 不放任何外部图片与音频，用 60KB 原生 HTML/JS 实现完整地牢肉鸽：Canvas 纯代码矢量画怪、WebAudio 现场合成打击音效、Bresenham 视线迷雾与确定性随机种子。
 tags: [JavaScript, Canvas, Roguelike, WebAudio, 独立游戏]

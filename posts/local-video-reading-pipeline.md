@@ -4,6 +4,7 @@ title: 本地视频阅读工作流：从镜头切分到端侧多模态理解
 date: 2026-10-18
 readTime: 4 分钟
 category: 架构设计
+cover: "assets/images/covers/cover-video-reading.svg"
 summary: 长视频直接塞给模型又慢又费显存。记录一条数据不出机的端侧流水线：PySceneDetect 找切镜点、faster-whisper 离线转写、本地 Qwen2.5-VL 读关键帧与向量索引检索。
 tags: [Python, ffmpeg, PySceneDetect, Whisper, 端侧AI, 本地模型]
 ---

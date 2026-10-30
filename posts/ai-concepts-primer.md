@@ -4,6 +4,7 @@ title: 一、Token 是什么：把 AI 圈最容易用错的几个词说清楚
 date: 2026-09-23
 readTime: 9 分钟
 category: AI 学习
+cover: "assets/images/covers/ai-01-token.svg"
 section: ai
 summary: AI 圈一半争论源于词没对齐。拆解 Token、上下文窗口、温度系数，以及三个流传最广的误区。
 tags: [AI, Token, 上下文窗口, 幻觉]

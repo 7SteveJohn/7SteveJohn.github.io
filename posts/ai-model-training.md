@@ -4,6 +4,7 @@ title: 二、大模型是怎么炼成的：从数据清洗到人类对齐
 date: 2026-09-25
 readTime: 10 分钟
 category: AI 学习
+cover: "assets/images/covers/ai-02-training.svg"
 section: ai
 summary: 预训练给智力，后训练给性格。拆解数据清洗到人类对齐这条流水线，以及越狱的本质、对齐税和训练与推理两本算力账。
 tags: [AI, RLHF, 预训练, 数据清洗]

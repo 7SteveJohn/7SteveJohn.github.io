@@ -4,6 +4,7 @@ title: Ollama 显存适配：默认参数是给显存够用的机器配的
 date: 2026-09-12
 readTime: 7 分钟
 category: 本地 AI
+cover: "assets/images/covers/cover-ollama.svg"
 summary: 模型跑起来了，但接进自己程序之后开始变慢、偶发失败。记录我在 8GB 上收回来的几个参数，以及把本地模型当「可选项」设计这条底线。
 tags: [Ollama, 显存, 量化, 端侧AI]
 ---

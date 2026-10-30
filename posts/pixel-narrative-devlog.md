@@ -4,6 +4,7 @@ title: 像素叙事游戏开发手记：从引擎选型到工程化落地
 date: 2026-10-17
 readTime: 4 分钟
 category: 游戏创作
+cover: "assets/images/covers/cover-pixel-narrative.svg"
 section: creation
 summary: 从 Godot 4 换到 RPG Maker MZ 的技术考量，以及 2D 像素叙事工程的踩坑细节：外挂脚本管理数据、定制全屏暗色阅读器、修复行走图下沉步态与材质脚步声。
 tags: [像素, 叙事, RPG Maker MZ, 游戏开发, 独立游戏]

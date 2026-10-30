@@ -4,6 +4,7 @@ title: 五、中国 AI 的长板与短板：为什么落地快、原创少
 date: 2026-10-01
 readTime: 11 分钟
 category: AI 学习
+cover: "assets/images/covers/ai-05-china.svg"
 section: ai
 summary: 中国 AI 的真实画像是落地快、原创少——同一结构的一体两面；拆开长板与短板，以及对普通人的含义。
 tags: [AI, 中国 AI, 算力, 开源]

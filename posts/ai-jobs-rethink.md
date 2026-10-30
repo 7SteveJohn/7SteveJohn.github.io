@@ -4,6 +4,7 @@ title: 六、AI 会抢走谁的饭碗：为什么不必都挤向开发岗
 date: 2026-10-03
 readTime: 11 分钟
 category: AI 学习
+cover: "assets/images/covers/ai-06-jobs.svg"
 section: ai
 summary: AI 抢的是任务，不是岗位。拆解电网、矿山、政务、医疗落地案例，看清行业复合型人才为何最缺。
 tags: [AI, 就业, 岗位迭代, 行业复合型]
