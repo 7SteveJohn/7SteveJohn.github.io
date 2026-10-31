@@ -312,17 +312,13 @@
       </a>
     </section>
 
-    <!-- 2. 🚀 三大旗舰单品画卷式深度专栏 (Product Featurettes) -->
+    <!-- 2. 🚀 三大旗舰单品画卷式深度专栏 (Product Featurettes)
+         ❗原来的栏目标题（「手边诸器 · …」独立 reveal 块）已于 2026-10-31 删除：
+         首屏收短到 78svh 后它会孤零零露在首屏底部一行，用户反馈「很割裂」；
+         且语义与 hero 的作品目录条重复（目录条本身就是「每一件都在用」）。
+         删掉后首屏底部直接是第一张卡的开头。翻页分组 collectPageUnits 对
+         null 有守卫，不受影响 -->
     <section id="products" class="dark max-w-5xl mx-auto px-4 sm:px-6 space-y-16 sm:space-y-16 scroll-mt-20" data-page-node-id="v9HuzJx74eqKXEzhilxgcq">
-      
-      <div class="reveal border-b border-[#d2d2d7]/50 dark:border-white/10 pb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-node-id="keNqlVOxnQ7MLM19gfVWnz">
-        <div data-page-node-id="9KRTlDHUr8go3VVL9MpADU">
-          <!-- 栏目副标题：写法 = 四字题 · 对句（用户口径的「副标题」= 显示字；眉标小字已删——副标题已足够）
-               ❗原来这里与 hero 副标题逐字相同（2026-10-31 发现）：滚下来会看到同一句话两次。
-               换成「手边诸器」这一支，语义落在「都在用 + 取舍写在卡里」，正好对上这一栏的内容 -->
-          <p class="font-display text-2xl sm:text-3xl text-[#1d1d1f] dark:text-white mt-1" data-page-node-id="LrXkwbdTuP1urECxzIDxyk">手边诸器 · 每一件都在用，取舍写在卡里</p>
-        </div>
-      </div>
 
       <!-- 单品 1: FileButler -->
       <article data-project-id="filebutler" class="bento-card reveal overflow-hidden" data-page-node-id="tC0KmIuf8B8maWBqB0CMiw">

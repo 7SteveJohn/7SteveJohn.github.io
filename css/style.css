@@ -465,10 +465,8 @@ header.site-header:not(.is-scrolled) {
 /* 首屏与产品区之间原有一段 main 的 sm:space-y-36（144px），
    首屏收短后它变成一大块死白。这里单独压到 0——两段关系本来就紧，
    靠 #home 自己的 padding-bottom 已经留够呼吸。 */
-@media (min-width: 640px) {
-  main > #home + #products {
-    margin-top: 0;
-  }
+main > #home + #products {
+  margin-top: 0;
 }
 #home > *:not(.hero-veil):not(.hero-who) {
   position: relative;

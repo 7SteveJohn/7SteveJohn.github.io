@@ -1524,7 +1524,9 @@ function collectPageUnits() {
   add(document.getElementById('home'));
   const products = document.getElementById('products');
   if (products && products.offsetHeight > 0) {
-    add(products.querySelector(':scope > .reveal'));            // 产品区标题页
+    // 产品区标题页已删（2026-10-31，见 index.html products 注释）。
+    // ❗不能保留 querySelector(':scope > .reveal')：栏目标题删掉后它会命中第一张卡，
+    // 与下面的 :scope > article 重复入队
     products.querySelectorAll(':scope > article').forEach(add); // 每张产品卡一页
   }
   for (const s of collectNavSections().sections) {
