@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v170';   // 2026-10-31 Fluxion 新介绍片 / 卡片加网盘与 Releases 按钮 / 版本 1.3.0
+const CACHE = 'sevenjohn-v171';   // 2026-10-31 Fluxion 介绍片改场景式（替换长页版）
 const CORE = [
   './',
   'index.html',
