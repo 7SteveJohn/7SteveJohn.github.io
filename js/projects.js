@@ -302,18 +302,21 @@ Electron + Vite + TypeScript，数据存本机文件夹（卸载不删稿子）�
     tags: ["C#", "WinForms", "51 项体检", "DLSS 帧生成", "游戏联动", "实时监控"],
     image: "assets/images/cover-fluxion.webp",
     githubUrl: "https://github.com/7SteveJohn/Fluxion",
+    demoUrl: "https://github.com/7SteveJohn/Fluxion/releases",
+    downloadUrl: "https://wwblz.lanzouu.com/b00q1u0qpa",
+    downloadPwd: "1ici",
     featured: true,
     role: "开发",
     challenge: "两件事最难：一是 51 项系统改动要「真的生效」且能一键还原，二是 20/30 系帧生成代理经常「加载了但没激活」。解法分别是：每项执行前先备份并把状态分成已生效 / 未生效 / 待确认 / 需处理四档，HPET 强制、MSI 强制转换这类改错会丢设备的项只核验不给旋钮；代理是否激活用日志 + 进程模块双证据判定，失败自动换入口 DLL 重试。",
-    version: "v1.1.0",
-    updated: "2026-09-30",
+    version: "v1.3.0",
+    updated: "2026-10-31",
     requires: "Windows 10/11 · NVIDIA RTX 20 系及以上（帧生成功能）",
     details: `
 <img src="assets/images/cover-fluxion.webp" alt="Fluxion 实机界面" style="width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:block;">
 <p style="font-size:12px;color:#86868b;margin-top:6px;">Fluxion 实机主界面；38 秒介绍视频在项目卡片上。</p>
 
 ### 💡 这是什么
-GameBoost（系统优化）和 DLSSG-Tool（帧生成）合并重构的完整版，七个页面——仪表盘、性能优化、帧生成、游戏库、实时监控、说明、设置。一句话：**一键把系统调到适合游戏的状态，并给 RTX 20/30 系接上 NVIDIA 官方只给 40/50 系的 DLSS 帧生成。**
+GameBoost（系统优化）和 DLSSG-Tool（帧生成）合并重构的完整版，六个页面——仪表盘、性能优化、游戏库、实时监控、说明、设置，帧生成并进游戏库。一句话：**一键把系统调到适合游戏的状态，并给 RTX 20/30 系接上 NVIDIA 官方只给 40/50 系的 DLSS 帧生成。**
 
 ### 📊 仪表盘
 - 游戏联动状态（远程状态 / 联动 / 场景）+ 实时负载瓦片：CPU / 内存 / GPU / GPU 温度
@@ -353,7 +356,7 @@ GameBoost（系统优化）和 DLSSG-Tool（帧生成）合并重构的完整版
 - **便携版 / 安装版**同一个 exe 运行时自动判断，升级保留你的配置
 
 ### 说明
-完整版要动电源、注册表、网卡这些系统设置，风险面比分享版大——源码放在 GitHub 上，安装包暂不对外分发。想用帧生成功能，用 **GameBoost-DLSSG 分享版**（单独一张卡）就行，同一套方案。
+完整版要动电源、注册表、网卡这些系统设置，风险面比分享版大。只想用帧生成的话，用 **GameBoost-DLSSG 分享版**（单独一张卡）就行，同一套方案。
   `
   }
 ];
