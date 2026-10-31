@@ -449,11 +449,10 @@ header.site-header:not(.is-scrolled) {
    ============================================================ */
 #home {
   position: relative;
-  /* 2026-10-31：原来占满一屏（100svh - 48px），但内容只有 ~530px，
-     下面 300px 全是空的 —— 「打开就劝退」的直接来源。
-     收到 78svh 后内容基本填满，滚动时下方项目区会露头，给一个「还有东西」的暗示。
-     ❗翻页逻辑（collectPageUnits）按 DOM 元素分组、不按视口高度算，改这里不影响逐页下翻。 */
-  min-height: 78svh;
+  /* 2026-10-31 二次调整：用户明确「第一页只做总展示，不放任何项目」，
+     桌面目录条隐藏（见下方 media），78svh 会让卡片露头 = 又把项目摆上来了，
+     所以恢复满屏；手机端目录条保留，空间小反而是有用的导航 */
+  min-height: calc(100svh - 48px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -502,8 +501,13 @@ main > #home + #products {
     rgba(5, 7, 12, 0.70) 100%);
 }
 /* 首屏作品索引（2026-10-31）：六个工具排成两行三列，编号 + 名称 + 版本。
-   目的是让「打开第一眼」就看到做完了什么，而不是一片空。
-   靠 border-bottom 做条目分隔（编辑风的细线），不画卡片、不加底色。 */
+   ❗桌面端隐藏（2026-10-31 用户明确：第一页只做总展示，不放任何项目，
+   项目入口走导航与 hero 按钮）；只有手机窄屏保留——空间小，它是最省地的导航 */
+@media (min-width: 640px) {
+  /* ❗nav 提特指度：这条必须压过下面的 #home .hero-index { display:grid }，
+     同特指度时看书写顺序，media 在前面写会被后面覆盖（实测踩过） */
+  #home nav.hero-index { display: none; }
+}
 #home .hero-index {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
