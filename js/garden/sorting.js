@@ -12,7 +12,7 @@
 
   const C = {
     idle: 'rgba(134, 134, 139, 0.55)',
-    cmp: '#8FB8FF',
+    cmp: '#C2D96B',
     swap: '#FF453A',
     done: '#30D158',
     text: 'rgba(185, 200, 255, 0.75)'

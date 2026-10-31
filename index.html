@@ -264,8 +264,33 @@
         </button>
       </div>
 
+      <!-- 作品索引（2026-10-31）：首屏原来只有标题 + 三个按钮，中间近 300px 全空，
+           打开第一眼看不到任何「做出来的东西」——这是「打开就劝退」的直接原因。
+           这里把六个工具按卡序摆成目录，既是内容也是入口，点了直接落到对应卡片。
+           ❗名称与版本号手写在这里，换版本/加项目要跟 projects.js 一起改 -->
+      <nav class="hero-anim hero-index" aria-label="作品索引" style="--i:4">
+        <a href="#products" class="hi-row" data-hi="filebutler">
+          <span class="hi-no">01</span><span class="hi-name">FileButler</span><span class="hi-ver">v1.4.2</span>
+        </a>
+        <a href="#products" class="hi-row" data-hi="paian">
+          <span class="hi-no">02</span><span class="hi-name">拍案</span><span class="hi-ver">v1.0.2</span>
+        </a>
+        <a href="#products" class="hi-row" data-hi="netops-handbook">
+          <span class="hi-no">03</span><span class="hi-name">NetOps</span><span class="hi-ver">v2.0.5</span>
+        </a>
+        <a href="#products" class="hi-row" data-hi="fluxion">
+          <span class="hi-no">04</span><span class="hi-name">Fluxion</span><span class="hi-ver">v1.1.0</span>
+        </a>
+        <a href="#products" class="hi-row" data-hi="gameboost">
+          <span class="hi-no">05</span><span class="hi-name">GameBoost</span><span class="hi-ver">v1.0.5</span>
+        </a>
+        <a href="#products" class="hi-row" data-hi="gameboost-dlssg">
+          <span class="hi-no">06</span><span class="hi-name">DLSSG</span><span class="hi-ver">v1.0.0</span>
+        </a>
+      </nav>
+
       <!-- 真实头像与创作者介绍（点击进「关于我」） -->
-      <a href="#about" class="hero-anim hero-who flex items-center gap-4 text-left" style="--i:4" title="关于我" data-page-node-id="Q3QNk18xnLDCY550n40CHw">
+      <a href="#about" class="hero-anim hero-who flex items-center gap-4 text-left" style="--i:5" title="关于我" data-page-node-id="Q3QNk18xnLDCY550n40CHw">
         <div class="w-14 h-14 rounded-full overflow-hidden border border-black/10 dark:border-white/20 shadow-md" data-page-node-id="bD1WWLYIXTF9DJC4o6TtPq">
           <img
             src="assets/images/avatar.webp"
@@ -288,12 +313,14 @@
     </section>
 
     <!-- 2. 🚀 三大旗舰单品画卷式深度专栏 (Product Featurettes) -->
-    <section id="products" class="dark max-w-5xl mx-auto px-4 sm:px-6 space-y-16 sm:space-y-24 scroll-mt-20" data-page-node-id="v9HuzJx74eqKXEzhilxgcq">
+    <section id="products" class="dark max-w-5xl mx-auto px-4 sm:px-6 space-y-16 sm:space-y-16 scroll-mt-20" data-page-node-id="v9HuzJx74eqKXEzhilxgcq">
       
       <div class="reveal border-b border-[#d2d2d7]/50 dark:border-white/10 pb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-node-id="keNqlVOxnQ7MLM19gfVWnz">
         <div data-page-node-id="9KRTlDHUr8go3VVL9MpADU">
-          <!-- 栏目副标题：写法 = 四字题 · 对句（用户口径的「副标题」= 显示字；眉标小字已删——副标题已足够） -->
-          <p class="font-display text-2xl sm:text-3xl text-[#1d1d1f] dark:text-white mt-1" data-page-node-id="LrXkwbdTuP1urECxzIDxyk">屿间汇叙 · 一隅存工码，亦叙尘世星文</p>
+          <!-- 栏目副标题：写法 = 四字题 · 对句（用户口径的「副标题」= 显示字；眉标小字已删——副标题已足够）
+               ❗原来这里与 hero 副标题逐字相同（2026-10-31 发现）：滚下来会看到同一句话两次。
+               换成「手边诸器」这一支，语义落在「都在用 + 取舍写在卡里」，正好对上这一栏的内容 -->
+          <p class="font-display text-2xl sm:text-3xl text-[#1d1d1f] dark:text-white mt-1" data-page-node-id="LrXkwbdTuP1urECxzIDxyk">手边诸器 · 每一件都在用，取舍写在卡里</p>
         </div>
       </div>
 
@@ -1049,7 +1076,9 @@
     requestAnimationFrame(() => setTimeout(bootCosmos, 0));
   </script>
   <!-- Live2D 看板娘：桌面端、首屏稳定后才拉自托管运行时（首次交互 / 3.5s 内触发，1.9MB 不进预缓存）
-       其余（site-config / wallpaper / tab-nav / settings-panel / nav-indicator / player）已在上面两个 bundle 里 -->
-  <script src="js/live2d.js" defer></script>
+       其余（site-config / wallpaper / tab-nav / settings-panel / nav-indicator / player）已在上面两个 bundle 里
+       ❗2026-10-31 暂时下线：模型还没做完，先不放到线上（详见 js/site-config.js 的 live2d 开关）。
+       恢复：取消下面那行的注释，并把 site-config.js 的 live2d 改回 true。 -->
+  <!-- <script src="js/live2d.js" defer></script> -->
 </body>
 </html>

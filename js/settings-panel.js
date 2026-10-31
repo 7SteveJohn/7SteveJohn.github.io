@@ -119,7 +119,9 @@
     '    <span class="fx-label">推理场</span>',
     '    <input type="checkbox" id="fx-cosmos" /><span class="fx-sw" aria-hidden="true"></span>',
     '  </label>',
-    '  <label class="fx-row fx-row-sw">',
+    // 看板娘暂时下线（site-config.js 的 live2d=false）：整行藏起来，免得点了没反应。
+    // 元素留在 DOM 里而不是不渲染——下面还有 4 处引用 elLive2d，摘掉要连带改判空，不划算
+    '  <label class="fx-row fx-row-sw"' + (CFG.live2d === false ? ' style="display:none"' : '') + '>',
     '    <span class="fx-label">看板娘</span>',
     '    <input type="checkbox" id="fx-live2d" /><span class="fx-sw" aria-hidden="true"></span>',
     '  </label>',

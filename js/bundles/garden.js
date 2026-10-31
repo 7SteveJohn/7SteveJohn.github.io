@@ -1,4 +1,4 @@
-// build-bundles: {"name":"garden","version":"c06ad5e6fd59","sources":[{"path":"js/garden/life.js","sha256":"52284d428327bd3d7199fb10b63fba64f50b8a8daf482a14d294fca8d45a50d9"},{"path":"js/garden/sorting.js","sha256":"ac884647253f74270e2ec58b42623fffd91644771f7aa5d8907d6ccc685795fe"},{"path":"js/garden/stars.js","sha256":"c404e439cda44595690fe82be8428d84c120a8c9982ba030b531ac86cf0a2916"},{"path":"js/garden.js","sha256":"81ddfd4d8ff1a8927f481abca8d48203618f0fdbf0e16ac49c5b1173a379db40"}]}
+// build-bundles: {"name":"garden","version":"0806595823a7","sources":[{"path":"js/garden/life.js","sha256":"52284d428327bd3d7199fb10b63fba64f50b8a8daf482a14d294fca8d45a50d9"},{"path":"js/garden/sorting.js","sha256":"12527e06167eb44b0de27174246c5fd3351c0fea7f7ccba3147be52e066eb195"},{"path":"js/garden/stars.js","sha256":"c404e439cda44595690fe82be8428d84c120a8c9982ba030b531ac86cf0a2916"},{"path":"js/garden.js","sha256":"81ddfd4d8ff1a8927f481abca8d48203618f0fdbf0e16ac49c5b1173a379db40"}]}
 /* 仅花园：三个玩具 → 框架（顺序敏感）
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/garden/life.js → js/garden/sorting.js → js/garden/stars.js → js/garden.js */
@@ -153,7 +153,7 @@
 
 ;
 
-// ---- js/garden/sorting.js (ac884647253f) ----
+// ---- js/garden/sorting.js (12527e06167e) ----
 /**
  * 花园玩具 ②：排序可视化
  * ----------------------------------------------------
@@ -168,7 +168,7 @@
 
   const C = {
     idle: 'rgba(134, 134, 139, 0.55)',
-    cmp: '#8FB8FF',
+    cmp: '#C2D96B',
     swap: '#FF453A',
     done: '#30D158',
     text: 'rgba(185, 200, 255, 0.75)'

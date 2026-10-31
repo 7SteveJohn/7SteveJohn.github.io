@@ -1,9 +1,9 @@
-// build-bundles: {"name":"home","version":"622d680d748c","sources":[{"path":"js/status.js","sha256":"a7c77fe6d3562d4cfa45a24a7dc2005a7f0a0d7290daca20a77d2c95f22d5900"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"6f5b28dc5b24c50891a87c04d76a1e1cdf4e1eebcf93e6a727024847fc8d8577"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"c1e0fc6b32f552a10af1a3ac20909ecf9baec8cfd1b5a2c77f42b07f9770ab8e"}]}
+// build-bundles: {"name":"home","version":"2b90f226faf0","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"e84e709087aaaa775c90a49915a0f61b672234972b91ce3bf96ec7fb4d95900e"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"c1e0fc6b32f552a10af1a3ac20909ecf9baec8cfd1b5a2c77f42b07f9770ab8e"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
 
-// ---- js/status.js (a7c77fe6d356) ----
+// ---- js/status.js (dc844cf00754) ----
 /**
  * 个人状态仪表盘数据 (status.js)
  * ----------------------------------------------------
@@ -12,7 +12,7 @@
  */
 window.SITE_STATUS = {
   reading: '',                                  // 当前在读，如：'《失控》'
-  building: '自制 Live2D 看板娘「7steve」',       // 正在进行的项目
+  building: '',                                 // 正在进行的项目（看板娘已下线，先留空；待填新的）
   mood: '',                                     // 一句话心情，如：'🔋 电量 80%'
   updated: '2026-10-23'                         // 最近更新日期
 };
@@ -380,7 +380,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (6f5b28dc5b24) ----
+// ---- js/app.js (e84e709087aa) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -443,6 +443,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 8. 本地趣味件：时段问候 / 状态仪表盘 / 键盘彩蛋
   initHeroGreeting();
   initHeroStatus();
+  initHeroIndex();
   initKonami();
   initGlassSpec();
 
@@ -1078,6 +1079,32 @@ function initHeroStatus() {
   if (!el || !parts.length) return;
   el.textContent = parts.join(' · ') + (s.updated ? `（更新于 ${s.updated}）` : '');
   el.classList.remove('hidden');
+}
+
+// 首屏作品索引（2026-10-31）：点条目落到对应项目卡，不是只滚到产品区顶部。
+// 没有 JS 时 href="#products" 仍然可用（SEO / 键盘降级），有 JS 才走精确落点。
+function initHeroIndex() {
+  const nav = document.querySelector('#home .hero-index');
+  if (!nav) return;
+  nav.addEventListener('click', (e) => {
+    const link = e.target.closest('[data-hi]');
+    if (!link) return;
+    const card = document.querySelector('[data-project-id="' + link.dataset.hi + '"]');
+    if (!card) return;
+    e.preventDefault();
+    // ❗必须拦在 document 之前：initSmoothAnchors 在 document 上监听 a[href^="#"]，
+    // 会在冒泡阶段把我的落点覆盖成「滚到 #products 顶部」（实测两个不同条目都停在 739）
+    e.stopPropagation();
+    // 产品区开着 CSS 滚动吸附（snap-products，scroll-snap-stop:always 一次只放一张卡），
+    // 不摘掉的话 scrollIntoView 会被吸到附近某张卡上——实测落点偏 133px。
+    // 借 .no-snap 这个现成的「逃生口」临时放行，滚完再挂回去
+    const root = document.documentElement;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    root.classList.add('no-snap');
+    card.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    setTimeout(() => root.classList.remove('no-snap'), 900);
+    history.pushState(null, '', '#products');
+  });
 }
 
 // 键盘序列彩蛋：↑↑↓↓←→←→BA 触发粒子彩色庆典
@@ -1796,6 +1823,9 @@ function initNavScrollState() {
       backTop.classList.toggle('opacity-0', !show);
       backTop.classList.toggle('pointer-events-none', !show);
     }
+    // 内容区背景退场（样式见 style.css 的 html.wp-fade）：滚过首屏 62% 就把壁纸
+    // 淡到几乎不见。项目卡片才是这一站的主体，背景只负责首屏那一段氛围
+    document.documentElement.classList.toggle('wp-fade', y > window.innerHeight * 0.62);
     // 阅读中让底部浮层退场：手机上音乐 FAB 会压住正文（实测 390×844 命中卡片末行），
     // 滚动期间降到 .28，停手 700ms 复原。不改位置、不影响拖拽与点击
     document.body.classList.add('is-scrolling');

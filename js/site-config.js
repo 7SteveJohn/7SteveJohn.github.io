@@ -46,6 +46,13 @@
     ],
     themeColors: ['#030712', '#0b1226', '#1b2140', '#2a2350'],
 
+    // ---- 功能开关 ----
+    // 看板娘（Live2D）：模型还没做完，整体先下线（2026-10-31）。
+    // false 时三处同时收口：index.html 不加载 js/live2d.js、设置面板不显示「看板娘」开关、
+    // css/settings-panel.css 的 fx-no-live2d 无对象可作用。
+    // 恢复：这里改回 true，再把 index.html 末尾那行 script 的注释解开。
+    live2d: false,
+
     // ---- 文章封面：没写 cover 的文章用「品牌渐变 + 栏目首字」自动封面 ----
     defaultCover: '',
 

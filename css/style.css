@@ -103,14 +103,15 @@ h1, h2, h3 {
 .project-facts {
   display: grid;
   gap: 0.4rem;
-  padding: 0.875rem 1rem;
-  border-radius: 0.75rem;
-  border: 1px solid var(--hairline);
-  background: rgba(0, 0, 0, 0.02);
+  /* 2026-10-31：原来是「卡片里再套一张卡」（浅底 + 圆角 + 边框），
+     跟项目卡本身形成第三层矩形，层级越叠越乱。改成编辑风的引文块：
+     只用一条左侧竖线分隔，不加底色不加边框。 */
+  padding: 0.15rem 0 0.15rem 0.9rem;
+  border-left: 1px solid var(--hairline-strong);
   font-size: 0.8125rem;
   line-height: 1.65;
 }
-.dark .project-facts { background: rgba(255, 255, 255, 0.03); }
+.dark .project-facts { background: none; }
 .project-facts .pf-row {
   display: grid;
   grid-template-columns: 4.5rem 1fr;
@@ -219,12 +220,23 @@ h1, h2, h3 {
 .dark .bento-card:hover {
   border-color: var(--hairline-strong);
 }
+/* 卡片正文：原来沿用全站 #86868b，在 #141415 上只有约 4.8:1，
+   整段项目描述读起来发虚。这一屏真正要读的就是它，提一档（2026-10-31）。 */
+.dark .bento-card [data-card-desc] {
+  color: #a7b1c3;
+}
 html:not(.dark) .bento-card {
   background: #ffffff;
   border: 1px solid var(--hairline);
 }
 html:not(.dark) .bento-card:hover {
   border-color: var(--hairline-strong);
+}
+
+/* 首屏作品索引跳转的落点让位（2026-10-31）：吸顶导航高约 49px，
+   留 72px 让卡片标题不被压住。只作用于索引跳转的 scrollIntoView */
+#products > article[data-project-id] {
+  scroll-margin-top: 72px;
 }
 
 /* 数字：等宽 + 常规字重（编辑风不做巨型描边数字） */
@@ -327,7 +339,15 @@ html:not(.dark) .bento-card:hover {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.30) 0%, rgba(0, 0, 0, 0) 40%);
+  /* 海报压暗（2026-10-31）：四支介绍片都是浅底长页，原样铺在深色卡片里
+     就是一块米白大白块——卡片区背景一干净，它比改之前更扎眼。
+     做法不是整体蒙灰（会连封面文字一起糊掉），而是「中间留清、四角融进卡片」，
+     矩形硬边界消失，读起来像暗色画框里的演示画面。点开后覆盖层移除，
+     视频本色不受影响。 */
+  background:
+    linear-gradient(to top, rgba(6, 8, 14, 0.62) 0%, rgba(6, 8, 14, 0.16) 46%, rgba(6, 8, 14, 0) 76%),
+    radial-gradient(ellipse 82% 82% at 50% 46%,
+      rgba(6, 8, 14, 0.22) 0%, rgba(6, 8, 14, 0.42) 72%, rgba(6, 8, 14, 0.66) 100%);
 }
 .cover-box { position: relative; }   /* 覆盖层的定位锚（cover-box 原本无定位） */
 .video-play-btn {
@@ -429,14 +449,26 @@ header.site-header:not(.is-scrolled) {
    ============================================================ */
 #home {
   position: relative;
-  min-height: calc(100svh - 48px);
+  /* 2026-10-31：原来占满一屏（100svh - 48px），但内容只有 ~530px，
+     下面 300px 全是空的 —— 「打开就劝退」的直接来源。
+     收到 78svh 后内容基本填满，滚动时下方项目区会露头，给一个「还有东西」的暗示。
+     ❗翻页逻辑（collectPageUnits）按 DOM 元素分组、不按视口高度算，改这里不影响逐页下翻。 */
+  min-height: 78svh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   overflow: hidden;
-  padding-top: max(5.5rem, 14svh);
+  padding-top: max(5.5rem, 12svh);
   padding-bottom: 5rem;
+}
+/* 首屏与产品区之间原有一段 main 的 sm:space-y-36（144px），
+   首屏收短后它变成一大块死白。这里单独压到 0——两段关系本来就紧，
+   靠 #home 自己的 padding-bottom 已经留够呼吸。 */
+@media (min-width: 640px) {
+  main > #home + #products {
+    margin-top: 0;
+  }
 }
 #home > *:not(.hero-veil):not(.hero-who) {
   position: relative;
@@ -471,6 +503,62 @@ header.site-header:not(.is-scrolled) {
     rgba(5, 7, 12, 0) 66%, rgba(5, 7, 12, 0.30) 86%,
     rgba(5, 7, 12, 0.70) 100%);
 }
+/* 首屏作品索引（2026-10-31）：六个工具排成两行三列，编号 + 名称 + 版本。
+   目的是让「打开第一眼」就看到做完了什么，而不是一片空。
+   靠 border-bottom 做条目分隔（编辑风的细线），不画卡片、不加底色。 */
+#home .hero-index {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem 1.5rem;
+  width: 100%;
+  /* margin-top:auto 把目录推到底部：标题在上、目录在下，
+     中间那段空白变成有意的呼吸，而不是全堆在底部 */
+  margin: 1.75rem auto 0;
+  margin-top: auto;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+#home .hi-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.55rem 0.25rem 0.55rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  transition: border-color 0.2s ease;
+}
+#home .hi-row:hover,
+#home .hi-row:focus-visible {
+  border-bottom-color: var(--accent-dim);
+}
+#home .hi-no {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.6875rem;
+  color: #4d566b;
+  flex: none;
+}
+#home .hi-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.875rem;
+  color: #c8d2e2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#home .hi-ver {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.6875rem;
+  color: #6b7488;
+  flex: none;
+}
+@media (max-width: 639px) {
+  #home .hero-index {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem 1rem;
+    margin-top: 1.25rem;
+  }
+}
+
 /* 头像卡挪到左下角：像 igloo 的角标，不占舞台中心；整卡可点进「关于我」 */
 #home .hero-who {
   position: absolute;
@@ -531,10 +619,13 @@ header.site-header:not(.is-scrolled) {
       rgba(5, 7, 12, 0) 66%, rgba(5, 7, 12, 0.30) 86%,
       rgba(5, 7, 12, 0.70) 100%);
   }
-  /* 角标抬高避开音乐 FAB（FAB 默认占底部中央） */
+  /* 加了首屏目录条之后，这张绝对定位的角标在 390 宽下会直接压在 03/04 行上
+     （实测重叠 42px）。手机上改为正常流，排在目录条下方，跟着内容走 */
   #home .hero-who {
-    left: 20px;
-    bottom: 6rem;
+    position: static;
+    left: auto;
+    bottom: auto;
+    margin: 1.25rem auto 0 !important;
   }
   /* 移动端正文：Tailwind 的 text-sm（14px）在手机上偏小，抬到 15px 并把行高放松到 1.75
      （2026-09-30 体检：卡片描述 14px/23 ≈ 1.64，关于我 14px/20 ≈ 1.43，后者偏挤） */
@@ -560,7 +651,7 @@ header.site-header:not(.is-scrolled) {
     padding-top: 0;
   }
   #products > article.bento-card .project-facts {
-    padding: 0.7rem 0.85rem;
+    padding: 0.15rem 0 0.15rem 0.75rem;
   }
   #products.space-y-16 > :not([hidden]) ~ :not([hidden]) {
     margin-top: 2.5rem;
@@ -1405,13 +1496,13 @@ mark.sj-note {
    全部为装饰性颜色 / 伪元素 / filter，不动布局与交互逻辑。
    ============================================================ */
 :root {
-  --accent: #8fb8ff;
-  --accent-dim: rgba(143, 184, 255, 0.35);
+  --accent: #c2d96b;
+  --accent-dim: rgba(194, 217, 107, 0.35);
 }
 
 /* 选区：星光蓝淡染 */
 ::selection {
-  background: rgba(143, 184, 255, 0.26);
+  background: rgba(194, 217, 107, 0.26);
 }
 
 /* hero 眉标：呼吸信号点（推理场"在线"的心跳） */
@@ -1424,7 +1515,7 @@ mark.sj-note {
   vertical-align: 0.08em;
   border-radius: 9999px;
   background: var(--accent);
-  box-shadow: 0 0 8px rgba(143, 184, 255, 0.8);
+  box-shadow: 0 0 8px rgba(194, 217, 107, 0.8);
   animation: eyebrow-breathe 2.8s ease-in-out infinite;
 }
 @keyframes eyebrow-breathe {
@@ -1459,7 +1550,7 @@ mark.sj-note {
 .cover-box:hover {
   border-color: var(--accent-dim);
   box-shadow:
-    0 0 0 1px rgba(143, 184, 255, 0.10),
+    0 0 0 1px rgba(194, 217, 107, 0.10),
     0 12px 40px -12px rgba(96, 150, 255, 0.18);
 }
 .cover-img { transition: filter 0.35s ease; }
@@ -1520,8 +1611,8 @@ header.site-header .max-w-6xl > nav a {
   z-index: 0;
   border-radius: 9999px;
   /* 星光蓝薄壳：和站点的强调色同源，深浅两个主题下都看得见，又不抢导航文字 */
-  background: rgba(143, 184, 255, 0.16);
-  box-shadow: inset 0 0 0 1px rgba(143, 184, 255, 0.22);
+  background: rgba(194, 217, 107, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(194, 217, 107, 0.22);
   opacity: 0;
   pointer-events: none;
   transition: transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1),
@@ -1541,7 +1632,7 @@ nav.nav-pill-on a.nav-active {
 /* 阅读弹窗目录：高亮当前章节（js/app.js 的 initTocSpy） */
 .toc-box .toc-link.is-current {
   color: #f5f5f7;
-  background: rgba(143, 184, 255, 0.1);
+  background: rgba(194, 217, 107, 0.1);
   box-shadow: inset 2px 0 0 var(--accent);
 }
 
@@ -1599,7 +1690,7 @@ nav.nav-pill-on a.nav-active {
 
 /* 逐页箭头 hover：边框呼应星光蓝 */
 #page-next:hover {
-  border-color: rgba(143, 184, 255, 0.38);
+  border-color: rgba(194, 217, 107, 0.38);
 }
 
 /* hero GitHub 链接：箭头 hover 位移 */
@@ -1621,7 +1712,7 @@ footer::before {
   left: 12%;
   right: 12%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(143, 184, 255, 0.45), transparent);
+  background: linear-gradient(90deg, transparent, rgba(194, 217, 107, 0.45), transparent);
   pointer-events: none;
 }
 
@@ -1801,6 +1892,15 @@ html.has-wallpaper #site-wallpaper {
     opacity: 0.55;
   }
 }
+/* 内容区背景退场（2026-10-31）：
+   首屏过后壁纸淡到几乎看不见，卡片与文档成为画面主体。
+   为什么必须这样：壁纸(0.55) + 卡片玻璃 + 暗角(0.62) 三重叠加后，滚动到项目区
+   整屏只剩一个明度，卡片浮不起来，看起来就是"一片黑"。
+   3D 推理场保留原强度——它不是雾的来源，本身的清屏色 #03060e 已经压得很深，
+   壁纸一退它反而透出层级。类由 js/app.js 在滚过首屏后挂上。 */
+html.has-wallpaper.wp-fade #site-wallpaper { opacity: 0.10; }
+html.wallpaper-gradient.wp-fade #site-wallpaper { opacity: 0.20; }
+
 /* 桌面端：卡片补一层轻磨砂，和壁纸/推理场形成玻璃层次。
    触摸设备保持今天的纯色卡片（大面积 backdrop-filter 在手机上会掉帧）。
    ❗:not(.wallpaper-lite)：这层模糊是本站最贵的一笔——23 张卡每帧重算，
@@ -1809,10 +1909,13 @@ html.has-wallpaper #site-wallpaper {
 @media (min-width: 1024px) and (pointer: fine) {
   @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     html.has-wallpaper:not(.wallpaper-lite) .dark .bento-card {
-      background: rgba(18, 20, 27, 0.58);
-      border-color: rgba(255, 255, 255, 0.09);
-      -webkit-backdrop-filter: blur(10px) saturate(1.3);
-      backdrop-filter: blur(10px) saturate(1.3);
+      /* ❗0.58 时卡片与壁纸糊成一片（2026-10-31 实测截图）：卡片是内容主体，
+         必须和背景拉开明度差，玻璃只留一点"浮起来"的意思，不是让背景透进来。
+         blur 同时从 10px 收到 8px——背后已经没什么可透的，这一层纯是开销 */
+      background: rgba(24, 25, 32, 0.88);
+      border-color: rgba(255, 255, 255, 0.10);
+      -webkit-backdrop-filter: blur(8px) saturate(1.2);
+      backdrop-filter: blur(8px) saturate(1.2);
     }
   }
 }
@@ -1855,9 +1958,13 @@ html body #live2d {
 html:not(.has-live2d) #waifu {
   visibility: hidden;
 }
-/* 只在桌面出现（js/live2d.js 的闸门也认 1024px，这里兜住「开着窗口再缩窄」的情况） */
+/* 只在桌面出现（js/live2d.js 的闸门也认 1024px，这里兜住「开着窗口再缩窄」的情况）
+   ❗原来这里是一个空规则（`html body #waifu,` 后面直接闭括号），CSS 解析器整条丢弃，
+   等于这道兜底从来没生效过（2026-10-31 发现并补上）。 */
 @media (max-width: 1023px) {
-  html body #waifu,
+  html body #waifu {
+    display: none;
+  }
 }
 
 /* 左侧那个黄色小页签不用：本站用角色右上角自己的关闭键 */
@@ -1882,7 +1989,7 @@ html body #waifu-tips {
   backdrop-filter: blur(18px) saturate(1.4);
 }
 html body #waifu-tips span {
-  color: #8FB8FF;
+  color: #C2D96B;
 }
 
 /* 关闭键：贴在角色右上角，出现得比角色慢一点，避免和入场动画抢注意力 */
@@ -1944,7 +2051,7 @@ html body #waifu-tips span {
 }
 .page-sub b,
 .page-sub strong {
-  color: #8fb8ff;
+  color: #c2d96b;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -2004,12 +2111,12 @@ html body #waifu-tips span {
   border-color: rgba(255, 255, 255, 0.22);
 }
 .arc-chip[aria-pressed="true"] {
-  color: #8fb8ff;
-  border-color: rgba(143, 184, 255, 0.55);
-  background: rgba(143, 184, 255, 0.1);
+  color: #c2d96b;
+  border-color: rgba(194, 217, 107, 0.55);
+  background: rgba(194, 217, 107, 0.1);
 }
 .arc-chip:focus-visible {
-  outline: 2px solid rgba(143, 184, 255, 0.7);
+  outline: 2px solid rgba(194, 217, 107, 0.7);
   outline-offset: 2px;
 }
 
@@ -2076,8 +2183,8 @@ html body #waifu-tips span {
 }
 .tabnav-item.is-active {
   color: #f5f5f7;
-  background: rgba(143, 184, 255, 0.14);
-  box-shadow: inset 2px 0 0 #8fb8ff;
+  background: rgba(194, 217, 107, 0.14);
+  box-shadow: inset 2px 0 0 #c2d96b;
 }
 .tabnav-hint {
   margin-top: 0.7rem;

@@ -46,7 +46,7 @@ html.fx-no-live2d #live2d-close {
   transform: rotate(24deg);
 }
 .fx-open[aria-expanded="true"] {
-  color: #8fb8ff;
+  color: #c2d96b;
 }
 
 .fx-panel {
@@ -138,7 +138,7 @@ html.fx-no-live2d #live2d-close {
   flex: 1 1 auto;
   min-width: 0;
   height: 18px;
-  accent-color: #8fb8ff;
+  accent-color: #c2d96b;
   cursor: pointer;
 }
 .fx-val {
@@ -176,7 +176,7 @@ html.fx-no-live2d #live2d-close {
 }
 .fx-seg button.is-on {
   color: #0a0a0c;
-  background: #8fb8ff;
+  background: #c2d96b;
   font-weight: 600;
 }
 .fx-hint {
@@ -222,24 +222,24 @@ html.fx-no-live2d #live2d-close {
   transition: transform 0.22s var(--ease-swift), background-color 0.22s ease;
 }
 .fx-row-sw input:checked ~ .fx-sw {
-  border-color: rgba(143, 184, 255, 0.6);
-  background: rgba(143, 184, 255, 0.24);
+  border-color: rgba(194, 217, 107, 0.6);
+  background: rgba(194, 217, 107, 0.24);
 }
 .fx-row-sw input:checked ~ .fx-sw::after {
-  background: #8fb8ff;
+  background: #c2d96b;
   transform: translateX(18px);
 }
 .fx-row-sw input:focus-visible ~ .fx-sw {
-  outline: 2px solid rgba(143, 184, 255, 0.7);
+  outline: 2px solid rgba(194, 217, 107, 0.7);
   outline-offset: 2px;
 }
 
 .fx-note {
   margin-top: 0.6rem;
   padding: 0.45rem 0.55rem;
-  border: 1px solid rgba(143, 184, 255, 0.28);
+  border: 1px solid rgba(194, 217, 107, 0.28);
   border-radius: 9px;
-  background: rgba(143, 184, 255, 0.08);
+  background: rgba(194, 217, 107, 0.08);
   color: #b9c8ff;
   font-size: 11px;
   line-height: 1.6;
@@ -267,8 +267,8 @@ html.fx-no-live2d #live2d-close {
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 .fx-reset:hover {
-  border-color: rgba(143, 184, 255, 0.5);
-  background: rgba(143, 184, 255, 0.12);
+  border-color: rgba(194, 217, 107, 0.5);
+  background: rgba(194, 217, 107, 0.12);
 }
 .fx-about {
   color: #86868b;

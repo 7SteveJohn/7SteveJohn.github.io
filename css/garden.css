@@ -2,7 +2,7 @@
    花园页（garden.html + js/garden.js）
    ----------------------------------------------------
    一个页面装三个 canvas 玩具：画布只占一层，控制条是普通 DOM。
-   颜色沿用站点令牌（星光蓝 #8FB8FF / 暗底 #030712 / 次要字 #86868B）。
+   颜色沿用站点令牌（星光蓝 #C2D96B / 暗底 #030712 / 次要字 #86868B）。
    ============================================================ */
 
 .garden-tabs {
@@ -26,12 +26,12 @@
   border-color: rgba(255, 255, 255, 0.22);
 }
 .garden-tab.is-on {
-  color: #8fb8ff;
-  border-color: rgba(143, 184, 255, 0.55);
-  background: rgba(143, 184, 255, 0.1);
+  color: #c2d96b;
+  border-color: rgba(194, 217, 107, 0.55);
+  background: rgba(194, 217, 107, 0.1);
 }
 .garden-tab:focus-visible {
-  outline: 2px solid rgba(143, 184, 255, 0.7);
+  outline: 2px solid rgba(194, 217, 107, 0.7);
   outline-offset: 2px;
 }
 
@@ -103,13 +103,13 @@
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 .garden-btn:hover {
-  border-color: rgba(143, 184, 255, 0.5);
-  background: rgba(143, 184, 255, 0.12);
+  border-color: rgba(194, 217, 107, 0.5);
+  background: rgba(194, 217, 107, 0.12);
 }
 .garden-btn.is-on {
-  color: #8fb8ff;
-  border-color: rgba(143, 184, 255, 0.55);
-  background: rgba(143, 184, 255, 0.14);
+  color: #c2d96b;
+  border-color: rgba(194, 217, 107, 0.55);
+  background: rgba(194, 217, 107, 0.14);
 }
 .garden-ctl {
   display: flex;
@@ -120,7 +120,7 @@
 }
 .garden-ctl input[type="range"] {
   width: 8rem;
-  accent-color: #8fb8ff;
+  accent-color: #c2d96b;
   cursor: pointer;
 }
 .garden-ctl output {

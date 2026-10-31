@@ -14,4 +14,13 @@ holo-preview.png
 # 本地测试脚手架（Playwright 冒烟脚本与截图产物，不入库）
 Temp/
 
+# 看板娘调试台：Live2D 还没做完，不能出现在线上（2026-10-31）。
+# 文件留在本地照常调试：http://localhost:8327/live2d-preview.html
+# 恢复上线：删掉这行 + git add live2d-preview.html
+live2d-preview.html
+
 .codebuddy/
+
+# 星河技术演示页：无任何入口、不在 sitemap，本质是开发演示（2026-10-31）。
+# 本地看：http://localhost:8327/cosmos-home.html
+cosmos-home.html

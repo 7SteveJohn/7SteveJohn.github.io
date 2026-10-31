@@ -2,7 +2,7 @@
    链接页（links.html + js/links.js）
    ----------------------------------------------------
    两块：友情链接（卡片网格 + 空态）、收藏夹（分组筛选 + 本地搜索）。
-   颜色与材质沿用站点令牌：星光蓝 #8FB8FF / 暗底 #030712 / 次要字 #86868B / --hairline 发丝线。
+   颜色与材质沿用站点令牌：星光蓝 #C2D96B / 暗底 #030712 / 次要字 #86868B / --hairline 发丝线。
    筛选胶囊 .chips/.arc-chip 复用 css/style.css 里的共用定义。
    ============================================================ */
 
@@ -34,7 +34,7 @@
   line-height: 1.8;
 }
 .links-note a {
-  color: #8fb8ff;
+  color: #c2d96b;
   text-decoration: none;
 }
 .links-note a:hover {
@@ -62,7 +62,7 @@
   transition: border-color 0.2s ease, transform 0.25s var(--ease-swift);
 }
 .link-card:hover {
-  border-color: rgba(143, 184, 255, 0.38);
+  border-color: rgba(194, 217, 107, 0.38);
   transform: translateY(-2px);
 }
 .link-avatar {
@@ -159,7 +159,7 @@
   transition: border-color 0.2s ease, transform 0.25s var(--ease-swift);
 }
 .bm-card:hover {
-  border-color: rgba(143, 184, 255, 0.38);
+  border-color: rgba(194, 217, 107, 0.38);
   transform: translateY(-2px);
 }
 .bm-head {
@@ -185,7 +185,7 @@
 }
 .bm-tags {
   margin-top: 0.1rem;
-  color: rgba(143, 184, 255, 0.75);
+  color: rgba(194, 217, 107, 0.75);
   font-family: ui-monospace, Consolas, "Courier New", monospace;
   font-size: 10.5px;
 }

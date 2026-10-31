@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v165';   // 2026-10-30 修复弹窗内点击被 data-open-project 拦截（更新记录展不开）
+const CACHE = 'sevenjohn-v166';   // 2026-10-31 内容区壁纸退场 + 卡片实底提亮 + 看板娘暂时下线
 const CORE = [
   './',
   'index.html',

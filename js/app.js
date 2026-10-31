@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 8. 本地趣味件：时段问候 / 状态仪表盘 / 键盘彩蛋
   initHeroGreeting();
   initHeroStatus();
+  initHeroIndex();
   initKonami();
   initGlassSpec();
 
@@ -695,6 +696,32 @@ function initHeroStatus() {
   if (!el || !parts.length) return;
   el.textContent = parts.join(' · ') + (s.updated ? `（更新于 ${s.updated}）` : '');
   el.classList.remove('hidden');
+}
+
+// 首屏作品索引（2026-10-31）：点条目落到对应项目卡，不是只滚到产品区顶部。
+// 没有 JS 时 href="#products" 仍然可用（SEO / 键盘降级），有 JS 才走精确落点。
+function initHeroIndex() {
+  const nav = document.querySelector('#home .hero-index');
+  if (!nav) return;
+  nav.addEventListener('click', (e) => {
+    const link = e.target.closest('[data-hi]');
+    if (!link) return;
+    const card = document.querySelector('[data-project-id="' + link.dataset.hi + '"]');
+    if (!card) return;
+    e.preventDefault();
+    // ❗必须拦在 document 之前：initSmoothAnchors 在 document 上监听 a[href^="#"]，
+    // 会在冒泡阶段把我的落点覆盖成「滚到 #products 顶部」（实测两个不同条目都停在 739）
+    e.stopPropagation();
+    // 产品区开着 CSS 滚动吸附（snap-products，scroll-snap-stop:always 一次只放一张卡），
+    // 不摘掉的话 scrollIntoView 会被吸到附近某张卡上——实测落点偏 133px。
+    // 借 .no-snap 这个现成的「逃生口」临时放行，滚完再挂回去
+    const root = document.documentElement;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    root.classList.add('no-snap');
+    card.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    setTimeout(() => root.classList.remove('no-snap'), 900);
+    history.pushState(null, '', '#products');
+  });
 }
 
 // 键盘序列彩蛋：↑↑↓↓←→←→BA 触发粒子彩色庆典
@@ -1413,6 +1440,9 @@ function initNavScrollState() {
       backTop.classList.toggle('opacity-0', !show);
       backTop.classList.toggle('pointer-events-none', !show);
     }
+    // 内容区背景退场（样式见 style.css 的 html.wp-fade）：滚过首屏 62% 就把壁纸
+    // 淡到几乎不见。项目卡片才是这一站的主体，背景只负责首屏那一段氛围
+    document.documentElement.classList.toggle('wp-fade', y > window.innerHeight * 0.62);
     // 阅读中让底部浮层退场：手机上音乐 FAB 会压住正文（实测 390×844 命中卡片末行），
     // 滚动期间降到 .28，停手 700ms 复原。不改位置、不影响拖拽与点击
     document.body.classList.add('is-scrolling');

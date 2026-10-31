@@ -1,9 +1,9 @@
-// build-bundles: {"name":"core","version":"10958e8e588d","sources":[{"path":"js/site-config.js","sha256":"8891893d9d99ff5e6c66dc5bf2748bbd44771d48c7105ac433010ab74971b725"},{"path":"js/markdown-loader.js","sha256":"9149bca09b58fc21ff58cd7071d9f9470acdb9f4067856265a14260f99cca272"},{"path":"js/wallpaper.js","sha256":"994e9d8228801ad2c5c5ce7c63bfaead43b3286bc35bb14b6d251200e1fe8f80"},{"path":"js/particles.js","sha256":"5e95471046e40560408eeca8895a2541057a6028973ef7ff9dc240c3dd2f5f98"},{"path":"js/settings-panel.js","sha256":"b1e519e075e6e7418f49969fb5108ea7bd6392e39a7014ad7fe885a0309f6747"},{"path":"js/tab-nav.js","sha256":"61be36cf6c8375241ee34eda74c16856d4d8bfc84f4ef967e9bb7511bd082956"}]}
+// build-bundles: {"name":"core","version":"d40d38a9dd7c","sources":[{"path":"js/site-config.js","sha256":"4be90f23a462d9f3b26340d66acd39b234b9e1e703b93dfa35670381e52f8ebf"},{"path":"js/markdown-loader.js","sha256":"9149bca09b58fc21ff58cd7071d9f9470acdb9f4067856265a14260f99cca272"},{"path":"js/wallpaper.js","sha256":"994e9d8228801ad2c5c5ce7c63bfaead43b3286bc35bb14b6d251200e1fe8f80"},{"path":"js/particles.js","sha256":"5e95471046e40560408eeca8895a2541057a6028973ef7ff9dc240c3dd2f5f98"},{"path":"js/settings-panel.js","sha256":"a5c8e3935e3aa25dde44a65526ee4580cd952cee0b54d10f76f85c05643f9c9a"},{"path":"js/tab-nav.js","sha256":"61be36cf6c8375241ee34eda74c16856d4d8bfc84f4ef967e9bb7511bd082956"}]}
 /* 6 页共用：配置 → Markdown 按需加载器 → 壁纸 → 粒子 → 设置面板 → 按住 Tab
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/site-config.js → js/markdown-loader.js → js/wallpaper.js → js/particles.js → js/settings-panel.js → js/tab-nav.js */
 
-// ---- js/site-config.js (8891893d9d99) ----
+// ---- js/site-config.js (4be90f23a462) ----
 /**
  * 站点配置唯一来源（浏览器与 Node 共用，零依赖）
  * ----------------------------------------------------
@@ -51,6 +51,13 @@
       'assets/images/wallpaper-3.webp'
     ],
     themeColors: ['#030712', '#0b1226', '#1b2140', '#2a2350'],
+
+    // ---- 功能开关 ----
+    // 看板娘（Live2D）：模型还没做完，整体先下线（2026-10-31）。
+    // false 时三处同时收口：index.html 不加载 js/live2d.js、设置面板不显示「看板娘」开关、
+    // css/settings-panel.css 的 fx-no-live2d 无对象可作用。
+    // 恢复：这里改回 true，再把 index.html 末尾那行 script 的注释解开。
+    live2d: false,
 
     // ---- 文章封面：没写 cover 的文章用「品牌渐变 + 栏目首字」自动封面 ----
     defaultCover: '',
@@ -463,7 +470,7 @@
 
 ;
 
-// ---- js/settings-panel.js (b1e519e075e6) ----
+// ---- js/settings-panel.js (a5c8e3935e3a) ----
 /**
  * 显示设置面板（左下角齿轮）
  * ----------------------------------------------------
@@ -585,7 +592,9 @@
     '    <span class="fx-label">推理场</span>',
     '    <input type="checkbox" id="fx-cosmos" /><span class="fx-sw" aria-hidden="true"></span>',
     '  </label>',
-    '  <label class="fx-row fx-row-sw">',
+    // 看板娘暂时下线（site-config.js 的 live2d=false）：整行藏起来，免得点了没反应。
+    // 元素留在 DOM 里而不是不渲染——下面还有 4 处引用 elLive2d，摘掉要连带改判空，不划算
+    '  <label class="fx-row fx-row-sw"' + (CFG.live2d === false ? ' style="display:none"' : '') + '>',
     '    <span class="fx-label">看板娘</span>',
     '    <input type="checkbox" id="fx-live2d" /><span class="fx-sw" aria-hidden="true"></span>',
     '  </label>',

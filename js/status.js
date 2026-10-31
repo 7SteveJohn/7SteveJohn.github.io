@@ -6,7 +6,7 @@
  */
 window.SITE_STATUS = {
   reading: '',                                  // 当前在读，如：'《失控》'
-  building: '自制 Live2D 看板娘「7steve」',       // 正在进行的项目
+  building: '',                                 // 正在进行的项目（看板娘已下线，先留空；待填新的）
   mood: '',                                     // 一句话心情，如：'🔋 电量 80%'
   updated: '2026-10-23'                         // 最近更新日期
 };
