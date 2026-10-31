@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v168';   // 2026-10-31 桌面首屏不放项目：目录条仅手机显示，#home 恢复满屏
+const CACHE = 'sevenjohn-v169';   // 2026-10-31 信息层：定位句 / 从这里开始 / FileButler 样板 / 动态最近更新
 const CORE = [
   './',
   'index.html',

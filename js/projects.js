@@ -28,7 +28,7 @@ window.PROJECTS_DATA = [
     title: "FileButler · 本地文件管家",
     category: "desktop",
     categoryName: "桌面应用",
-    description: "文件整理和本地知识库问答在同一个应用里完成：AI 默认跑在本机 Ollama 上，不需要 API Key，文件不上传；也可以换成 LM Studio 或自己填的云端接口。支持文件名、全文、拼音、图片内容搜索，文档自动入库，重复文件只挪不删，每一步有记录、能撤销。",
+    description: "几万份文件找不到，想让 AI 帮忙整理又不敢把文件传出去。FileButler 把检索和问答都留在本机：默认走 Ollama，不需要 API Key，文件不出门；文件名、全文、拼音、图片内容都能搜。整理动作先出方案、勾选确认才执行，每一步有记录、能撤销。",
     tags: ["Python", "Vue 3", "Ollama", "SQLite / FTS5", "RAG"],
     image: "assets/images/cover-filebutler.webp",
     demoUrl: "https://github.com/7SteveJohn/FileButler/releases",

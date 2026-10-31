@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"4bc280aa666c","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"f7b7cae6f0481c2511006c7fa600158b305c29c5dd0f71c23a8e9602949e5b18"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"c1e0fc6b32f552a10af1a3ac20909ecf9baec8cfd1b5a2c77f42b07f9770ab8e"}]}
+// build-bundles: {"name":"home","version":"6e0d5e31363f","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"fc62483007bb5a8defc40473dcb840327aaee83ecb0f4b15e008ff1617ee4aa0"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"c1e0fc6b32f552a10af1a3ac20909ecf9baec8cfd1b5a2c77f42b07f9770ab8e"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -380,7 +380,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (f7b7cae6f048) ----
+// ---- js/app.js (fc62483007bb) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -444,6 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initHeroGreeting();
   initHeroStatus();
   initHeroIndex();
+  initHeroUpdated();
   initKonami();
   initGlassSpec();
 
@@ -1105,6 +1106,18 @@ function initHeroIndex() {
     setTimeout(() => root.classList.remove('no-snap'), 900);
     history.pushState(null, '', '#products');
   });
+}
+
+// 首屏「最近更新」证据：从项目数据里取最新一条，不写死日期
+function initHeroUpdated() {
+  const el = document.getElementById('hero-updated');
+  const list = window.PROJECTS_DATA;
+  if (!el || !Array.isArray(list)) return;
+  const latest = list.filter(p => p.updated).sort((a, b) => b.updated.localeCompare(a.updated))[0];
+  if (!latest) return;
+  const short = String(latest.title).split(' · ')[0];
+  el.textContent = `最近更新 ${latest.updated} · ${short}${latest.version ? ' ' + latest.version : ''}`;
+  el.hidden = false;
 }
 
 // 键盘序列彩蛋：↑↑↓↓←→←→BA 触发粒子彩色庆典

@@ -61,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initHeroGreeting();
   initHeroStatus();
   initHeroIndex();
+  initHeroUpdated();
   initKonami();
   initGlassSpec();
 
@@ -722,6 +723,18 @@ function initHeroIndex() {
     setTimeout(() => root.classList.remove('no-snap'), 900);
     history.pushState(null, '', '#products');
   });
+}
+
+// 首屏「最近更新」证据：从项目数据里取最新一条，不写死日期
+function initHeroUpdated() {
+  const el = document.getElementById('hero-updated');
+  const list = window.PROJECTS_DATA;
+  if (!el || !Array.isArray(list)) return;
+  const latest = list.filter(p => p.updated).sort((a, b) => b.updated.localeCompare(a.updated))[0];
+  if (!latest) return;
+  const short = String(latest.title).split(' · ')[0];
+  el.textContent = `最近更新 ${latest.updated} · ${short}${latest.version ? ' ' + latest.version : ''}`;
+  el.hidden = false;
 }
 
 // 键盘序列彩蛋：↑↑↓↓←→←→BA 触发粒子彩色庆典

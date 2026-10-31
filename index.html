@@ -241,6 +241,15 @@
         屿间汇叙 · 一隅存工码，亦叙尘世星文
       </p>
 
+      <!-- 人话定位（2026-10-31）：对句负责气质，这句负责让陌生人在 10 秒内知道
+           这站是什么、跟他有什么关系。与对句同帧出现（--i:2）。
+           与 2026-09-30「不放自白行」的决定不冲突：那版删的是能力自夸，这句是事实陈述 -->
+      <p class="hero-anim max-w-xl mx-auto text-sm sm:text-base" style="--i:2">
+        在用的本地工具，以及做它们时踩的坑。
+      </p>
+      <!-- 最近更新：由 app.js 从 PROJECTS_DATA 取最新 updated 填充，不写死日期（写死会过期变成假证据） -->
+      <p id="hero-updated" class="hero-anim text-xs font-mono tracking-wide" style="--i:2" hidden></p>
+
       <!-- 双行动按钮 -->
       <div class="hero-anim flex flex-wrap items-center justify-center gap-4 pt-4" style="--i:3" data-page-node-id="9k9USFkpWLPqOIc8MoG9Az">
         <a href="#products" class="btn-primary px-6 py-2.5 text-sm" data-page-node-id="wtewTutKOwPW5utKD86pR3">
@@ -329,7 +338,7 @@
           <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white" data-page-node-id="j0Im5wPeXbivM0rKRi8JKP">
             FileButler · 本地文件管家
           </h3>
-          <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed" data-page-node-id="SnSlxoZIL8ZXXZzN9OFqkq">文件整理和本地知识库问答在同一个应用里完成：AI 默认跑在本机 Ollama 上，不需要 API Key，文件不上传；也可以换成 LM Studio 或自己填的云端接口。支持文件名、全文、拼音、图片内容搜索，文档自动入库，重复文件只挪不删，每一步有记录、能撤销。</p>
+          <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed" data-page-node-id="SnSlxoZIL8ZXXZzN9OFqkq">几万份文件找不到，想让 AI 帮忙整理又不敢把文件传出去。FileButler 把检索和问答都留在本机：默认走 Ollama，不需要 API Key，文件不出门；文件名、全文、拼音、图片内容都能搜。整理动作先出方案、勾选确认才执行，每一步有记录、能撤销。</p>
 
           <div data-facts class="project-facts" hidden></div>
 
@@ -848,6 +857,21 @@
           <p id="blog-count" class="text-xs text-[#86868b] whitespace-nowrap"></p>
           <a href="archive.html" class="text-xs text-[#86868b] hover:text-black dark:hover:text-white transition whitespace-nowrap">全部文章 → 归档</a>
         </div>
+      </div>
+
+      <!-- 从这里开始（2026-10-31）：21 篇手记没有入口，新访客默认行为是直接关掉。
+           挑两篇最能代表作者的放列表前面：一篇讲技术取舍（对应主打产品），
+           一篇是拿来就能用的实操。复用 data-open-article 的弹窗机制，不新增 JS -->
+      <div class="start-here reveal">
+        <p class="start-here-label">从这里开始</p>
+        <button type="button" data-open-article="filebutler-local-rag" class="start-here-item">
+          <span>本地文件管家：秒搜与可撤销怎么同时成立</span>
+          <span class="start-here-arrow" aria-hidden="true">→</span>
+        </button>
+        <button type="button" data-open-article="local-llm-8gb-vram" class="start-here-item">
+          <span>8GB 显存跑本地大模型：先算显存账，再挑模型</span>
+          <span class="start-here-arrow" aria-hidden="true">→</span>
+        </button>
       </div>
 
       <div id="articles-list" class="space-y-3" data-reveal-stagger data-page-node-id="Lmp1jklPMyBpo7A9D2cowh">

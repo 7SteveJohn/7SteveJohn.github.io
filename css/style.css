@@ -500,7 +500,41 @@ main > #home + #products {
     rgba(5, 7, 12, 0) 66%, rgba(5, 7, 12, 0.30) 86%,
     rgba(5, 7, 12, 0.70) 100%);
 }
-/* 首屏作品索引（2026-10-31）：六个工具排成两行三列，编号 + 名称 + 版本。
+/* 首屏最近更新行：元信息，比对句和定位句都弱一档 */
+#home #hero-updated { color: #8590a6 !important; }
+
+/* 从这里开始：手记区入口推荐（2026-10-31）。
+   编辑风竖线块，不画卡片、不加底色，避免和产品卡抢层级。 */
+.start-here {
+  border-left: 2px solid var(--accent);
+  padding: 0.25rem 0 0.25rem 1rem;
+}
+.start-here-label {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin-bottom: 0.4rem;
+}
+.start-here-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.4rem 0;
+  text-align: left;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #c9d0de;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.start-here-item:hover,
+.start-here-item:focus-visible { color: var(--accent); }
+.start-here-arrow { flex: none; font-size: 0.75rem; opacity: 0.65; }
+
+/* 首屏作品索引（2026-10-31）：六个工具排成两行三列，编号 + 版本。
    ❗桌面端隐藏（2026-10-31 用户明确：第一页只做总展示，不放任何项目，
    项目入口走导航与 hero 按钮）；只有手机窄屏保留——空间小，它是最省地的导航 */
 @media (min-width: 640px) {
