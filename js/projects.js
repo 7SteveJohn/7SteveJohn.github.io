@@ -34,23 +34,28 @@ window.PROJECTS_DATA = [
     image: "assets/images/cover-filebutler.webp",
     demoUrl: "https://github.com/7SteveJohn/FileButler/releases",
     githubUrl: "https://github.com/7SteveJohn/FileButler",
-    downloadUrl: "https://wwblz.lanzouu.com/iWSet4e04v2b",
-    downloadPwd: "hwbz",
+    downloadUrl: "https://wwblz.lanzouu.com/iX5qd4eftu8b",
+    downloadPwd: "8s2i",
     featured: true,
     role: "开发",
     challenge: "难点是「搜得快」和「撤得回」互相打架：几万份文件要秒级出结果，但整理动作必须能反悔。解法是分两条索引——文件名与长文本走 SQLite FTS5 倒排（毫秒级），语义问答交给 bge-m3 向量库在后台空闲时慢慢建；所有移动都先生成方案、勾选确认后才执行，每一步写事务日志，出错按批次整体回滚。",
     // ↓ 版本/运行环境/校验码：填上即显示在弹窗里，留空自动隐藏
-    version: "v1.4.2",
-    updated: "2026-10-27",
+    version: "v1.4.3",
+    updated: "2026-11-03",
     // 更新公告：桌面贴在卡片右上侧（窄屏收成一行）；items 建议 3–4 条，summary 用于窄屏
     announcement: {
-      version: "v1.4.2",
-      date: "2026-10-27",
-      items: ["中英双语界面", "拼音 / 首字母搜文件", "云端 API 可选", "检索可选 rerank 精排"],
-      summary: "中英双语 / 拼音搜索 / 云端可选"
+      version: "v1.4.3",
+      date: "2026-11-03",
+      items: ["扫描件 OCR 结构化解析", "预置系统目录排除", "Ollama 一键引导", "设置页说明收进提示"],
+      summary: "扫描件 OCR / 系统目录排除"
     },
     // 更新记录：来自 GitHub Releases（7SteveJohn/FileButler），最新在前
     changelog: [
+      { v: "v1.4.3", date: "2026-11-03", items: [
+        "新增扫描件 OCR：扫描版 PDF 由视觉模型 Xiaomi-OCR-0 解析，表格保行列、公式转 LaTeX、按阅读顺序输出",
+        "新装用户预置系统目录排除规则（C:\\Windows、Program Files 等），设置页可增删",
+        "Ollama 未安装时提供 winget 一键引导；设置页长段说明收进 ⓘ 提示"
+      ]},
       { v: "v1.4.2", date: "2026-10-27", items: [
         "设置页新增「模型目录」：模型可放任意盘，改完重启生效",
         "应用内下载的模型也落在同一目录，不再分裂两处",
@@ -115,6 +120,7 @@ window.PROJECTS_DATA = [
 - **可选精排**：设置里能装本地 rerank 模型（bge-reranker-v2-m3，CPU 跑）对检索结果重排；默认关着，装不上或内存不够就自动回退
 - **模型自己挑**：本机 Ollama（模型常驻 30 分钟不反复载入，也能开「启动时预载 + 常驻不卸载」首问零等待）、本机 LM Studio 一键检测、任意 OpenAI 兼容接口（DeepSeek、智谱、Kimi、通义、硅基流动、OpenRouter…）；可以「对话走云端、向量化留本地」，密钥只存本机、界面打码，保存前能测连接
 - **图片也能搜**：视觉模型给图写描述、把图里的字抄出来，搜「日落」找照片、搜发票号找截图；没有视觉模型时退回 Windows 自带 OCR
+- **扫描件能读**：设置里选上「OCR 模型」（Xiaomi-OCR-0，0.8B，约 2GB 显存）后，扫描版 PDF 优先由它解析——表格保持行列、公式转 LaTeX、按阅读顺序输出，结果直接进知识库，可搜可问；模型没就绪时自动回退 Windows 自带 OCR，不卡索引
 - **批量整理**：规则 + 本地模型先分类 → 给你预览 → 你勾选确认 → 才移动，**不会擅自挪动任何文件**；可按批次撤销、重做，方案还能存成模板
 - **找重复文件**：三级哈希查重 → 按规则保留 → 挪进「待清理」文件夹（只挪不删，随时撤销）；另带大文件、冲突副本两项体检
 - **用起来顺手**：中英双语界面（设置里切，跟着应用走）、收藏 / 标签 / 备注、筛选条件存下来、PDF 与 Markdown 内置预览、批量移动复制重命名（删除进回收站）、单张图 OCR 取字、SHA-256 校验、Alt+Space 全局唤起、托盘常驻、开机自启、深色模式
