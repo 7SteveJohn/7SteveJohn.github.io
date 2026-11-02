@@ -64,8 +64,8 @@ ok('首屏只有一个「关于我」入口（左下角标，CTA 里的重复按
 ok('四个内容栏目的副标题 = 四字题 · 对句', JSON.stringify(info.sections) === JSON.stringify(WANT_SECTIONS), info.sections.join(' ／ '));
 ok('关于我：去专业化（依托 AI + 试错）', /我并非擅长编码的人/.test(info.about) && /学习路上留下的脚印/.test(info.about) && !/应届|求职|平时写 Python/.test(info.about), info.about.slice(0, 34));
 ok(
-  '卡片顺序 FileButler → 拍案 → NetOps → Fluxion → GameBoost → DLSSG',
-  info.ids.join(',') === 'filebutler,paian,netops-handbook,fluxion,gameboost,gameboost-dlssg',
+  '卡片顺序 FileButler → 拍案 → NetOps → Fluxion（GameBoost 两张卡已收进历史项目）',
+  info.ids.join(',') === 'filebutler,paian,netops-handbook,fluxion',
   info.ids.join(',')
 );
 ok('拍案卡片大图 = 介绍片', info.videoSrc === 'assets/video/paian-intro.mp4', String(info.videoSrc));

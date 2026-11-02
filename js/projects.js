@@ -17,6 +17,7 @@
  * - downloadUrl: 下载地址（如蓝奏云网盘链接，若暂无则不填该字段）
  * - downloadPwd: 下载提取码/密码（与 downloadUrl 配套，若无密码则不填）
  * - featured: 是否推荐在醒目位置展示 (true / false)
+ * - archived: 历史项目（true 时不上主展示，只出现在产品区底部的「历史项目」里）
  * - role: 我在项目里担任的角色（只写当了什么，别强调独立/一个人）
  * - challenge: 技术难点与解法（写清「难在哪 + 怎么解的」，别写成功能介绍）
  * - details: 点击查看详情时的完整介绍（支持 Markdown 或文字排版）
@@ -185,6 +186,7 @@ NetOps 是一本**能装进口袋的离线网络小册子**。断网、没信号
     downloadUrl: "https://wwblz.lanzouu.com/i1XLQ47ddyhe",
     downloadPwd: "8uz7",
     featured: false,
+    archived: true,
     role: "开发",
     challenge: "难点不是「能不能改」，是「改错了怎么救回来」——电源计划、定时器分辨率、注册表这些动错了系统就废。解法是执行前统一导出备份快照（backup/），每一项都能单独关、整体一键还原。踩过的坑：单实例锁用的是局部 Mutex，被 .NET 垃圾回收后锁失效，能同时开好几个窗口，改成静态持有后修掉。",
     // ↓ 版本/运行环境/校验码：填上即显示在弹窗里，留空自动隐藏
@@ -220,6 +222,7 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
     downloadUrl: "https://pan.baidu.com/s/1johUjnwCEfmjpwuz66tqyA?pwd=rw94",
     downloadPwd: "rw94",
     featured: false,
+    archived: true,
     role: "开发",
     challenge: "难点是「注入完没法判断到底生效没有」：DLL 被加载进进程，不等于被调用。解法是不再靠猜——用日志文件加目标进程已加载模块列表双证据判定代理是否真激活；没激活就自动换下一个入口 DLL 重试（《赛博朋克 2077》对 version.dll 只加载不调用，换 winmm.dll 后才真正生效）。",
     version: "v1.0.0",
@@ -298,7 +301,7 @@ Electron + Vite + TypeScript，数据存本机文件夹（卸载不删稿子）�
     title: "Fluxion · 完整版性能套件",
     category: "desktop",
     categoryName: "桌面应用",
-    description: "GameBoost（系统优化）与 DLSSG-Tool（帧生成）合并重构的完整版：51 项体检一键优化、DLSS 帧生成、游戏库、进游戏自动切状态、实时监控，改动可一键还原。分享版见 GameBoost-DLSSG 卡。",
+    description: "GameBoost（系统优化）与 DLSSG-Tool（帧生成）合并重构的完整版：51 项体检一键优化、DLSS 帧生成、游戏库、进游戏自动切状态、实时监控，改动可一键还原。早期的 GameBoost 与 DLSSG 分享版已收进页面底部的历史项目。",
     tags: ["C#", "WinForms", "51 项体检", "DLSS 帧生成", "游戏联动", "实时监控"],
     image: "assets/images/cover-fluxion.webp",
     githubUrl: "https://github.com/7SteveJohn/Fluxion",
@@ -356,7 +359,7 @@ GameBoost（系统优化）和 DLSSG-Tool（帧生成）合并重构的完整版
 - **便携版 / 安装版**同一个 exe 运行时自动判断，升级保留你的配置
 
 ### 说明
-完整版要动电源、注册表、网卡这些系统设置，风险面比分享版大。只想用帧生成的话，用 **GameBoost-DLSSG 分享版**（单独一张卡）就行，同一套方案。
+完整版要动电源、注册表、网卡这些系统设置，风险面比早期分享版大。只想用帧生成的话，早期 **GameBoost-DLSSG** 还留在页面底部的历史项目里，同一套方案。
   `
   }
 ];

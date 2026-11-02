@@ -2410,3 +2410,62 @@ html body #waifu-tips span {
   line-height: 1.65;
   color: #b4b4b9;
 }
+
+/* 历史项目（2026-11-02）：GameBoost / GameBoost-DLSSG 的功能已并入 Fluxion，
+   从主展示撤下后收进这块，默认收起。
+   ❗不是 .bento-card / article：不参与一屏一卡、不参与滚动吸附，也不占书页序列 */
+.proj-archive {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 1rem;
+}
+.proj-archive > summary {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.35rem 0;
+  list-style: none;
+  cursor: pointer;
+}
+.proj-archive > summary::-webkit-details-marker { display: none; }
+.proj-archive > summary::marker { content: ""; }
+.pa-label { font-size: 0.8125rem; font-weight: 600; color: #c8d2e2; }
+.pa-count {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.6875rem;
+  color: #6b7488;
+}
+.pa-note { flex: 1; min-width: 0; font-size: 0.75rem; color: #6b7488; }
+.pa-chev { font-size: 0.875rem; color: #6b7488; transition: transform 0.2s ease; }
+.proj-archive[open] .pa-chev { transform: rotate(45deg); }
+.pa-list { display: grid; gap: 0.5rem; margin-top: 0.75rem; }
+.pa-item {
+  display: grid;
+  grid-template-columns: minmax(0, 15rem) minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 0.25rem 1.25rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+.pa-name { min-width: 0; font-size: 0.8125rem; color: #c8d2e2; }
+.pa-desc { min-width: 0; font-size: 0.75rem; line-height: 1.6; color: #6b7488; }
+.pa-ver {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.6875rem;
+  color: #6b7488;
+}
+.pa-open {
+  flex: none;
+  font-size: 0.75rem;
+  color: var(--accent);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.pa-open:hover { text-decoration: underline; text-underline-offset: 2px; }
+@media (max-width: 639px) {
+  /* 显式摆位：名称与按钮同一行，描述单独占下一行（靠自动放置会把按钮挤到第三行） */
+  .pa-item { grid-template-columns: minmax(0, 1fr) auto; gap: 0.25rem 0.75rem; }
+  .pa-name { grid-area: 1 / 1; }
+  .pa-open { grid-area: 1 / 2; }
+  .pa-desc { grid-area: 2 / 1 / 3 / 3; }
+}

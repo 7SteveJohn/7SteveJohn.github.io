@@ -261,6 +261,7 @@ window.openProjectModal = function(id) {
           <span class="px-2.5 py-1 text-xs font-mono font-medium rounded-md border border-black/8 dark:border-white/12 text-[#86868b]">
             ${escapeHtml(project.categoryName || project.category)}
           </span>
+          ${project.archived ? '<span class="px-2.5 py-1 text-xs font-medium rounded-md border" style="border-color: rgba(194,217,107,.35); color: #c2d96b;">历史项目</span>' : ''}
         </div>
         <h2 class="text-2xl font-semibold text-[#1d1d1f] dark:text-white tracking-tight">${escapeHtml(project.title)}</h2>
         <p class="text-[#86868b] text-sm sm:text-base leading-relaxed">${escapeHtml(project.description)}</p>
@@ -730,7 +731,7 @@ function initHeroUpdated() {
   const el = document.getElementById('hero-updated');
   const list = window.PROJECTS_DATA;
   if (!el || !Array.isArray(list)) return;
-  const latest = list.filter(p => p.updated).sort((a, b) => b.updated.localeCompare(a.updated))[0];
+  const latest = list.filter(p => p.updated && !p.archived).sort((a, b) => b.updated.localeCompare(a.updated))[0];
   if (!latest) return;
   const short = String(latest.title).split(' · ')[0];
   el.textContent = `最近更新 ${latest.updated} · ${short}${latest.version ? ' ' + latest.version : ''}`;

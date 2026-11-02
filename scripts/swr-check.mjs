@@ -80,7 +80,7 @@ try {
     brand: document.querySelector('header a[href="#home"]')?.textContent?.trim() || '',
     cards: document.querySelectorAll('[data-project-id]').length,
   }));
-  assert(state.brand === '楠屿札记' && state.cards >= 6, '④ 离线 reload 页面完整（SWR 缓存即离线兜底）', `brand=${state.brand} cards=${state.cards}`);
+  assert(state.brand === '楠屿札记' && state.cards >= 4, '④ 离线 reload 页面完整（SWR 缓存即离线兜底）', `brand=${state.brand} cards=${state.cards}`);
   assert(errors.length === 0, '全程无 pageerror', errors.join(' | '));
 } finally {
   await browser.close();

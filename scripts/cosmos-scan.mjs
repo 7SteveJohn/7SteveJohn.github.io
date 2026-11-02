@@ -103,7 +103,7 @@ const b = await chromium.launch({ executablePath: EXE });
     cards: document.querySelectorAll('[data-project-id]').length,
   }));
   assert(st.tier === 'static' && st.probe === 'undefined', '软渲染识别为 static 档（不加载引擎）', `tier=${st.tier} probe=${st.probe}`);
-  assert(st.h1 && st.cards >= 6 && errs.length === 0, 'static 档页面完整（暗角兜底）', `h1=${st.h1} cards=${st.cards} errs=${errs.length}`);
+  assert(st.h1 && st.cards >= 4 && errs.length === 0, 'static 档页面完整（暗角兜底）', `h1=${st.h1} cards=${st.cards} errs=${errs.length}`);
   await b2.close();
 }
 

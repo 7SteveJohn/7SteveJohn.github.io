@@ -269,7 +269,7 @@ await ctx.close();
     brand: document.querySelector('header a[href="#home"]')?.textContent?.trim() || '',
     cards: document.querySelectorAll('[data-project-id]').length,
   }));
-  assert(off.brand === '楠屿札记' && off.cards >= 6, '离线兜底仍是完整首页',
+  assert(off.brand === '楠屿札记' && off.cards >= 4, '离线兜底仍是完整首页',
     `brand=${off.brand} cards=${off.cards}`);
   try { await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: 0, downloadThroughput: 0, uploadThroughput: 0 }); } catch (e) {}
   await ctx2.close();

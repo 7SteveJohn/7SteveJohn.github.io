@@ -43,7 +43,7 @@ const b = await chromium.launch({ executablePath: EXE });
     cards: document.querySelectorAll('[data-project-id]').length,
     veil: !!document.querySelector('.cosmos-veil, canvas#cosmos-canvas'),
   }));
-  const good = st.tier === 'static' && st.probe === 'undefined' && st.h1 && st.cards >= 6 && errs.length === 0;
+  const good = st.tier === 'static' && st.probe === 'undefined' && st.h1 && st.cards >= 4 && errs.length === 0;
   (good ? ok : bad)('A. swiftshader 软渲染 → static 档兜底、页面完整', `tier=${st.tier} probe=${st.probe} h1=${st.h1} cards=${st.cards} errs=${errs.length}`);
   await b2.close();
 }

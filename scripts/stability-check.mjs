@@ -152,7 +152,7 @@ const b = await chromium.launch({ executablePath: 'C:/Program Files/Google/Chrom
       cards: document.querySelectorAll('[data-project-id]').length,
     }));
   } catch (e) { off = { body: false, cards: 0 }; }
-  ok('断网后整站可读（本地优先）', ctl && off.body && off.cards >= 6, `sw=${ctl} cards=${off.cards}`);
+  ok('断网后整站可读（本地优先）', ctl && off.body && off.cards >= 4, `sw=${ctl} cards=${off.cards}`);
   try { await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: 0, downloadThroughput: 0, uploadThroughput: 0 }); } catch (e) {}
   await p.close();
 }

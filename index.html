@@ -275,7 +275,7 @@
 
       <!-- 作品索引（2026-10-31）：首屏原来只有标题 + 三个按钮，中间近 300px 全空，
            打开第一眼看不到任何「做出来的东西」——这是「打开就劝退」的直接原因。
-           这里把六个工具按卡序摆成目录，既是内容也是入口，点了直接落到对应卡片。
+           这里把四个工具按卡序摆成目录，既是内容也是入口，点了直接落到对应卡片。
            ❗名称与版本号手写在这里，换版本/加项目要跟 projects.js 一起改 -->
       <nav class="hero-anim hero-index" aria-label="作品索引" style="--i:4">
         <a href="#products" class="hi-row" data-hi="filebutler">
@@ -288,13 +288,7 @@
           <span class="hi-no">03</span><span class="hi-name">NetOps</span><span class="hi-ver">v2.0.5</span>
         </a>
         <a href="#products" class="hi-row" data-hi="fluxion">
-          <span class="hi-no">04</span><span class="hi-name">Fluxion</span><span class="hi-ver">v1.1.0</span>
-        </a>
-        <a href="#products" class="hi-row" data-hi="gameboost">
-          <span class="hi-no">05</span><span class="hi-name">GameBoost</span><span class="hi-ver">v1.0.5</span>
-        </a>
-        <a href="#products" class="hi-row" data-hi="gameboost-dlssg">
-          <span class="hi-no">06</span><span class="hi-name">DLSSG</span><span class="hi-ver">v1.0.0</span>
+          <span class="hi-no">04</span><span class="hi-name">Fluxion</span><span class="hi-ver">v1.3.0</span>
         </a>
       </nav>
 
@@ -582,7 +576,7 @@
             <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white">
               Fluxion · 完整版性能套件
             </h3>
-            <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed">GameBoost（系统优化）与 DLSSG-Tool（帧生成）合并重构的完整版：51 项体检一键优化、DLSS 帧生成、游戏库、进游戏自动切状态、实时监控，改动可一键还原。分享版见 GameBoost-DLSSG 卡。</p>
+            <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed">GameBoost（系统优化）与 DLSSG-Tool（帧生成）合并重构的完整版：51 项体检一键优化、DLSS 帧生成、游戏库、进游戏自动切状态、实时监控，改动可一键还原。早期的 GameBoost 与 DLSSG 分享版已收进页面底部的历史项目。</p>
 
             <div data-facts class="project-facts" hidden></div>
 
@@ -654,143 +648,28 @@
         </div>
       </article>
 
-      <!-- 单品 5: GameBoost -->
-      <article data-project-id="gameboost" class="bento-card reveal overflow-hidden" data-page-node-id="WpBNQijzzGBzI5iFX0SpWw">
-        <div class="p-8 sm:p-12 space-y-4 max-w-3xl" data-page-node-id="cR03pYuJaOj1gX0bJdmkMb">
-          <span class="inline-block px-2.5 py-1 rounded-md text-xs font-mono border border-black/8 dark:border-white/12 text-[#86868b]" data-page-node-id="dInAFBwBln96pUStvgSBCn">
-            Windows 性能调优 · C# / PowerShell / Win32
-          </span>
-          <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white" data-page-node-id="NzVLGpaKYBpGOVRzvbfS3n">
-            GameBoost · 打游戏前点一下
-          </h3>
-          <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed" data-page-node-id="KrUaxHjQndBCIKyyBmzunZ">在启动 CS2、Valorant、三角洲行动前运行一次：电源、GPU、CPU 调度、网络、定时器分辨率自动调好，解决对枪瞬间的掉帧与输入延迟，改动可一键还原。</p>
-
-          <div data-facts class="project-facts" hidden></div>
-
-          <!-- 标签 -->
-          <div class="flex flex-wrap gap-2 pt-2" data-page-node-id="N0FWPtk7tjtAJA4hxBMQlV">
-            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono" data-page-node-id="ThoSacYuwEbxmgMx7OCHun">C# 原生编译</span>
-            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono" data-page-node-id="ThNivJcz5RJE4IU0dfkIbd">1% Low 帧优化</span>
-            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono" data-page-node-id="ABH3LRxCX2TWb0GnkBu2Rd">定时器分辨率锁定</span>
-            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono" data-page-node-id="jNyN3BVppiccYsT1qXFMih">自包含单 EXE</span>
+      <!-- 历史项目（2026-11-02）：GameBoost 与 GameBoost-DLSSG 的功能已并入 Fluxion，
+           完成版上架后从主展示撤下，默认收起留档；详情仍走项目弹窗 -->
+      <details class="proj-archive reveal">
+        <summary>
+          <span class="pa-label">历史项目</span>
+          <span class="pa-count">2 个</span>
+          <span class="pa-note">早期版本，功能已并入 Fluxion</span>
+          <span class="pa-chev" aria-hidden="true">＋</span>
+        </summary>
+        <div class="pa-list">
+          <div class="pa-item">
+            <p class="pa-name">GameBoost · 打游戏前点一下</p>
+            <p class="pa-desc">电源、GPU、CPU 调度、网络、定时器分辨率一次调好，改动可一键还原。<span class="pa-ver">v1.0.5</span></p>
+            <button type="button" class="pa-open" data-open-project="gameboost">查看详情 <span aria-hidden="true">→</span></button>
           </div>
-
-          <!-- 操作胶囊组 -->
-          <div class="flex flex-wrap items-center gap-3 pt-4" data-page-node-id="4T0inZjdqIFsemrEHdFutX">
-            <a 
-              href="https://wwblz.lanzouu.com/i1XLQ47ddyhe"
-              data-link="download"
-              target="_blank" 
-              rel="noopener noreferrer"
-              class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5" data-page-node-id="7I1JF4P5c1DmYIF3yPPJBx"
-            >
-              <i data-lucide="download" class="w-3.5 h-3.5" data-page-node-id="aChEHc45yCiEua0tB4Yd2V"></i>
-              <span data-page-node-id="pB71lwwandTc7nK3RBFvKC">网盘下载<span data-pwd data-page-node-id="D0oEjQnH1Fvfb38XYbXNtm"> (提取码: 8uz7)</span></span>
-            </a>
-            <a 
-              href="https://github.com/7SteveJohn/GameBoost/releases" 
-              data-link="releases"
-              target="_blank" 
-              rel="noopener noreferrer"
-              class="btn-secondary px-4 py-2 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white flex items-center gap-1.5" data-page-node-id="PGxFvtrBDWpeAgMoKunr53"
-            >
-              <span data-page-node-id="UXdYFZdWDezO1F7zF2vO86">GitHub Releases</span>
-              <i data-lucide="arrow-up-right" class="w-3.5 h-3.5" data-page-node-id="wXWxdZkInH5BGTsgSl7389"></i>
-            </a>
-            <a 
-              href="https://github.com/7SteveJohn/GameBoost" 
-              data-link="github"
-              target="_blank" 
-              rel="noopener noreferrer"
-              class="p-2 rounded-full text-[#86868b] hover:text-black dark:hover:text-white transition"
-              title="查看 GitHub 仓库" data-page-node-id="04udAGUekatB0IJelQfBr8"
-            >
-              <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
-            </a>
-            <button 
-              data-open-project="gameboost"
-              class="text-xs hover:underline underline-offset-2 ml-2 cursor-pointer font-medium" data-page-node-id="coeszzPak1o5e6OKkUbmJ3"
-            >
-              了解更多 &gt;
-            </button>
+          <div class="pa-item">
+            <p class="pa-name">GameBoost-DLSSG · DLSS 帧生成</p>
+            <p class="pa-desc">给 RTX 20/30 系开启官方只给 40/50 系的帧生成，带游戏库扫描与运行诊断。<span class="pa-ver">v1.0.0</span></p>
+            <button type="button" class="pa-open" data-open-project="gameboost-dlssg">查看详情 <span aria-hidden="true">→</span></button>
           </div>
         </div>
-
-        <!-- 大幅产品图 -->
-        <div class="px-8 sm:px-12 pb-8 sm:pb-12"><div class="cover-box rounded-xl border border-black/8 dark:border-white/10 shadow-sm overflow-hidden bg-white dark:bg-black/20" data-page-node-id="mqzy90AAUU6XepBRBUm7KC">
-          <img
-            src="assets/images/cover-gameboost.webp"
-            alt="GameBoost 性能调优实景"
-            class="cover-img reveal-img"
-            width="1920"
-            height="1078"
-            loading="lazy"
-            decoding="async"
-            onerror="this.src='assets/images/cover-gameboost.jpg'" data-page-node-id="JAbOGM7zL4rjAEUNiXemQE"
-          />
-          </div>
-        </div>
-      </article>
-
-      <!-- 单品 6: GameBoost-DLSSG（分享版 v1.0.0，未开源） -->
-      <article data-project-id="gameboost-dlssg" class="bento-card reveal overflow-hidden">
-        <div class="p-8 sm:p-12 space-y-4 max-w-3xl">
-            <span class="inline-block px-2.5 py-1 rounded-md text-xs font-mono border border-black/8 dark:border-white/12 text-[#86868b]">
-              Windows 原生工具 · C# / WinForms
-            </span>
-            <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white">
-              GameBoost-DLSSG · DLSS 帧生成
-            </h3>
-            <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed">给 RTX 20/30 系开启 DLSS 帧生成（该功能官方只提供给 40/50 系）：游戏库扫描、DX12 模式启动、运行诊断，改动可一键还原。分享版只含帧生成，不含系统优化。</p>
-
-            <div data-facts class="project-facts" hidden></div>
-
-            <!-- 标签 -->
-            <div class="flex flex-wrap gap-2 pt-2">
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">C# 原生编译</span>
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">WinForms</span>
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">运行诊断</span>
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">DLSS-FG 代理</span>
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">便携 + 安装版</span>
-            </div>
-
-            <!-- 操作胶囊组 -->
-            <div class="flex flex-wrap items-center gap-3 pt-4">
-              <a
-                href="https://pan.baidu.com/s/1johUjnwCEfmjpwuz66tqyA?pwd=rw94"
-                data-link="download"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5"
-              >
-                <i data-lucide="download" class="w-3.5 h-3.5"></i>
-                <span>网盘下载<span data-pwd> (提取码: rw94)</span></span>
-              </a>
-              <button
-                data-open-project="gameboost-dlssg"
-                class="text-xs hover:underline ml-2 cursor-pointer font-medium"
-              >
-                了解更多 &gt;
-              </button>
-            </div>
-          </div>
-
-        <!-- 大幅产品图 -->
-        <div class="px-8 sm:px-12 pb-8 sm:pb-12"><div class="cover-box rounded-xl border border-black/8 dark:border-white/10 shadow-sm overflow-hidden bg-white dark:bg-black/20">
-          <img
-            src="assets/images/cover-dlssg.webp"
-            alt="GameBoost-DLSSG 分享版 · 游戏库界面"
-            class="cover-img reveal-img"
-            width="1039"
-            height="731"
-            loading="lazy"
-            decoding="async"
-            onerror="this.src='assets/images/cover-dlssg.jpg'"
-          />
-          </div>
-        </div>
-      </article>
-
+      </details>
 
     </section>
 
