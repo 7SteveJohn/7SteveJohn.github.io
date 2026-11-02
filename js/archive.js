@@ -156,8 +156,8 @@
 
     const W = LIST.clientWidth || WAVE.clientWidth;
     const cardW = W >= 1280 ? 430 : W >= 1080 ? 400 : 356;
-    const amp = Math.max(48, Math.min(118, W * 0.085));
-    const lambda = 560;                       // 正弦波长（px）
+    const amp = Math.max(44, Math.min(96, W * 0.075));   // 振幅收一点，避免单段斜线横跨大半屏
+    const lambda = 640;                       // 正弦波长（px）：拉长一点，段与段之间不那么斜
     const gap = 26;                           // 节点到卡片边缘留白
     const padTop = 40;
 

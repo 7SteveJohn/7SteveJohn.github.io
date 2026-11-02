@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v188';   // 2026-11-03 列表卡 18px、摘要 15px、正文 17px
+const CACHE = 'sevenjohn-v189';   // 2026-11-03 归档时间河收窄振幅并裁进时间轴
 const CORE = [
   './',
   'index.html',
