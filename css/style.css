@@ -108,8 +108,8 @@ h1, h2, h3 {
      只用一条左侧竖线分隔，不加底色不加边框。 */
   padding: 0.15rem 0 0.15rem 0.9rem;
   border-left: 1px solid var(--hairline-strong);
-  font-size: 0.8125rem;
-  line-height: 1.65;
+  font-size: 0.875rem;
+  line-height: 1.7;
 }
 .dark .project-facts { background: none; }
 .project-facts .pf-row {
@@ -119,10 +119,20 @@ h1, h2, h3 {
 }
 .project-facts .pf-k {
   color: #86868b;
-  font-size: 0.75rem;
-  padding-top: 0.1rem;
+  font-size: 0.78125rem;
+  padding-top: 0.12rem;
 }
 .project-facts .pf-v { color: #1d1d1f; }
+
+/* 产品卡：标签与眉标统一到 13px（原来是 12px，在 1440 下偏小） */
+#products article .font-mono { font-size: 0.8125rem; }
+
+/* 产品卡：正文行高 24 → 26.4，读起来不顶行 */
+#products [data-card-desc] { line-height: 1.65; }
+
+/* 三个按钮统一 40px 高，主/次/图标三档不变，只对齐身高 */
+#products .btn-primary,
+#products .btn-secondary { min-height: 2.5rem; }
 .dark .project-facts .pf-v { color: #d2d2d7; }
 
 /* 键盘无障碍跳转链接：默认视觉隐藏，Tab 聚焦时浮现 */
@@ -2289,7 +2299,7 @@ html body #waifu-tips span {
   .bento-card.has-announce > div:first-child > .card-announce {
     position: absolute;
     top: 0;
-    width: 200px;
+    width: 220px;
     margin: 0;
   }
   #products article:nth-of-type(odd) .card-announce { left: calc(100% + 20px); }
@@ -2328,8 +2338,8 @@ html body #waifu-tips span {
   .announce-items li {
     position: relative;
     padding-left: 12px;
-    font-size: 12px;
-    line-height: 1.5;
+    font-size: 13px;
+    line-height: 1.55;
     color: #b4b4b9;
   }
   .announce-items li::before {
