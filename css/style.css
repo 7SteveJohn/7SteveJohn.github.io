@@ -737,10 +737,10 @@ body.is-scrolling .music-fab {
   opacity: 0.28;
 }
 
-/* 逐页下翻按钮：固定底部居中（音乐 FAB 占最底，箭头在其正上方一档），点击滑到下一个区块（显隐由 app.js 切 opacity） */
+/* 逐页下翻按钮：固定底部居中（音乐 FAB 已挪到右下竖排，箭头独占中下这一档），点击滑到下一个区块（显隐由 app.js 切 opacity） */
 #page-next {
   position: fixed;
-  bottom: 4.6rem;
+  bottom: 1.75rem;
   left: 50%;
   transform: translateX(-50%);
   z-index: 40;
@@ -761,6 +761,12 @@ body.is-scrolling .music-fab {
   transition: opacity 0.2s ease, background 0.2s ease;
 }
 #page-next:hover { background: rgba(8, 10, 16, 0.62); color: #ffffff; }
+
+/* 右侧竖排：音乐在最底，回顶在它上面；三个悬浮件不再挤在底部中央 */
+#back-to-top {
+  right: 1.5rem;
+  bottom: 5.25rem;
+}
 /* 产品区：卡片收窄、奇偶分列 —— 文字一列、3D 实体一列（igloo 式版面） */
 #products article {
   max-width: 46rem;
@@ -1263,9 +1269,8 @@ mark.sj-note {
         且角落按钮不好按——居中是拇指/视线热区） ===== */
 .music-fab {
   position: fixed;
-  left: 50%;
-  margin-left: -1.5rem;   /* 宽 3rem 的一半，不用 transform 以免和 hover scale 打架 */
-  bottom: 1.2rem;
+  right: 1.25rem;
+  bottom: 1.25rem;
   touch-action: none;      /* 拖拽换位：不让触摸当成滚动 */
   cursor: grab;            /* js/player.js 拖拽时提示可抓取 */
   user-select: none;
@@ -1330,9 +1335,9 @@ mark.sj-note {
 /* 展开面板：FAB 上方弹出（水平居中对齐 FAB） */
 .music-panel {
   position: fixed;
-  left: 50%;
+  right: 1.25rem;
   bottom: 5rem;
-  transform: translate(-50%, 8px);
+  transform: translateY(8px);
   z-index: 40;
   width: min(300px, calc(100vw - 2.5rem));
   padding: 0.875rem;
@@ -1352,7 +1357,7 @@ mark.sj-note {
 .music-panel.music-open {
   opacity: 1;
   visibility: visible;
-  transform: translate(-50%, 0);
+  transform: translateY(0);
   pointer-events: auto;
 }
 .dark .music-panel {
@@ -1522,8 +1527,8 @@ mark.sj-note {
 
 /* 移动端：面板贴底居中防溢出 */
 @media (max-width: 480px) {
-  .music-fab { margin-left: -1.5rem; bottom: 1rem; }
-  .music-panel { bottom: 4.4rem; }
+  .music-fab { right: 1rem; bottom: 1rem; }
+  .music-panel { right: 0.75rem; bottom: 4.4rem; }
 }
 
 /* ============================================================

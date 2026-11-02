@@ -314,7 +314,7 @@
     fab.style.marginLeft = '0';
     // 面板跟随 FAB 上方弹出（水平 clamp 防溢出）
     const cx = Math.min(Math.max(165, x + w / 2), innerWidth - 165);
-    panel.style.left = cx + 'px';
+    panel.style.left = (cx - panel.offsetWidth / 2) + 'px';
     panel.style.bottom = (innerHeight - y + 12) + 'px';
     panel.style.right = 'auto';
   }

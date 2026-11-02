@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"eae94a68bdaf","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"5c2ab45d5d1512b1196f75db8c331205b2616a3795154124b2cc06fcfe77b014"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"c1e0fc6b32f552a10af1a3ac20909ecf9baec8cfd1b5a2c77f42b07f9770ab8e"}]}
+// build-bundles: {"name":"home","version":"05107ef41c0a","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"5c2ab45d5d1512b1196f75db8c331205b2616a3795154124b2cc06fcfe77b014"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"32ec3c5750c0a4776a452b597b91d89beaeba399354408cb02985c1428b54d21"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -2347,7 +2347,7 @@ function sanitizeMarkdownHtml(html) {
 
 ;
 
-// ---- js/player.js (c1e0fc6b32f5) ----
+// ---- js/player.js (32ec3c5750c0) ----
 /**
  * 右下角悬浮背景音乐播放器
  * ----------------------------------------------------
@@ -2664,7 +2664,7 @@ function sanitizeMarkdownHtml(html) {
     fab.style.marginLeft = '0';
     // 面板跟随 FAB 上方弹出（水平 clamp 防溢出）
     const cx = Math.min(Math.max(165, x + w / 2), innerWidth - 165);
-    panel.style.left = cx + 'px';
+    panel.style.left = (cx - panel.offsetWidth / 2) + 'px';
     panel.style.bottom = (innerHeight - y + 12) + 'px';
     panel.style.right = 'auto';
   }
