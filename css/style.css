@@ -1225,7 +1225,7 @@ mark.sj-note {
 /* Markdown 文章详情排版 */
 .markdown-body {
   line-height: 1.8;
-  font-size: 1rem;
+  font-size: 1.0625rem;   /* 16 → 17px：弹窗里长文更耐读 */
 }
 .markdown-body h1,
 .markdown-body h2,
@@ -1724,9 +1724,19 @@ nav.nav-pill-on a.nav-active {
 @media (min-width: 768px) {
   .ac-media {
     width: 200px;
-    height: 120px;
+    height: 125px;          /* 16:10，和正文块顶部对齐后高度更整 */
     aspect-ratio: auto;
   }
+}
+
+/* 列表卡：标题 16 → 18px、摘要 14 → 15px（两行截断不变） */
+.ac-with-cover h3 {
+  font-size: 1.125rem;
+  line-height: 1.45;
+}
+.ac-with-cover p {
+  font-size: 0.9375rem;
+  line-height: 1.65;
 }
 .ac-with-cover:hover .ac-media img {
   transform: scale(1.04);
