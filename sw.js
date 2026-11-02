@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v183';   // 2026-11-03 FileButler 片：配乐回退到电子版
+const CACHE = 'sevenjohn-v184';   // 2026-11-03 FileButler 片：配乐换成 122 BPM 欢快版
 const CORE = [
   './',
   'index.html',
