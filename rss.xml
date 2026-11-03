@@ -141,7 +141,7 @@
       <guid isPermaLink="false">ollama-vram-fit</guid>
       <pubDate>Sat, 12 Sep 2026 00:00:00 GMT</pubDate>
       <category>本地 AI</category>
-      <description>模型跑起来了，但接进自己程序之后开始变慢、偶发失败。记录我在 8GB 上收回来的几个参数，以及把本地模型当「可选项」设计这条底线。</description>
+      <description>本地大模型在有限显存设备上长期运行容易出现性能降级与并发瓶颈。本文记录在 8GB 显存环境下关键参数调优实践，以及端侧架构将本地模型视为「优雅降级可选项」的防御性设计。</description>
     </item>
     <item>
       <title>本地文件管家：秒搜与可撤销怎么同时成立</title>
@@ -149,7 +149,7 @@
       <guid isPermaLink="false">filebutler-local-rag</guid>
       <pubDate>Wed, 02 Sep 2026 00:00:00 GMT</pubDate>
       <category>架构设计</category>
-      <description>「直接问文件」这件事，难的不是接个模型，是让它既快又能反悔。记录 FileButler 的双索引分工、可撤销设计，以及端侧 AI 必须做的降级底线。</description>
+      <description>端侧知识库问答的工程难点在于平衡响应性能与破坏性操作的可逆性。本文记录 FileButler 的双轨索引分工、事务回滚设计，以及本地模型不可用时的降级策略。</description>
     </item>
     <item>
       <title>帧率防抖：平均 300 帧为什么不跟手</title>
@@ -157,7 +157,7 @@
       <guid isPermaLink="false">gameboost-frame-pacing</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
       <category>系统调优</category>
-      <description>平均 300 帧还是不跟手，问题出在单帧生成时间的尖刺上。记录 GameBoost 针对 1% Low 做的几件事，以及动系统设置时那条不能省的底线。</description>
+      <description>针对竞技对战中平均帧高但微卡顿、不跟手的现象，深入分析单帧生成时间尖刺的成因。记录 GameBoost 在时钟中断、线程调度与系统环境可逆还原上的工程实践。</description>
     </item>
   </channel>
 </rss>
