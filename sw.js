@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v190';   // 2026-11-03 Fluxion 详情对齐 GitHub 1.3.0 能力块
+const CACHE = 'sevenjohn-v191';   // 2026-11-03 Fluxion 介绍片重制：1080p 实机截图版
 const CORE = [
   './',
   'index.html',
