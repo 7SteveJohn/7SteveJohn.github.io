@@ -79,7 +79,7 @@
     "author": {
       "@type": "Person",
       "name": "SevenJohn",
-      "jobTitle": "业余开发者",
+      "jobTitle": "独立开发者",
       "url": "https://7stevejohn.github.io/"
     }
   }
@@ -245,7 +245,7 @@
            这站是什么、跟他有什么关系。与对句同帧出现（--i:2）。
            与 2026-09-30「不放自白行」的决定不冲突：那版删的是能力自夸，这句是事实陈述 -->
       <p class="hero-anim max-w-xl mx-auto text-sm sm:text-base" style="--i:2">
-        在用的本地工具，以及做它们时踩的坑。
+        端侧 AI 与轻量桌面工具的工程实践，以及系统底层的实测记录。
       </p>
       <!-- 最近更新：由 app.js 从 PROJECTS_DATA 取最新 updated 填充，不写死日期（写死会过期变成假证据） -->
       <p id="hero-updated" class="hero-anim text-xs font-mono tracking-wide" style="--i:2" hidden></p>
@@ -308,7 +308,7 @@
         <div data-page-node-id="mO9pBdfRjBgUEFwEcm2I1x">
           <div id="hero-greeting" class="text-xs text-[#86868b] font-medium" data-page-node-id="HSvyH7FDEAEHmDNHXTf972"></div>
           <div class="text-sm font-bold text-[#1d1d1f] dark:text-white" data-page-node-id="4HNDn4GntrNu34iv22W2Ww">SevenJohn</div>
-          <div class="text-xs text-[#86868b]" data-page-node-id="9RgoOd30lFlk8cqyW1TArl">做本地 AI 应用与桌面工具</div>
+          <div class="text-xs text-[#86868b]" data-page-node-id="9RgoOd30lFlk8cqyW1TArl">端侧 AI 与原生桌面工具开发</div>
           <div class="hero-who-more text-xs text-[#c8d2e2] mt-0.5">了解我 <span aria-hidden="true">→</span></div>
           <div id="hero-status" class="hidden text-xs text-[#86868b] mt-0.5" data-page-node-id="qreOfmg5FdVuKGwKzJmbxv"></div>
         </div>
@@ -492,7 +492,7 @@
             Android 离线应用 · Gradle 8.9 / 单页 SPA
           </span>
           <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white" data-page-node-id="rBMfW5D7X39ryJ6lq4drQh">
-            NetOps Handbook · 给小白的离线网络手册
+            NetOps Handbook · 离线网络工程与排障手册
           </h3>
           <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed" data-page-node-id="FHwxP5YA9zTO72r9SvGjxs">完全离线的网络技术与运维备忘手册。整合多厂商命令对照、典型故障排障链路、CLI 交互模拟及面试真题解析。采用零外部依赖单页架构，不申请网络权限，无网络环境下秒级查阅。</p>
 
@@ -659,7 +659,7 @@
         </summary>
         <div class="pa-list">
           <div class="pa-item">
-            <p class="pa-name">GameBoost · 打游戏前点一下</p>
+            <p class="pa-name">GameBoost · 游戏底层性能调优</p>
             <p class="pa-desc">针对 1% Low 帧率尖刺与输入延迟进行底层调优，改动支持一键备份还原。<span class="pa-ver">v1.0.5</span></p>
             <button type="button" class="pa-open" data-open-project="gameboost">查看详情 <span aria-hidden="true">→</span></button>
           </div>
@@ -673,37 +673,37 @@
 
     </section>
 
- <!-- 4. 📐 研发哲学与技术对比-->
+ <!-- 4. 📐 研发哲学与工程原则-->
     <section id="philosophy" class="dark max-w-5xl mx-auto px-4 sm:px-6 space-y-8 scroll-mt-20" data-page-node-id="SbDgjaCqYMy690zENXMBbA">
       <div class="reveal text-center space-y-2" data-page-node-id="pqy9PFoV0DLC3gjVmLBd69">
-        <p class="text-2xl sm:text-3xl font-bold tracking-tight text-[#1d1d1f] dark:text-white" data-page-node-id="lOaCH5FJalPdytIyMHMpfb">为什么做这些工具？</p>
+        <p class="text-2xl sm:text-3xl font-bold tracking-tight text-[#1d1d1f] dark:text-white" data-page-node-id="lOaCH5FJalPdytIyMHMpfb">研发哲学与工程原则</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8" data-reveal-stagger data-page-node-id="iloJjGrp0eSxCfxYhBKLCm">
         <!-- 理念 1 -->
         <div class="reveal" data-page-node-id="I90HOjH8LgbmWRl2wIHXnX">
           <div class="text-xs font-mono text-[#86868b] phil-no" data-page-node-id="CZijEOUxJ85woNmIBU8eH3">01</div>
-          <h3 class="text-base font-semibold text-[#1d1d1f] dark:text-white mt-2" data-page-node-id="eTHTOnN60SFOPbs5Bs3SFY">数据和工具都在自己手里</h3>
+          <h3 class="text-base font-semibold text-[#1d1d1f] dark:text-white mt-2" data-page-node-id="eTHTOnN60SFOPbs5Bs3SFY">本地闭环与数据自治</h3>
           <p class="text-sm text-[#86868b] leading-relaxed mt-2" data-page-node-id="3YtXpSiNWUP3JN9f1TA53T">
-            AI 和搜索都在本地运行，断网也能用，数据不离开这台机器。
+            推理与检索全量运行于宿主本地，零网络依赖，数据资产完全由用户自主掌控。
           </p>
         </div>
 
         <!-- 理念 2 -->
         <div class="reveal" data-page-node-id="jUUilof4vu2o2dXT7W7T2b">
           <div class="text-xs font-mono text-[#86868b] phil-no" data-page-node-id="PCEddAhHA7ibabwmFFGIaa">02</div>
-          <h3 class="text-base font-semibold text-[#1d1d1f] dark:text-white mt-2" data-page-node-id="0BqjB0OBZC2uyqGjfNGnrO">保持轻量</h3>
+          <h3 class="text-base font-semibold text-[#1d1d1f] dark:text-white mt-2" data-page-node-id="0BqjB0OBZC2uyqGjfNGnrO">轻量原生与架构节制</h3>
           <p class="text-sm text-[#86868b] leading-relaxed mt-2" data-page-node-id="htShKOZFCOLlok6qxcD6Fi">
-            不做体积很大的套壳软件。桌面端用原生 C#，安卓端不申请网络权限，后台没有联网的通道。
+            拒绝冗余的运行时套壳。桌面端优先采用原生编译，移动端不申请网络权限，杜绝隐蔽外联。
           </p>
         </div>
 
         <!-- 理念 3 -->
         <div class="reveal" data-page-node-id="w4UOa2kzjIPLV4EXWN8vIr">
           <div class="text-xs font-mono text-[#86868b] phil-no" data-page-node-id="NED5OLNUZl0F7P9kfBrwt8">03</div>
-          <h3 class="text-base font-semibold text-[#1d1d1f] dark:text-white mt-2" data-page-node-id="kdJ9y0cWssXUW0pV4g674V">用得上才做</h3>
+          <h3 class="text-base font-semibold text-[#1d1d1f] dark:text-white mt-2" data-page-node-id="kdJ9y0cWssXUW0pV4g674V">真实痛点驱动落地</h3>
           <p class="text-sm text-[#86868b] leading-relaxed mt-2" data-page-node-id="WL1lnFIJCrZEzoLAVDfovl">
-            只做日常确实需要的工具：文件检索、游戏掉帧、网络入门。
+            聚焦明确具体的工程瓶颈与效率断点：端侧离线语义检索、帧时间抖动消除与离线技术查阅。
           </p>
         </div>
       </div>
@@ -718,13 +718,13 @@
           <div class="space-y-4 flex-1">
             <div>
               <h2 class="text-2xl font-bold tracking-tight text-[#1d1d1f] dark:text-white">关于我</h2>
-              <p class="text-sm text-[#86868b] mt-1">业余写的，都是自己用得上的东西。</p>
+              <p class="text-sm text-[#86868b] mt-1">专注端侧智能落地、系统底层调优与轻量原生工具开发。</p>
             </div>
             <p class="text-sm text-[#1d1d1f] dark:text-[#f5f5f7] leading-relaxed">
-              我并非擅长编码的人。不少实现依托 AI 的力量，我负责梳理现实的诉求，反复试错调试。
+              依托现代工程工具链与大模型辅助，探索端侧离线智能与系统性能调优的边界。专注于梳理真实场景的技术架构、可靠性边界与闭环逻辑，并通过真实硬件环境与自动化测试反复验证。
             </p>
             <p class="text-sm text-[#1d1d1f] dark:text-[#f5f5f7] leading-relaxed">
-              每一段尝试都始于自己生活当中碰到的困境。先试着做出能够服务于自己的工具，如果尚有可取之处，便整理发布在这里，算作学习路上留下的脚印。
+              每一个项目均源于明确的技术痛点与效率瓶颈。坚持本地闭环、零数据外泄与系统改动无损可逆的工程底线；若沉淀的实践对同样追求工具自主可控的开发者有所启发，便开源整理于此。
             </p>
             <div class="flex flex-wrap gap-x-5 gap-y-2 text-xs pt-1">
               <a href="mailto:sevenksq@163.com" class="hover:underline underline-offset-2">✉ sevenksq@163.com</a>

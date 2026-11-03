@@ -135,7 +135,7 @@ FileButler 是一个**全在本地运行**的文件检索管家与知识库问�
   },
   {
     id: "netops-handbook",
-    title: "NetOps Handbook · 给小白的离线网络手册",
+    title: "NetOps Handbook · 离线网络工程与排障手册",
     category: "android",
     categoryName: "Android 应用",
     description: "完全离线的网络技术与运维备忘手册。整合多厂商命令对照、典型故障排障链路、CLI 交互模拟及面试真题解析。采用零外部依赖单页架构，不申请网络权限，无网络环境下秒级查阅。",
@@ -181,7 +181,7 @@ NetOps Handbook 是一本**完全离线运行的网络技术与运维随身手�
   },
   {
     id: "gameboost",
-    title: "GameBoost · 打游戏前点一下",
+    title: "GameBoost · 游戏底层性能调优",
     category: "desktop",
     categoryName: "桌面应用",
     description: "轻量级 Windows 游戏环境针对性调优工具。专注消除对战交火瞬间的 1% Low 帧率尖刺与输入延迟；自动化协同电源计划、GPU 响应、定时器分辨率与网络节流策略，优化配置支持一键备份还原。",

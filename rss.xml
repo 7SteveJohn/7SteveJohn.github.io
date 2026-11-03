@@ -21,7 +21,7 @@
       <guid isPermaLink="false">pixel-narrative-devlog</guid>
       <pubDate>Sat, 17 Oct 2026 00:00:00 GMT</pubDate>
       <category>游戏创作</category>
-      <description>从 Godot 4 换到 RPG Maker MZ 的技术考量，以及 2D 像素叙事工程的踩坑细节：外挂脚本管理数据、定制全屏暗色阅读器、修复行走图下沉步态与材质脚步声。</description>
+      <description>从 Godot 4 换到 RPG Maker MZ 的技术考量，以及 2D 像素叙事工程的关键排障与优化：外挂脚本管理数据、定制全屏暗色阅读器、修复行走图下沉步态与材质脚步声。</description>
     </item>
     <item>
       <title>纯本地提示词优化器：零模型依赖的规则诊断与重组引擎</title>
