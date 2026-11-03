@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"1de761bc9f0b","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"5d2f8bdc255541243efd8d3a553ddf9882b848b56c7dc387613b844b491c668b"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"32ec3c5750c0a4776a452b597b91d89beaeba399354408cb02985c1428b54d21"}]}
+// build-bundles: {"name":"home","version":"c6bcafc5a167","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"3a1bf3d10b93074d4b9db37c6edb33ef88b375ae9955525d3dd9634cd460ca22"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"32ec3c5750c0a4776a452b597b91d89beaeba399354408cb02985c1428b54d21"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -380,7 +380,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (5d2f8bdc2555) ----
+// ---- js/app.js (3a1bf3d10b93) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -625,6 +625,11 @@ window.openProjectModal = function(id) {
   if (modal._closeTimer) { clearTimeout(modal._closeTimer); modal._closeTimer = null; }
   modal.classList.remove('is-closing');
   modal._lastFocus = document.activeElement;
+
+  const barTitle = document.getElementById('project-bar-title');
+  if (barTitle) barTitle.textContent = project.title || '';
+  const barCategory = document.getElementById('project-bar-category');
+  if (barCategory) barCategory.textContent = project.categoryName || project.category || '项目详情';
 
   // Markdown 渲染器按需加载（2026-10-17）：先出骨架，正文等渲染器就绪后补写
   const needMd = !(window.marked && window.DOMPurify);
@@ -1441,6 +1446,11 @@ window.openArticleModal = function(id, skipUrlSync) {
   const prevActiveArticle = activeArticle;
   activeArticle = article;
   activeVersion = 0;
+
+  const barTitle = document.getElementById('article-bar-title');
+  if (barTitle) barTitle.textContent = article.title || '';
+  const barCategory = document.getElementById('article-bar-category');
+  if (barCategory) barCategory.textContent = article.category || '技术手记';
 
   // Markdown 渲染器按需加载（2026-10-17）：先出骨架，正文等渲染器就绪后补写
   const needMd = !(window.marked && window.DOMPurify);

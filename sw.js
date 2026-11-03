@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v193';   // 2026-11-03 修复所有文章卡片与手记 SVG 封面 XML 转义与尺寸
+const CACHE = 'sevenjohn-v194';   // 2026-11-03 弹窗常驻顶栏与独立关闭按钮：物理隔离滚动正文，杜绝重叠
 const CORE = [
   './',
   'index.html',

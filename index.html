@@ -892,35 +892,51 @@
 
   <!-- 项目技术规格详情弹窗 -->
   <div id="project-modal" role="dialog" aria-modal="true" aria-label="项目详情" class="modal-overlay hidden fixed inset-0 z-50 flex justify-center p-4 sm:p-6 bg-black/55 lg-dim overflow-y-auto" data-page-node-id="J7jlKWBIO4EBMtrDznKCbZ">
-    <div class="modal-panel glass-spec relative m-auto w-full max-w-2xl bg-white dark:bg-[#161617] rounded-2xl shadow-2xl overflow-hidden border border-black/10 dark:border-white/10 my-8" data-page-node-id="WpQ2MFpp0ADpuMivaJXoYV">
-      <button
-        data-close-modal="project"
-        aria-label="关闭"
-        class="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white transition cursor-pointer" data-page-node-id="BTbx9ChoUEFBwM5TlwfFV3"
-      >
-        <i data-lucide="x" class="w-4 h-4" data-page-node-id="Z5I3sMNqdCblMv4lxCcpC4"></i>
-      </button>
+    <div class="modal-panel glass-spec relative m-auto w-full max-w-2xl bg-white dark:bg-[#161617] rounded-2xl shadow-2xl overflow-hidden border border-black/10 dark:border-white/10 my-8 flex flex-col max-h-[85vh]" data-page-node-id="WpQ2MFpp0ADpuMivaJXoYV">
+      <!-- 常驻顶栏：关闭按钮独立常驻，杜绝与滚动正文重叠 -->
+      <div class="modal-top-bar flex items-center justify-between px-5 sm:px-6 py-3 border-b border-black/8 dark:border-white/8 bg-white/95 dark:bg-[#161617]/95 backdrop-blur-md z-20 shrink-0 select-none">
+        <div class="flex items-center gap-2 text-xs font-mono text-[#86868b] min-w-0 pr-2">
+          <span id="project-bar-category" class="px-2 py-0.5 rounded-md border border-black/8 dark:border-white/12 font-medium shrink-0 whitespace-nowrap">项目详情</span>
+          <span id="project-bar-title" class="truncate font-medium text-[#1d1d1f] dark:text-slate-300"></span>
+        </div>
+        <button
+          data-close-modal="project"
+          aria-label="关闭"
+          class="modal-close-btn text-[#1d1d1f] dark:text-white cursor-pointer flex-shrink-0"
+          data-page-node-id="BTbx9ChoUEFBwM5TlwfFV3"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
 
-      <div id="project-modal-content" class="max-h-[85vh] overflow-y-auto" data-page-node-id="psPgliazvzWmIsFt2aG7rd"></div>
+      <div id="project-modal-content" class="flex-1 overflow-y-auto overscroll-contain" data-page-node-id="psPgliazvzWmIsFt2aG7rd"></div>
     </div>
   </div>
 
   <!-- 博客文章弹窗 -->
   <div id="article-modal" role="dialog" aria-modal="true" aria-label="文章阅读" class="modal-overlay hidden fixed inset-0 z-50 flex justify-center p-4 sm:p-6 bg-black/55 lg-dim overflow-y-auto" data-page-node-id="OOLn0h7Z91FL1FPa03zBG8">
-    <div class="modal-panel glass-spec relative m-auto w-full max-w-2xl bg-white dark:bg-[#161617] rounded-2xl shadow-2xl overflow-hidden border border-black/10 dark:border-white/10 my-8" data-page-node-id="segOYcOzBHoZAjAYEYxiPR">
-      <!-- 阅读进度条 -->
-      <div class="absolute top-0 left-0 right-0 h-[3px] z-10 pointer-events-none" data-page-node-id="qczz8h99IL6LcuTZvp8rjM">
-        <div id="article-progress" class="h-full w-0 bg-[#1d1d1f] dark:bg-[#f5f5f7]" data-page-node-id="yEFmAmXfPH8BIA4EvYdlGH"></div>
+    <div class="modal-panel glass-spec relative m-auto w-full max-w-2xl bg-white dark:bg-[#161617] rounded-2xl shadow-2xl overflow-hidden border border-black/10 dark:border-white/10 my-8 flex flex-col max-h-[85vh]" data-page-node-id="segOYcOzBHoZAjAYEYxiPR">
+      <!-- 常驻顶栏：阅读进度 + 模块分类与标题 + 关闭按钮独立常驻，杜绝与滚动正文重叠 -->
+      <div class="modal-top-bar relative flex items-center justify-between px-5 sm:px-6 py-3 border-b border-black/8 dark:border-white/8 bg-white/95 dark:bg-[#161617]/95 backdrop-blur-md z-20 shrink-0 select-none">
+        <div class="flex items-center gap-2 text-xs font-mono text-[#86868b] min-w-0 pr-2">
+          <span id="article-bar-category" class="px-2 py-0.5 rounded-md border border-black/8 dark:border-white/12 font-medium shrink-0 whitespace-nowrap">技术手记</span>
+          <span id="article-bar-title" class="truncate font-medium text-[#1d1d1f] dark:text-slate-300"></span>
+        </div>
+        <button
+          data-close-modal="article"
+          aria-label="关闭"
+          class="modal-close-btn text-[#1d1d1f] dark:text-white cursor-pointer flex-shrink-0"
+          data-page-node-id="ud7AYU9YFShErGRPueRFNR"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        <!-- 阅读进度条紧贴顶栏底边 -->
+        <div class="absolute bottom-0 left-0 right-0 h-[2px] pointer-events-none overflow-hidden" data-page-node-id="qczz8h99IL6LcuTZvp8rjM">
+          <div id="article-progress" class="h-full w-0 bg-[#1d1d1f] dark:bg-[#f5f5f7] transition-[width] duration-75" data-page-node-id="yEFmAmXfPH8BIA4EvYdlGH"></div>
+        </div>
       </div>
-      <button
-        data-close-modal="article"
-        aria-label="关闭"
-        class="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white transition cursor-pointer" data-page-node-id="ud7AYU9YFShErGRPueRFNR"
-      >
-        <i data-lucide="x" class="w-4 h-4" data-page-node-id="nDKxsbQcBldFBHthJrh04W"></i>
-      </button>
 
-      <div id="article-modal-content" class="max-h-[85vh] overflow-y-auto" data-page-node-id="8h1WC6dGKTwxPfuy6tWZsO"></div>
+      <div id="article-modal-content" class="flex-1 overflow-y-auto overscroll-contain" data-page-node-id="8h1WC6dGKTwxPfuy6tWZsO"></div>
     </div>
   </div>
 

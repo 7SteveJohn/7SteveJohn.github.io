@@ -243,6 +243,11 @@ window.openProjectModal = function(id) {
   modal.classList.remove('is-closing');
   modal._lastFocus = document.activeElement;
 
+  const barTitle = document.getElementById('project-bar-title');
+  if (barTitle) barTitle.textContent = project.title || '';
+  const barCategory = document.getElementById('project-bar-category');
+  if (barCategory) barCategory.textContent = project.categoryName || project.category || '项目详情';
+
   // Markdown 渲染器按需加载（2026-10-17）：先出骨架，正文等渲染器就绪后补写
   const needMd = !(window.marked && window.DOMPurify);
   const detailsHtml = project.details
@@ -1058,6 +1063,11 @@ window.openArticleModal = function(id, skipUrlSync) {
   const prevActiveArticle = activeArticle;
   activeArticle = article;
   activeVersion = 0;
+
+  const barTitle = document.getElementById('article-bar-title');
+  if (barTitle) barTitle.textContent = article.title || '';
+  const barCategory = document.getElementById('article-bar-category');
+  if (barCategory) barCategory.textContent = article.category || '技术手记';
 
   // Markdown 渲染器按需加载（2026-10-17）：先出骨架，正文等渲染器就绪后补写
   const needMd = !(window.marked && window.DOMPurify);
