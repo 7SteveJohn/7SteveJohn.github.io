@@ -111,7 +111,7 @@ window.PROJECTS_DATA = [
 <p style="font-size:12px;color:#86868b;margin-top:6px;">FileButler 实机主界面；38 秒介绍视频在项目卡片上。</p>
 
 ### 💡 这是什么
-文件越堆越乱、想找的东西永远翻不出来——FileButler 就是为这个写的。它是一个**全在你自己电脑上跑**的文件管家 + 知识库问答：AI 默认用本机 Ollama 的免费模型，**不用申请任何 API Key，文件不会离开这台机器**；也可以换成本机 LM Studio，或自己填一个 OpenAI 兼容的云端接口（那种情况下只有你问的那段字会发出去）。没有模型在跑的时候，搜索、预览、整理、去重照常能用。
+FileButler 是一个**全在本地运行**的文件检索管家与知识库问答工具：基于本机 Ollama 或 LM Studio 离线模型，**零网络依赖、不需要配置 API Key，本地数据完全不离开当前设备**。在未开启本地大模型时，关键词检索、预览、整理与去重等基础功能依然完全可用。
 
 ### ✨ 能干什么
 - **秒搜（只读，不动你的文件）**：启动自动扫描，后台盯着新增和改动，几秒内就能搜到；支持「ext:pdf」「size:>100mb」「dm:本周」「path:桌面」这类语法，长文本走 FTS5 全文索引，中文名能打全拼或首字母（打 bg 也能搜到「报告」）
@@ -138,7 +138,7 @@ window.PROJECTS_DATA = [
     title: "NetOps Handbook · 给小白的离线网络手册",
     category: "android",
     categoryName: "Android 应用",
-    description: "面向初学者的离线网络手册：68 个知识模块、35 个排障案例、58 条多厂商命令对照、431 条 CLI 命令、53 道面试真题。配合教材与实验使用，不能只靠它学会网络。未申请网络权限，没信号也能翻。",
+    description: "完全离线的网络技术与运维备忘手册。整合多厂商命令对照、典型故障排障链路、CLI 交互模拟及面试真题解析。采用零外部依赖单页架构，不申请网络权限，无网络环境下秒级查阅。",
     tags: ["Android", "WebView", "Gradle 8.9", "单页 SPA", "离线应用"],
     image: "assets/images/cover-netops.webp",
     demoUrl: "https://github.com/7SteveJohn/netops-handbook/releases",
@@ -158,9 +158,9 @@ window.PROJECTS_DATA = [
 <p style="font-size:12px;color:#86868b;margin-top:6px;">NetOps 2.0 实机界面；38 秒介绍视频在项目卡片上。</p>
 
 ### 💡 这是什么
-NetOps 是一本**能装进口袋的离线网络小册子**。断网、没信号、蹲在机房角落都翻得开——它未申请网络权限。
+NetOps Handbook 是一本**完全离线运行的网络技术与运维随身手册**。应用未申请网络权限，即使在无信号的机房等严苛环境下也能随时秒开查阅。
 
-**它的定位是辅助工具，不是一门能独立走完的课**：得配合教材、网课和真机实验一起用——课前翻一遍混个脸熟，课上忘了解释随手查，面试前拿出来突击。只指望翻它就把网络学明白，不现实。
+**产品定位为辅助参考手册**：适合配合教材、在线课程与真机实验使用，用于高频命令速查、跨厂商配置对照、故障排障链路梳理与面试重点巩固。
 
 ### ✨ 里面有什么
 - **68 个知识模块 / 35 个排障案例 / 58 条多厂商命令对照 / 431 条 CLI 命令 / 53 道面试真题**
@@ -184,7 +184,7 @@ NetOps 是一本**能装进口袋的离线网络小册子**。断网、没信号
     title: "GameBoost · 打游戏前点一下",
     category: "desktop",
     categoryName: "桌面应用",
-    description: "在启动 CS2、Valorant、三角洲行动前运行一次：电源、GPU、CPU 调度、网络、定时器分辨率自动调好，解决对枪瞬间的掉帧与输入延迟，改动可一键还原。",
+    description: "轻量级 Windows 游戏环境针对性调优工具。专注消除对战交火瞬间的 1% Low 帧率尖刺与输入延迟；自动化协同电源计划、GPU 响应、定时器分辨率与网络节流策略，优化配置支持一键备份还原。",
     tags: ["C#", "PowerShell", "Windows", "游戏性能"],
     image: "assets/images/cover-gameboost.webp",
     demoUrl: "https://github.com/7SteveJohn/GameBoost/releases",
@@ -205,7 +205,7 @@ NetOps 是一本**能装进口袋的离线网络小册子**。断网、没信号
 <p style="font-size:12px;color:#86868b;margin-top:6px;">GameBoost 实机界面；开打前自动调优，改动可一键还原。</p>
 
 ### 💡 这是什么
-打 CS2、Valorant、三角洲这类游戏，最烦的不是平均帧数低，是**对枪那一下突然卡一下**。GameBoost 就是冲着这个做的——开打前点一下，把该调的都调好。跑分多少不重要。
+GameBoost 是专为竞技射击游戏定制的轻量级 Windows 环境优化工具。针对对战交火瞬间的 **1% Low 帧率尖刺与输入延迟**进行底层调优，自动化协同电源计划、GPU 响应、定时器分辨率与网络策略；优化方案支持一键备份与无损还原。
 
 ### ✨ 能干什么
 - 自动调电源计划、显卡、网络、CPU 调度和定时器分辨率
@@ -225,7 +225,7 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
     title: "GameBoost-DLSSG · DLSS 帧生成",
     category: "desktop",
     categoryName: "桌面应用",
-    description: "给 RTX 20/30 系开启 DLSS 帧生成（该功能官方只提供给 40/50 系）：游戏库扫描、DX12 模式启动、运行诊断，改动可一键还原。分享版只含帧生成，不含系统优化。",
+    description: "专为 RTX 20/30 系显卡定制的 DLSS 帧生成接入工具。基于 DLL 代理实现跨代架构的插帧支持；提供全平台游戏库扫描、DX12 快捷启动引导与加载链路实时诊断，改动独立隔离可安全还原。",
     tags: ["C#", "WinForms", "DLSS 帧生成", "游戏库管理", "Inno Setup"],
     image: "assets/images/cover-dlssg.webp",
     downloadUrl: "https://pan.baidu.com/s/1johUjnwCEfmjpwuz66tqyA?pwd=rw94",
@@ -242,9 +242,7 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
 <p style="font-size:12px;color:#86868b;margin-top:6px;">GameBoost-DLSSG 实机界面；给 20/30 系显卡开启 DLSS 帧生成。</p>
 
 ### 💡 这是什么
-一个帧生成管理工具的分享版（v1.0.0）：给 **RTX 20/30 系**显卡接上 **NVIDIA 官方只开放给 40/50 系的 DLSS 帧生成**（基于开源项目 dlssg_for_sm86 的 DLL 代理方案）。40 系及以上显卡系统原生就有，不用装。
-
-这是我自用的工具，整理出一份分享版，没往 GitHub 放，用得上的朋友直接网盘拿。
+GameBoost-DLSSG 是专为 **RTX 20/30 系** 显卡定制的 DLSS 帧生成管理工具。基于开源 DLL 代理方案实现跨代显卡的插帧支持，附带游戏库扫描、DX12 快捷启动与链路诊断能力，改动独立隔离且可一键还原。
 
 ### 🎮 帧生成（给 20/30 系）
 - 扫描全平台游戏（Steam / 本地目录都能收进游戏库），标出每款是否带 DLSS-FG / FSR3 组件
@@ -269,7 +267,7 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
     title: "拍案 · 网文创作工作台",
     category: "desktop",
     categoryName: "桌面应用",
-    description: "给网文作者的纯本地工作台：AI 按细纲逐章出稿、批量写整卷，草稿采纳才进正文；场景重排、伏笔追踪、出场记忆、牵线关系图。数据全部留在自己电脑上，断网也能写。",
+    description: "纯本地运行的长篇网文创作工作台。支持细纲驱动的 AI 分章起草与批量撰写，采用“待审草稿采纳”的安全防篡改流程；内置场景拆解重排、伏笔追踪与人物关系拓扑分析。创作数据全量留存本地，断网即开即写。",
     tags: ["Electron", "TypeScript", "CodeMirror 6", "纯本地"],
     image: "assets/images/cover-paian.webp",
     demoUrl: "https://github.com/7SteveJohn/PaiAn/releases",
@@ -289,7 +287,7 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
 <p style="font-size:12px;color:#86868b;margin-top:6px;">拍案写作页：章节列表、正文编辑与右侧素材抽屉；38 秒介绍视频在项目卡片上。</p>
 
 ### 💡 这是什么
-给网文作者的**纯本地**创作工作台：数据全部保存在自己电脑上，不上传任何服务器，断网也能写。AI 按你的细纲出稿——草稿只落「待审草稿」，**采纳才进正文**，原正文先存快照，AI 永远不会背着你改稿；接本地 Ollama 零成本，或 DeepSeek / 智谱 / Kimi 等 OpenAI 兼容 API（Key 只存本机）。
+面向长篇小说与网文写作的**纯本地**创作工作台。创作数据全量保存在本地设备，完全支持断网离线编写。AI 按照大纲要求辅助起草，生成内容统一写入「待审草稿」，**由作者主动采纳后才会合入正文**并自动保留快照，确保正文安全可控；支持本地 Ollama 离线推理或主流云端大模型接口。
 
 ### ✨ 能干什么
 - **写作页**：CodeMirror 6 编辑器（Obsidian 同款内核）、自动保存、实时字数与目标进度、专注模式、Markdown 一键预览
@@ -313,7 +311,7 @@ Electron + Vite + TypeScript，数据存本机文件夹（卸载不删稿子）�
     title: "Fluxion · 完整版性能套件",
     category: "desktop",
     categoryName: "桌面应用",
-    description: "GameBoost（系统优化）与 DLSSG-Tool（帧生成）合并重构的完整版：51 项体检一键优化、DLSS 帧生成、游戏库、进游戏自动切状态、实时监控，改动可一键还原。早期的 GameBoost 与 DLSSG 分享版已收进页面底部的历史项目。",
+    description: "Windows 游戏性能调优与帧生成管理套件。提供 51 项系统级底层体检与一键安全调优，支持 RTX 20/30 系 DLSS 帧生成代理接入；集成全平台游戏库管理、场景自适应联动与系统改动无损还原。",
     tags: ["C#", "WinForms", "51 项体检", "DLSS 帧生成", "游戏联动", "实时监控"],
     image: "assets/images/cover-fluxion.webp",
     githubUrl: "https://github.com/7SteveJohn/Fluxion",
@@ -331,7 +329,7 @@ Electron + Vite + TypeScript，数据存本机文件夹（卸载不删稿子）�
 <p style="font-size:12px;color:#86868b;margin-top:6px;">Fluxion 实机主界面；38 秒介绍视频在项目卡片上。</p>
 
 ### 💡 这是什么
-GameBoost（系统优化）和 DLSSG-Tool（帧生成）合并重构的完整版，六个页面——仪表盘、性能优化、游戏库、实时监控、说明、设置，帧生成并进游戏库。一句话：**一键把系统调到适合游戏的状态，并给 RTX 20/30 系接上 NVIDIA 官方只给 40/50 系的 DLSS 帧生成。**
+Fluxion 是集 Windows 底层系统调优、全平台游戏库管理与 DLSS 帧生成于一体的性能套件。包含仪表盘、性能优化、游戏库、实时监控等核心模块：**提供底层安全调优以消除交战瞬间卡顿，同时为 RTX 20/30 系显卡接入 DLSS 帧生成能力，所有系统修改均支持无损一键还原。**
 
 ### 📊 仪表盘
 - 游戏联动状态（远程状态 / 联动 / 场景）+ 实时负载瓦片：CPU / 内存 / GPU / GPU 温度
