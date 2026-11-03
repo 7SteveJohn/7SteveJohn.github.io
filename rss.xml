@@ -13,7 +13,7 @@
       <guid isPermaLink="false">local-video-reading-pipeline</guid>
       <pubDate>Sun, 18 Oct 2026 00:00:00 GMT</pubDate>
       <category>架构设计</category>
-      <description>长视频直接塞给模型又慢又费显存。记录一条数据不出机的端侧流水线：PySceneDetect 找切镜点、faster-whisper 离线转写、本地 Qwen2.5-VL 读关键帧与向量索引检索。</description>
+      <description>长视频全量多模态推理面临显著的算力冗余与显存瓶颈。记录一套纯本地端侧流水线：基于 PySceneDetect 的镜头边界检测、faster-whisper 离线语音转写、端侧 Qwen2.5-VL 关键帧语义提取与向量检索对齐。</description>
     </item>
     <item>
       <title>像素叙事游戏开发手记：从引擎选型到工程化落地</title>
@@ -29,7 +29,7 @@
       <guid isPermaLink="false">prompt-optimizer-engine</guid>
       <pubDate>Thu, 15 Oct 2026 00:00:00 GMT</pubDate>
       <category>技术手记</category>
-      <description>改提示词不想联网调 API。记录一个零依赖、纯本地单页的 JavaScript 规则引擎：10 项结构要素排查、6 组互斥矛盾识别、自动格式清洗与两级修复。</description>
+      <description>提示词的结构性缺陷无需依赖大模型二次推理。记录一套零依赖、纯本地单页的 JavaScript 规则诊断引擎：涵盖 10 项结构要素排查、6 组互斥矛盾识别、格式清洗与两级安全修复机制。</description>
     </item>
     <item>
       <title>纯前端 60KB 矢量 Roguelike：零依赖地牢引擎实现手记</title>
@@ -37,7 +37,7 @@
       <guid isPermaLink="false">abysswalker-roguelike-engine</guid>
       <pubDate>Mon, 12 Oct 2026 00:00:00 GMT</pubDate>
       <category>游戏创作</category>
-      <description>不放任何外部图片与音频，用 60KB 原生 HTML/JS 实现完整地牢肉鸽：Canvas 纯代码矢量画怪、WebAudio 现场合成打击音效、Bresenham 视线迷雾与确定性随机种子。</description>
+      <description>零外部媒体资源依赖，基于 60KB 原生 HTML/JavaScript 实现轻量地牢 Roguelike 引擎：Canvas 纯代码程序化矢量渲染、WebAudio 实时物理合成音效、Bresenham 视线算法与确定性伪随机数生成器。</description>
     </item>
     <item>
       <title>七、AI 的下一程：算力的账、走出屏幕的智能与治理的规则</title>
@@ -109,7 +109,7 @@
       <guid isPermaLink="false">local-llm-8gb-vram</guid>
       <pubDate>Sat, 26 Sep 2026 00:00:00 GMT</pubDate>
       <category>本地 AI</category>
-      <description>第一次拉模型下来加载失败，才知道参数量不等于显存占用。记录 8GB 显卡上按任务分层选型的思路，以及我踩反过的顺序。</description>
+      <description>针对消费级 8GB 显存设备，系统拆解模型权重、KV Cache 与激活值显存预算。记录基于任务类型分层选型的工程策略，以及量化档位、上下文长度与推理吞吐的权衡实践。</description>
     </item>
     <item>
       <title>二、大模型是怎么炼成的：从数据清洗到人类对齐</title>
@@ -133,7 +133,7 @@
       <guid isPermaLink="false">comfyui-workflow-sdxl</guid>
       <pubDate>Fri, 18 Sep 2026 00:00:00 GMT</pubDate>
       <category>AIGC</category>
-      <description>一键出图工具满足不了「固定画风 + 保持构图 + 能复用」，换成节点式工作流之后才有解。记录 SDXL 在 8GB 上的节点排法与显存坑。</description>
+      <description>相比一体化黑盒生图工具，节点式工作流提供了确定性的中间状态观测与参数复用能力。记录在 8GB 显存环境下编排 SDXL 管道、显存峰值控制与节点解耦的实践经验。</description>
     </item>
     <item>
       <title>Ollama 显存适配：默认参数是给显存够用的机器配的</title>
