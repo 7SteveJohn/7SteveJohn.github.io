@@ -7,8 +7,22 @@ const OUT_DIR = path.join(ROOT, 'assets/images/covers');
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
+function escapeXml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
 function createSvg({ num, titleEn, titleCn, tag, accent1, accent2, motif }) {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="100%" height="100%">
+  const safeTag = escapeXml(tag);
+  const safeNum = escapeXml(num);
+  const safeTitleEn = escapeXml((titleEn || '').toUpperCase());
+  const safeTitleCn = escapeXml(titleCn || '');
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#070913"/>
@@ -42,18 +56,18 @@ function createSvg({ num, titleEn, titleCn, tag, accent1, accent2, motif }) {
   <g transform="translate(40, 42)">
     <rect width="130" height="24" rx="12" fill="rgba(255, 255, 255, 0.06)" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1"/>
     <circle cx="14" cy="12" r="3" fill="${accent1}"/>
-    <text x="26" y="16" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" font-weight="600" letter-spacing="1.2">${tag}</text>
+    <text x="26" y="16" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" font-weight="600" letter-spacing="1.2">${safeTag}</text>
   </g>
 
   <!-- Big Number -->
-  <text x="590" y="70" text-anchor="end" fill="url(#glow)" font-family="Inter, -apple-system, sans-serif" font-size="44" font-weight="800" letter-spacing="-1">${num}</text>
+  <text x="590" y="70" text-anchor="end" fill="url(#glow)" font-family="Inter, -apple-system, sans-serif" font-size="44" font-weight="800" letter-spacing="-1">${safeNum}</text>
 
   <!-- Content Group -->
   <g transform="translate(40, 230)">
     <!-- English Subtitle -->
-    <text x="0" y="0" fill="${accent1}" font-family="Inter, -apple-system, sans-serif" font-size="12" font-weight="700" letter-spacing="2.5" opacity="0.9">${titleEn.toUpperCase()}</text>
+    <text x="0" y="0" fill="${accent1}" font-family="Inter, -apple-system, sans-serif" font-size="12" font-weight="700" letter-spacing="2.5" opacity="0.9">${safeTitleEn}</text>
     <!-- Chinese Main Title -->
-    <text x="0" y="38" fill="#f8fafc" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="25" font-weight="700" letter-spacing="0.5">${titleCn}</text>
+    <text x="0" y="38" fill="#f8fafc" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="25" font-weight="700" letter-spacing="0.5">${safeTitleCn}</text>
     <!-- Decorative underline -->
     <rect x="0" y="58" width="48" height="3" rx="1.5" fill="url(#glow)"/>
     <rect x="54" y="58" width="12" height="3" rx="1.5" fill="rgba(255,255,255,0.2)"/>

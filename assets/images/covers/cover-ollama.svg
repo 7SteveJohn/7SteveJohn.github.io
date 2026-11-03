@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#070913"/>
@@ -47,7 +47,7 @@
   <!-- Content Group -->
   <g transform="translate(40, 230)">
     <!-- English Subtitle -->
-    <text x="0" y="0" fill="#06b6d4" font-family="Inter, -apple-system, sans-serif" font-size="12" font-weight="700" letter-spacing="2.5" opacity="0.9">CONTEXT WINDOW & MEMORY PACING</text>
+    <text x="0" y="0" fill="#06b6d4" font-family="Inter, -apple-system, sans-serif" font-size="12" font-weight="700" letter-spacing="2.5" opacity="0.9">CONTEXT WINDOW &amp; MEMORY PACING</text>
     <!-- Chinese Main Title -->
     <text x="0" y="38" fill="#f8fafc" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="25" font-weight="700" letter-spacing="0.5">Ollama 显存适配实战</text>
     <!-- Decorative underline -->
