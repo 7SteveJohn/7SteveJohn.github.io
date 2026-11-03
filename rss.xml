@@ -69,7 +69,7 @@
       <guid isPermaLink="false">flash-vbmeta-trust-chain</guid>
       <pubDate>Wed, 30 Sep 2026 00:00:00 GMT</pubDate>
       <category>刷机</category>
-      <description>改完分区开不了机，问题通常不在分区写错，在于校验没过。记录 Android 13 的 init_boot 拆分与 AVB 2.0 的校验顺序，以及 9008 这条底层通道到底强在哪。</description>
+      <description>改完分区开不了机，问题通常不在分区写错，在于校验没过。记录 Android 13 的 init_boot 拆分与 AVB 2.0 校验顺序、现代设备的四种锁态分类，以及 A/B 槽位下保留锁态 OTA 升级的完整底层闭环。</description>
     </item>
     <item>
       <title>root 藏不住的原因：三层隐藏各管哪一段</title>
@@ -77,15 +77,15 @@
       <guid isPermaLink="false">root-hiding-layers</guid>
       <pubDate>Wed, 30 Sep 2026 00:00:00 GMT</pubDate>
       <category>刷机</category>
-      <description>装了 root 之后支付和银行就不让用，于是有了隐藏。记录注入、命名空间、内核三个层次各自解决什么，以及跨过本机之后那道改不了的云端校验。</description>
+      <description>装了 root 之后支付和银行就不让用，于是有了隐藏。记录检测方如何用 SVC #0 裸系统调用探测环境、从用户态注入到内核级 SusFS/FUSE hide 的防御分层、TEE 硬件凭据的边界，以及全局改机型引发属性撕裂与微信踢下线的血泪教训。</description>
     </item>
     <item>
-      <title>两年刷机记：从 K60 Pro 到拯救者 Y700</title>
+      <title>两年刷机记：从 K60 Pro 到拯救者 Y700 与假回锁</title>
       <link>https://7stevejohn.github.io/?post=two-years-of-flashing</link>
       <guid isPermaLink="false">two-years-of-flashing</guid>
       <pubDate>Wed, 30 Sep 2026 00:00:00 GMT</pubDate>
       <category>随笔</category>
-      <description>一台手机、一块平板，从装个 Magisk 开始，到能自己写模块、自己签 vbmeta。记一下这两年是怎么被具体问题推着往前走的。</description>
+      <description>一台手机、一块平板，从装个 Magisk 开始，到自己写模块、自签 vbmeta、玩通 ABL 假回锁与双槽 OTA。记一下这两年是怎么被具体问题推着往前走的。</description>
     </item>
     <item>
       <title>四、Agent 为什么会翻车：智能体的能力边界在哪</title>
