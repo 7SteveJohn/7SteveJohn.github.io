@@ -11,7 +11,7 @@ window.NOVEL_BOOKS = [
     "title": "示例：停电的夜",
     "author": "SevenJohn",
     "intro": "一篇用来验证阅读器的示例短章。真正开始连载后，把这本书从 js/novel-data.js 里删掉即可。",
-    "cover": "",
+    "cover": "assets/images/covers/cover-sample-night.svg",
     "sample": true,
     "volumes": [
       {

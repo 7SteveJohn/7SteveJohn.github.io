@@ -4,7 +4,7 @@ const ROOT = 'D:/HTML';
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript',
   '.css': 'text/css', '.json': 'application/json', '.webp': 'image/webp', '.jpg': 'image/jpeg',
-  '.png': 'image/png', '.ico': 'image/x-icon', '.mp3': 'audio/mpeg', '.mp4': 'video/mp4',
+  '.png': 'image/png', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.mp3': 'audio/mpeg', '.mp4': 'video/mp4',
   '.woff2': 'font/woff2', '.xml': 'application/xml', '.txt': 'text/plain'
 };
 http.createServer((req, res) => {

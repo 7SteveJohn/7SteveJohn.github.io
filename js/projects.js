@@ -201,6 +201,9 @@ NetOps 是一本**能装进口袋的离线网络小册子**。断网、没信号
     requires: "",
     sha256: "",
     details: `
+<img src="assets/images/cover-gameboost.webp" alt="GameBoost 实机界面" style="width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:block;">
+<p style="font-size:12px;color:#86868b;margin-top:6px;">GameBoost 实机界面；开打前自动调优，改动可一键还原。</p>
+
 ### 💡 这是什么
 打 CS2、Valorant、三角洲这类游戏，最烦的不是平均帧数低，是**对枪那一下突然卡一下**。GameBoost 就是冲着这个做的——开打前点一下，把该调的都调好。跑分多少不重要。
 
@@ -235,6 +238,9 @@ C# 写的（GameBoost.cs），compile.ps1 一键编译打包。踩过一个坑�
     updated: "2026-09-20",
     requires: "Windows 10/11 · NVIDIA RTX 20/30 系（40 系以上原生支持，无需本工具）",
     details: `
+<img src="assets/images/cover-dlssg.webp" alt="GameBoost-DLSSG 实机界面" style="width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:block;">
+<p style="font-size:12px;color:#86868b;margin-top:6px;">GameBoost-DLSSG 实机界面；给 20/30 系显卡开启 DLSS 帧生成。</p>
+
 ### 💡 这是什么
 一个帧生成管理工具的分享版（v1.0.0）：给 **RTX 20/30 系**显卡接上 **NVIDIA 官方只开放给 40/50 系的 DLSS 帧生成**（基于开源项目 dlssg_for_sm86 的 DLL 代理方案）。40 系及以上显卡系统原生就有，不用装。
 

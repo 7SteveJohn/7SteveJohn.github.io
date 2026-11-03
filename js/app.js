@@ -291,6 +291,12 @@ window.openProjectModal = function(id) {
       ` : ''}
       ${buildChangelog(project)}
 
+      ${(project.image && !project.details?.includes('<img')) ? `
+      <!-- 项目封面横幅（回退保障） -->
+      <div class="w-full rounded-xl overflow-hidden border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 aspect-[16/9] max-h-72">
+        <img src="${escapeHtml(project.image)}" alt="${escapeHtml(project.title)}" class="w-full h-full object-cover">
+      </div>` : ''}
+
       <!-- Markdown 正文内容 -->
       <div class="markdown-body text-[#1d1d1f] dark:text-[#f5f5f7]">
         ${detailsHtml}

@@ -334,6 +334,123 @@ const COVERS = [
         <circle cx="462" cy="185" r="3" fill="#f59e0b"/>
         <circle cx="530" cy="185" r="3" fill="#ef4444"/>
       </g>`
+  },
+  {
+    file: 'cover-filebutler.svg',
+    num: 'FILEBUTLER',
+    tag: 'LOCAL RAG',
+    titleEn: 'Local Vector & FTS5 Engine',
+    titleCn: '本地文件管家与秒搜问答',
+    accent1: '#38bdf8',
+    accent2: '#818cf8',
+    motif: `
+      <g stroke="rgba(56, 189, 248, 0.25)" fill="none" stroke-width="1.5">
+        <rect x="415" y="90" width="130" height="90" rx="8"/>
+        <path d="M 415 115 L 545 115"/>
+        <circle cx="445" cy="145" r="16"/>
+        <line x1="456" y1="156" x2="472" y2="172" stroke-width="2.5" stroke="#38bdf8"/>
+        <rect x="485" y="135" width="45" height="6" rx="3" fill="rgba(129, 140, 248, 0.3)"/>
+        <rect x="485" y="148" width="30" height="6" rx="3" fill="rgba(129, 140, 248, 0.2)"/>
+      </g>`
+  },
+  {
+    file: 'cover-gameboost.svg',
+    num: 'GAMEBOOST',
+    tag: 'FRAME PACING',
+    titleEn: 'Timer Resolution & Latency',
+    titleCn: '系统帧率防抖与性能调优',
+    accent1: '#f59e0b',
+    accent2: '#10b981',
+    motif: `
+      <g stroke="rgba(245, 158, 11, 0.25)" fill="none" stroke-width="1.5">
+        <rect x="420" y="95" width="135" height="85" rx="8"/>
+        <path d="M 430 145 L 455 145 L 465 115 L 475 165 L 485 130 L 495 150 L 545 150" stroke="#f59e0b" stroke-width="2"/>
+        <circle cx="475" cy="165" r="3" fill="#10b981"/>
+      </g>`
+  },
+  {
+    file: 'cover-dlssg.svg',
+    num: 'DLSS-FG',
+    tag: 'FRAME GEN',
+    titleEn: 'RTX 20/30 Series Frame Gen',
+    titleCn: 'DLSS 帧生成注入与诊断',
+    accent1: '#22c55e',
+    accent2: '#06b6d4',
+    motif: `
+      <g stroke="rgba(34, 197, 94, 0.25)" fill="none" stroke-width="1.5">
+        <rect x="415" y="95" width="55" height="75" rx="6" stroke="#22c55e"/>
+        <rect x="495" y="95" width="55" height="75" rx="6" stroke="#06b6d4"/>
+        <path d="M 470 132 L 495 132" stroke="#22c55e" stroke-dasharray="3 2"/>
+        <polygon points="492,129 497,132 492,135" fill="#22c55e"/>
+        <text x="477" y="125" fill="#22c55e" font-size="10" font-family="monospace">2X</text>
+      </g>`
+  },
+  {
+    file: 'cover-paian.svg',
+    num: 'PAIAN',
+    tag: 'DESKTOP APP',
+    titleEn: 'Offline Novel Studio',
+    titleCn: '拍案 · 纯本地网文创作工作台',
+    accent1: '#ec4899',
+    accent2: '#8b5cf6',
+    motif: `
+      <g stroke="rgba(236, 72, 153, 0.25)" fill="none" stroke-width="1.5">
+        <rect x="420" y="90" width="125" height="90" rx="6"/>
+        <line x1="435" y1="110" x2="520" y2="110" stroke="#ec4899"/>
+        <line x1="435" y1="125" x2="495" y2="125"/>
+        <line x1="435" y1="140" x2="510" y2="140"/>
+        <circle cx="515" cy="155" r="10" fill="rgba(139, 92, 246, 0.2)"/>
+      </g>`
+  },
+  {
+    file: 'cover-netops.svg',
+    num: 'NETOPS',
+    tag: 'OFFLINE APP',
+    titleEn: 'Network Troubleshooting Manual',
+    titleCn: 'NetOps 离线网络排障手册',
+    accent1: '#06b6d4',
+    accent2: '#3b82f6',
+    motif: `
+      <g stroke="rgba(6, 182, 212, 0.25)" fill="none" stroke-width="1.5">
+        <circle cx="480" cy="110" r="16" stroke="#06b6d4"/>
+        <circle cx="440" cy="160" r="12"/>
+        <circle cx="520" cy="160" r="12"/>
+        <line x1="468" y1="122" x2="448" y2="148"/>
+        <line x1="492" y1="122" x2="512" y2="148"/>
+      </g>`
+  },
+  {
+    file: 'cover-fluxion.svg',
+    num: 'FLUXION',
+    tag: 'PERF SUITE',
+    titleEn: '51 Checks & Automation Suite',
+    titleCn: 'Fluxion 完整版性能套件',
+    accent1: '#10b981',
+    accent2: '#6366f1',
+    motif: `
+      <g stroke="rgba(16, 185, 129, 0.25)" fill="none" stroke-width="1.5">
+        <circle cx="480" cy="135" r="45"/>
+        <path d="M 480 135 L 505 110" stroke="#10b981" stroke-width="2.5"/>
+        <circle cx="480" cy="135" r="5" fill="#10b981"/>
+        <path d="M 445 145 A 35 35 0 0 1 515 145" stroke="#6366f1" stroke-dasharray="4 3"/>
+      </g>`
+  },
+  {
+    file: 'cover-sample-night.svg',
+    num: 'NOVEL',
+    tag: 'SAMPLE STORY',
+    titleEn: 'The Blackout Night',
+    titleCn: '停电的夜 · 读者验证篇',
+    accent1: '#818cf8',
+    accent2: '#c084fc',
+    motif: `
+      <g stroke="rgba(129, 140, 248, 0.25)" fill="none" stroke-width="1.5">
+        <circle cx="490" cy="115" r="30"/>
+        <path d="M 470 115 A 25 25 0 0 0 515 135" fill="rgba(192, 132, 252, 0.15)"/>
+        <line x1="430" y1="170" x2="540" y2="170"/>
+        <rect x="450" y="145" width="20" height="25" fill="rgba(129, 140, 248, 0.1)"/>
+        <rect x="495" y="135" width="25" height="35" fill="rgba(129, 140, 248, 0.1)"/>
+      </g>`
   }
 ];
 

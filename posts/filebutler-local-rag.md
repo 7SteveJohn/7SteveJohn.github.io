@@ -5,7 +5,7 @@ date: 2026-09-02
 readTime: 6 分钟
 category: 架构设计
 summary: 「直接问文件」这件事，难的不是接个模型，是让它既快又能反悔。记录 FileButler 的双索引分工、可撤销设计，以及端侧 AI 必须做的降级底线。
-cover: assets/images/cover-filebutler.webp
+cover: assets/images/covers/cover-filebutler.svg
 tags: [Python, Ollama, SQLite, RAG, 端侧AI]
 ---
 

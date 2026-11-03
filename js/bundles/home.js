@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"05107ef41c0a","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"5c2ab45d5d1512b1196f75db8c331205b2616a3795154124b2cc06fcfe77b014"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"32ec3c5750c0a4776a452b597b91d89beaeba399354408cb02985c1428b54d21"}]}
+// build-bundles: {"name":"home","version":"1de761bc9f0b","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"5d2f8bdc255541243efd8d3a553ddf9882b848b56c7dc387613b844b491c668b"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"32ec3c5750c0a4776a452b597b91d89beaeba399354408cb02985c1428b54d21"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -380,7 +380,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (5c2ab45d5d15) ----
+// ---- js/app.js (5d2f8bdc2555) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -673,6 +673,12 @@ window.openProjectModal = function(id) {
       </div>
       ` : ''}
       ${buildChangelog(project)}
+
+      ${(project.image && !project.details?.includes('<img')) ? `
+      <!-- 项目封面横幅（回退保障） -->
+      <div class="w-full rounded-xl overflow-hidden border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 aspect-[16/9] max-h-72">
+        <img src="${escapeHtml(project.image)}" alt="${escapeHtml(project.title)}" class="w-full h-full object-cover">
+      </div>` : ''}
 
       <!-- Markdown 正文内容 -->
       <div class="markdown-body text-[#1d1d1f] dark:text-[#f5f5f7]">

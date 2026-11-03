@@ -5,7 +5,7 @@ date: 2026-08-10
 readTime: 7 分钟
 category: 系统调优
 summary: 平均 300 帧还是不跟手，问题出在单帧生成时间的尖刺上。记录 GameBoost 针对 1% Low 做的几件事，以及动系统设置时那条不能省的底线。
-cover: assets/images/cover-gameboost.webp
+cover: assets/images/covers/cover-gameboost.svg
 tags: ["C#", Windows, 帧率防抖, 性能调优]
 ---
 
