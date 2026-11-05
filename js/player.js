@@ -151,8 +151,10 @@
     };
 
     // 若当前有介绍视频正在播放，驱动对应视频视窗的外框光晕律动
-    var playingVid = document.querySelector('#products video:not([paused])');
-    if (playingVid && !playingVid.paused && !playingVid.ended) {
+    var playingVid = Array.from(document.querySelectorAll('#products video')).find(function (v) {
+      return !v.paused && !v.ended;
+    });
+    if (playingVid) {
       var box = playingVid.closest('.cover-box');
       if (box) {
         box.classList.add('is-playing-beat');
@@ -200,6 +202,12 @@
   }
 
   function stopBeat() {
+    const anyVideoPlaying = Array.from(document.querySelectorAll('#products video')).some(function (v) {
+      return !v.paused && !v.ended;
+    });
+    // 若当前仍有介绍视频在播，不要中止视频驱动的律动图
+    if (anyVideoPlaying) return;
+
     if (beatRaf) { cancelAnimationFrame(beatRaf); beatRaf = 0; }
     window.__BEAT = { level: 0, lv: 0, mid: 0, treble: 0 };
     document.querySelectorAll('#products .cover-box').forEach(function (box) {
@@ -412,7 +420,10 @@
   audio.addEventListener('pause', () => {
     playBtn.classList.remove('is-playing');
     fab.classList.remove('is-playing');
-    stopBeat();
+    const anyVideoPlaying = Array.from(document.querySelectorAll('#products video')).some(function (v) {
+      return !v.paused && !v.ended;
+    });
+    if (!anyVideoPlaying) stopBeat();
   });
   audio.addEventListener('error', stopBeat);
   // 单曲循环（mode==='one'）由 audio.loop 处理，ended 只在顺序循环走到这里
@@ -442,7 +453,7 @@
   // 看介绍视频时自动暂停音乐（站点歌单或本地音乐，谁在响停谁），视频暂停/播完自动恢复；
   // 视频滚出视口自动暂停（走 pause 事件 → 同样恢复音乐）。多视频互斥：任一在播即"观看中"。
   // 恢复的唯一凭据是 musicPausedByVideo：用户本来就没开音乐时，视频结束不会强行播放。
-  (function initVideoMusicMutex() {
+      (function initVideoMusicMutex() {
     const videos = Array.from(document.querySelectorAll('#products video'));
     if (!videos.length) return;
     const siteAudio = audio;                        // 站点歌单
@@ -453,7 +464,6 @@
 
     const playingVideo = () => videos.find((v) => !v.paused && !v.ended);
     // 无凭据守卫、幂等：轮询每秒都会调，事件丢失后照样能把状态拉回来
-    // （v112 前的 `if (musicPausedByVideo) return` 会让丢事件环境的暂停路径永久短路——实测根因）
     function pauseMusicForVideo() {
       if (!siteAudio.paused) {
         siteAudio.pause();
@@ -482,8 +492,12 @@
 
     videos.forEach((v) => {
       v.addEventListener('play', function () {
+        userOverride = false;                       // 用户点开视频：视频最高优先级，重置 manual override
         videos.forEach(function (o) { if (o !== v && !o.paused) o.pause(); });   // 视频互斥
         pauseMusicForVideo();
+        // 视频外框律动光晕：起播立刻挂载高亮标识
+        var box = v.closest('.cover-box');
+        if (box) box.classList.add('is-playing-beat');
         // 视频原声音频律动：接入 Web Audio 分析器，驱动背景 3D 神经网络与视窗微光
         startBeat(v);
       });
@@ -507,9 +521,8 @@
       });
     });
 
-    // 状态轮询兜底（2026-09-30 用户实测部分环境仍能同时播放）：事件在个别内核
-    // （X5/后台标签页等）会丢或乱序，事件链再对也架不住漏一个。每秒对齐一次理想态——
-    // 有视频在播 → 音乐必须停（除非用户本会话明确 override）；无视频在播且有凭据 → 恢复。
+    // 状态轮询兜底（2026-09-30 用户实测部分环境仍能同时播放）：
+    // 有视频在播 → 音乐必须停（除非用户明确 override）；无视频在播且有凭据 → 恢复。
     setInterval(function () {
       const vPlaying = playingVideo();
       if (!vPlaying) {
@@ -520,17 +533,39 @@
       if (!userOverride) pauseMusicForVideo();
     }, 1000);
 
-    // 滚出视口：可见比例 <15% 且仍在播 → 自动暂停（pause 事件链会恢复音乐）
+    // 视窗可见度检查（支持自然向下滑动零延迟自动暂停）
+    function checkVideoVisibility() {
+      const v = playingVideo();
+      if (!v) return;
+      const rect = v.getBoundingClientRect();
+      const vh = window.innerHeight || 900;
+      // 视频顶端滑入吸顶导航之下（底边小于 200px 说明视频大半已出屏，用户已往下看后续卡片）
+      // 或底端滑出视口底部（顶边大于 vh - 80px）时立即暂停
+      if (rect.bottom < 200 || rect.top > vh - 80) {
+        v.pause();
+      }
+    }
+
+    // 滚出视口自动暂停：多级阈值 + 顶栏避让（用户往下滑动或滚出主视区立即暂停，自动唤醒背景音乐）
     if ('IntersectionObserver' in window) {
       const io = new IntersectionObserver((entries) => {
         entries.forEach((en) => {
-          if (!en.isIntersecting && !en.target.paused && !en.target.ended && en.target.currentTime > 0) {
-            en.target.pause();
+          const v = en.target;
+          if (v.paused || v.ended || v.currentTime === 0) return;
+          // 当视频滚出视口或可见比例低于 60%（用户已向下滚动阅读卡片其他信息或后续板块）
+          if (!en.isIntersecting || en.intersectionRatio < 0.6) {
+            v.pause();
           }
         });
-      }, { threshold: 0.15 });
+      }, {
+        threshold: [0, 0.2, 0.4, 0.6, 0.8, 1.0],
+        rootMargin: '-64px 0px -40px 0px'           // 避开 64px 吸顶导航条与底边容差
+      });
       videos.forEach((v) => io.observe(v));
     }
+
+    // 原生滚动高灵敏度检测兜底：零延迟响应用户快速向下滑动手势
+    window.addEventListener('scroll', checkVideoVisibility, { passive: true });
   })();
 
   restore();

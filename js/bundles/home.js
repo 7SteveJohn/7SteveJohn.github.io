@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"975fc21b5521","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"31d9c9810bbabb6793f20e7c04cae9d53f70fe848470307f52343578b14b60e0"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"0b0904cda86b6053a64e8f8457e2ec15474fdf0f5f4c7bb08613214ef6cfe6f2"}]}
+// build-bundles: {"name":"home","version":"8484d2b4f47e","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"4d8c7143da695d0febceee50bbc4c44df53413bde6371faabe7a11718a17d724"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"945a163eb14416d49a72f93e4808b361a20d497b8a268546fb67556dfd22dfc9"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -380,7 +380,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (31d9c9810bba) ----
+// ---- js/app.js (4d8c7143da69) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -2042,82 +2042,8 @@ function initPageNext() {
 //      否则 proximity 会把页面吸回原卡（实测滚 240px 位移 0）；回到卡序列里再恢复。
 // 锚点 / 键盘 / 触屏全程原生，不接管。断点与 CSS 那条媒体查询一致。
 function initProjectSnap() {
-  const section = document.getElementById('products');
-  if (!section) return;
-  const cards = [...section.querySelectorAll(':scope > article.bento-card')];
-  if (cards.length < 2) return;
-
-  const root = document.documentElement;
-  const mq = window.matchMedia('(min-width: 640px) and (min-height: 700px) and (prefers-reduced-motion: no-preference)');
-  // 每次现算（6 个 rect）：垂直居中对齐卡片，与 3D 神经网络球心自然对称
-  const tops = () => {
-    const y = window.scrollY;
-    const vh = window.innerHeight;
-    return cards.map((c) => {
-      const offset = Math.max(64, Math.round((vh - c.offsetHeight) / 2));
-      return c.getBoundingClientRect().top + y - offset;
-    });
-  };
-
-  // ---- 到头逃生口：摘掉吸附 + 主动滚出一段（两保险）----
-  // 只摘吸附不够：Chrome 对"当前这次"滚动仍会按吸附落位（实测滚 240px 仍被吸回原卡），
-  // 所以这里 preventDefault 后自己滚到阈值之外，并把 .no-snap 保留 900ms。
-  let snapOff = 0;
-  const escape = (dir, list) => {
-    root.classList.add('no-snap');
-    clearTimeout(snapOff);
-    snapOff = setTimeout(() => root.classList.remove('no-snap'), 900);
-    const vh = window.innerHeight;
-    const top = dir > 0
-      ? list[list.length - 1] + vh * 0.78
-      : Math.max(0, list[0] - vh * 0.78);
-    lockUntil = performance.now() + 520;
-    window.scrollTo({ top, behavior: 'smooth' });
-  };
-
-  // ---- 补丁 ①：滚轮一格 = 翻一屏 ----
-  // 只在产品区窗口内接管 wheel：累计到 45px 就翻一张卡（鼠标一格 100–120 立刻翻页，
-  // 触控板小增量累计到 45 也翻一页），420ms 冷却吃掉同一手势的连发。
-  let acc = 0;
-  let lockUntil = 0;
-  let idle = 0;
-  window.addEventListener('wheel', (e) => {
-    if (!mq.matches) return;
-    if (e.ctrlKey || e.metaKey) return;                        // 捏合缩放
-    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;       // 横向手势不管
-    if (!e.deltaY) return;
-
-    const list = tops();
-    const y = window.scrollY;
-    // 只在卡片序列（上下各留 40px）里接管；产品区之外一律原生滚动
-    if (y < list[0] - 40 || y > list[list.length - 1] + 40) return;
-
-    const dir = e.deltaY > 0 ? 1 : -1;
-    // 「已经翻过线的最后一张」（留 24px 容差：懒加载会让上方内容浮动十几像素）
-    let idx = -1;
-    list.forEach((t, i) => { if (t <= y + 24) idx = i; });
-    const target = Math.min(cards.length - 1, Math.max(0, idx + dir));
-    if (target === idx) {
-      // ---- 补丁 ②：到头 → 摘吸附 + 自己滚出阈值，顺势离开产品区 ----
-      if (performance.now() < lockUntil) return;
-      e.preventDefault();
-      escape(dir, list);
-      return;
-    }
-
-    e.preventDefault();
-    const now = performance.now();
-    if (now < lockUntil) { acc = 0; return; }
-
-    acc += e.deltaY;
-    clearTimeout(idle);
-    idle = setTimeout(() => { acc = 0; }, 200);
-    if (Math.abs(acc) < 45) return;
-
-    acc = 0;
-    lockUntil = now + 420;
-    window.scrollTo({ top: Math.max(0, list[target]), behavior: 'smooth' });
-  }, { passive: false });
+  // 左右双栏紧凑化重构后，卡片采用左右网格排列，全面使用原生平滑滚动；
+  // 移除滚轮 preventDefault 拦截，确保用户往下滑动时毫无黏滞与冲突。
 }
 
 // 锚点/按钮滚动：直接用**原生平滑滚动**（合成器线程驱动，不逐帧写 scrollTo）
@@ -2475,7 +2401,7 @@ function sanitizeMarkdownHtml(html) {
 
 ;
 
-// ---- js/player.js (0b0904cda86b) ----
+// ---- js/player.js (945a163eb144) ----
 /**
  * 右下角悬浮背景音乐播放器
  * ----------------------------------------------------
@@ -2629,8 +2555,10 @@ function sanitizeMarkdownHtml(html) {
     };
 
     // 若当前有介绍视频正在播放，驱动对应视频视窗的外框光晕律动
-    var playingVid = document.querySelector('#products video:not([paused])');
-    if (playingVid && !playingVid.paused && !playingVid.ended) {
+    var playingVid = Array.from(document.querySelectorAll('#products video')).find(function (v) {
+      return !v.paused && !v.ended;
+    });
+    if (playingVid) {
       var box = playingVid.closest('.cover-box');
       if (box) {
         box.classList.add('is-playing-beat');
@@ -2678,6 +2606,12 @@ function sanitizeMarkdownHtml(html) {
   }
 
   function stopBeat() {
+    const anyVideoPlaying = Array.from(document.querySelectorAll('#products video')).some(function (v) {
+      return !v.paused && !v.ended;
+    });
+    // 若当前仍有介绍视频在播，不要中止视频驱动的律动图
+    if (anyVideoPlaying) return;
+
     if (beatRaf) { cancelAnimationFrame(beatRaf); beatRaf = 0; }
     window.__BEAT = { level: 0, lv: 0, mid: 0, treble: 0 };
     document.querySelectorAll('#products .cover-box').forEach(function (box) {
@@ -2890,7 +2824,10 @@ function sanitizeMarkdownHtml(html) {
   audio.addEventListener('pause', () => {
     playBtn.classList.remove('is-playing');
     fab.classList.remove('is-playing');
-    stopBeat();
+    const anyVideoPlaying = Array.from(document.querySelectorAll('#products video')).some(function (v) {
+      return !v.paused && !v.ended;
+    });
+    if (!anyVideoPlaying) stopBeat();
   });
   audio.addEventListener('error', stopBeat);
   // 单曲循环（mode==='one'）由 audio.loop 处理，ended 只在顺序循环走到这里
@@ -2920,7 +2857,7 @@ function sanitizeMarkdownHtml(html) {
   // 看介绍视频时自动暂停音乐（站点歌单或本地音乐，谁在响停谁），视频暂停/播完自动恢复；
   // 视频滚出视口自动暂停（走 pause 事件 → 同样恢复音乐）。多视频互斥：任一在播即"观看中"。
   // 恢复的唯一凭据是 musicPausedByVideo：用户本来就没开音乐时，视频结束不会强行播放。
-  (function initVideoMusicMutex() {
+      (function initVideoMusicMutex() {
     const videos = Array.from(document.querySelectorAll('#products video'));
     if (!videos.length) return;
     const siteAudio = audio;                        // 站点歌单
@@ -2931,7 +2868,6 @@ function sanitizeMarkdownHtml(html) {
 
     const playingVideo = () => videos.find((v) => !v.paused && !v.ended);
     // 无凭据守卫、幂等：轮询每秒都会调，事件丢失后照样能把状态拉回来
-    // （v112 前的 `if (musicPausedByVideo) return` 会让丢事件环境的暂停路径永久短路——实测根因）
     function pauseMusicForVideo() {
       if (!siteAudio.paused) {
         siteAudio.pause();
@@ -2960,8 +2896,12 @@ function sanitizeMarkdownHtml(html) {
 
     videos.forEach((v) => {
       v.addEventListener('play', function () {
+        userOverride = false;                       // 用户点开视频：视频最高优先级，重置 manual override
         videos.forEach(function (o) { if (o !== v && !o.paused) o.pause(); });   // 视频互斥
         pauseMusicForVideo();
+        // 视频外框律动光晕：起播立刻挂载高亮标识
+        var box = v.closest('.cover-box');
+        if (box) box.classList.add('is-playing-beat');
         // 视频原声音频律动：接入 Web Audio 分析器，驱动背景 3D 神经网络与视窗微光
         startBeat(v);
       });
@@ -2985,9 +2925,8 @@ function sanitizeMarkdownHtml(html) {
       });
     });
 
-    // 状态轮询兜底（2026-09-30 用户实测部分环境仍能同时播放）：事件在个别内核
-    // （X5/后台标签页等）会丢或乱序，事件链再对也架不住漏一个。每秒对齐一次理想态——
-    // 有视频在播 → 音乐必须停（除非用户本会话明确 override）；无视频在播且有凭据 → 恢复。
+    // 状态轮询兜底（2026-09-30 用户实测部分环境仍能同时播放）：
+    // 有视频在播 → 音乐必须停（除非用户明确 override）；无视频在播且有凭据 → 恢复。
     setInterval(function () {
       const vPlaying = playingVideo();
       if (!vPlaying) {
@@ -2998,17 +2937,39 @@ function sanitizeMarkdownHtml(html) {
       if (!userOverride) pauseMusicForVideo();
     }, 1000);
 
-    // 滚出视口：可见比例 <15% 且仍在播 → 自动暂停（pause 事件链会恢复音乐）
+    // 视窗可见度检查（支持自然向下滑动零延迟自动暂停）
+    function checkVideoVisibility() {
+      const v = playingVideo();
+      if (!v) return;
+      const rect = v.getBoundingClientRect();
+      const vh = window.innerHeight || 900;
+      // 视频顶端滑入吸顶导航之下（底边小于 200px 说明视频大半已出屏，用户已往下看后续卡片）
+      // 或底端滑出视口底部（顶边大于 vh - 80px）时立即暂停
+      if (rect.bottom < 200 || rect.top > vh - 80) {
+        v.pause();
+      }
+    }
+
+    // 滚出视口自动暂停：多级阈值 + 顶栏避让（用户往下滑动或滚出主视区立即暂停，自动唤醒背景音乐）
     if ('IntersectionObserver' in window) {
       const io = new IntersectionObserver((entries) => {
         entries.forEach((en) => {
-          if (!en.isIntersecting && !en.target.paused && !en.target.ended && en.target.currentTime > 0) {
-            en.target.pause();
+          const v = en.target;
+          if (v.paused || v.ended || v.currentTime === 0) return;
+          // 当视频滚出视口或可见比例低于 60%（用户已向下滚动阅读卡片其他信息或后续板块）
+          if (!en.isIntersecting || en.intersectionRatio < 0.6) {
+            v.pause();
           }
         });
-      }, { threshold: 0.15 });
+      }, {
+        threshold: [0, 0.2, 0.4, 0.6, 0.8, 1.0],
+        rootMargin: '-64px 0px -40px 0px'           // 避开 64px 吸顶导航条与底边容差
+      });
       videos.forEach((v) => io.observe(v));
     }
+
+    // 原生滚动高灵敏度检测兜底：零延迟响应用户快速向下滑动手势
+    window.addEventListener('scroll', checkVideoVisibility, { passive: true });
   })();
 
   restore();

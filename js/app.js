@@ -1659,82 +1659,8 @@ function initPageNext() {
 //      否则 proximity 会把页面吸回原卡（实测滚 240px 位移 0）；回到卡序列里再恢复。
 // 锚点 / 键盘 / 触屏全程原生，不接管。断点与 CSS 那条媒体查询一致。
 function initProjectSnap() {
-  const section = document.getElementById('products');
-  if (!section) return;
-  const cards = [...section.querySelectorAll(':scope > article.bento-card')];
-  if (cards.length < 2) return;
-
-  const root = document.documentElement;
-  const mq = window.matchMedia('(min-width: 640px) and (min-height: 700px) and (prefers-reduced-motion: no-preference)');
-  // 每次现算（6 个 rect）：垂直居中对齐卡片，与 3D 神经网络球心自然对称
-  const tops = () => {
-    const y = window.scrollY;
-    const vh = window.innerHeight;
-    return cards.map((c) => {
-      const offset = Math.max(64, Math.round((vh - c.offsetHeight) / 2));
-      return c.getBoundingClientRect().top + y - offset;
-    });
-  };
-
-  // ---- 到头逃生口：摘掉吸附 + 主动滚出一段（两保险）----
-  // 只摘吸附不够：Chrome 对"当前这次"滚动仍会按吸附落位（实测滚 240px 仍被吸回原卡），
-  // 所以这里 preventDefault 后自己滚到阈值之外，并把 .no-snap 保留 900ms。
-  let snapOff = 0;
-  const escape = (dir, list) => {
-    root.classList.add('no-snap');
-    clearTimeout(snapOff);
-    snapOff = setTimeout(() => root.classList.remove('no-snap'), 900);
-    const vh = window.innerHeight;
-    const top = dir > 0
-      ? list[list.length - 1] + vh * 0.78
-      : Math.max(0, list[0] - vh * 0.78);
-    lockUntil = performance.now() + 520;
-    window.scrollTo({ top, behavior: 'smooth' });
-  };
-
-  // ---- 补丁 ①：滚轮一格 = 翻一屏 ----
-  // 只在产品区窗口内接管 wheel：累计到 45px 就翻一张卡（鼠标一格 100–120 立刻翻页，
-  // 触控板小增量累计到 45 也翻一页），420ms 冷却吃掉同一手势的连发。
-  let acc = 0;
-  let lockUntil = 0;
-  let idle = 0;
-  window.addEventListener('wheel', (e) => {
-    if (!mq.matches) return;
-    if (e.ctrlKey || e.metaKey) return;                        // 捏合缩放
-    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;       // 横向手势不管
-    if (!e.deltaY) return;
-
-    const list = tops();
-    const y = window.scrollY;
-    // 只在卡片序列（上下各留 40px）里接管；产品区之外一律原生滚动
-    if (y < list[0] - 40 || y > list[list.length - 1] + 40) return;
-
-    const dir = e.deltaY > 0 ? 1 : -1;
-    // 「已经翻过线的最后一张」（留 24px 容差：懒加载会让上方内容浮动十几像素）
-    let idx = -1;
-    list.forEach((t, i) => { if (t <= y + 24) idx = i; });
-    const target = Math.min(cards.length - 1, Math.max(0, idx + dir));
-    if (target === idx) {
-      // ---- 补丁 ②：到头 → 摘吸附 + 自己滚出阈值，顺势离开产品区 ----
-      if (performance.now() < lockUntil) return;
-      e.preventDefault();
-      escape(dir, list);
-      return;
-    }
-
-    e.preventDefault();
-    const now = performance.now();
-    if (now < lockUntil) { acc = 0; return; }
-
-    acc += e.deltaY;
-    clearTimeout(idle);
-    idle = setTimeout(() => { acc = 0; }, 200);
-    if (Math.abs(acc) < 45) return;
-
-    acc = 0;
-    lockUntil = now + 420;
-    window.scrollTo({ top: Math.max(0, list[target]), behavior: 'smooth' });
-  }, { passive: false });
+  // 左右双栏紧凑化重构后，卡片采用左右网格排列，全面使用原生平滑滚动；
+  // 移除滚轮 preventDefault 拦截，确保用户往下滑动时毫无黏滞与冲突。
 }
 
 // 锚点/按钮滚动：直接用**原生平滑滚动**（合成器线程驱动，不逐帧写 scrollTo）
