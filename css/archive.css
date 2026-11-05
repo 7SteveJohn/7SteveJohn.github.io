@@ -87,7 +87,6 @@
 .wave-year:empty {
   display: none !important;
 }
-}
 .dark .wave-year {
   color: rgba(158, 176, 202, 0.72);
   background: rgba(3, 7, 18, 0.72);

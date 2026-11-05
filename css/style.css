@@ -478,79 +478,58 @@ h1, h2, h3 {
 }
 
 /* ============================================================
-   Bento 卡片质感与真·悬浮微动效 (参考 demo-flagship & demo-linear-apple)
-   极简通透、高浮空物理上浮 (translateY(-8px))、奢雅羽化景深阴影
+   Bento 卡片质感与拟真软件视窗外框 (源自 demo-linear-apple.html)
+   拟真拟物玻璃质感、微立体边框、物理上浮 (-4px) 与景深浮凸
    ============================================================ */
-.bento-card {
+.bento-card,
+.app-window-card {
   position: relative;
-  border-radius: 1.25rem;
-  transition:
-    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.25s ease,
-    background-color 0.25s ease;
-  will-change: transform, box-shadow;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 1.125rem;
+  box-shadow: 0 10px 30px -8px rgba(15, 23, 42, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
   transform-style: preserve-3d;
+  will-change: transform;
 }
 
-/* 浅色模式卡片底色与静止投影：通透磨砂玻璃质感，透出背景 3D 推理场粒子球 */
-html:not(.dark) .bento-card {
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(226, 232, 240, 0.85);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    0 4px 20px -2px rgba(15, 23, 42, 0.04),
-    0 12px 32px -10px rgba(15, 23, 42, 0.05);
-  backdrop-filter: blur(14px) saturate(1.15);
-  -webkit-backdrop-filter: blur(14px) saturate(1.15);
-}
-
-/* 浅色模式：真·悬浮状态 (Hover 悬浮 & Selected 选中聚焦)
-   优雅上浮 8px + 奢雅多阶羽化景深浮空阴影 */
+/* 浅色模式：悬浮状态 (Hover 悬浮 & Selected 选中聚焦) - 源自 demo-linear-apple.html */
 html:not(.dark) .bento-card:hover,
 html:not(.dark) .bento-card.card-selected,
-html:not(.dark) .bento-card:target {
-  transform: translateY(-8px) scale(1.008);
-  border-color: rgba(37, 99, 235, 0.40);
-  box-shadow:
-    inset 0 1px 0 #ffffff,
-    0 4px 12px rgba(15, 23, 42, 0.03),
-    0 28px 60px -15px rgba(15, 23, 42, 0.10),
-    0 12px 28px -6px rgba(37, 99, 235, 0.12),
-    0 0 0 1px rgba(56, 189, 248, 0.35);
+html:not(.dark) .bento-card:target,
+html:not(.dark) .app-window-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(37, 99, 235, 0.35);
+  box-shadow: 0 20px 45px -12px rgba(37, 99, 235, 0.14), 0 2px 6px 0 rgba(0, 0, 0, 0.04);
 }
 
-/* 深色模式卡片底色与静止投影：暗夜星空半透液态玻璃，让背景神经网络球体与连线清晰可见 */
-.dark .bento-card {
-  background: linear-gradient(180deg, rgba(16, 22, 34, 0.58) 0%, rgba(9, 13, 20, 0.70) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
-    0 4px 20px -2px rgba(0, 0, 0, 0.35),
-    0 16px 40px -12px rgba(0, 0, 0, 0.55);
+/* 深色模式：暗夜星空半透液态玻璃 */
+.dark .bento-card,
+.dark .app-window-card {
+  background: rgba(16, 22, 34, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(14px) saturate(1.25);
   -webkit-backdrop-filter: blur(14px) saturate(1.25);
 }
 
-/* 深色模式：真·悬浮状态 (Hover 悬浮 & Selected 选中聚焦)
-   优雅上浮 8px + 深空幽蓝发光多层浮空阴影 */
+/* 深色模式：悬浮状态 (Hover 悬浮 & Selected 选中聚焦) */
 .dark .bento-card:hover,
 .dark .bento-card.card-selected,
-.dark .bento-card:target {
-  transform: translateY(-8px) scale(1.008);
-  border-color: rgba(56, 189, 248, 0.50);
-  box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.16),
-    0 0 0 1px rgba(56, 189, 248, 0.38),
-    0 0 30px rgba(56, 189, 248, 0.16),
-    0 32px 75px -15px rgba(0, 0, 0, 0.88);
+.dark .bento-card:target,
+.dark .app-window-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(56, 189, 248, 0.45);
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.85), 0 0 25px rgba(56, 189, 248, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 /* 按压瞬间微弹性反馈 */
 .bento-card:active {
-  transform: translateY(-4px) scale(0.998);
-  transition-duration: 0.1s;
+  transform: scale(0.995);
+  transition-duration: 0.08s;
 }
+
 
 /* 选中瞬间的呼吸能量涟漪动效 */
 @keyframes card-select-pulse-light {
@@ -1344,25 +1323,36 @@ main > #home + #products {
 }
 #home .hero-index:not(.hero-showcase-grid) {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: center;
   gap: 0.625rem;
   width: 100%;
-  max-width: 820px;
+  max-width: 880px;
   margin: 1.75rem auto 0;
   margin-top: auto;
   font-variant-numeric: tabular-nums;
 }
 
+@media (max-width: 640px) {
+  #home .hero-index:not(.hero-showcase-grid) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    max-width: 380px;
+  }
+}
+
 #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card) {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.45rem;
   padding: 0.45rem 0.95rem;
   border-radius: 9999px;
   border: 1px solid transparent;
   background: transparent;
+  white-space: nowrap;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
   position: relative;

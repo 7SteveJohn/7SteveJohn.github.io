@@ -230,18 +230,20 @@ function hydrateProductLinks() {
     const pwd = card.querySelector('[data-pwd]');
     if (pwd) pwd.textContent = project.downloadPwd ? ` (提取码: ${project.downloadPwd})` : '';
 
-    // 更新公告（数据驱动：只给写了 announcement 的项目渲染）
+    // 更新公告（数据驱动：只给写了 announcement 的项目渲染，插在卡片内 h3 标题下方）
     const announceHtml = buildAnnouncement(project);
     if (announceHtml) {
       const aside = document.createElement('aside');
       aside.className = 'card-announce';
       aside.setAttribute('aria-label', '更新公告');
       aside.innerHTML = announceHtml;
-      const titleEl = card.firstElementChild.querySelector('h3');
+      const titleEl = card.querySelector('h3');
       if (titleEl) {
         titleEl.insertAdjacentElement('afterend', aside);
       } else {
-        card.firstElementChild.appendChild(aside);
+        const bodyCol = card.querySelector('.p-8, .p-6, div:not(.window-header)');
+        if (bodyCol) bodyCol.appendChild(aside);
+        else card.appendChild(aside);
       }
       card.classList.add('has-announce');
     }
@@ -791,9 +793,9 @@ function initHeroIndex() {
         const rect = card.getBoundingClientRect();
         const x = e.clientX - rect.left - rect.width / 2;
         const y = e.clientY - rect.top - rect.height / 2;
-        const rotX = (y / (rect.height / 2)) * -3;
-        const rotY = (x / (rect.width / 2)) * 3;
-        card.style.transform = `perspective(1000px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) translateY(-8px)`;
+        const rotX = (y / (rect.height / 2)) * -4;
+        const rotY = (x / (rect.width / 2)) * 4;
+        card.style.transform = `perspective(1000px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) translateY(-4px)`;
       });
       card.addEventListener('mouseleave', () => {
         card.style.transform = '';
