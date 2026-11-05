@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"8fc1df4aced0","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"31d9c9810bbabb6793f20e7c04cae9d53f70fe848470307f52343578b14b60e0"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"32ec3c5750c0a4776a452b597b91d89beaeba399354408cb02985c1428b54d21"}]}
+// build-bundles: {"name":"home","version":"975fc21b5521","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"31d9c9810bbabb6793f20e7c04cae9d53f70fe848470307f52343578b14b60e0"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"0b0904cda86b6053a64e8f8457e2ec15474fdf0f5f4c7bb08613214ef6cfe6f2"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -2475,7 +2475,7 @@ function sanitizeMarkdownHtml(html) {
 
 ;
 
-// ---- js/player.js (32ec3c5750c0) ----
+// ---- js/player.js (0b0904cda86b) ----
 /**
  * 右下角悬浮背景音乐播放器
  * ----------------------------------------------------
@@ -2627,30 +2627,63 @@ function sanitizeMarkdownHtml(html) {
       level: Math.min(1, beatPulse), lv: lv, slow: beatPeak, rise: e,
       mid: mid, treble: tre, ctx: actx ? actx.state : '-'
     };
+
+    // 若当前有介绍视频正在播放，驱动对应视频视窗的外框光晕律动
+    var playingVid = document.querySelector('#products video:not([paused])');
+    if (playingVid && !playingVid.paused && !playingVid.ended) {
+      var box = playingVid.closest('.cover-box');
+      if (box) {
+        box.classList.add('is-playing-beat');
+        box.style.setProperty('--beat-pulse', (beatPulse * 0.75 + lv * 0.25).toFixed(3));
+      }
+    }
+
     beatRaf = requestAnimationFrame(beatLoop);   // 续帧放帧尾：帧内任何早退都不会留下悬空句柄
   }
-  function startBeat() {
+  function ensureAudioGraph() {
+    if (actx && analyser) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    actx = new AC();
+    analyser = actx.createAnalyser();
+    analyser.fftSize = 2048;                 // bin ≈ 23Hz@48k：kick 40-150Hz 可分辨
+    analyser.smoothingTimeConstant = 0;      // 平滑交给 beatLoop 的非对称指数包络
+    analyser.minDecibels = -85;              // 默认 -30 上限对响歌大量钳 255
+    analyser.maxDecibels = -20;
+    analyser.connect(actx.destination);
+  }
+
+  function connectMediaSource(el) {
+    if (!el || el._audioSourceNode) return;
     try {
-      if (!actx) {
-        const AC = window.AudioContext || window.webkitAudioContext;
-        if (!AC) return;
-        actx = new AC();
-        const srcNode = actx.createMediaElementSource(audio);   // 只能建一次；建后声音经 analyser 回到扬声器
-        analyser = actx.createAnalyser();
-        analyser.fftSize = 2048;                 // bin ≈ 23Hz@48k：kick 40-150Hz 可分辨
-        analyser.smoothingTimeConstant = 0;      // 平滑交给 beatLoop 的非对称指数包络
-        analyser.minDecibels = -85;              // 默认 -30 上限对响歌大量钳 255
-        analyser.maxDecibels = -20;
-        srcNode.connect(analyser);
-        analyser.connect(actx.destination);
-      }
+      ensureAudioGraph();
+      if (!actx || !analyser) return;
+      const srcNode = actx.createMediaElementSource(el);
+      srcNode.connect(analyser);
+      el._audioSourceNode = srcNode;
+    } catch (e) {
+      /* 跨源或重复建图守卫，失败不影响播放 */
+    }
+  }
+
+  function startBeat(sourceEl) {
+    try {
+      ensureAudioGraph();
+      if (!actx || !analyser) return;
+      if (sourceEl) connectMediaSource(sourceEl);
+      else if (audio) connectMediaSource(audio);
       if (actx.state === 'suspended') actx.resume().catch(function () {});
       if (!beatRaf) beatRaf = requestAnimationFrame(beatLoop);
     } catch (e) { /* 建图失败不影响播放本身 */ }
   }
+
   function stopBeat() {
     if (beatRaf) { cancelAnimationFrame(beatRaf); beatRaf = 0; }
-    window.__BEAT = { level: 0 };
+    window.__BEAT = { level: 0, lv: 0, mid: 0, treble: 0 };
+    document.querySelectorAll('#products .cover-box').forEach(function (box) {
+      box.classList.remove('is-playing-beat');
+      box.style.removeProperty('--beat-pulse');
+    });
   }
 
   // —— 循环模式 ——
@@ -2929,9 +2962,27 @@ function sanitizeMarkdownHtml(html) {
       v.addEventListener('play', function () {
         videos.forEach(function (o) { if (o !== v && !o.paused) o.pause(); });   // 视频互斥
         pauseMusicForVideo();
+        // 视频原声音频律动：接入 Web Audio 分析器，驱动背景 3D 神经网络与视窗微光
+        startBeat(v);
       });
-      v.addEventListener('pause', resumeMusicIfIdle);
-      v.addEventListener('ended', resumeMusicIfIdle);
+      v.addEventListener('pause', function () {
+        var box = v.closest('.cover-box');
+        if (box) {
+          box.classList.remove('is-playing-beat');
+          box.style.removeProperty('--beat-pulse');
+        }
+        resumeMusicIfIdle();
+        if (siteAudio.paused) stopBeat();
+      });
+      v.addEventListener('ended', function () {
+        var box = v.closest('.cover-box');
+        if (box) {
+          box.classList.remove('is-playing-beat');
+          box.style.removeProperty('--beat-pulse');
+        }
+        resumeMusicIfIdle();
+        if (siteAudio.paused) stopBeat();
+      });
     });
 
     // 状态轮询兜底（2026-09-30 用户实测部分环境仍能同时播放）：事件在个别内核
