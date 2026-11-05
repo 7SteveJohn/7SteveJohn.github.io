@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>楠屿札记 · 晨曦流光旗舰版 (Luminous Daylight Edition)</title>
+  <link rel="stylesheet" href="assets/vendor/tailwind.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-base: #f8fafc;
+      --paper: rgba(255, 255, 255, 0.75);
+      --paper-solid: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --accent: #2563eb;
+      --accent-cyan: #06b6d4;
+      --border-subtle: rgba(226, 232, 240, 0.8);
+      --border-glow: rgba(56, 189, 248, 0.4);
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+    }
+
+    /* 背景动态液态极光流光画布 */
+    #ambient-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* 顶部统一方案横跳栏 */
+    .top-switch-bar {
+      position: sticky;
+      top: 0;
+      z-index: 60;
+      background: rgba(248, 250, 252, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    }
+    .demo-tab {
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.18s ease;
+      color: #64748b;
+      white-space: nowrap;
+    }
+    .demo-tab:hover { color: #0f172a; background: rgba(0, 0, 0, 0.04); }
+    .demo-tab.active {
+      color: #2563eb;
+      background: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(37, 99, 235, 0.2);
+    }
+
+    /* 浮空高级毛玻璃面板 */
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.03);
+      border-radius: 1.5rem;
+      position: relative;
+    }
+
+    /* 作品微缩视窗卡片 (3D 景深与悬停浮凸) */
+    .showcase-card {
+      position: relative;
+      background: #ffffff;
+      border: 1px solid rgba(226, 232, 240, 0.85);
+      border-radius: 1.25rem;
+      overflow: hidden;
+      box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transform-style: preserve-3d;
+      will-change: transform, box-shadow;
+    }
+    .showcase-card:hover {
+      transform: translateY(-5px) scale(1.01);
+      border-color: rgba(56, 189, 248, 0.5);
+      box-shadow: 0 25px 50px -12px rgba(37, 99, 235, 0.12), 0 0 0 1px rgba(56, 189, 248, 0.3);
+    }
+
+    /* 视窗头部控制点 */
+    .window-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    /* 3D 核心视窗 */
+    #three-viewport {
+      width: 100%;
+      height: 100%;
+      min-height: 320px;
+      cursor: grab;
+      position: relative;
+    }
+    #three-viewport:active {
+      cursor: grabbing;
+    }
+
+    /* 声学均衡器动效柱 */
+    .eq-bar {
+      width: 3px;
+      background: linear-gradient(180deg, #38bdf8 0%, #2563eb 100%);
+      border-radius: 2px;
+      transition: height 0.08s ease;
+    }
+
+    /* 拟真控制台打字光标 */
+    .terminal-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 14px;
+      background: #38bdf8;
+      vertical-align: middle;
+      animation: blink 1s step-end infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* 渐变流光文字 */
+    .gradient-heading {
+      background: linear-gradient(135deg, #0f172a 30%, #2563eb 80%, #06b6d4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  </style>
+</head>
+<body class="selection:bg-blue-100 selection:text-blue-900">
+
+  <!-- 背景流体水彩极光画布 (全屏非全黑，明亮通透晨曦流光) -->
+  <canvas id="ambient-canvas"></canvas>
+
+  <!-- 顶部 4 套方案无缝横跳对比条 -->
+  <header class="top-switch-bar">
+    <div class="max-w-6xl mx-auto px-6 py-2.5 flex items-center justify-between">
+      <div class="flex items-center gap-2 overflow-x-auto">
+        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">视觉对比场</span>
+        <div class="flex items-center gap-1.5 ml-2">
+          <a href="demo-anthony-fu.html" class="demo-tab">① 仿 Anthony Fu (水墨)</a>
+          <a href="demo-shuding.html" class="demo-tab">② 仿 Shu Ding (点阵地球)</a>
+          <a href="demo-rauno.html" class="demo-tab">③ 仿 Rauno (微交互Craft)</a>
+          <a href="demo-flagship.html" class="demo-tab active">🌟 晨曦流光旗舰版 (光影充盈)</a>
+        </div>
+      </div>
+      <a href="index.html" class="text-xs text-neutral-500 hover:text-neutral-900 transition flex items-center gap-1 flex-shrink-0">
+        <span>返回主站</span> &rarr;
+      </a>
+    </div>
+  </header>
+
+  <!-- 主体内容区域 -->
+  <main class="relative z-10 max-w-6xl mx-auto px-6 pt-10 pb-24">
+
+    <!-- 顶部状态栏与音乐中枢 -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pb-8">
+      
+      <!-- 左：极客身份与即时状态 -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-blue-500/20">
+          7J
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-semibold text-sm text-slate-900">楠屿札记 · SevenJohn</span>
+            <span class="px-2 py-0.5 text-[10px] font-mono bg-blue-50 text-blue-700 border border-blue-200/80 rounded-full font-medium">Design Engineer</span>
+          </div>
+          <p class="text-xs text-slate-500 mt-0.5">
+            以本地优先（Local-First）与声学图形学为锚点的数字工坊
+          </p>
+        </div>
+      </div>
+
+      <!-- 右：高级音乐律动胶囊 (实时驱动全页光影与 3D 核心) -->
+      <div class="flex items-center gap-3 bg-white/80 backdrop-blur-md px-4 py-2 rounded-full border border-slate-200/80 shadow-sm">
+        <!-- 实时均衡器柱状图 -->
+        <div class="flex items-end gap-1 h-5 px-1" id="music-eq-container">
+          <div class="eq-bar" style="height: 6px;"></div>
+          <div class="eq-bar" style="height: 14px;"></div>
+          <div class="eq-bar" style="height: 18px;"></div>
+          <div class="eq-bar" style="height: 10px;"></div>
+          <div class="eq-bar" style="height: 16px;"></div>
+          <div class="eq-bar" style="height: 8px;"></div>
+        </div>
+        <!-- 歌曲信息 -->
+        <div class="text-left text-xs">
+          <span class="font-medium text-slate-800 block leading-tight">Letting Go</span>
+          <span id="music-status-text" class="text-[10px] text-slate-400 font-mono">SevenJohn Soundscape · 律动待命</span>
+        </div>
+        <!-- 播放控制按键 -->
+        <button id="btn-toggle-music" class="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-md shadow-blue-600/30 transition active:scale-95 ml-1">
+          <span id="music-btn-icon" class="text-xs ml-0.5">▶</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- 首屏豪华双子星：左侧宣言与数据徽章 + 右侧 3D 拓扑谐振核 -->
+    <section class="glass-panel p-8 md:p-10 mb-12">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        
+        <!-- 左栏：大气引言与定位 (7 cols) -->
+        <div class="lg:col-span-7 space-y-6">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200/60 text-xs font-mono text-blue-800">
+            <span class="w-2 h-2 rounded-full bg-cyan-500 animate-ping"></span>
+            <span>DAYLIGHT LUMINOUS · 全通透晨曦大片质感</span>
+          </div>
+
+          <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight gradient-heading leading-tight">
+            把计算留给本地，<br />把光影与灵性注入交互。
+          </h1>
+
+          <p class="text-sm md:text-base text-slate-600 leading-relaxed max-w-xl">
+            告别压抑死黑，告别生硬粗线框，更拒绝毫无生机的寡淡白纸。<br />
+            这里记录我的 <strong class="font-semibold text-slate-900">4 套端侧工具架构</strong>、
+            <strong class="font-semibold text-slate-900">声学图形学渲染器</strong> 与
+            <strong class="font-semibold text-slate-900">前沿人机界面实验</strong>。
+          </p>
+
+          <!-- 数据指标与硬核特征展台 -->
+          <div class="grid grid-cols-3 gap-3 pt-2">
+            <div class="p-3 bg-white/70 rounded-xl border border-slate-100 shadow-sm">
+              <span class="text-xs font-mono text-slate-400 block">LOCAL AI</span>
+              <span class="text-lg font-bold text-slate-900 font-mono">100% 离线</span>
+              <span class="text-[11px] text-emerald-600 block">无需云端 Token</span>
+            </div>
+            <div class="p-3 bg-white/70 rounded-xl border border-slate-100 shadow-sm">
+              <span class="text-xs font-mono text-slate-400 block">ACOUSTICS</span>
+              <span class="text-lg font-bold text-blue-600 font-mono">Chladni</span>
+              <span class="text-[11px] text-slate-500 block">偏微分谐振投影</span>
+            </div>
+            <div class="p-3 bg-white/70 rounded-xl border border-slate-100 shadow-sm">
+              <span class="text-xs font-mono text-slate-400 block">LATENCY</span>
+              <span class="text-lg font-bold text-cyan-600 font-mono">&lt; 0.6ms</span>
+              <span class="text-[11px] text-slate-500 block">本地微内核直达</span>
+            </div>
+          </div>
+
+          <!-- 快速动作组 -->
+          <div class="flex items-center gap-4 pt-2">
+            <a href="#showcase" class="px-5 py-2.5 bg-slate-900 hover:bg-black text-white text-xs font-medium rounded-xl shadow-lg shadow-slate-900/15 transition flex items-center gap-2 active:scale-95">
+              <span>探索 4 款端侧独立工具</span> &darr;
+            </a>
+            <a href="blog.html" class="px-5 py-2.5 bg-white text-slate-700 hover:text-slate-900 border border-slate-200/90 text-xs font-medium rounded-xl shadow-sm hover:bg-slate-50 transition">
+              阅读 28 篇技术手记
+            </a>
+          </div>
+        </div>
+
+        <!-- 右栏：互动 3D 拓扑谐振核心 (Three.js 点云/晶格，支持拖拽与节拍激波) -->
+        <div class="lg:col-span-5 flex flex-col items-center">
+          <div class="w-full aspect-square max-w-[380px] bg-gradient-to-b from-white/90 to-blue-50/40 rounded-2xl border border-blue-100/80 shadow-inner relative overflow-hidden flex flex-col justify-between p-4">
+            
+            <!-- 视窗微型仪表信息 -->
+            <div class="flex items-center justify-between text-[11px] font-mono text-slate-500 z-10 bg-white/80 backdrop-blur px-3 py-1.5 rounded-lg border border-slate-200/60 shadow-sm">
+              <div class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                <span class="font-semibold text-slate-800">CYMATICS CORE</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span id="core-fps" class="text-slate-600">60 FPS</span>
+                <span>·</span>
+                <span class="text-blue-600 font-medium">2,400 PTS</span>
+              </div>
+            </div>
+
+            <!-- WebGL 3D 交互画布容器 -->
+            <div id="three-viewport" class="absolute inset-0"></div>
+
+            <!-- 底部形态切换控制栏 -->
+            <div class="flex items-center justify-between text-[11px] font-mono text-slate-600 z-10 bg-white/90 backdrop-blur px-3 py-1.5 rounded-lg border border-slate-200/80 shadow-sm mt-auto">
+              <span>拖拽 3D 旋转模型</span>
+              <div class="flex items-center gap-3">
+                <button id="btn-core-mode" class="text-blue-600 hover:text-blue-800 font-medium transition underline underline-offset-2">切换: 晶格形态</button>
+                <button id="btn-core-reset" class="hover:text-slate-900 transition">复位</button>
+              </div>
+            </div>
+
+          </div>
+          <span class="text-[11px] font-mono text-slate-400 mt-2">
+            点按拖拽 3D 视角 · 播放音乐触发共振激波
+          </span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 4 大旗舰端侧工具：立体微缩沙盘展台 (告别干瘪文字，活体视觉呈现) -->
+    <section id="showcase" class="py-10">
+      <div class="flex items-baseline justify-between mb-8">
+        <div>
+          <span class="text-xs font-semibold uppercase tracking-wider text-blue-600 font-mono">Interactive Dioramas / 活体微缩展台</span>
+          <h2 class="text-2xl font-bold text-slate-900 tracking-tight mt-1">4 款已投产的端侧独立工具</h2>
+        </div>
+        <span class="text-xs font-mono text-slate-400">HARDWARE-GRADE CRAFT</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- 展台 01: FileButler · 私有知识库 RAG -->
+        <div class="showcase-card group">
+          <!-- macOS 拟真视窗标题栏 -->
+          <div class="bg-slate-50/90 px-4 py-2.5 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <span class="window-dot bg-rose-400"></span>
+              <span class="window-dot bg-amber-400"></span>
+              <span class="window-dot bg-emerald-400"></span>
+              <span class="text-xs font-mono font-medium text-slate-600 ml-2">FileButler · Query Engine</span>
+            </div>
+            <span class="text-[10px] font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">v1.4.3</span>
+          </div>
+
+          <!-- 活体微缩控制台交互界面 -->
+          <div class="p-5 bg-gradient-to-b from-white to-slate-50/50">
+            <div class="bg-slate-900 text-slate-100 rounded-xl p-3.5 font-mono text-xs shadow-inner">
+              <div class="flex items-center justify-between text-slate-400 pb-2 border-b border-slate-800 text-[11px]">
+                <span>LOCAL EMBEDDING: BGE-M3 (0.5s)</span>
+                <span class="text-emerald-400">HYBRID RERANK: OK</span>
+              </div>
+              <div class="pt-2 text-slate-300">
+                <span class="text-blue-400">$ search --query</span> <span id="rag-sim-text">"刑侦案卷中嫌疑人不在场证明交叉比对..."</span><span class="terminal-cursor"></span>
+              </div>
+              <div class="mt-2.5 p-2 bg-slate-800/80 rounded border border-slate-700/60 text-[11px] text-slate-300 space-y-1">
+                <div class="flex items-center justify-between text-slate-400">
+                  <span>Match #1 · 案卷卷宗_第三卷.pdf:P42</span>
+                  <span class="text-cyan-400 font-semibold">Score: 0.984</span>
+                </div>
+                <p class="text-slate-400 text-[10px] line-clamp-1">
+                  “监控记录显示 21:14 车辆进入西三环，与笔录证词中‘21:00 前已回家’存在明显逻辑冲突...”
+                </p>
+              </div>
+            </div>
+
+            <div class="mt-4 flex items-center justify-between">
+              <div>
+                <h3 class="font-semibold text-slate-900 text-base group-hover:text-blue-600 transition">FileButler · 端侧私有知识库</h3>
+                <p class="text-xs text-slate-500 mt-0.5">离线向量检索与高密文献解析，无外网零延迟私密问答。</p>
+              </div>
+              <a href="projects.html" class="px-3.5 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white rounded-lg text-xs font-medium transition flex items-center gap-1 flex-shrink-0">
+                <span>详情</span> &rarr;
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 展台 02: 拍案 (PaiAn) · 刑侦多模态研判 -->
+        <div class="showcase-card group">
+          <div class="bg-slate-50/90 px-4 py-2.5 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <span class="window-dot bg-rose-400"></span>
+              <span class="window-dot bg-amber-400"></span>
+              <span class="window-dot bg-emerald-400"></span>
+              <span class="text-xs font-mono font-medium text-slate-600 ml-2">PaiAn · Timeline Graph</span>
+            </div>
+            <span class="text-[10px] font-mono bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full font-medium">v2.1.0</span>
+          </div>
+
+          <!-- 活体时间线因果链微缩图谱 -->
+          <div class="p-5 bg-gradient-to-b from-white to-blue-50/30">
+            <div class="bg-white rounded-xl p-3 border border-blue-100 shadow-sm relative overflow-hidden">
+              <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-2">
+                <span>CAUSALITY TIMELINE GRAPH</span>
+                <span class="text-blue-600 font-medium">4 NODES LINKED</span>
+              </div>
+              
+              <!-- 模拟时间线节点流 -->
+              <div class="relative pl-4 space-y-2 border-l-2 border-blue-200 text-xs font-mono">
+                <div class="relative">
+                  <div class="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-blue-500 ring-2 ring-white"></div>
+                  <div class="flex items-center justify-between">
+                    <span class="font-medium text-slate-800">2026-10-18 20:45:12</span>
+                    <span class="text-[10px] bg-slate-100 text-slate-600 px-1 rounded">监控识别</span>
+                  </div>
+                  <p class="text-[11px] text-slate-500 mt-0.5">车牌 沪A·9X7** 驶出南门地库</p>
+                </div>
+
+                <div class="relative">
+                  <div class="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-white animate-pulse"></div>
+                  <div class="flex items-center justify-between">
+                    <span class="font-medium text-rose-600">2026-10-18 21:04:08 [冲突]</span>
+                    <span class="text-[10px] bg-rose-50 text-rose-700 px-1 rounded">矛盾链</span>
+                  </div>
+                  <p class="text-[11px] text-slate-500 mt-0.5">证人声称嫌疑人在长宁茶室，位置相差 18.4km</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 flex items-center justify-between">
+              <div>
+                <h3 class="font-semibold text-slate-900 text-base group-hover:text-blue-600 transition">拍案 (PaiAn) · 多模态证据研判</h3>
+                <p class="text-xs text-slate-500 mt-0.5">离线 OCR、笔录音视频对齐与自动化因果链图谱。</p>
+              </div>
+              <a href="projects.html" class="px-3.5 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white rounded-lg text-xs font-medium transition flex items-center gap-1 flex-shrink-0">
+                <span>详情</span> &rarr;
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 展台 03: NetOps · eBPF 流量染色探针 -->
+        <div class="showcase-card group">
+          <div class="bg-slate-50/90 px-4 py-2.5 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <span class="window-dot bg-rose-400"></span>
+              <span class="window-dot bg-amber-400"></span>
+              <span class="window-dot bg-emerald-400"></span>
+              <span class="text-xs font-mono font-medium text-slate-600 ml-2">NetOps · Real-Time Sparkline</span>
+            </div>
+            <span class="text-[10px] font-mono bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-medium">v0.9.8</span>
+          </div>
+
+          <!-- 实时 60FPS 动态波形探针 Canvas -->
+          <div class="p-5 bg-gradient-to-b from-white to-amber-50/20">
+            <div class="bg-slate-900 rounded-xl p-3 border border-slate-800 text-white font-mono text-xs shadow-inner">
+              <div class="flex items-center justify-between text-slate-400 text-[11px] mb-1">
+                <span>KERNEL TC INGRESS (eBPF)</span>
+                <span class="text-emerald-400 font-semibold" id="netops-jitter">0.42 ms · 0% LOSS</span>
+              </div>
+              <canvas id="netops-canvas" width="400" height="70" class="w-full h-16 rounded bg-slate-950/60 block"></canvas>
+            </div>
+
+            <div class="mt-4 flex items-center justify-between">
+              <div>
+                <h3 class="font-semibold text-slate-900 text-base group-hover:text-blue-600 transition">NetOps · 轻量网络拓扑探针</h3>
+                <p class="text-xs text-slate-500 mt-0.5">无侵入内核抓包与动态拓扑染色，微秒级捕获异常抖动。</p>
+              </div>
+              <a href="projects.html" class="px-3.5 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white rounded-lg text-xs font-medium transition flex items-center gap-1 flex-shrink-0">
+                <span>详情</span> &rarr;
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 展台 04: Fluxion · 声学共振动力学仿真 -->
+        <div class="showcase-card group">
+          <div class="bg-slate-50/90 px-4 py-2.5 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <span class="window-dot bg-rose-400"></span>
+              <span class="window-dot bg-amber-400"></span>
+              <span class="window-dot bg-emerald-400"></span>
+              <span class="text-xs font-mono font-medium text-slate-600 ml-2">Fluxion · Chladni Resonator</span>
+            </div>
+            <span class="text-[10px] font-mono bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-full font-medium">v1.0.2</span>
+          </div>
+
+          <!-- 活体克拉尼图形态微缩沙盘 -->
+          <div class="p-5 bg-gradient-to-b from-white to-purple-50/20">
+            <div class="bg-slate-900 rounded-xl p-3 border border-slate-800 text-white font-mono text-xs flex items-center justify-between gap-4">
+              <canvas id="chladni-plate-canvas" width="100" height="70" class="w-24 h-16 rounded bg-slate-950 flex-shrink-0"></canvas>
+              <div class="text-[11px] text-slate-300 space-y-1">
+                <div class="text-purple-400 font-semibold">∂²u/∂t² = c² ∇²u</div>
+                <p class="text-slate-400 text-[10px]">
+                  驻波节线投影 · 当前谐振频率 440 Hz (和弦伴生)
+                </p>
+              </div>
+            </div>
+
+            <div class="mt-4 flex items-center justify-between">
+              <div>
+                <h3 class="font-semibold text-slate-900 text-base group-hover:text-blue-600 transition">Fluxion · 偏微分声学仿真管线</h3>
+                <p class="text-xs text-slate-500 mt-0.5">高频粒子运动学模拟，将数学驻波实时投射为生动几何。</p>
+              </div>
+              <a href="projects.html" class="px-3.5 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white rounded-lg text-xs font-medium transition flex items-center gap-1 flex-shrink-0">
+                <span>详情</span> &rarr;
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 精选技术长文与思想随笔 (大排版、高可读性、优雅留白) -->
+    <section class="glass-panel p-8 md:p-10 my-10">
+      <div class="flex items-baseline justify-between mb-8 pb-4 border-b border-slate-100">
+        <div>
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 font-mono">Selected Essays / 深度文字</span>
+          <h2 class="text-xl font-bold text-slate-900 tracking-tight mt-0.5">技术手记与工程审美思考</h2>
+        </div>
+        <a href="archive.html" class="text-xs text-blue-600 hover:text-blue-800 font-medium transition flex items-center gap-1">
+          <span>查看全部 28 篇归档</span> &rarr;
+        </a>
+      </div>
+
+      <div class="divide-y divide-slate-100">
+        
+        <a href="blog.html" class="py-4 flex flex-col sm:flex-row sm:items-center justify-between group text-decoration-none">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 text-[10px] font-mono bg-blue-50 text-blue-700 rounded font-medium">Engineering</span>
+              <h3 class="text-sm md:text-base font-medium text-slate-800 group-hover:text-blue-600 transition">
+                从全屏压抑深渊到晨曦流光：独立博客视觉美学的黄金分割点
+              </h3>
+            </div>
+            <p class="text-xs text-slate-500 mt-1 pl-0 sm:pl-16">
+              如何摆脱等高线桌垫的审美疲劳，在保证纯净阅读的同时赋予网页饱满的 3D 深度与触觉光影。
+            </p>
+          </div>
+          <span class="text-xs font-mono text-slate-400 mt-2 sm:mt-0 flex-shrink-0">2026.11 · 6 MIN</span>
+        </a>
+
+        <a href="blog.html" class="py-4 flex flex-col sm:flex-row sm:items-center justify-between group text-decoration-none">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 text-[10px] font-mono bg-purple-50 text-purple-700 rounded font-medium">Local AI</span>
+              <h3 class="text-sm md:text-base font-medium text-slate-800 group-hover:text-blue-600 transition">
+                端侧离线小模型（Small LLM）配合向量重排在法学复杂案卷研判中的工程实践
+              </h3>
+            </div>
+            <p class="text-xs text-slate-500 mt-1 pl-0 sm:pl-16">
+              针对长达数百页案卷的离线 OCR、证据链因果图谱生成与高精度向量对齐。
+            </p>
+          </div>
+          <span class="text-xs font-mono text-slate-400 mt-2 sm:mt-0 flex-shrink-0">2026.10 · 12 MIN</span>
+        </a>
+
+        <a href="blog.html" class="py-4 flex flex-col sm:flex-row sm:items-center justify-between group text-decoration-none">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 text-[10px] font-mono bg-cyan-50 text-cyan-700 rounded font-medium">Graphics</span>
+              <h3 class="text-sm md:text-base font-medium text-slate-800 group-hover:text-blue-600 transition">
+                从克拉尼图形到声学粒子律动：偏微分方程在 WebGL 中的投影之美
+              </h3>
+            </div>
+            <p class="text-xs text-slate-500 mt-1 pl-0 sm:pl-16">
+              解析二维驻波方程节点线解法，并在 Three.js 中实现低开销 60FPS 实时粒子重构。
+            </p>
+          </div>
+          <span class="text-xs font-mono text-slate-400 mt-2 sm:mt-0 flex-shrink-0">2026.09 · 9 MIN</span>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-slate-400 gap-4">
+      <div>
+        <span>© 2026 楠屿札记 · Built with Craft & Care</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="https://github.com" target="_blank" class="hover:text-slate-800 transition text-decoration-none">GitHub</a>
+        <a href="feed.xml" class="hover:text-slate-800 transition text-decoration-none">RSS</a>
+        <a href="gallery.html" class="hover:text-slate-800 transition text-decoration-none">照片墙</a>
+        <a href="archive.html" class="hover:text-slate-800 transition text-decoration-none">手记归档</a>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- 本地原生音频载体 -->
+  <audio id="flagship-audio" loop src="music/letting-go.mp3"></audio>
+
+  <!-- 视觉引擎主控脚本 (Three.js 交互 3D 核心 + Canvas 晨曦流光 + 实时波形仿真) -->
+  <script type="module">
+    import * as THREE from './assets/vendor/three.module.min.js';
+
+    // ----------------------------------------------------
+    // 1. 背景动态晨曦液态流光 (Ambient Fluid Canvas)
+    // ----------------------------------------------------
+    const ambientCanvas = document.getElementById('ambient-canvas');
+    const actx = ambientCanvas.getContext('2d');
+    let aWidth = 0, aHeight = 0;
+    let beatFactor = 0; // 随音乐低音膨胀
+
+    function resizeAmbient() {
+      aWidth = ambientCanvas.width = window.innerWidth;
+      aHeight = ambientCanvas.height = window.innerHeight;
+    }
+    resizeAmbient();
+    window.addEventListener('resize', resizeAmbient);
+
+    // 极光流光色斑组 (天青、冰蓝、淡紫、柔粉)
+    const blobs = [
+      { x: 0.2, y: 0.15, r: 450, color: 'rgba(56, 189, 248, 0.22)', vx: 0.0006, vy: 0.0004 },
+      { x: 0.8, y: 0.25, r: 520, color: 'rgba(99, 102, 241, 0.16)', vx: -0.0005, vy: 0.0005 },
+      { x: 0.5, y: 0.7, r: 600, color: 'rgba(244, 114, 182, 0.12)', vx: 0.0004, vy: -0.0006 },
+      { x: 0.85, y: 0.8, r: 480, color: 'rgba(6, 182, 212, 0.15)', vx: -0.0004, vy: -0.0003 }
+    ];
+
+    function drawAmbient() {
+      actx.clearRect(0, 0, aWidth, aHeight);
+
+      // 混合绘制弥散光斑
+      for (const b of blobs) {
+        b.x += b.vx;
+        b.y += b.vy;
+        if (b.x < 0.1 || b.x > 0.9) b.vx *= -1;
+        if (b.y < 0.1 || b.y > 0.9) b.vy *= -1;
+
+        const currentR = b.r * (1 + beatFactor * 0.35);
+        const grad = actx.createRadialGradient(
+          b.x * aWidth, b.y * aHeight, 0,
+          b.x * aWidth, b.y * aHeight, currentR
+        );
+        grad.addColorStop(0, b.color);
+        grad.addColorStop(0.65, b.color.replace(/[\d\.]+\)$/, '0.04)'));
+        grad.addColorStop(1, 'rgba(248, 250, 252, 0)');
+
+        actx.fillStyle = grad;
+        actx.fillRect(0, 0, aWidth, aHeight);
+      }
+    }
+
+    // ----------------------------------------------------
+    // 2. 交互 3D 拓扑谐振核心 (Three.js WebGL)
+    // ----------------------------------------------------
+    const viewport = document.getElementById('three-viewport');
+    const vWidth = viewport.clientWidth || 348;
+    const vHeight = viewport.clientHeight || 348;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, vWidth / vHeight, 0.1, 1000);
+    camera.position.z = 4.8;
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(vWidth, vHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x000000, 0);
+    viewport.appendChild(renderer.domElement);
+
+    // 创建斐波那契高质感点阵
+    const ptCount = 2400;
+    const geometry = new THREE.BufferGeometry();
+    const pos = new Float32Array(ptCount * 3);
+    const basePos = new Float32Array(ptCount * 3);
+    const colors = new Float32Array(ptCount * 3);
+
+    const cBlue = new THREE.Color(0x2563eb);
+    const cCyan = new THREE.Color(0x06b6d4);
+    const cDark = new THREE.Color(0x0f172a);
+
+    for (let i = 0; i < ptCount; i++) {
+      const phi = Math.acos(1 - 2 * (i + 0.5) / ptCount);
+      const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
+      const r = 1.75;
+
+      const x = r * Math.sin(phi) * Math.cos(theta);
+      const y = r * Math.sin(phi) * Math.sin(theta);
+      const z = r * Math.cos(phi);
+
+      pos[i * 3] = x;
+      pos[i * 3 + 1] = y;
+      pos[i * 3 + 2] = z;
+
+      basePos[i * 3] = x;
+      basePos[i * 3 + 1] = y;
+      basePos[i * 3 + 2] = z;
+
+      const mix = (y / r + 1) * 0.5;
+      const c = cBlue.clone().lerp(cCyan, mix);
+      if (Math.random() > 0.8) c.lerp(cDark, 0.4);
+
+      colors[i * 3] = c.r;
+      colors[i * 3 + 1] = c.g;
+      colors[i * 3 + 2] = c.b;
+    }
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    const material = new THREE.PointsMaterial({
+      size: 0.055,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.9,
+    });
+    const pointSphere = new THREE.Points(geometry, material);
+    scene.add(pointSphere);
+
+    // 内部柔和晶格几何体
+    const cageGeo = new THREE.IcosahedronGeometry(1.15, 2);
+    const cageMat = new THREE.MeshBasicMaterial({
+      color: 0x38bdf8,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.3
+    });
+    const cageMesh = new THREE.Mesh(cageGeo, cageMat);
+    scene.add(cageMesh);
+
+    // 鼠标拖拽旋转
+    let isDragging = false;
+    let prevX = 0, prevY = 0;
+    let rotX = 0, rotY = 0;
+    let coreMode = 0; // 0: 晶格点阵, 1: 环面双扭线
+
+    viewport.addEventListener('pointerdown', e => {
+      isDragging = true;
+      prevX = e.clientX;
+      prevY = e.clientY;
+    });
+
+    window.addEventListener('pointermove', e => {
+      if (!isDragging) return;
+      rotY += (e.clientX - prevX) * 0.008;
+      rotX += (e.clientY - prevY) * 0.008;
+      prevX = e.clientX;
+      prevY = e.clientY;
+    });
+
+    window.addEventListener('pointerup', () => { isDragging = false; });
+
+    document.getElementById('btn-core-reset')?.addEventListener('click', () => {
+      rotX = 0; rotY = 0;
+    });
+
+    document.getElementById('btn-core-mode')?.addEventListener('click', () => {
+      coreMode = (coreMode + 1) % 2;
+      const btn = document.getElementById('btn-core-mode');
+      if (btn) btn.textContent = coreMode === 1 ? '切换: 环面形态' : '切换: 球形形态';
+    });
+
+    // ----------------------------------------------------
+    // 3. 音频律动中枢与 Web Audio FFT 频谱分析
+    // ----------------------------------------------------
+    const audio = document.getElementById('flagship-audio');
+    const btnMusic = document.getElementById('btn-toggle-music');
+    const musicIcon = document.getElementById('music-btn-icon');
+    const musicStatus = document.getElementById('music-status-text');
+    const eqBars = document.querySelectorAll('.eq-bar');
+
+    let audioCtx = null;
+    let analyser = null;
+    let sourceNode = null;
+    let isMusicPlaying = false;
+    let dataArray = null;
+
+    btnMusic?.addEventListener('click', async () => {
+      if (!isMusicPlaying) {
+        try {
+          if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 64;
+            sourceNode = audioCtx.createMediaElementSource(audio);
+            sourceNode.connect(analyser);
+            analyser.connect(audioCtx.destination);
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
+          }
+          if (audioCtx.state === 'suspended') {
+            await audioCtx.resume();
+          }
+
+          await audio.play();
+          isMusicPlaying = true;
+          musicIcon.textContent = '■';
+          btnMusic.classList.replace('bg-blue-600', 'bg-rose-600');
+          musicStatus.textContent = '正在播放 · 声画共振实时激活';
+          musicStatus.classList.replace('text-slate-400', 'text-blue-600');
+        } catch (err) {
+          console.warn('Audio play prevented', err);
+        }
+      } else {
+        audio.pause();
+        isMusicPlaying = false;
+        musicIcon.textContent = '▶';
+        btnMusic.classList.replace('bg-rose-600', 'bg-blue-600');
+        musicStatus.textContent = '已暂停 · 点击唤醒共振';
+        musicStatus.classList.replace('text-blue-600', 'text-slate-400');
+      }
+    });
+
+    // ----------------------------------------------------
+    // 4. NetOps 实时心跳抖动 Canvas 模拟器
+    // ----------------------------------------------------
+    const netopsCanvas = document.getElementById('netops-canvas');
+    const nctx = netopsCanvas?.getContext('2d');
+    const netopsPoints = new Array(40).fill(30);
+
+    function updateNetops() {
+      if (!nctx) return;
+      netopsPoints.shift();
+      const jitter = isMusicPlaying ? (beatFactor * 25) : 0;
+      const nextVal = 25 + Math.sin(Date.now() * 0.005) * 8 + (Math.random() - 0.5) * 8 - jitter;
+      netopsPoints.push(Math.max(5, Math.min(nextVal, 60)));
+
+      nctx.clearRect(0, 0, netopsCanvas.width, netopsCanvas.height);
+      nctx.beginPath();
+      nctx.strokeStyle = '#38bdf8';
+      nctx.lineWidth = 2;
+
+      for (let i = 0; i < netopsPoints.length; i++) {
+        const x = (i / (netopsPoints.length - 1)) * netopsCanvas.width;
+        const y = netopsPoints[i];
+        if (i === 0) nctx.moveTo(x, y);
+        else nctx.lineTo(x, y);
+      }
+      nctx.stroke();
+
+      // 发光填充
+      nctx.lineTo(netopsCanvas.width, netopsCanvas.height);
+      nctx.lineTo(0, netopsCanvas.height);
+      nctx.fillStyle = 'rgba(56, 189, 248, 0.12)';
+      nctx.fill();
+    }
+
+    // ----------------------------------------------------
+    // 5. Fluxion 声学克拉尼共振板仿真微缩 Canvas
+    // ----------------------------------------------------
+    const chladniCanvas = document.getElementById('chladni-plate-canvas');
+    const cctx = chladniCanvas?.getContext('2d');
+    let cTime = 0;
+
+    function updateChladniPlate() {
+      if (!cctx) return;
+      cTime += 0.03;
+      cctx.clearRect(0, 0, chladniCanvas.width, chladniCanvas.height);
+
+      const cw = chladniCanvas.width;
+      const ch = chladniCanvas.height;
+      const n = 3, m = 2; // 驻波阶数
+
+      cctx.fillStyle = '#a855f7';
+      const step = 4;
+      for (let x = 0; x < cw; x += step) {
+        for (let y = 0; y < ch; y += step) {
+          const nx = (x / cw - 0.5) * 2;
+          const ny = (y / ch - 0.5) * 2;
+          // 克拉尼经典驻波方程：a*sin(n*pi*x)*sin(m*pi*y) - b*sin(m*pi*x)*sin(n*pi*y)
+          const val = Math.cos(n * Math.PI * nx + cTime) * Math.cos(m * Math.PI * ny) -
+                      Math.cos(m * Math.PI * nx) * Math.cos(n * Math.PI * ny + cTime);
+          if (Math.abs(val) < 0.28) {
+            cctx.fillRect(x, y, 2, 2);
+          }
+        }
+      }
+    }
+
+    // ----------------------------------------------------
+    // 6. 统一渲染主循环 (60 FPS 联动)
+    // ----------------------------------------------------
+    let clock = 0;
+
+    function renderLoop() {
+      requestAnimationFrame(renderLoop);
+      clock += 0.015;
+
+      // 提取音乐频率特征
+      if (analyser && isMusicPlaying && dataArray) {
+        analyser.getByteFrequencyData(dataArray);
+        let bassSum = 0;
+        for (let b = 0; b < 8; b++) bassSum += dataArray[b];
+        beatFactor = (bassSum / 8) / 255; // 0 ~ 1
+
+        // 联动均衡器柱
+        eqBars.forEach((bar, idx) => {
+          const val = dataArray[idx * 3] || 10;
+          bar.style.height = Math.max(4, (val / 255) * 20) + 'px';
+        });
+      } else {
+        beatFactor = 0.12 + 0.08 * Math.sin(clock * 2);
+        eqBars.forEach((bar, idx) => {
+          const h = 4 + Math.sin(clock * 4 + idx * 0.8) * 6;
+          bar.style.height = Math.max(4, h) + 'px';
+        });
+      }
+
+      // 绘制背景流光
+      drawAmbient();
+
+      // 3D 核心模型自转与共振更新
+      pointSphere.rotation.y += (rotY - pointSphere.rotation.y) * 0.08 + 0.0025;
+      pointSphere.rotation.x += (rotX - pointSphere.rotation.x) * 0.08;
+      cageMesh.rotation.y = pointSphere.rotation.y * 0.8;
+      cageMesh.rotation.x = pointSphere.rotation.x * 0.8;
+
+      const posAttr = geometry.attributes.position;
+      const pArr = posAttr.array;
+
+      for (let i = 0; i < ptCount; i++) {
+        const i3 = i * 3;
+        const bx = basePos[i3];
+        const by = basePos[i3 + 1];
+        const bz = basePos[i3 + 2];
+
+        const wave = Math.sin(clock * 3 + by * 4) * Math.cos(clock * 2 + bx * 4);
+        const amp = 1.0 + (wave * 0.12 + beatFactor * 0.35);
+
+        if (coreMode === 0) {
+          pArr[i3] = bx * amp;
+          pArr[i3 + 1] = by * amp;
+          pArr[i3 + 2] = bz * amp;
+        } else {
+          const angle = clock + i * 0.008;
+          pArr[i3] = bx * 0.75 + Math.sin(angle) * 0.45;
+          pArr[i3 + 1] = by * amp;
+          pArr[i3 + 2] = bz * 0.75 + Math.cos(angle) * 0.45;
+        }
+      }
+      posAttr.needsUpdate = true;
+
+      const scale = 1.0 + beatFactor * 0.2;
+      cageMesh.scale.set(scale, scale, scale);
+
+      renderer.render(scene, camera);
+
+      // 周期更新微型展台波形
+      updateNetops();
+      updateChladniPlate();
+    }
+
+    renderLoop();
+
+  </script>
+</body>
+</html>

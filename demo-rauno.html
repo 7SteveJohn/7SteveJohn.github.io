@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>仿 Rauno Freiberg (rauno.me) · 触觉弹簧与 Design Engineer Craft</title>
+  <link rel="stylesheet" href="assets/vendor/tailwind.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --fg: #171717;
+      --muted: #737373;
+      --subtle: #a3a3a3;
+      --border: #f0f0f0;
+      --border-hover: #e5e5e5;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+    }
+
+    .mono-font {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    /* 顶部方案横跳栏 */
+    .top-switch-bar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .demo-tab {
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.18s ease;
+      color: var(--muted);
+    }
+    .demo-tab:hover { color: var(--fg); background: var(--border); }
+    .demo-tab.active {
+      color: var(--fg);
+      background: #f5f5f5;
+      font-weight: 600;
+      border: 1px solid var(--border-hover);
+    }
+
+    /* Rauno 标志性 Craft 交互演练盒 */
+    .craft-box {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      background: #ffffff;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .craft-box:hover {
+      border-color: #d4d4d4;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
+    }
+
+    /* 磁吸物理按钮 */
+    .magnetic-element {
+      transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform;
+    }
+
+    /* 触觉弹簧滑块 */
+    .spring-track {
+      position: relative;
+      width: 100%;
+      height: 6px;
+      background: #f0f0f0;
+      border-radius: 9999px;
+      cursor: pointer;
+    }
+    .spring-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      background: #171717;
+      border-radius: 9999px;
+      width: 45%;
+      transition: width 0.08s ease-out;
+    }
+    .spring-thumb {
+      position: absolute;
+      top: 50%;
+      left: 45%;
+      transform: translate(-50%, -50%);
+      width: 18px;
+      height: 18px;
+      background: #ffffff;
+      border: 2px solid #171717;
+      border-radius: 50%;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+      transition: left 0.08s ease-out, transform 0.15s ease;
+      cursor: grab;
+    }
+    .spring-thumb:active {
+      cursor: grabbing;
+      transform: translate(-50%, -50%) scale(1.15);
+    }
+
+    /* 列表项 */
+    .dense-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1.5rem;
+      padding: 0.9rem 0;
+      border-bottom: 1px solid var(--border);
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+    .dense-row:hover .row-title {
+      transform: translateX(4px);
+      color: #000000;
+    }
+    .row-title {
+      color: #404040;
+      font-size: 0.9375rem;
+      transition: transform 0.15s ease, color 0.15s ease;
+    }
+
+    /* 微型声学波形柱 */
+    .wave-line {
+      width: 3px;
+      background: #171717;
+      border-radius: 2px;
+      transition: height 0.1s ease;
+    }
+  </style>
+</head>
+<body class="selection:bg-neutral-100 selection:text-neutral-900">
+
+  <!-- 顶部 3 套博客对比横跳栏 -->
+  <header class="top-switch-bar">
+    <div class="max-w-4xl mx-auto px-6 py-2.5 flex items-center justify-between">
+      <div class="flex items-center gap-2 overflow-x-auto">
+        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">独立博客原型复刻</span>
+        <div class="flex items-center gap-1.5 ml-2">
+          <a href="demo-anthony-fu.html" class="demo-tab">① 仿 Anthony Fu (antfu.me)</a>
+          <a href="demo-shuding.html" class="demo-tab">② 仿 Shu Ding (shud.in)</a>
+          <a href="demo-rauno.html" class="demo-tab active">③ 仿 Rauno (rauno.me)</a>
+          <a href="demo-flagship.html" class="demo-tab">🌟 晨曦流光旗舰版 (充盈大作)</a>
+        </div>
+      </div>
+      <a href="index.html" class="text-xs text-neutral-400 hover:text-neutral-800 transition flex items-center gap-1 flex-shrink-0">
+        <span>返回主站</span> &rarr;
+      </a>
+    </div>
+  </header>
+
+  <!-- 主体内容容器 -->
+  <main class="max-w-3xl mx-auto px-6 pt-14 pb-24">
+
+    <!-- 顶部 Rauno 风格 Header -->
+    <header class="pb-10 border-b border-neutral-100">
+      <div class="flex items-start justify-between">
+        <div>
+          <h1 class="text-lg font-semibold tracking-tight text-neutral-900">
+            SevenJohn
+          </h1>
+          <p class="text-xs mono-font text-neutral-500 mt-0.5">
+            Design Engineer · Systems & Micro-Interactions
+          </p>
+        </div>
+        <div class="text-right text-xs mono-font text-neutral-400">
+          <span>SHANGHAI, CN</span><br />
+          <span class="text-emerald-600">● AVAILABLE</span>
+        </div>
+      </div>
+
+      <p class="text-sm text-neutral-600 leading-relaxed mt-6 max-w-xl">
+        Building interfaces where design and code merge seamlessly. Obsessed with spring physics, local-first computing, and invisible details.
+      </p>
+
+      <div class="flex items-center gap-5 pt-4 text-xs mono-font text-neutral-400">
+        <a href="#craft" class="text-neutral-800 hover:text-black transition text-decoration-none">Craft &darr;</a>
+        <a href="#work" class="text-neutral-800 hover:text-black transition text-decoration-none">Work &darr;</a>
+        <a href="#writing" class="text-neutral-800 hover:text-black transition text-decoration-none">Writing &darr;</a>
+        <span>·</span>
+        <a href="https://github.com" target="_blank" class="hover:text-black transition text-decoration-none">GitHub ↗</a>
+      </div>
+    </header>
+
+    <!-- Rauno 核心灵魂：Craft 微交互实验室 -->
+    <section id="craft" class="py-12 border-b border-neutral-100">
+      <div class="flex items-baseline justify-between mb-6">
+        <div>
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-400 mono-font">Craft / 触觉演练场</h2>
+          <p class="text-sm font-medium text-neutral-900 mt-0.5">物理阻尼与微交互试验台</p>
+        </div>
+        <span class="text-xs mono-font text-neutral-400">03 PROTOTYPES</span>
+      </div>
+
+      <div class="space-y-4">
+        
+        <!-- Craft 1: 弹簧阻尼拖拽滑块 (Spring Slider) -->
+        <div class="craft-box" id="craft-slider-box">
+          <div class="flex items-center justify-between text-xs mono-font text-neutral-500 mb-4">
+            <span>SPRING PHYSICS SLIDER</span>
+            <span id="slider-val" class="font-medium text-neutral-900">45%</span>
+          </div>
+          <div class="spring-track" id="spring-track">
+            <div class="spring-fill" id="spring-fill"></div>
+            <div class="spring-thumb" id="spring-thumb"></div>
+          </div>
+          <p class="text-[11px] text-neutral-400 mono-font mt-3">
+            Drag with mouse · 二阶欠阻尼弹簧回弹算法
+          </p>
+        </div>
+
+        <!-- Craft 2: 磁吸游标与动态胶囊 (Magnetic Pill) -->
+        <div class="craft-box flex flex-col sm:flex-row items-center justify-between gap-6" id="craft-magnetic-box">
+          <div>
+            <span class="text-xs mono-font text-neutral-500 block mb-1">MAGNETIC PULL & AUDIO WAVE</span>
+            <p class="text-xs text-neutral-500 max-w-sm">
+              靠近按钮体验光标磁吸引力；点击播放本地音频驱动实时声学振幅。
+            </p>
+          </div>
+          <div class="flex items-center gap-4">
+            <!-- 磁吸按钮 -->
+            <button id="magnetic-btn" class="magnetic-element px-4 py-2 bg-neutral-900 hover:bg-black text-white text-xs font-medium rounded-full shadow-sm active:scale-95 transition-shadow">
+              <span id="audio-btn-text">▶ 播放声波</span>
+            </button>
+            <!-- 实时声波可视化 -->
+            <div class="flex items-end gap-1 h-7 px-2 py-1 bg-neutral-50 rounded border border-neutral-100" id="audio-wave-bars">
+              <div class="wave-line" style="height: 6px;"></div>
+              <div class="wave-line" style="height: 14px;"></div>
+              <div class="wave-line" style="height: 20px;"></div>
+              <div class="wave-line" style="height: 10px;"></div>
+              <div class="wave-line" style="height: 16px;"></div>
+              <div class="wave-line" style="height: 8px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Craft 3: 瞬态无缝分段切换 (Segmented Slider with Spring Indicator) -->
+        <div class="craft-box">
+          <div class="flex items-center justify-between text-xs mono-font text-neutral-500 mb-3">
+            <span>LAYOUT SPRING TRANSITION</span>
+            <span class="text-[10px] text-neutral-400">ZERO JANK</span>
+          </div>
+          <div class="inline-flex p-1 bg-neutral-100 rounded-lg relative" id="segmented-group">
+            <button class="seg-btn px-3 py-1.5 text-xs font-medium rounded-md text-neutral-900 bg-white shadow-sm transition-all" data-idx="0">Overview</button>
+            <button class="seg-btn px-3 py-1.5 text-xs font-medium rounded-md text-neutral-500 hover:text-neutral-900 transition-all" data-idx="1">Telemetry</button>
+            <button class="seg-btn px-3 py-1.5 text-xs font-medium rounded-md text-neutral-500 hover:text-neutral-900 transition-all" data-idx="2">Benchmarks</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 精选工程作品 (Work) -->
+    <section id="work" class="py-12 border-b border-neutral-100">
+      <div class="flex items-baseline justify-between mb-6">
+        <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-400 mono-font">Selected Work</h2>
+        <span class="text-xs mono-font text-neutral-400">2024 — 2026</span>
+      </div>
+
+      <div class="divide-y divide-neutral-100">
+        
+        <a href="projects.html" class="dense-row group">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="row-title font-medium">FileButler</span>
+              <span class="text-xs mono-font text-neutral-400">· Offline Local RAG Knowledge Engine</span>
+            </div>
+            <p class="text-xs text-neutral-400 mt-1">
+              Zero cloud telemetry. Hybrid vector search with fast local reranking.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <span class="text-xs mono-font text-neutral-400">TypeScript / Rust</span>
+            <span class="text-neutral-400 group-hover:text-black transition">&rarr;</span>
+          </div>
+        </a>
+
+        <a href="projects.html" class="dense-row group">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="row-title font-medium">拍案 (PaiAn)</span>
+              <span class="text-xs mono-font text-neutral-400">· Forensic Multimodal Investigation</span>
+            </div>
+            <p class="text-xs text-neutral-400 mt-1">
+              Evidence timeline alignment, offline OCR and causality graph generation.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <span class="text-xs mono-font text-neutral-400">Canvas / Small LLM</span>
+            <span class="text-neutral-400 group-hover:text-black transition">&rarr;</span>
+          </div>
+        </a>
+
+        <a href="projects.html" class="dense-row group">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="row-title font-medium">NetOps</span>
+              <span class="text-xs mono-font text-neutral-400">· Kernel eBPF Telemetry Probe</span>
+            </div>
+            <p class="text-xs text-neutral-400 mt-1">
+              Microsecond network latency tracking and dynamic topology packet tinting.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <span class="text-xs mono-font text-neutral-400">eBPF / Go</span>
+            <span class="text-neutral-400 group-hover:text-black transition">&rarr;</span>
+          </div>
+        </a>
+
+        <a href="projects.html" class="dense-row group">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="row-title font-medium">Fluxion</span>
+              <span class="text-xs mono-font text-neutral-400">· Real-Time Acoustic Kinematics</span>
+            </div>
+            <p class="text-xs text-neutral-400 mt-1">
+              Chladni resonance simulation projecting partial differential equations in WebGL.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <span class="text-xs mono-font text-neutral-400">WebGL / Math</span>
+            <span class="text-neutral-400 group-hover:text-black transition">&rarr;</span>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- 技术手记与思考 (Writing) -->
+    <section id="writing" class="py-12 border-b border-neutral-100">
+      <div class="flex items-baseline justify-between mb-6">
+        <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-400 mono-font">Writing & Craft Notes</h2>
+        <span class="text-xs mono-font text-neutral-400">ESSAYS</span>
+      </div>
+
+      <div class="divide-y divide-neutral-100">
+        
+        <a href="blog.html" class="dense-row group">
+          <span class="row-title">Invisible Details: The Engineering Behind Tactile Interfaces</span>
+          <span class="text-xs mono-font text-neutral-400 whitespace-nowrap">NOV 2026</span>
+        </a>
+
+        <a href="blog.html" class="dense-row group">
+          <span class="row-title">Second-Order Differential Equations in Web Spring Animations</span>
+          <span class="text-xs mono-font text-neutral-400 whitespace-nowrap">OCT 2026</span>
+        </a>
+
+        <a href="blog.html" class="dense-row group">
+          <span class="row-title">Local-First UX: Why Zero-Latency Beats Cloud Feature Sets</span>
+          <span class="text-xs mono-font text-neutral-400 whitespace-nowrap">SEP 2026</span>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="pt-12 flex flex-col sm:flex-row items-center justify-between text-xs mono-font text-neutral-400 gap-4">
+      <div>
+        <span>SevenJohn · Built with Craft</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="https://github.com" target="_blank" class="hover:text-neutral-800 transition text-decoration-none">GitHub</a>
+        <a href="feed.xml" class="hover:text-neutral-800 transition text-decoration-none">RSS</a>
+        <a href="index.html" class="hover:text-neutral-800 transition text-decoration-none">Index</a>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- 音频组件 -->
+  <audio id="rauno-audio" loop src="music/letting-go.mp3"></audio>
+
+  <!-- Rauno 风格交互脚本 -->
+  <script>
+    // 1. 弹簧阻尼拖拽滑块
+    const track = document.getElementById('spring-track');
+    const fill = document.getElementById('spring-fill');
+    const thumb = document.getElementById('spring-thumb');
+    const sliderVal = document.getElementById('slider-val');
+
+    let isDraggingSlider = false;
+
+    function updateSlider(e) {
+      const rect = track.getBoundingClientRect();
+      const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+      const pct = Math.round((x / rect.width) * 100);
+      fill.style.width = pct + '%';
+      thumb.style.left = pct + '%';
+      sliderVal.textContent = pct + '%';
+    }
+
+    track.addEventListener('pointerdown', (e) => {
+      isDraggingSlider = true;
+      updateSlider(e);
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (isDraggingSlider) updateSlider(e);
+    });
+
+    window.addEventListener('pointerup', () => {
+      isDraggingSlider = false;
+    });
+
+    // 2. 磁吸按钮
+    const magBox = document.getElementById('craft-magnetic-box');
+    const magBtn = document.getElementById('magnetic-btn');
+
+    magBox.addEventListener('mousemove', (e) => {
+      const rect = magBtn.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = e.clientX - cx;
+      const dy = e.clientY - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < 100) {
+        const pull = (1 - dist / 100) * 12;
+        magBtn.style.transform = `translate(${(dx / dist) * pull}px, ${(dy / dist) * pull}px)`;
+      } else {
+        magBtn.style.transform = 'translate(0px, 0px)';
+      }
+    });
+
+    magBox.addEventListener('mouseleave', () => {
+      magBtn.style.transform = 'translate(0px, 0px)';
+    });
+
+    // 3. 音频与声波可视化
+    const audio = document.getElementById('rauno-audio');
+    const audioBtnText = document.getElementById('audio-btn-text');
+    const waveBars = document.querySelectorAll('.wave-line');
+    let isPlayingAudio = false;
+    let waveRaf = 0;
+
+    magBtn.addEventListener('click', () => {
+      if (!isPlayingAudio) {
+        audio.play().then(() => {
+          isPlayingAudio = true;
+          audioBtnText.textContent = '■ 暂停声波';
+          magBtn.classList.replace('bg-neutral-900', 'bg-blue-600');
+          animateWave();
+        }).catch(err => console.log('Audio play error:', err));
+      } else {
+        audio.pause();
+        isPlayingAudio = false;
+        audioBtnText.textContent = '▶ 播放声波';
+        magBtn.classList.replace('bg-blue-600', 'bg-neutral-900');
+        cancelAnimationFrame(waveRaf);
+        waveBars.forEach(bar => bar.style.height = '6px');
+      }
+    });
+
+    function animateWave() {
+      if (!isPlayingAudio) return;
+      waveBars.forEach((bar, i) => {
+        const h = Math.floor(4 + Math.random() * 22);
+        bar.style.height = h + 'px';
+      });
+      setTimeout(() => {
+        if (isPlayingAudio) requestAnimationFrame(animateWave);
+      }, 90);
+    }
+
+    // 4. 分段控制器切换
+    const segButtons = document.querySelectorAll('.seg-btn');
+    segButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        segButtons.forEach(b => {
+          b.classList.remove('bg-white', 'text-neutral-900', 'shadow-sm');
+          b.classList.add('text-neutral-500');
+        });
+        btn.classList.add('bg-white', 'text-neutral-900', 'shadow-sm');
+        btn.classList.remove('text-neutral-500');
+      });
+    });
+  </script>
+</body>
+</html>

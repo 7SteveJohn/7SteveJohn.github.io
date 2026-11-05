@@ -5,11 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>归档 · 时间河 | 楠屿札记</title>
 
-  <!-- 与首页同一套：先挂 dark + js 标记，避免亮色用户进站闪黑、滚动浮现的预隐藏依赖 .js -->
   <script>
     (function () {
       document.documentElement.classList.add('js');
-      document.documentElement.classList.add('dark');
+      try {
+        if (localStorage.getItem('sj.theme-v5') !== 'obsidian-v1') {
+          localStorage.removeItem('sj.theme');
+          localStorage.setItem('sj.theme-v5', 'obsidian-v1');
+        }
+        if (localStorage.getItem('sj.theme') === 'light') {
+          document.documentElement.classList.remove('dark');
+        } else {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (e) {
+        document.documentElement.classList.add('dark');
+      }
     })();
   </script>
 
@@ -67,8 +78,7 @@
       <p class="page-eyebrow">// archive</p>
       <h1 class="page-title">归档 · 时间河</h1>
       <p class="page-sub">
-        全部文字按时间倒序排在这里，共 <b id="archive-count">0</b> 篇。曲线上的每个点是一篇，
-        点开回到首页的阅读弹窗；按住 <b>Tab</b> 可以唤出快速导航。
+        写下的字句按时间顺序静静流淌在这里，共 <b id="archive-count">0</b> 篇。曲线上的每个节点对应一篇手记，点击即可展开阅读；按住 <b>Tab</b> 键可随时唤出板块快速导航。
       </p>
       <div id="archive-filters" class="chips" role="group" aria-label="按板块筛选"></div>
     </div>
@@ -88,7 +98,7 @@
       <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           <span class="font-semibold text-black dark:text-white">楠屿札记</span>
-          <span> · 一隅存工码，亦叙尘世星文</span>
+          <span> · 本地工具、技术手记与文字创作</span>
         </div>
         <div class="flex items-center gap-6">
           <a href="index.html" class="hover:text-black dark:hover:text-white transition">首页</a>

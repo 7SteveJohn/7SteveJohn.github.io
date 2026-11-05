@@ -30,13 +30,18 @@ const NODE_VERT = /* glsl */`
 `;
 const NODE_FRAG = /* glsl */`
   uniform sampler2D uSprite;
+  uniform float uDark;
   varying float vTw;
   varying float vD;
   void main() {
     vec4 s = texture2D(uSprite, gl_PointCoord);
     // 远层暗、近层亮：同一片投影区里也要读得出前后
     float depthGain = mix(0.45, 1.0, vD);
-    gl_FragColor = vec4(vec3(0.62, 0.84, 1.0) * s.rgb, s.a) * vTw * depthGain;
+    vec3 darkCol = vec3(0.62, 0.84, 1.0) * s.rgb * vTw * depthGain;
+    vec3 lightCol = vec3(0.06, 0.38, 0.88) * s.rgb * (1.15 - 0.25 * vTw);
+    vec3 col = mix(lightCol, darkCol, uDark);
+    float a = mix(s.a * 0.88, s.a * vTw * depthGain, uDark);
+    gl_FragColor = vec4(col, a);
   }
 `;
 const PULSE_VERT = /* glsl */`
@@ -54,11 +59,18 @@ const PULSE_VERT = /* glsl */`
 const PULSE_FRAG = /* glsl */`
   uniform sampler2D uSprite;
   uniform float uBass;
+  uniform float uDark;
   varying float vA;
   void main() {
     vec4 s = texture2D(uSprite, gl_PointCoord);
-    vec3 c = mix(vec3(0.45, 0.95, 1.0), vec3(0.85, 1.0, 0.95), uBass);
-    gl_FragColor = vec4(c * s.rgb, s.a) * vA * (1.2 + uBass * 1.8);
+    vec3 darkCol = mix(vec3(0.45, 0.95, 1.0), vec3(0.85, 1.0, 0.95), uBass);
+    vec3 lightCol = mix(vec3(0.02, 0.62, 0.96), vec3(0.12, 0.38, 0.90), uBass);
+    vec3 c = mix(lightCol, darkCol, uDark);
+    float darkGain = (1.2 + uBass * 1.8);
+    float lightGain = (1.0 + uBass * 0.8);
+    float gain = mix(lightGain, darkGain, uDark);
+    float a = mix(s.a * 0.95, s.a * gain, uDark);
+    gl_FragColor = vec4(c * s.rgb, a);
   }
 `;
 
@@ -76,8 +88,9 @@ function softSprite(hard = 0.3) {
 }
 
 export class NeuralField {
-  constructor(scene, cfg, isMobile, aspect) {
-    this.cfg = cfg;
+  constructor(scene, cfg, isMobile = false, aspect = innerWidth / innerHeight) {
+    this.scene = scene;
+    this.cfg = cfg || {};
     this.isMobile = isMobile;
     this.aspect = aspect;
     this.group = new THREE.Group();
@@ -165,16 +178,18 @@ export class NeuralField {
     geo.setAttribute('aSpeed', new THREE.BufferAttribute(speed, 1));
     geo.setAttribute('aTreble', new THREE.BufferAttribute(treb, 1));
     geo.setAttribute('aDepth', new THREE.BufferAttribute(depth, 1));
+    const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+    this.isDarkCached = isDark;
     this.nodeUniforms = {
       uTime: { value: 0 }, uTreble: { value: 0 }, uPixel: { value: 1.3 },
       uGlow: { value: 0 }, uWave: { value: 0 }, uWavePos: { value: -0.3 },
-      uBeat: { value: 0 },
+      uBeat: { value: 0 }, uDark: { value: isDark ? 1.0 : 0.0 },
       uCursor: { value: new THREE.Vector3(1e9, 1e9, 0) },
       uSprite: { value: softSprite(0.32) }
     };
     this.nodes = new THREE.Points(geo, new THREE.ShaderMaterial({
       uniforms: this.nodeUniforms, vertexShader: NODE_VERT, fragmentShader: NODE_FRAG,
-      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
+      transparent: true, depthWrite: false, blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending
     }));
     this.nodes.renderOrder = 3;
     this.group.add(this.nodes);
@@ -219,8 +234,9 @@ export class NeuralField {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(epos, 3).setUsage(THREE.DynamicDrawUsage));
     geo.setAttribute('color', new THREE.BufferAttribute(ecol, 3).setUsage(THREE.DynamicDrawUsage));
+    const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
     this.edgeMesh = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({
-      vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
+      vertexColors: true, transparent: true, depthWrite: false, blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending
     }));
     this.edgeMesh.renderOrder = 2;
     this.group.add(this.edgeMesh);
@@ -243,12 +259,13 @@ export class NeuralField {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3).setUsage(THREE.DynamicDrawUsage));
     geo.setAttribute('aSize', new THREE.BufferAttribute(size, 1));
+    const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
     this.pulseUniforms = {
-      uPixel: { value: 1.3 }, uBass: { value: 0 }, uSprite: { value: softSprite(0.24) }
+      uPixel: { value: 1.3 }, uBass: { value: 0 }, uDark: { value: isDark ? 1.0 : 0.0 }, uSprite: { value: softSprite(0.24) }
     };
     this.pulseMesh = new THREE.Points(geo, new THREE.ShaderMaterial({
       uniforms: this.pulseUniforms, vertexShader: PULSE_VERT, fragmentShader: PULSE_FRAG,
-      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
+      transparent: true, depthWrite: false, blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending
     }));
     this.pulseMesh.renderOrder = 4;
     this.group.add(this.pulseMesh);
@@ -363,7 +380,24 @@ export class NeuralField {
     this.pulseMesh.geometry.attributes.position.needsUpdate = true;
     this.pulseUniforms.uBass.value = bass;
 
-    // 连边：底亮 + 脉冲余温 + 光标邻近；颜色承载亮度（加法混合）
+    const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+    if (this.isDarkCached !== isDark) {
+      this.isDarkCached = isDark;
+      const blend = isDark ? THREE.AdditiveBlending : THREE.NormalBlending;
+      this.edgeMesh.material.blending = blend;
+      this.edgeMesh.material.needsUpdate = true;
+      this.nodes.material.blending = blend;
+      this.nodes.material.needsUpdate = true;
+      this.pulseMesh.material.blending = blend;
+      this.pulseMesh.material.needsUpdate = true;
+      if (this.glows) {
+        for (const g of this.glows) g.mesh.visible = isDark;
+      }
+    }
+    this.nodeUniforms.uDark.value = isDark ? 1.0 : 0.0;
+    this.pulseUniforms.uDark.value = isDark ? 1.0 : 0.0;
+
+    // 连边：底亮 + 脉冲余温 + 光标邻近；暗色加法叠加，亮色深蓝墨线
     const epos = this.edgeMesh.geometry.attributes.position.array;
     const ecol = this.edgeMesh.geometry.attributes.color.array;
     const decay = Math.exp(-dt / Math.max(0.016, E.heatTau));
@@ -382,11 +416,19 @@ export class NeuralField {
       const dc = Math.hypot(cxp - mx, cyp - my);
       const cur = hasMouse ? E.cursorGain * Math.max(0, 1 - dc / F.cursorRadius) : 0;
       const lum = base + h * E.heatGain + cur + beatPulse * E.beatGain;
-      // 远层偏冷蓝、近层偏青白，深度上做区分
       const f = this.depthOf[a];
-      const r = lum * (0.35 + 0.35 * f), g2 = lum * (0.7 + 0.25 * f), bl = lum;
-      ecol[o] = r; ecol[o + 1] = g2; ecol[o + 2] = bl;
-      ecol[o + 3] = r; ecol[o + 4] = g2; ecol[o + 5] = bl;
+      if (isDark) {
+        // 暗色模式：远层冷蓝、近层青白，加法混合
+        const r = lum * (0.35 + 0.35 * f), g2 = lum * (0.7 + 0.25 * f), bl = lum;
+        ecol[o] = r; ecol[o + 1] = g2; ecol[o + 2] = bl;
+        ecol[o + 3] = r; ecol[o + 4] = g2; ecol[o + 5] = bl;
+      } else {
+        // 亮色模式：深钴蓝高清晰蓝图墨线，脉冲与节拍爆发时显著提亮
+        const lineAlpha = Math.min(0.92, 0.35 + lum * 0.45);
+        const r = 0.05 * lineAlpha, g2 = 0.32 * lineAlpha, bl = 0.85 * lineAlpha;
+        ecol[o] = r; ecol[o + 1] = g2; ecol[o + 2] = bl;
+        ecol[o + 3] = r; ecol[o + 4] = g2; ecol[o + 5] = bl;
+      }
     }
     this.heatMax = heatMax;
     this.edgeMesh.geometry.attributes.position.needsUpdate = true;
@@ -458,5 +500,29 @@ export class NeuralField {
       trebleU: +this.nodeUniforms.uTreble.value.toFixed(4),
       glowU: +this.nodeUniforms.uGlow.value.toFixed(3)
     };
+  }
+
+  setRes(w, h) {
+    this.aspect = w / h;
+  }
+
+  onBeat(strength = 1.0) {
+    this._beatPulse = strength;
+    this.kickPulse();
+  }
+
+  updateEngine(sceneT, audio, interaction, dtMs) {
+    const mouseWorld = interaction && interaction.mouseWorld ? interaction.mouseWorld : new THREE.Vector3(1e9, 1e9, 0);
+    const hasMouse = interaction ? interaction.hasMouse : false;
+    this.update(sceneT, audio || {}, mouseWorld, hasMouse, dtMs, this._beatPulse || 0);
+    if (this._beatPulse > 0.01) {
+      this._beatPulse *= 0.9;
+    } else {
+      this._beatPulse = 0;
+    }
+  }
+
+  dispose() {
+    this.scene.remove(this.group);
   }
 }

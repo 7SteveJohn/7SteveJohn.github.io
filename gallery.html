@@ -8,7 +8,19 @@
   <script>
     (function () {
       document.documentElement.classList.add('js');
-      document.documentElement.classList.add('dark');
+      try {
+        if (localStorage.getItem('sj.theme-v5') !== 'obsidian-v1') {
+          localStorage.removeItem('sj.theme');
+          localStorage.setItem('sj.theme-v5', 'obsidian-v1');
+        }
+        if (localStorage.getItem('sj.theme') === 'light') {
+          document.documentElement.classList.remove('dark');
+        } else {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (e) {
+        document.documentElement.classList.add('dark');
+      }
     })();
   </script>
 
@@ -64,8 +76,7 @@
       <p class="page-eyebrow">// gallery</p>
       <h1 class="page-title">照片墙</h1>
       <p class="page-sub">
-        这里收着心仪的二次元角色立绘、插画收藏与自留图，共 <b id="gallery-count">0</b> 张。
-        点任意一张看大图，<b>← →</b> 切换，<b>Esc</b> 关闭。
+        收录一些心仪的角色立绘与光影收藏，共 <b id="gallery-count">0</b> 张。点击任意一张可静心细览，支持 <b>← →</b> 翻页，按 <b>Esc</b> 返回。
       </p>
     </div>
 

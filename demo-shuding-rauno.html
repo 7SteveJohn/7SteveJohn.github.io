@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>方案 C · 杂志排版与极客核心 (Shu Ding / Rauno 风格)</title>
+  <link rel="stylesheet" href="assets/vendor/tailwind.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --bg: #fafafa;
+      --paper: #ffffff;
+      --text-main: #171717;
+      --text-muted: #737373;
+      --border-subtle: #e5e5e5;
+      --border-strong: #d4d4d4;
+      --accent: #2563eb;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Noto Sans", sans-serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+    }
+
+    .serif-title {
+      font-family: "Newsreader", "Charter", "Bitstream Charter", "Georgia", "Songti SC", serif;
+      letter-spacing: -0.025em;
+    }
+
+    .mono-code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    /* 顶部方案切换导航 */
+    .top-switch-bar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(250, 250, 250, 0.88);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .demo-tab {
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.18s ease;
+      color: var(--text-muted);
+    }
+    .demo-tab:hover { color: var(--text-main); background: rgba(0, 0, 0, 0.04); }
+    .demo-tab.active {
+      color: #171717;
+      background: #ffffff;
+      border: 1px solid var(--border-strong);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    /* 局部 3D 核心容器 (Apple/Linear 硬件工坊质感) */
+    .compute-core-box {
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      border-radius: 1.25rem;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02);
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    .compute-core-box:hover {
+      border-color: rgba(37, 99, 235, 0.4);
+      box-shadow: 0 12px 30px -4px rgba(37, 99, 235, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+
+    /* 杂志目录列表项 (Shu Ding 极度克制高密度列表) */
+    .editorial-item {
+      display: grid;
+      grid-template-columns: 2.5rem 1fr auto;
+      align-items: baseline;
+      padding: 1.1rem 0.75rem;
+      border-bottom: 1px solid var(--border-subtle);
+      border-radius: 0.5rem;
+      text-decoration: none;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+    }
+    .editorial-item:hover {
+      background: #ffffff;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+      padding-left: 1.25rem;
+    }
+    .editorial-item:hover .item-num {
+      color: var(--accent);
+    }
+    .editorial-item:hover .item-arrow {
+      transform: translateX(4px) translateY(-2px);
+      color: var(--accent);
+    }
+
+    /* 触觉弹簧微动效容器 (Rauno Craft 风格) */
+    .craft-card {
+      border: 1px solid var(--border-subtle);
+      background: #ffffff;
+      border-radius: 0.875rem;
+      padding: 1rem 1.25rem;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+    }
+    .craft-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.06);
+    }
+
+    /* 磁吸按钮效果 */
+    .magnetic-btn {
+      transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform;
+    }
+  </style>
+</head>
+<body class="selection:bg-neutral-200 selection:text-neutral-900">
+
+  <!-- 顶部三方案一键横跳栏 -->
+  <header class="top-switch-bar">
+    <div class="max-w-4xl mx-auto px-6 py-2.5 flex items-center justify-between">
+      <div class="flex items-center gap-2 overflow-x-auto">
+        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">方案实验场</span>
+        <div class="flex items-center gap-1.5 ml-2">
+          <a href="demo-anthony-fu.html" class="demo-tab">方案 A · 算法水墨 (Anthony Fu)</a>
+          <a href="demo-linear-apple.html" class="demo-tab">方案 B · 拟真视窗 (Linear)</a>
+          <a href="demo-shuding-rauno.html" class="demo-tab active">方案 C · 杂志排版与核心 (Shu Ding)</a>
+        </div>
+      </div>
+      <a href="index.html" class="text-xs text-neutral-500 hover:text-neutral-900 transition flex items-center gap-1 flex-shrink-0">
+        <span>返回全站原版</span> &rarr;
+      </a>
+    </div>
+  </header>
+
+  <!-- 主体内容容器 -->
+  <main class="max-w-4xl mx-auto px-6 pt-12 pb-24">
+
+    <!-- 顶部杂志眉标与状态 -->
+    <div class="flex items-center justify-between text-xs mono-code text-neutral-400 pb-8 border-b border-neutral-200">
+      <div class="flex items-center gap-2">
+        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="text-neutral-600 font-medium">INDEX // ISSUE 2026.11</span>
+        <span class="text-neutral-300">|</span>
+        <span>LATENCY &lt; 0.8ms (EDGE)</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span>SHANGHAI, CN</span>
+        <span class="text-neutral-300">/</span>
+        <span>DESIGN & SYSTEMS</span>
+      </div>
+    </div>
+
+    <!-- 首屏双栏排版：左侧杂志文眼 + 右侧独立交互 3D 核心 -->
+    <section class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start pt-10 pb-14 border-b border-neutral-200">
+      
+      <!-- 左栏：排版与作者自叙 (7 cols) -->
+      <div class="md:col-span-7 space-y-6">
+        <div>
+          <span class="text-xs font-semibold tracking-widest text-neutral-400 uppercase">Personal Garden & Studio</span>
+          <h1 class="text-4xl md:text-5xl font-normal text-neutral-900 serif-title mt-2 mb-3 leading-tight">
+            楠屿札记 <span class="text-xl md:text-2xl text-neutral-400 font-sans italic ml-1">SevenJohn</span>
+          </h1>
+          <p class="text-base text-neutral-600 leading-relaxed font-light">
+            设计工程师（Design Engineer）与全栈系统作者。<br />
+            热衷于<strong class="font-medium text-neutral-900">端侧离线智能（Local-First AI）</strong>、
+            <strong class="font-medium text-neutral-900">克制排版</strong>与
+            <strong class="font-medium text-neutral-900">声学生成图形学</strong>的交界地带。
+          </p>
+        </div>
+
+        <!-- 极简标签徽章组 -->
+        <div class="flex flex-wrap items-center gap-2 pt-1 text-xs mono-code">
+          <span class="px-2.5 py-1 bg-neutral-100 text-neutral-700 rounded-md">TypeScript</span>
+          <span class="px-2.5 py-1 bg-neutral-100 text-neutral-700 rounded-md">Rust</span>
+          <span class="px-2.5 py-1 bg-neutral-100 text-neutral-700 rounded-md">Local RAG</span>
+          <span class="px-2.5 py-1 bg-neutral-100 text-neutral-700 rounded-md">WebGL / Three.js</span>
+          <span class="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-md border border-blue-200">Open Source</span>
+        </div>
+
+        <!-- 极客座右铭 -->
+        <div class="p-4 rounded-xl bg-neutral-50/80 border border-neutral-200/80 text-xs text-neutral-600 leading-relaxed">
+          <span class="font-semibold text-neutral-800">“把计算留给本地，把留白还给阅读。”</span><br />
+          不依赖云端 API 追踪，不搞全屏刺眼光效，只构建经久耐看、随触即发的高性能工具。
+        </div>
+
+        <!-- 快捷动作组 -->
+        <div class="flex items-center gap-3 pt-2">
+          <a href="#projects" class="px-4 py-2 bg-neutral-900 text-white rounded-lg text-xs font-medium hover:bg-neutral-800 transition inline-flex items-center gap-1.5 shadow-sm">
+            <span>浏览精选作品 (4)</span> &darr;
+          </a>
+          <a href="#writings" class="px-4 py-2 bg-white text-neutral-700 border border-neutral-300 rounded-lg text-xs font-medium hover:bg-neutral-50 transition">
+            技术随笔
+          </a>
+          <button id="toggle-audio-core" class="px-3.5 py-2 bg-white text-blue-600 border border-blue-200 rounded-lg text-xs font-medium hover:bg-blue-50 transition inline-flex items-center gap-1.5">
+            <span id="audio-icon">▶</span>
+            <span id="audio-label">启动谐振音频</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 右栏：独立交互 3D 局部计算核心 (5 cols) -->
+      <div class="md:col-span-5 flex flex-col items-center">
+        <div class="compute-core-box w-full max-w-[340px] aspect-square flex flex-col justify-between p-4">
+          
+          <!-- 3D 视窗顶部小字头 -->
+          <div class="flex items-center justify-between text-[11px] mono-code text-neutral-400 z-10">
+            <div class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping"></span>
+              <span class="text-neutral-700 font-semibold tracking-wider">CYMATICS CORE</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="fps-counter" class="text-neutral-500">60 FPS</span>
+              <span class="text-neutral-300">|</span>
+              <span id="pts-counter" class="text-neutral-500">1.6k PTS</span>
+            </div>
+          </div>
+
+          <!-- WebGL Three.js 画布 -->
+          <div id="three-core-container" class="absolute inset-0 cursor-grab active:cursor-grabbing flex items-center justify-center">
+            <!-- 渲染层由 Three.js 注入 -->
+          </div>
+
+          <!-- 3D 交互控制小栏 -->
+          <div class="flex items-center justify-between text-[11px] mono-code text-neutral-500 z-10 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-neutral-200/80 shadow-sm mt-auto">
+            <span class="text-neutral-400">拖拽旋转模型</span>
+            <div class="flex items-center gap-2">
+              <button id="btn-toggle-shape" class="hover:text-blue-600 transition underline underline-offset-2">切换形态</button>
+              <span class="text-neutral-300">·</span>
+              <button id="btn-reset-cam" class="hover:text-neutral-900 transition">复位</button>
+            </div>
+          </div>
+
+        </div>
+
+        <p class="text-[11px] mono-code text-neutral-400 mt-2.5 text-center">
+          三维拓扑谐振核 · 纯本地着色器计算 · 伴随音乐节奏微振
+        </p>
+      </div>
+
+    </section>
+
+    <!-- 微动效与触觉把玩实验台 (Rauno Craft 风格) -->
+    <section class="py-12 border-b border-neutral-200">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-400 mono-code">Interactive Craft / 触觉工坊</h2>
+          <p class="text-sm font-medium text-neutral-900 mt-0.5">将物理阻尼与机械触觉注入网页组件</p>
+        </div>
+        <span class="text-xs text-neutral-400 mono-code">03 EXPERIMENTS</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        <!-- 实验 1: 磁吸物理按钮 -->
+        <div class="craft-card flex flex-col justify-between h-40" id="card-magnetic">
+          <div class="text-xs text-neutral-500 mono-code flex justify-between">
+            <span>01 · MAGNETIC SPRING</span>
+            <span class="text-neutral-300">HAPTIC</span>
+          </div>
+          <div class="flex items-center justify-center py-4">
+            <button id="magnetic-target" class="magnetic-btn px-4 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-medium rounded-full border border-neutral-300/80 transition-shadow shadow-sm active:scale-95">
+              靠近我 · 磁吸悬浮
+            </button>
+          </div>
+          <p class="text-[11px] text-neutral-400 leading-tight">基于光标空间距离的二阶阻尼矢量推拉算法</p>
+        </div>
+
+        <!-- 实验 2: 实时音频频谱发生器 -->
+        <div class="craft-card flex flex-col justify-between h-40">
+          <div class="text-xs text-neutral-500 mono-code flex justify-between">
+            <span>02 · LIVE SPECTRUM</span>
+            <span class="text-emerald-500">ACTIVE</span>
+          </div>
+          <div class="flex items-center justify-center py-2">
+            <canvas id="mini-spectrum" width="180" height="42" class="rounded bg-neutral-50 border border-neutral-100"></canvas>
+          </div>
+          <p class="text-[11px] text-neutral-400 leading-tight">32 段实时 FFT 声学分析，驱动 3D 核心振幅</p>
+        </div>
+
+        <!-- 实验 3: 瞬态复制/状态切换 -->
+        <div class="craft-card flex flex-col justify-between h-40">
+          <div class="text-xs text-neutral-500 mono-code flex justify-between">
+            <span>03 · COMMAND TRIGGER</span>
+            <span class="text-blue-500">LOCAL</span>
+          </div>
+          <div class="flex items-center justify-center py-4">
+            <button id="btn-copy-install" class="px-3.5 py-1.5 bg-neutral-900 text-white text-xs mono-code rounded-lg hover:bg-neutral-800 transition active:scale-95 flex items-center gap-1.5">
+              <span>$ brew install nanyu</span>
+              <span id="copy-check" class="text-neutral-400 text-[10px]">copy</span>
+            </button>
+          </div>
+          <p class="text-[11px] text-neutral-400 leading-tight">即时剪贴板触觉反馈，不打断阅读节奏</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 精选作品展台 (Shu Ding 杂志目录风，高信息密度，去除沉重卡片边框) -->
+    <section id="projects" class="py-12 border-b border-neutral-200">
+      <div class="flex items-baseline justify-between mb-6">
+        <div>
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-400 mono-code">Selected Works / 独立造物</h2>
+          <p class="text-lg font-medium text-neutral-900 mt-0.5 serif-title">4 款已投产与正在构建的端侧工具</p>
+        </div>
+        <span class="text-xs text-neutral-400 mono-code">2024 — 2026</span>
+      </div>
+
+      <div class="divide-y divide-neutral-100">
+        
+        <!-- 作品 01 -->
+        <a href="projects.html" class="editorial-item group">
+          <span class="item-num text-xs mono-code text-neutral-400 font-medium">01</span>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-base font-medium text-neutral-900 group-hover:text-blue-600 transition">FileButler · 私有知识库 RAG</h3>
+              <span class="px-2 py-0.5 text-[10px] mono-code bg-emerald-50 text-emerald-700 border border-emerald-200 rounded">v1.4.3</span>
+              <span class="text-xs text-neutral-400 hidden sm:inline">· 离线向量检索与高密文献解析</span>
+            </div>
+            <p class="text-xs text-neutral-500 mt-1">
+              基于纯本地嵌入（BGE / Ollama）与混合多路重排，支持超长 PDF、EPUB 及 Markdown 无需外网零延迟私密问答。
+            </p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs mono-code text-neutral-400 hidden md:inline">Local First</span>
+            <span class="item-arrow text-neutral-400 transition-transform">&rarr;</span>
+          </div>
+        </a>
+
+        <!-- 作品 02 -->
+        <a href="projects.html" class="editorial-item group">
+          <span class="item-num text-xs mono-code text-neutral-400 font-medium">02</span>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-base font-medium text-neutral-900 group-hover:text-blue-600 transition">拍案 (PaiAn) · 本地多模态案件研判</h3>
+              <span class="px-2 py-0.5 text-[10px] mono-code bg-blue-50 text-blue-700 border border-blue-200 rounded">v2.1.0</span>
+              <span class="text-xs text-neutral-400 hidden sm:inline">· 刑侦证据链与时间线因果图谱</span>
+            </div>
+            <p class="text-xs text-neutral-500 mt-1">
+              离线视觉 OCR、音视频笔录对齐与时间线证据因果图谱，针对复杂案卷的秒级线索交叉比对。
+            </p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs mono-code text-neutral-400 hidden md:inline">Investigation</span>
+            <span class="item-arrow text-neutral-400 transition-transform">&rarr;</span>
+          </div>
+        </a>
+
+        <!-- 作品 03 -->
+        <a href="projects.html" class="editorial-item group">
+          <span class="item-num text-xs mono-code text-neutral-400 font-medium">03</span>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-base font-medium text-neutral-900 group-hover:text-blue-600 transition">NetOps · 轻量网络拓扑探针</h3>
+              <span class="px-2 py-0.5 text-[10px] mono-code bg-amber-50 text-amber-700 border border-amber-200 rounded">v0.9.8</span>
+              <span class="text-xs text-neutral-400 hidden sm:inline">· eBPF 流量染色与无侵入抓包</span>
+            </div>
+            <p class="text-xs text-neutral-500 mt-1">
+              基于 eBPF 的无侵入内核抓包与动态拓扑染色，微秒级追踪链路丢包、DNS 抖动与异常流量。
+            </p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs mono-code text-neutral-400 hidden md:inline">Kernel / eBPF</span>
+            <span class="item-arrow text-neutral-400 transition-transform">&rarr;</span>
+          </div>
+        </a>
+
+        <!-- 作品 04 -->
+        <a href="projects.html" class="editorial-item group">
+          <span class="item-num text-xs mono-code text-neutral-400 font-medium">04</span>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-base font-medium text-neutral-900 group-hover:text-blue-600 transition">Fluxion · 高频时序仿真计算核心</h3>
+              <span class="px-2 py-0.5 text-[10px] mono-code bg-purple-50 text-purple-700 border border-purple-200 rounded">v1.0.2</span>
+              <span class="text-xs text-neutral-400 hidden sm:inline">· WebGPU 硬件加速与声学共振</span>
+            </div>
+            <p class="text-xs text-neutral-500 mt-1">
+              克拉尼克（Chladni）共振板与高频质点运动学模拟器，将数学偏微分方程实时投影至二维/三维视觉形态。
+            </p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs mono-code text-neutral-400 hidden md:inline">WebGPU / Math</span>
+            <span class="item-arrow text-neutral-400 transition-transform">&rarr;</span>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- 技术札记与思想随笔 (Shu Ding 极度纯粹文字流) -->
+    <section id="writings" class="py-12 border-b border-neutral-200">
+      <div class="flex items-baseline justify-between mb-6">
+        <div>
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-400 mono-code">Writings & Thoughts / 文字记录</h2>
+          <p class="text-lg font-medium text-neutral-900 mt-0.5 serif-title">思考、工程手记与审美折衷</p>
+        </div>
+        <span class="text-xs text-neutral-400 mono-code">ESSAYS (28)</span>
+      </div>
+
+      <div class="space-y-4">
+        
+        <a href="blog.html" class="flex flex-col sm:flex-row sm:items-baseline justify-between group py-2 text-decoration-none">
+          <span class="text-sm font-medium text-neutral-800 group-hover:text-blue-600 transition">
+            现代独立博客为何应当告别全屏沉重特效，回归高密度版式与触觉反馈
+          </span>
+          <div class="flex items-center gap-3 text-xs mono-code text-neutral-400 mt-1 sm:mt-0 flex-shrink-0">
+            <span>2026.11.04</span>
+            <span class="text-neutral-300">·</span>
+            <span>6 MIN READ</span>
+          </div>
+        </a>
+
+        <a href="blog.html" class="flex flex-col sm:flex-row sm:items-baseline justify-between group py-2 text-decoration-none">
+          <span class="text-sm font-medium text-neutral-800 group-hover:text-blue-600 transition">
+            端侧小模型（Small LLM）配合向量重排在法学复杂案卷研判中的工程实践
+          </span>
+          <div class="flex items-center gap-3 text-xs mono-code text-neutral-400 mt-1 sm:mt-0 flex-shrink-0">
+            <span>2026.10.18</span>
+            <span class="text-neutral-300">·</span>
+            <span>12 MIN READ</span>
+          </div>
+        </a>
+
+        <a href="blog.html" class="flex flex-col sm:flex-row sm:items-baseline justify-between group py-2 text-decoration-none">
+          <span class="text-sm font-medium text-neutral-800 group-hover:text-blue-600 transition">
+            从克拉尼图形（Chladni Pattern）到声学粒子律动：偏微分方程的可视化之美
+          </span>
+          <div class="flex items-center gap-3 text-xs mono-code text-neutral-400 mt-1 sm:mt-0 flex-shrink-0">
+            <span>2026.09.25</span>
+            <span class="text-neutral-300">·</span>
+            <span>9 MIN READ</span>
+          </div>
+        </a>
+
+        <a href="blog.html" class="flex flex-col sm:flex-row sm:items-baseline justify-between group py-2 text-decoration-none">
+          <span class="text-sm font-medium text-neutral-800 group-hover:text-blue-600 transition">
+            跨平台轻量桌面工具的架构选型：Tauri vs 本地微内核 Web 服务
+          </span>
+          <div class="flex items-center gap-3 text-xs mono-code text-neutral-400 mt-1 sm:mt-0 flex-shrink-0">
+            <span>2026.08.12</span>
+            <span class="text-neutral-300">·</span>
+            <span>8 MIN READ</span>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- 页脚：纯粹而利落的出版物式结语 -->
+    <footer class="pt-10 flex flex-col sm:flex-row items-center justify-between text-xs mono-code text-neutral-400 gap-4">
+      <div class="flex items-center gap-3">
+        <span>© 2026 楠屿札记 / SevenJohn</span>
+        <span>·</span>
+        <a href="https://github.com" target="_blank" class="hover:text-neutral-800 transition">GitHub</a>
+        <span>·</span>
+        <a href="feed.xml" class="hover:text-neutral-800 transition">RSS</a>
+      </div>
+      <div class="flex items-center gap-2">
+        <span>BUILT WITH CRAFT & CARE</span>
+        <span class="text-neutral-300">·</span>
+        <span class="text-neutral-600">ZERO TRACKERS</span>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- 3D 核心与交互逻辑脚本 (Three.js 模块引入) -->
+  <script type="module">
+    import * as THREE from './assets/vendor/three.module.min.js';
+
+    // 1. 初始化 3D 交互计算核心
+    const container = document.getElementById('three-core-container');
+    const width = container.clientWidth || 308;
+    const height = container.clientHeight || 308;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+    camera.position.z = 5.2;
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x000000, 0);
+    container.appendChild(renderer.domElement);
+
+    // 创建粒子球形几何体 (斐波那契螺旋球面点云)
+    const particleCount = 1600;
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+    const basePositions = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
+
+    // 经典深钴蓝与极客深灰粒子色彩梯度
+    const color1 = new THREE.Color(0x2563eb); // 皇家电光蓝
+    const color2 = new THREE.Color(0x0f172a); // 深黑矿石
+    const color3 = new THREE.Color(0x38bdf8); // 天青蓝高光
+
+    for (let i = 0; i < particleCount; i++) {
+      // 斐波那契球面算法
+      const phi = Math.acos(1 - 2 * (i + 0.5) / particleCount);
+      const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
+
+      const radius = 1.9;
+      const x = radius * Math.sin(phi) * Math.cos(theta);
+      const y = radius * Math.sin(phi) * Math.sin(theta);
+      const z = radius * Math.cos(phi);
+
+      positions[i * 3] = x;
+      positions[i * 3 + 1] = y;
+      positions[i * 3 + 2] = z;
+
+      basePositions[i * 3] = x;
+      basePositions[i * 3 + 1] = y;
+      basePositions[i * 3 + 2] = z;
+
+      // 颜色根据纬度混合
+      const mixRatio = (y / radius + 1) * 0.5;
+      const c = color1.clone().lerp(color2, mixRatio);
+      if (Math.random() > 0.85) c.lerp(color3, 0.7);
+
+      colors[i * 3] = c.r;
+      colors[i * 3 + 1] = c.g;
+      colors[i * 3 + 2] = c.b;
+    }
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    // 创建点材质 (使用深色不透明小圆点，晨曦白底上极清晰高质感)
+    const material = new THREE.PointsMaterial({
+      size: 0.05,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.85,
+    });
+
+    const pointCloud = new THREE.Points(geometry, material);
+    scene.add(pointCloud);
+
+    // 内部加一个超细腻的线框十二面体骨架
+    const wireGeo = new THREE.IcosahedronGeometry(1.2, 1);
+    const wireMat = new THREE.MeshBasicMaterial({
+      color: 0x93c5fd,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.35
+    });
+    const wireMesh = new THREE.Mesh(wireGeo, wireMat);
+    scene.add(wireMesh);
+
+    // 交互拖拽旋转逻辑
+    let isDragging = false;
+    let prevMouseX = 0;
+    let prevMouseY = 0;
+    let targetRotX = 0;
+    let targetRotY = 0;
+    let currentShapeMode = 0; // 0: 球形谐振, 1: 环面双扭线 (Torus)
+
+    container.addEventListener('pointerdown', (e) => {
+      isDragging = true;
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (!isDragging) return;
+      const deltaX = e.clientX - prevMouseX;
+      const deltaY = e.clientY - prevMouseY;
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
+
+      targetRotY += deltaX * 0.008;
+      targetRotX += deltaY * 0.008;
+    });
+
+    window.addEventListener('pointerup', () => { isDragging = false; });
+
+    document.getElementById('btn-reset-cam')?.addEventListener('click', () => {
+      targetRotX = 0;
+      targetRotY = 0;
+      pointCloud.rotation.set(0, 0, 0);
+      wireMesh.rotation.set(0, 0, 0);
+    });
+
+    // 切换形态 (球体 / 环形双扭曲)
+    document.getElementById('btn-toggle-shape')?.addEventListener('click', () => {
+      currentShapeMode = (currentShapeMode + 1) % 2;
+      const btn = document.getElementById('btn-toggle-shape');
+      if (btn) btn.textContent = currentShapeMode === 1 ? '形态: 环面' : '形态: 球面';
+    });
+
+    // 2. 音频律动仿真与声学频谱
+    let isAudioPlaying = false;
+    let audioCtx = null;
+    let analyser = null;
+    let audioBuffer = null;
+    let audioSource = null;
+    let beatEnergy = 0;
+
+    const toggleAudioBtn = document.getElementById('toggle-audio-core');
+    const audioLabel = document.getElementById('audio-label');
+    const audioIcon = document.getElementById('audio-icon');
+
+    // 迷你频谱 Canvas 绘制
+    const specCanvas = document.getElementById('mini-spectrum');
+    const specCtx = specCanvas?.getContext('2d');
+
+    toggleAudioBtn?.addEventListener('click', async () => {
+      if (!isAudioPlaying) {
+        try {
+          if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 64;
+          }
+          if (audioCtx.state === 'suspended') {
+            await audioCtx.resume();
+          }
+
+          // 尝试加载本地音频，如无则使用自然律动振荡器合成
+          try {
+            const resp = await fetch('music/letting-go.mp3');
+            if (resp.ok) {
+              const arrayBuf = await resp.arrayBuffer();
+              audioBuffer = await audioCtx.decodeAudioData(arrayBuf);
+              audioSource = audioCtx.createBufferSource();
+              audioSource.buffer = audioBuffer;
+              audioSource.loop = true;
+              audioSource.connect(analyser);
+              analyser.connect(audioCtx.destination);
+              audioSource.start(0);
+            } else {
+              throw new Error('No local mp3');
+            }
+          } catch (err) {
+            // 合成优雅的 Ambient 泛音
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(110, audioCtx.currentTime); // A2 音高
+            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            osc.connect(gain);
+            gain.connect(analyser);
+            analyser.connect(audioCtx.destination);
+            osc.start();
+          }
+
+          isAudioPlaying = true;
+          if (audioLabel) audioLabel.textContent = '谐振中 (点击暂停)';
+          if (audioIcon) audioIcon.textContent = '■';
+          toggleAudioBtn.classList.add('bg-blue-600', 'text-white', 'border-blue-600');
+          toggleAudioBtn.classList.remove('bg-white', 'text-blue-600');
+        } catch (e) {
+          console.warn('Audio start failed', e);
+        }
+      } else {
+        if (audioCtx) audioCtx.suspend();
+        isAudioPlaying = false;
+        if (audioLabel) audioLabel.textContent = '启动谐振音频';
+        if (audioIcon) audioIcon.textContent = '▶';
+        toggleAudioBtn.classList.remove('bg-blue-600', 'text-white', 'border-blue-600');
+        toggleAudioBtn.classList.add('bg-white', 'text-blue-600');
+      }
+    });
+
+    // 3. 渲染主循环
+    let clock = 0;
+    const freqData = new Uint8Array(32);
+
+    function animate() {
+      requestAnimationFrame(animate);
+      clock += 0.015;
+
+      // 获取实时音频能级
+      if (analyser && isAudioPlaying) {
+        analyser.getByteFrequencyData(freqData);
+        let sum = 0;
+        for (let i = 0; i < 16; i++) sum += freqData[i];
+        beatEnergy = (sum / 16) / 255; // 0 ~ 1
+      } else {
+        // 自主呼吸周期律动
+        beatEnergy = 0.15 + 0.1 * Math.sin(clock * 2);
+      }
+
+      // 惯性平滑旋转
+      pointCloud.rotation.y += (targetRotY - pointCloud.rotation.y) * 0.1 + 0.003;
+      pointCloud.rotation.x += (targetRotX - pointCloud.rotation.x) * 0.1;
+      wireMesh.rotation.y = pointCloud.rotation.y * 0.7;
+      wireMesh.rotation.x = pointCloud.rotation.x * 0.7;
+
+      // 实时点云波形波动与动态形变 (声学共振扰动)
+      const posAttr = geometry.attributes.position;
+      const posArray = posAttr.array;
+
+      for (let i = 0; i < particleCount; i++) {
+        const i3 = i * 3;
+        const bx = basePositions[i3];
+        const by = basePositions[i3 + 1];
+        const bz = basePositions[i3 + 2];
+
+        // 谐振波：沿径向进行球面简谐扰动
+        const dist = Math.sqrt(bx * bx + by * by + bz * bz) || 1;
+        const harmonic = Math.sin(clock * 3 + by * 3.5) * Math.cos(clock * 2 + bx * 3.5);
+        const amp = 1.0 + (harmonic * 0.15 + beatEnergy * 0.35);
+
+        if (currentShapeMode === 0) {
+          // 球面谐振
+          posArray[i3] = bx * amp;
+          posArray[i3 + 1] = by * amp;
+          posArray[i3 + 2] = bz * amp;
+        } else {
+          // 环面折叠扭曲
+          const angle = clock + i * 0.01;
+          posArray[i3] = bx * 0.7 + Math.sin(angle) * 0.4;
+          posArray[i3 + 1] = by * amp;
+          posArray[i3 + 2] = bz * 0.7 + Math.cos(angle) * 0.4;
+        }
+      }
+      posAttr.needsUpdate = true;
+
+      // 内部网格呼吸缩放
+      const wireScale = 1.0 + beatEnergy * 0.25;
+      wireMesh.scale.set(wireScale, wireScale, wireScale);
+
+      // 绘制微频谱
+      if (specCtx) {
+        specCtx.clearRect(0, 0, specCanvas.width, specCanvas.height);
+        const barWidth = specCanvas.width / 16;
+        for (let b = 0; b < 16; b++) {
+          const val = isAudioPlaying && analyser ? freqData[b] / 255 : (0.15 + 0.12 * Math.sin(clock * 4 + b * 0.4));
+          const barHeight = val * (specCanvas.height - 4);
+          specCtx.fillStyle = '#2563eb';
+          specCtx.fillRect(b * barWidth + 2, specCanvas.height - barHeight - 2, barWidth - 3, barHeight);
+        }
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    // 4. Rauno 风格磁吸物理阻尼按钮
+    const magneticBtn = document.getElementById('magnetic-target');
+    const magneticCard = document.getElementById('card-magnetic');
+    if (magneticBtn && magneticCard) {
+      magneticCard.addEventListener('mousemove', (e) => {
+        const rect = magneticBtn.getBoundingClientRect();
+        const btnCenterX = rect.left + rect.width / 2;
+        const btnCenterY = rect.top + rect.height / 2;
+        const distX = e.clientX - btnCenterX;
+        const distY = e.clientY - btnCenterY;
+        const dist = Math.sqrt(distX * distX + distY * distY);
+
+        if (dist < 120) {
+          // 磁吸向光标偏移
+          const pullStrength = (1 - dist / 120) * 16;
+          const pullX = (distX / dist) * pullStrength;
+          const pullY = (distY / dist) * pullStrength;
+          magneticBtn.style.transform = `translate(${pullX}px, ${pullY}px)`;
+        } else {
+          magneticBtn.style.transform = 'translate(0px, 0px)';
+        }
+      });
+
+      magneticCard.addEventListener('mouseleave', () => {
+        magneticBtn.style.transform = 'translate(0px, 0px)';
+      });
+    }
+
+    // 5. 复制安装命令小交互
+    const copyBtn = document.getElementById('btn-copy-install');
+    const copyCheck = document.getElementById('copy-check');
+    copyBtn?.addEventListener('click', () => {
+      navigator.clipboard?.writeText('brew install nanyu');
+      if (copyCheck) {
+        copyCheck.textContent = 'copied!';
+        copyCheck.classList.add('text-emerald-400');
+        setTimeout(() => {
+          copyCheck.textContent = 'copy';
+          copyCheck.classList.remove('text-emerald-400');
+        }, 1800);
+      }
+    });
+
+  </script>
+</body>
+</html>

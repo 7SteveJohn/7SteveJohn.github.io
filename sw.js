@@ -11,10 +11,18 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v199';   // 2026-11-03 彻底去AI味/去黑话/去模板化重构：回归自然真实极客语境
+const CACHE = 'sevenjohn-v228';   // 2026-11-05 全站文案去八股去AI味：剔除排比对仗、公文式结构与机器套话，回归自然真实的人话与极客手记质感
 const CORE = [
   './',
   'index.html',
+  'cosmos-demo.html',
+  'cymatics-mesh-sphere.html',
+  'demo-flagship.html',
+  'demo-anthony-fu.html',
+  'demo-shuding.html',
+  'demo-rauno.html',
+  'demo-linear-apple.html',
+  'demo-shuding-rauno.html',
   '404.html',
   // 归档与照片墙（2026-10-16 新增）：文本资源很小，直接预缓存，断网可翻
   'archive.html',
@@ -38,7 +46,12 @@ const CORE = [
   'js/cosmos.js',        // 手机 / 无 WebGL 时的 2D 星河回退（js/cosmos/main.js 引导层按需加载）
   'js/cosmos/config.js',
   'js/cosmos/main.js',   // 背景引导层：设备分档（full/lite/static），桌面动态 import main3d
-  'js/cosmos/main3d.js', // 桌面 3D 等高线岛图（动态加载，three 只在桌面路径下载）
+  'js/cosmos/main3d.js', // 桌面 3D 背景引擎（动态加载，three 只在桌面路径下载）
+  'js/cosmos/scene/NeuralField.js',
+  'js/cosmos/scene/CymaticsField.js',
+  'js/cosmos/scene/AuroraField.js',
+  'js/cosmos/scene/ChladniField.js',
+  'js/cosmos/scene/MonolithField.js',
   'js/cosmos/scene/IsolinesField.js',
   'js/cosmos/audio/AudioManager.js',
   'js/cosmos/audio/BeatDetector.js',

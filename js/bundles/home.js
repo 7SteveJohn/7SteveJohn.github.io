@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"c6bcafc5a167","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"3a1bf3d10b93074d4b9db37c6edb33ef88b375ae9955525d3dd9634cd460ca22"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"32ec3c5750c0a4776a452b597b91d89beaeba399354408cb02985c1428b54d21"}]}
+// build-bundles: {"name":"home","version":"0e9708dba3e7","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"863b7bacb628a504496c177b5e568a84dd00ddb9fb66a636169812754bef0858"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"32ec3c5750c0a4776a452b597b91d89beaeba399354408cb02985c1428b54d21"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -380,7 +380,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (3a1bf3d10b93) ----
+// ---- js/app.js (863b7bacb628) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -473,10 +473,21 @@ function initTheme() {
   const themeToggleBtn = document.getElementById('theme-toggle');
   const mobileThemeToggleBtn = document.getElementById('mobile-theme-toggle');
   
-  // 站点恒深色：hero / 3D 舞台 / 变形带都是深色设计，浅色从未完整做——
-  // 之前允许"跟随系统进浅色"，系统浅色 + 浏览器强制深色（auto dark）会变成黑底深字（2026-09-24 用户截图翻车）。
-  // 切换按钮已隐藏；这里无条件挂 dark，覆盖任何 localStorage 残留。
-  document.documentElement.classList.add('dark');
+  // 默认晨曦明亮科技风（通透开阔、告别压抑沉闷）：白昼晨曦底色与高质感光影
+  try {
+    if (localStorage.getItem('sj.theme-v6') !== 'daylight-v1') {
+      localStorage.removeItem('sj.theme');
+      localStorage.setItem('sj.theme-v6', 'daylight-v1');
+    }
+  } catch (_) {}
+
+  let savedTheme = null;
+  try { savedTheme = localStorage.getItem('sj.theme'); } catch (_) {}
+  if (savedTheme === 'dark') {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
 
   function toggle(e) {
     const applyNow = () => {
@@ -1080,7 +1091,7 @@ function initHeroGreeting() {
   const el = document.getElementById('hero-greeting');
   if (!el) return;
   const h = new Date().getHours();
-  const g = h < 5 ? '夜还长，随你折腾' : h < 9 ? '早安' : h < 12 ? '上午好' : h < 14 ? '中午好' : h < 18 ? '下午好' : h < 23 ? '晚上好' : '夜深了，注意休息';
+  const g = h < 5 ? '夜深清寂，慢慢看' : h < 9 ? '清晨好' : h < 12 ? '上午好' : h < 14 ? '午间安适' : h < 18 ? '下午好' : h < 23 ? '晚风渐起，晚上好' : '夜深了，注意休息';
   el.textContent = g;
 }
 
@@ -1094,29 +1105,52 @@ function initHeroStatus() {
   el.classList.remove('hidden');
 }
 
-// 首屏作品索引（2026-10-31）：点条目落到对应项目卡，不是只滚到产品区顶部。
-// 没有 JS 时 href="#products" 仍然可用（SEO / 键盘降级），有 JS 才走精确落点。
+// 首屏作品索引（2026-10-31）：点条目落到对应项目卡，并触发旗舰级卡片选中与呼吸光环动效。
+// 没有 JS 时 href="#products" 仍然可用（SEO / 键盘降级），有 JS 才走精确落点与选中动效。
 function initHeroIndex() {
   const nav = document.querySelector('#home .hero-index');
-  if (!nav) return;
-  nav.addEventListener('click', (e) => {
-    const link = e.target.closest('[data-hi]');
-    if (!link) return;
-    const card = document.querySelector('[data-project-id="' + link.dataset.hi + '"]');
+  const productCards = document.querySelectorAll('#products article[data-project-id]');
+
+  function selectProductCard(projectId, smoothScroll = true) {
+    const card = document.querySelector('[data-project-id="' + projectId + '"]');
     if (!card) return;
-    e.preventDefault();
-    // ❗必须拦在 document 之前：initSmoothAnchors 在 document 上监听 a[href^="#"]，
-    // 会在冒泡阶段把我的落点覆盖成「滚到 #products 顶部」（实测两个不同条目都停在 739）
-    e.stopPropagation();
-    // 产品区开着 CSS 滚动吸附（snap-products，scroll-snap-stop:always 一次只放一张卡），
-    // 不摘掉的话 scrollIntoView 会被吸到附近某张卡上——实测落点偏 133px。
-    // 借 .no-snap 这个现成的「逃生口」临时放行，滚完再挂回去
-    const root = document.documentElement;
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    root.classList.add('no-snap');
-    card.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
-    setTimeout(() => root.classList.remove('no-snap'), 900);
-    history.pushState(null, '', '#products');
+
+    if (nav) {
+      nav.querySelectorAll('[data-hi]').forEach(el => {
+        el.classList.toggle('active', el.dataset.hi === projectId);
+      });
+    }
+
+    productCards.forEach(c => c.classList.remove('card-selected'));
+    void card.offsetWidth;
+    card.classList.add('card-selected');
+
+    if (smoothScroll) {
+      const root = document.documentElement;
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      root.classList.add('no-snap');
+      card.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+      setTimeout(() => root.classList.remove('no-snap'), 900);
+    }
+  }
+
+  if (nav) {
+    nav.addEventListener('click', (e) => {
+      const link = e.target.closest('[data-hi]');
+      if (!link) return;
+      e.preventDefault();
+      e.stopPropagation();
+      selectProductCard(link.dataset.hi, true);
+      history.pushState(null, '', '#products');
+    });
+  }
+
+  productCards.forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('a, button, video, input, select, textarea')) return;
+      const pid = card.getAttribute('data-project-id');
+      if (pid) selectProductCard(pid, false);
+    });
   });
 }
 
@@ -2279,6 +2313,75 @@ function sanitizeMarkdownHtml(html) {
   }
   return html;
 }
+
+/* ============================================================
+   底部背景视觉方案切换台（4 种去等高线方案实时交互）
+   ============================================================ */
+(function initCosmosDock() {
+  const dock = document.getElementById('cosmos-dock');
+  if (!dock) return;
+  const sync = (mode) => {
+    dock.querySelectorAll('.dock-tab').forEach(b => {
+      b.classList.toggle('active', b.dataset.mode === mode);
+    });
+  };
+  let currentMode = 'cymatics';
+  try {
+    const saved = localStorage.getItem('sj.cosmos-mode');
+    if (saved === 'cymatics' || saved === 'aurora' || saved === 'monolith' || saved === 'chladni') {
+      currentMode = saved;
+    } else {
+      currentMode = 'cymatics';
+      localStorage.setItem('sj.cosmos-mode', 'cymatics');
+    }
+  } catch (e) {
+    currentMode = 'cymatics';
+  }
+  sync(currentMode);
+
+  dock.addEventListener('click', (e) => {
+    const tab = e.target.closest('.dock-tab');
+    if (!tab) return;
+    const mode = tab.dataset.mode;
+    try { localStorage.setItem('sj.cosmos-mode', mode); } catch (e) {}
+    sync(mode);
+    if (typeof window.switchCosmosMode === 'function') {
+      window.switchCosmosMode(mode);
+    }
+  });
+
+  window.addEventListener('cosmos-mode-changed', (e) => {
+    if (e.detail && e.detail.mode) sync(e.detail.mode);
+  });
+})();
+
+/* ============================================================
+   首屏伴读音乐胶囊联动
+   ============================================================ */
+(function initHeroMusic() {
+  const heroMusicCapsule = document.getElementById('cosmos-enter');
+  const heroMusicStatus = document.getElementById('hero-music-status');
+  const audio = document.getElementById('music-audio') || document.querySelector('audio');
+
+  const updateAudioUI = (isPlaying) => {
+    if (heroMusicCapsule) {
+      heroMusicCapsule.classList.toggle('is-playing', isPlaying);
+    }
+    if (heroMusicStatus) {
+      heroMusicStatus.textContent = isPlaying ? '♫ 伴读中' : '♫ 点击伴读';
+    }
+  };
+
+  if (audio) {
+    audio.addEventListener('play', () => updateAudioUI(true));
+    audio.addEventListener('pause', () => updateAudioUI(false));
+    audio.addEventListener('ended', () => updateAudioUI(false));
+    audio.addEventListener('error', () => updateAudioUI(false));
+    setTimeout(() => {
+      updateAudioUI(!audio.paused && audio.currentTime > 0);
+    }, 100);
+  }
+})();
 
 ;
 

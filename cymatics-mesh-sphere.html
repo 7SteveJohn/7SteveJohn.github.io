@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3D 拓扑谐振核心 (Cymatics Mesh Core) · 独立提取源码</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      color: #0f172a;
+    }
+
+    /* 核心外框容器 (可嵌入任何其他项目的卡片/展台) */
+    .cymatics-card {
+      width: 100%;
+      max-width: 440px;
+      aspect-ratio: 1 / 1;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      box-shadow: 0 20px 45px -12px rgba(37, 99, 235, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 16px;
+    }
+
+    /* 顶部信息栏 */
+    .header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11px;
+      color: #64748b;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(8px);
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      z-index: 10;
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background-color: #0284c7;
+      display: inline-block;
+      box-shadow: 0 0 8px #0284c7;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    /* WebGL 画布承载容器 */
+    #cymatics-viewport {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+    #cymatics-viewport:active {
+      cursor: grabbing;
+    }
+
+    /* 底部交互操作小栏 */
+    .footer-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11px;
+      color: #64748b;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(8px);
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      z-index: 10;
+    }
+    .action-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 11px;
+      color: #2563eb;
+      font-weight: 500;
+      transition: color 0.15s ease;
+    }
+    .action-btn:hover {
+      color: #1d4ed8;
+      text-decoration: underline;
+    }
+
+    .tips {
+      margin-top: 16px;
+      font-size: 12px;
+      color: #94a3b8;
+      font-family: ui-monospace, monospace;
+    }
+  </style>
+  <!-- 支持本地 Three.js 与 在线 CDN 双回退 -->
+  <script src="assets/vendor/three.module.min.js" type="module"></script>
+</head>
+<body>
+
+  <!-- 3D 拓扑谐振组件卡片 -->
+  <div class="cymatics-card">
+    <div class="header-bar">
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span class="status-dot"></span>
+        <span style="font-weight: 600; color: #1e293b;">CYMATICS CORE</span>
+      </div>
+      <div>
+        <span id="fps-label">60 FPS</span> · <span>2,400 PTS</span>
+      </div>
+    </div>
+
+    <!-- WebGL Three.js 画布容器 -->
+    <div id="cymatics-viewport"></div>
+
+    <div class="footer-bar">
+      <span>拖拽可 3D 自由旋转</span>
+      <div style="display: flex; gap: 10px;">
+        <button id="btn-toggle-shape" class="action-btn">切换形态</button>
+        <button id="btn-reset-view" class="action-btn" style="color: #64748b;">复位</button>
+      </div>
+    </div>
+  </div>
+
+  <p class="tips">← 鼠标按住拖拽自由旋转 · 点击切换形态体验拓扑折叠 →</p>
+
+  <!-- 核心逻辑脚本 (纯原生 ES Module，可直接贴入任意前端工程) -->
+  <script type="module">
+    // 如果在其他独立项目中使用，可直接通过 CDN 或 npm 引入：
+    // import * as THREE from 'https://esm.sh/three@0.160.0';
+    import * as THREE from './assets/vendor/three.module.min.js';
+
+    // 1. 初始化容器与视口尺寸
+    const container = document.getElementById('cymatics-viewport');
+    let width = container.clientWidth || 400;
+    let height = container.clientHeight || 400;
+
+    // 2. 创建场景、相机与渲染器
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+    camera.position.z = 4.8;
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setClearColor(0x000000, 0); // 纯透明背景
+    container.appendChild(renderer.domElement);
+
+    // -------------------------------------------------------------------
+    // 3. 构建内层：微光晶格多面体网状骨架 (Inner Geodesic Wireframe Sphere)
+    // -------------------------------------------------------------------
+    // 使用二十面体细分几何体（IcosahedronGeometry）创造精美网格球
+    const cageGeometry = new THREE.IcosahedronGeometry(1.15, 2);
+    const cageMaterial = new THREE.MeshBasicMaterial({
+      color: 0x38bdf8,       // 明亮天青蓝
+      wireframe: true,        // 开启线框晶格模式
+      transparent: true,
+      opacity: 0.35           // 细腻透光
+    });
+    const cageMesh = new THREE.Mesh(cageGeometry, cageMaterial);
+    scene.add(cageMesh);
+
+    // -------------------------------------------------------------------
+    // 4. 构建外层：斐波那契球面点阵 + 声学驻波谐振粒子群 (Outer Cymatics Cloud)
+    // -------------------------------------------------------------------
+    const pointCount = 2400;
+    const pointsGeometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(pointCount * 3);
+    const basePositions = new Float32Array(pointCount * 3);
+    const colors = new Float32Array(pointCount * 3);
+
+    // 渐变色彩定义：深钴蓝 -> 电光天青蓝 -> 深黑矿石过渡
+    const colorCobalt = new THREE.Color(0x2563eb); // 皇家钴蓝
+    const colorCyan = new THREE.Color(0x06b6d4);   // 高光青蓝
+    const colorDark = new THREE.Color(0x0f172a);   // 深黑微粒
+
+    for (let i = 0; i < pointCount; i++) {
+      // 斐波那契球面黄金螺旋分布算法 (极均匀无极点聚集)
+      const phi = Math.acos(1 - 2 * (i + 0.5) / pointCount);
+      const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
+      const radius = 1.75;
+
+      const x = radius * Math.sin(phi) * Math.cos(theta);
+      const y = radius * Math.sin(phi) * Math.sin(theta);
+      const z = radius * Math.cos(phi);
+
+      positions[i * 3] = x;
+      positions[i * 3 + 1] = y;
+      positions[i * 3 + 2] = z;
+
+      // 备份基准球面位置，用于实时偏微分波形调制
+      basePositions[i * 3] = x;
+      basePositions[i * 3 + 1] = y;
+      basePositions[i * 3 + 2] = z;
+
+      // 根据 Y 轴纬度进行渐变混色
+      const mixRatio = (y / radius + 1) * 0.5;
+      const c = colorCobalt.clone().lerp(colorCyan, mixRatio);
+      if (Math.random() > 0.82) c.lerp(colorDark, 0.4);
+
+      colors[i * 3] = c.r;
+      colors[i * 3 + 1] = c.g;
+      colors[i * 3 + 2] = c.b;
+    }
+
+    pointsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    pointsGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    const pointsMaterial = new THREE.PointsMaterial({
+      size: 0.055,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.9,
+    });
+    const pointSphere = new THREE.Points(pointsGeometry, pointsMaterial);
+    scene.add(pointSphere);
+
+    // -------------------------------------------------------------------
+    // 5. 交互控制：3D 鼠标/触控拖拽与惯性缓释
+    // -------------------------------------------------------------------
+    let isDragging = false;
+    let prevMouseX = 0, prevMouseY = 0;
+    let targetRotationX = 0, targetRotationY = 0;
+    let shapeMode = 0; // 0: 球形谐振波 (Cymatics Sphere), 1: 环面双扭线 (Torus Fold)
+
+    container.addEventListener('pointerdown', (e) => {
+      isDragging = true;
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (!isDragging) return;
+      const deltaX = e.clientX - prevMouseX;
+      const deltaY = e.clientY - prevMouseY;
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
+
+      targetRotationY += deltaX * 0.008;
+      targetRotationX += deltaY * 0.008;
+    });
+
+    window.addEventListener('pointerup', () => { isDragging = false; });
+
+    // 按钮动作
+    document.getElementById('btn-reset-view')?.addEventListener('click', () => {
+      targetRotationX = 0;
+      targetRotationY = 0;
+    });
+
+    document.getElementById('btn-toggle-shape')?.addEventListener('click', () => {
+      shapeMode = (shapeMode + 1) % 2;
+      const btn = document.getElementById('btn-toggle-shape');
+      if (btn) btn.textContent = shapeMode === 1 ? '形态: 环面' : '形态: 球面';
+    });
+
+    // 响应视口缩放
+    window.addEventListener('resize', () => {
+      width = container.clientWidth || 400;
+      height = container.clientHeight || 400;
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    });
+
+    // -------------------------------------------------------------------
+    // 6. 核心渲染主循环 (偏微分克拉尼谐振波调制算法)
+    // -------------------------------------------------------------------
+    let clock = 0;
+
+    function animate() {
+      requestAnimationFrame(animate);
+      clock += 0.015;
+
+      // 1. 惯性阻尼旋转与微量自转
+      pointSphere.rotation.y += (targetRotationY - pointSphere.rotation.y) * 0.08 + 0.0025;
+      pointSphere.rotation.x += (targetRotationX - pointSphere.rotation.x) * 0.08;
+      cageMesh.rotation.y = pointSphere.rotation.y * 0.8;
+      cageMesh.rotation.x = pointSphere.rotation.x * 0.8;
+
+      // 2. 声学生成艺术数学方程：动态沿径向生成谐振波动（花瓣状驻波）
+      const posAttr = pointsGeometry.attributes.position;
+      const pArr = posAttr.array;
+
+      // 周期性自然呼吸能级 (若接入音频，可直接替换为低音 FFT 振幅)
+      const beatEnergy = 0.15 + 0.1 * Math.sin(clock * 2);
+
+      for (let i = 0; i < pointCount; i++) {
+        const i3 = i * 3;
+        const bx = basePositions[i3];
+        const by = basePositions[i3 + 1];
+        const bz = basePositions[i3 + 2];
+
+        // 谐振波调制方程：结合三维坐标正弦驻波
+        const wave = Math.sin(clock * 3 + by * 4) * Math.cos(clock * 2 + bx * 4);
+        const amp = 1.0 + (wave * 0.12 + beatEnergy * 0.35);
+
+        if (shapeMode === 0) {
+          // 球面驻波谐振形态 (生成类似花瓣/声学谐振板的形态)
+          pArr[i3] = bx * amp;
+          pArr[i3 + 1] = by * amp;
+          pArr[i3 + 2] = bz * amp;
+        } else {
+          // 环面折叠扭曲形态 (Torus Ring)
+          const angle = clock + i * 0.008;
+          pArr[i3] = bx * 0.75 + Math.sin(angle) * 0.45;
+          pArr[i3 + 1] = by * amp;
+          pArr[i3 + 2] = bz * 0.75 + Math.cos(angle) * 0.45;
+        }
+      }
+      posAttr.needsUpdate = true;
+
+      // 3. 内层晶格多面体骨架的呼吸缩放
+      const scale = 1.0 + beatEnergy * 0.18;
+      cageMesh.scale.set(scale, scale, scale);
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  </script>
+</body>
+</html>

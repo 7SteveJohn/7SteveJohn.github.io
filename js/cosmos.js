@@ -709,6 +709,13 @@
     var inner = Math.round(Math.min(W, H) * (W < 720 ? 0.34 : 0.22));
     var outer = Math.round(Math.max(W, H) * 0.78);
     var mid = Math.round(inner + (outer - inner) * 0.62);
+    var isDark = document.documentElement.classList.contains('dark');
+    if (!isDark) {
+      v.style.background =
+        'radial-gradient(circle 900px at 50% -80px, rgba(59, 130, 246, 0.08), transparent 75%), ' +
+        'radial-gradient(ellipse 130% 90% at 50% 100%, rgba(224, 231, 255, 0.35), transparent 70%)';
+      return;
+    }
     v.style.background =
       'radial-gradient(circle ' + glowR + 'px at 50% 50%, rgba(96,128,186,0.10), rgba(96,128,186,0.035) 11%, rgba(96,128,186,0.01) 26%, rgba(96,128,186,0) 50%), ' +
       'radial-gradient(circle ' + outer + 'px at 50% 50%, rgba(0,2,7,0) ' + inner + 'px, rgba(0,2,7,0.16) ' + mid + 'px, rgba(0,2,7,' + CFG.vignette + ') ' + outer + 'px)';
@@ -748,7 +755,8 @@
     })();
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = 1;
-    ctx.fillStyle = '#000007';
+    var isDark = document.documentElement.classList.contains('dark');
+    ctx.fillStyle = isDark ? '#000007' : '#f8fafc';
     ctx.fillRect(0, 0, W, H);
   }
 
@@ -1674,7 +1682,8 @@
       var trail = lerp(CFG.trailQuiet, CFG.trailLoud, clamp(A.bass * CFG.trailBass + A.pulse * CFG.trailPulse, 0, 1));
       ctx.globalCompositeOperation = 'source-over';
       ctx.globalAlpha = 1;
-      ctx.fillStyle = 'rgba(0,2,7,' + trail.toFixed(3) + ')';
+      var isDark = document.documentElement.classList.contains('dark');
+      ctx.fillStyle = isDark ? ('rgba(0,2,7,' + trail.toFixed(3) + ')') : ('rgba(248,250,252,' + trail.toFixed(3) + ')');
       ctx.fillRect(0, 0, W, H);
 
       // ② 冷蓝环境辉光 + 暗角：已上移到 CSS 静态层 .cosmos-veil（零每帧开销），画布内不再画

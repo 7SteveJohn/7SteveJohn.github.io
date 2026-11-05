@@ -6,6 +6,11 @@
 import * as THREE from 'three';
 import { CONFIG } from './config.js';
 import { IsolinesField } from './scene/IsolinesField.js';
+import { NeuralField } from './scene/NeuralField.js';
+import { AuroraField } from './scene/AuroraField.js';
+import { ChladniField } from './scene/ChladniField.js';
+import { MonolithField } from './scene/MonolithField.js';
+import { CymaticsField } from './scene/CymaticsField.js';
 import { AudioManager } from './audio/AudioManager.js';
 import { BeatDetector } from './audio/BeatDetector.js';
 import { InteractionManager } from './interaction/InteractionManager.js';
@@ -32,7 +37,7 @@ function boot() {
   });
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, CFG.perf.dprMax));
   renderer.setSize(innerWidth, innerHeight);
-  renderer.setClearColor(0x03060e, 1);
+  renderer.setClearColor(0xf8fafc, 1);
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(CFG.camera.fov, innerWidth / innerHeight, CFG.camera.near, CFG.camera.far);
@@ -46,16 +51,68 @@ function boot() {
   }
 
   function start() {
-    const field = new IsolinesField(scene);
-    field.setRes(innerWidth, innerHeight);
+    let currentField = null;
+    let currentMode = 'cymatics';
+    try {
+      const saved = localStorage.getItem('sj.cosmos-mode');
+      if (saved === 'cymatics' || saved === 'aurora' || saved === 'monolith' || saved === 'chladni') {
+        currentMode = saved;
+      } else {
+        currentMode = 'cymatics';
+        localStorage.setItem('sj.cosmos-mode', 'cymatics');
+      }
+    } catch (e) {
+      currentMode = 'cymatics';
+    }
     const audio = new AudioManager(CFG);
     const beat = new BeatDetector(CFG);
     const interaction = new InteractionManager(CFG, camera, canvas);
 
-    // 点击水面：从点击处放一记涟漪（等高线荡开再愈合）；交互元素上不误触
+    function setMode(mode) {
+      if (currentField) {
+        if (typeof currentField.dispose === 'function') currentField.dispose();
+        else scene.remove(currentField.mesh || currentField.points || currentField.group);
+        currentField = null;
+      }
+      currentMode = mode;
+      localStorage.setItem('sj.cosmos-mode', mode);
+
+      switch (mode) {
+        case 'neural':
+          currentField = new NeuralField(scene, CFG, false, innerWidth / innerHeight);
+          break;
+        case 'aurora':
+          currentField = new AuroraField(scene);
+          break;
+        case 'chladni':
+          currentField = new ChladniField(scene);
+          break;
+        case 'monolith':
+          currentField = new MonolithField(scene);
+          break;
+        case 'isolines':
+          currentField = new IsolinesField(scene);
+          break;
+        case 'cymatics':
+        default:
+          currentField = new CymaticsField(scene);
+          break;
+      }
+      if (currentField && typeof currentField.setRes === 'function') {
+        currentField.setRes(innerWidth, innerHeight);
+      }
+      window.dispatchEvent(new CustomEvent('cosmos-mode-changed', { detail: { mode } }));
+    }
+
+    window.switchCosmosMode = setMode;
+    setMode(currentMode);
+
+    // 点击交互：交互元素上不误触
     addEventListener('pointerdown', (e) => {
-      if (e.target.closest('a,button,input,textarea,select,label,#music-player')) return;
-      field.kick(e.clientX, e.clientY);
+      if (e.target.closest('a,button,input,textarea,select,label,#music-player,.cosmos-demo-dock')) return;
+      if (currentField && typeof currentField.kick === 'function') {
+        currentField.kick(e.clientX, e.clientY);
+      }
     }, { passive: true });
 
     // ---- 主循环 ----
@@ -82,13 +139,27 @@ function boot() {
       interaction.update(dtMs, CFG.layers.fieldZ);
       const a = audio.update(dtMs);
       const pulse = beat.update(a, dtMs, now);
-      // beat 是事件不是状态：从岛心荡开一圈亮度环，强度按乐句角色标定（每第 8 拍是重音）
-      if (beat.justBeat) { field.onBeat(beat.beats % 8 === 0 ? 1.0 : 0.6); beat.justBeat = false; }
 
-      field.update(sceneT, a, interaction, dtMs);
+      if (beat.justBeat) {
+        if (currentField && typeof currentField.onBeat === 'function') {
+          currentField.onBeat(beat.beats % 8 === 0 ? 1.0 : 0.6);
+        }
+        beat.justBeat = false;
+      }
+
+      if (currentField) {
+        if (typeof currentField.updateEngine === 'function') {
+          currentField.updateEngine(sceneT, a, interaction, dtMs);
+        } else if (typeof currentField.update === 'function') {
+          currentField.update(sceneT, a, interaction, dtMs);
+        }
+      }
 
       // 首帧落画布：淡入（黑屏感 → 平滑显影）
       if (frameNo === 1) { canvas.style.opacity = '1'; }
+
+      const isDark = document.documentElement.classList.contains('dark');
+      renderer.setClearColor(isDark ? 0x05070c : 0xf8fafc, 1);
 
       renderer.render(scene, camera);
     }
@@ -111,7 +182,9 @@ function boot() {
       camera.aspect = innerWidth / innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(innerWidth, innerHeight);
-      field.setRes(innerWidth, innerHeight);
+      if (currentField && typeof currentField.setRes === 'function') {
+        currentField.setRes(innerWidth, innerHeight);
+      }
     });
 
     // ---- 本地音乐接入：悬浮控制台已删，保留隐藏 input 的真实音频链路 ----
@@ -134,7 +207,8 @@ function boot() {
     // ---- 测试探针 ----
     window.__COSMOS = {
       cfg: CFG,
-      engine: 'isolines',
+      get engine() { return currentMode; },
+      setMode,
       tier: window.__COSMOS_TIER,
       feed: (b, m, t, beat) => audio.feed(b, m, t, beat),
       ensure: () => { audio.ensureGraph(); audio.resume(); return !!audio.analyser; },
@@ -144,8 +218,7 @@ function boot() {
         audio.feed(0, 0, 0, 0);
       },
       info: () => ({
-        engine: 'isolines',
-        field: field.info(),
+        engine: currentMode,
         audio: {
           bass: +audio.bass.toFixed(3), mid: +audio.mid.toFixed(3),
           treble: +audio.treble.toFixed(3), beat: +audio.beatEnv.toFixed(3),

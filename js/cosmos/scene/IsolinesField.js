@@ -53,6 +53,7 @@ const ISO_FRAG = /* glsl */ `
   uniform float uScroll; // 页面滚动量（px，damped）→ 背景极轻反向漂移
   uniform vec4  uRipples[6]; // xy=涟漪中心(uv 空间) z=起始场景时间 w=强度；w<=0 为空槽（仅点击手势）
   uniform vec2  uWaves[4];   // x=beat 亮度环起始场景时间 y=强度（普通拍 0.6/乐句拍 1.0）；x<0 空槽
+  uniform float uDark;       // 0.0=晨曦白昼蓝图, 1.0=极夜深空
 
   // —— 2D 值噪声 + 4 octave fbm：全图唯一的"纹理来源" ——
   float hash(vec2 p) {
@@ -100,20 +101,18 @@ const ISO_FRAG = /* glsl */ `
       float dist = length(p - r.xy);
       float front = age * 0.55;
       float band = exp(-pow((dist - front) * 5.0, 2.0));
-      h += band * sin((dist - front) * 34.0) * r.w * exp(-age * 1.0) * 0.05;
+      h += band * sin((dist - front) * 34.0) * r.w * exp(-age * 1.0) * 0.12;
     }
     return h;
   }
 
   // beat 亮度环（标准 shockwave 形状）：一圈光从岛心荡开，扫过之处的等高线被点亮。
-  // 形状与时间轴固定（speed/decay/tight 是常量），只有强度按拍的角色（普通/乐句）标定——
-  // 这是"自然感"的关键：beat 是事件，触发的是独立时间轴的固有包络，不写任何当前值。
   float waveRing(vec2 uv, float t0, float strength, float now) {
     float age = now - t0;
     if (age <= 0.0 || age >= 2.5) return 0.0;
     float r = length(uv * 0.72);
-    float front = age * 0.8;
-    return exp(-pow((r - front) * 18.0, 2.0)) * exp(-age * 3.5) * strength;
+    float front = age * 0.85;
+    return exp(-pow((r - front) * 15.0, 2.0)) * exp(-age * 2.8) * strength;
   }
 
   void main() {
@@ -121,58 +120,88 @@ const ISO_FRAG = /* glsl */ `
     vec2 asp = vec2(uRes.x / uRes.y, 1.0);
     vec2 uv = (gl_FragCoord.xy / uRes - 0.5) * asp * 2.0;
 
-    // 潮汐呼吸：机械正弦降到极小，主项是按歌曲动态范围归一化的能量（第四版）
-    float breathe = 0.015 * sin(uTime * 0.10) + 0.07 * uBass;
+    // 潮汐呼吸：音乐 bass 驱动地形大开大合呼吸涨落（0.38 强力动感）
+    float breathe = 0.020 * sin(uTime * 0.12) + 0.38 * uBass;
 
     // 基准点：漂移（mid 起来时歌快场就流得快，连续加速不跳变）+ 滚动反向漂移
-    float drift = uTime * (0.008 + 0.004 * uMid);
+    float drift = uTime * (0.009 + 0.025 * uMid);
     vec2 p0 = uv * 1.35
             + vec2(drift, -drift * 0.6)
             + vec2(0.0, -uScroll * 0.0004);
 
-    // 轻度 domain warp：让等高线有地形的聚散，而不是同心圆
+    // domain warp：让等高线有真实山川岛屿的聚散与峡谷纵深
     float w = fbm(p0 * 1.6 + 3.7);
-    vec2 p = p0 + (w - 0.5) * 0.55;
+    vec2 p = p0 + (w - 0.5) * 0.60;
 
     // 视差纵深：采样点随鼠标偏移，偏移量按地形高低加权——
-    // 山头动得多、谷底几乎不动，鼠标一动整座岛层深错动
-    p += uMouse * (0.025 + 0.10 * w);
+    // 山头动得多、谷底几乎不动，鼠标一动整座岛层深错动明显
+    p += uMouse * (0.045 + 0.16 * w);
 
     float h = heightAt(p, breathe, uTime);
 
-    // —— hillshade：高度场法线 + 方向光，山体有了受光面 ——
+    // —— hillshade：高度场法线 + 方向光，山体有了立体光影体积感 ——
     float e = 0.006;
     float hx = heightAt(p + vec2(e, 0.0), breathe, uTime) - heightAt(p - vec2(e, 0.0), breathe, uTime);
-    float hy = heightAt(p + vec2(0.0, e), breathe, uTime) - heightAt(p - vec2(0.0, e), breathe, uTime);
-    vec3 n = normalize(vec3(-hx * 3.0, -hy * 3.0, 1.0));
+    float hy = heightAt(p + vec2(0.0, e), breathe, uTime) - heightAt(p - vec2(e, 0.0), breathe, uTime);
+    vec3 n = normalize(vec3(-hx * 4.5, -hy * 4.5, 1.0));
     vec3 L = normalize(vec3(-0.45 + 0.2 * sin(uTime * 0.05), 0.55, 0.7)); // 光源极缓移动
     float diff = clamp(dot(n, L), 0.0, 1.0);
     vec3 H = normalize(L + vec3(0.0, 0.0, 1.0));
-    float spec = pow(clamp(dot(n, H), 0.0, 1.0), 28.0);   // 坡面玻璃反光，高光带缓慢扫过
+    float spec = pow(clamp(dot(n, H), 0.0, 1.0), 18.0);   // 坡面玻璃反光，高光带缓慢扫过
 
-    // 细线每级一条，主线每 5 级一条略亮（地形图 index contour 惯例）
-    float line  = isoline(h, 14.0, 0.8);
-    float major = isoline(h, 14.0 / 5.0, 1.1);
-
-    // 光标邻近提亮：半径 0.45 内最多 +35%，极轻，不给光晕
-    float mD = length(uv - uMouse * asp);
-    float near = 1.0 + 0.35 * max(0.0, 1.0 - mD / 0.45);
-
-    float a = max(line * 0.30, major * 0.20);
-    // 律动唯一的"快"通道：beat 亮度环扫过（空间事件动画）。全线同闪已删（开关灯感是反面模式）
+    // 律动冲击波环计算
     float wave = 0.0;
     for (int i = 0; i < 4; i++) {
       wave = max(wave, waveRing(uv, uWaves[i].x, uWaves[i].y, uTime));
     }
-    a = (a + max(line, major) * wave * 0.26) * near;
 
-    vec3 base = vec3(0.020, 0.027, 0.047);   // #05070c 近黑，与 clear 色同族
-    vec3 ink  = vec3(0.470, 0.565, 0.710);   // 冷青灰，--accent #8fb8ff 的压暗邻族
-    vec3 col = base
-             + ink * a
-             + ink * wave * 0.035   // 亮度环的面光：波前轮廓任何地形都可见
-             + ink * (diff - 0.45) * 0.10    // 山体明暗：受光面微亮、背光面微暗
-             + vec3(0.75, 0.83, 0.95) * spec * 0.09;  // 液态玻璃反光：冷白高光
+    // 细线每级一条，主线每 4 级一条更粗更明显；节拍经过时线宽强烈脉冲激增
+    float pulseW = 1.0 + wave * 1.8;
+    float line  = isoline(h, 12.0, 1.00 * pulseW);
+    float major = isoline(h, 12.0 / 4.0, 1.75 * pulseW);
+
+    // 光标邻近提亮：半径 0.45 内，提升交互反馈
+    float mD = length(uv - uMouse * asp);
+    float near = 1.0 + 0.45 * max(0.0, 1.0 - mD / 0.45);
+
+    // 中心区域平缓微降，兼顾文字阅读与 3D 纵深
+    float centerDist = length(uv * vec2(0.75, 1.0));
+    float centerMask = smoothstep(0.10, 1.15, centerDist);
+
+    // ========== 白昼晨曦模式（蓝图 3D 水墨浮雕）==========
+    vec3 basePaper = vec3(0.965, 0.973, 0.985);
+    // 阴面微蓝灰立体浮雕，阳面高光白
+    float slope = (diff - 0.5) * 2.0;
+    vec3 terrainShade = mix(
+      mix(basePaper, vec3(0.850, 0.892, 0.945), clamp(-slope, 0.0, 1.0) * 0.90),
+      vec3(1.0, 1.0, 1.0),
+      clamp(slope, 0.0, 1.0) * 0.55
+    );
+    vec3 lightBg = terrainShade + vec3(0.95, 0.98, 1.0) * spec * 0.40;
+
+    // 线条颜色：平时为深邃高贵的极客钴蓝/藏青（#1b3258），节拍到达时爆发出电光青蓝（#0088ff）
+    vec3 normalInk = vec3(0.10, 0.20, 0.42);
+    vec3 pulseInk  = vec3(0.00, 0.50, 1.00);
+    vec3 currentInk = mix(normalInk, pulseInk, clamp(wave * 2.8 + uBass * 0.65, 0.0, 1.0));
+
+    // 线条不透明度：清晰锐利、主次分明
+    float lightLineAlpha = max(line * 0.65, major * 0.95) * (0.70 + 0.30 * centerMask) * near;
+    vec3 lightCol = mix(lightBg, currentInk, lightLineAlpha);
+    // 冲击波环扫过时的天青色流光水雾
+    lightCol = mix(lightCol, vec3(0.06, 0.48, 0.98), wave * 0.35);
+
+    // ========== 极夜深空模式（经典发光星云等高线）==========
+    vec3 darkBase = vec3(0.020, 0.027, 0.047);
+    vec3 darkInk  = vec3(0.470, 0.620, 0.880);
+    float darkLineAlpha = max(line * 0.40, major * 0.65);
+    vec3 darkCol = darkBase
+                 + darkInk * (darkLineAlpha + max(line, major) * wave * 0.65) * near
+                 + darkInk * wave * 0.08
+                 + darkInk * (diff - 0.45) * 0.15
+                 + vec3(0.85, 0.92, 1.0) * spec * 0.20;
+
+    // 根据主题平滑混合
+    vec3 col = mix(lightCol, darkCol, uDark);
 
     gl_FragColor = vec4(col, 1.0);
   }
@@ -191,6 +220,7 @@ export class IsolinesField {
       uScroll:  { value: 0 },
       uRipples: { value: Array.from({ length: RIPPLE_MAX }, () => new THREE.Vector4(0, 0, -10, 0)) },
       uWaves:   { value: Array.from({ length: 4 }, () => new THREE.Vector2(-10, 0)) },   // x=t0 y=强度
+      uDark:    { value: 0 },   // 0=晨曦亮昼 1=深空极夜
     };
     const geo = new THREE.PlaneGeometry(2, 2);
     const mat = new THREE.ShaderMaterial({
@@ -244,6 +274,9 @@ export class IsolinesField {
     this.uniforms.uMouse.value.set(interaction.mouse.x, interaction.mouse.y);
     this.uniforms.uScroll.value = interaction.scroll || 0;
     const dt = Math.min(dtMs, 100) / 1000;
+    // 主题平滑过渡（0=白昼晨曦蓝图，1=深空极夜）
+    const isDark = (typeof document !== 'undefined' && document.documentElement.classList.contains('dark')) ? 1.0 : 0.0;
+    this.uniforms.uDark.value += (isDark - this.uniforms.uDark.value) * Math.min(1, dt * 6.0);
     // 潮汐：能量水平的慢化层，非对称（涨 0.45s 只跟乐句级变化——单拍瞬态被滤掉，
     // 落 1.2s 有余韵）。形状律动全走慢通道，逐拍节拍只走亮度环。
     const target = audio.bass || 0;

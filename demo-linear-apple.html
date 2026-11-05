@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>方案 B · 拟真视窗与漫射天光 (Linear / Apple 风格)</title>
+  <link rel="stylesheet" href="assets/vendor/tailwind.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #f8fafc;
+      color: #0f172a;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    /* Apple 级别天顶超柔漫射冷蓝呼吸天光 */
+    .ambient-bloom {
+      position: fixed;
+      top: -160px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1000px;
+      height: 600px;
+      background: radial-gradient(ellipse 65% 55% at 50% 30%, rgba(56, 189, 248, 0.22), rgba(99, 102, 241, 0.08) 50%, transparent 75%);
+      filter: blur(50px);
+      z-index: 0;
+      pointer-events: none;
+      transition: transform 0.8s ease, opacity 0.8s ease;
+    }
+    .ambient-bloom.pulse {
+      transform: translateX(-50%) scale(1.08);
+      opacity: 0.95;
+    }
+
+    .top-switch-bar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(248, 250, 252, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+    .demo-tab {
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.18s ease;
+      color: #64748b;
+    }
+    .demo-tab:hover { color: #0f172a; background: rgba(0, 0, 0, 0.04); }
+    .demo-tab.active {
+      color: #2563eb;
+      background: rgba(37, 99, 235, 0.08);
+      border: 1px solid rgba(37, 99, 235, 0.22);
+    }
+
+    /* 拟真软件视窗外框与拟物玻璃质感 */
+    .app-window-card {
+      position: relative;
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 1.125rem;
+      box-shadow: 0 10px 30px -8px rgba(15, 23, 42, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      overflow: hidden;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+      transform-style: preserve-3d;
+      will-change: transform;
+    }
+    .app-window-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(37, 99, 235, 0.35);
+      box-shadow: 0 20px 45px -12px rgba(37, 99, 235, 0.14), 0 2px 6px 0 rgba(0, 0, 0, 0.04);
+    }
+    .window-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 1rem;
+      background: #f8fafc;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+    .traffic-lights {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .traffic-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #ff5f56; border: 1px solid #e0443e; }
+    .dot-yellow { background: #ffbd2e; border: 1px solid #dea123; }
+    .dot-green { background: #27c93f; border: 1px solid #1aab29; }
+    
+    .btn-linear-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1.4rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #ffffff;
+      background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+      border-radius: 9999px;
+      box-shadow: 0 4px 14px -2px rgba(37, 99, 235, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      text-decoration: none;
+      transition: all 0.18s ease;
+    }
+    .btn-linear-primary:hover {
+      box-shadow: 0 6px 20px -2px rgba(37, 99, 235, 0.55);
+      transform: translateY(-1px);
+    }
+    .btn-linear-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1.4rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #334155;
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 9999px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+      text-decoration: none;
+      transition: all 0.18s ease;
+    }
+    .btn-linear-ghost:hover {
+      background: #f8fafc;
+      color: #0f172a;
+      border-color: rgba(0, 0, 0, 0.2);
+    }
+  </style>
+</head>
+<body>
+  <!-- Apple 风格顶部漫射天光 -->
+  <div class="ambient-bloom" id="ambient-bloom"></div>
+
+  <!-- 顶栏风格切换器 -->
+  <div class="top-switch-bar">
+    <div class="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <a href="index.html" class="text-xs text-slate-500 hover:text-slate-900 font-mono flex items-center gap-1 mr-2" style="text-decoration:none;">
+          <span>←</span><span>主站</span>
+        </a>
+        <span class="text-xs font-mono font-bold text-slate-700">3 种风格设计比对：</span>
+        <a href="demo-anthony-fu.html" class="demo-tab">方案 A · 水墨数字花园 (Anthony Fu)</a>
+        <a href="demo-linear-apple.html" class="demo-tab active">方案 B · 拟真视窗工作室 (Linear/Apple)</a>
+        <a href="demo-shuding-rauno.html" class="demo-tab">方案 C · 交互 3D 核心 (Shu Ding/Rauno)</a>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="audio-toggle" type="button" class="text-xs font-mono text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-full border border-blue-200/60 cursor-pointer transition">
+          ♫ 播放伴读音律
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="relative z-10 max-w-5xl mx-auto px-6 py-14">
+    <!-- Hero 区域：Apple 发布会风格大字排版 -->
+    <header class="text-center max-w-3xl mx-auto mb-16">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/60 text-xs font-mono text-blue-700 mb-6">
+        <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+        <span>独立软件工坊 · 2026 全新阵容</span>
+      </div>
+      <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 mb-4 leading-tight">
+        像雕琢硬件一样<br>
+        <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">打磨你的本地生产力工具</span>
+      </h1>
+      <p class="text-base text-slate-600 leading-relaxed max-w-xl mx-auto mb-8 font-normal">
+        楠屿札记。纯端侧推理驱动，零外部云依赖，让强大的 AI 模型与桌面调优工具 100% 安静驻留在你的机器上。
+      </p>
+      <div class="flex items-center justify-center gap-3">
+        <a href="#showcase" class="btn-linear-primary">
+          <span>立即浏览 4 款工具</span>
+          <span>↓</span>
+        </a>
+        <a href="https://github.com/7SteveJohn" target="_blank" class="btn-linear-ghost">
+          <span>GitHub 仓库</span>
+          <span>↗</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- 核心旗舰展台：4 款工具的硬件拟真视窗 (App Window Cards) -->
+    <section id="showcase" class="mb-20">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h2 class="text-xl font-bold text-slate-950">旗舰独立应用</h2>
+          <p class="text-xs text-slate-500 font-mono mt-0.5">NATIVE LOCAL INFERENCE & DESKTOP TOOLS</p>
+        </div>
+        <div class="text-xs font-mono text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200/50">
+          ● 纯端侧计算
+        </div>
+      </div>
+
+      <!-- Bento Grid 布局：主卡横跨两列 -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- 01 FileButler（大卡：真实文件管理与本地 RAG 问答拟真窗口） -->
+        <div class="app-window-card lg:col-span-2">
+          <div class="window-header">
+            <div class="traffic-lights">
+              <span class="traffic-dot dot-red"></span>
+              <span class="traffic-dot dot-yellow"></span>
+              <span class="traffic-dot dot-green"></span>
+            </div>
+            <span class="text-xs font-mono text-slate-400 font-medium">FileButler.app — 本地文件管家 v1.4.3</span>
+            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-blue-50 text-blue-600 font-semibold">端侧 RAG</span>
+          </div>
+          <!-- 拟真界面主体 -->
+          <div class="p-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-center bg-slate-50/50">
+            <div class="md:col-span-5 space-y-3">
+              <div class="inline-block px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-sky-100 text-sky-800">01 旗舰单品</div>
+              <h3 class="text-xl font-bold text-slate-900">FileButler · 本地文件管家</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">
+                无需联网，让本地 Ollama 大模型直连个人硬盘。支持全盘毫秒级拼音快搜、本地 CLIP 以图搜图、以及深度文档撤销归档。
+              </p>
+              <div class="flex flex-wrap gap-2 text-[11px] font-mono text-slate-500 pt-1">
+                <span class="px-2 py-0.5 bg-white border border-slate-200 rounded">Python 3.11</span>
+                <span class="px-2 py-0.5 bg-white border border-slate-200 rounded">Vue 3</span>
+                <span class="px-2 py-0.5 bg-white border border-slate-200 rounded">Ollama</span>
+              </div>
+            </div>
+            <!-- 拟真交互视窗预览 -->
+            <div class="md:col-span-7 bg-white rounded-lg border border-slate-200/80 shadow-sm p-4 font-mono text-xs">
+              <div class="flex items-center gap-2 pb-3 mb-3 border-b border-slate-100 text-slate-400 text-[11px]">
+                <span>🔍 搜索全盘文档或提问...</span>
+                <span class="ml-auto text-[10px] bg-slate-100 px-1.5 py-0.5 rounded">⌘ K</span>
+              </div>
+              <div class="space-y-2">
+                <div class="p-2.5 rounded bg-blue-50/70 border border-blue-100 text-blue-950 text-[11px]">
+                  <span class="font-bold text-blue-600">问：</span>找出我上个月写的网络排障复盘中关于抓包过滤的结论
+                </div>
+                <div class="p-2.5 rounded bg-slate-50 text-slate-700 text-[11px] leading-relaxed">
+                  <span class="font-bold text-emerald-600">端侧 RAG (0.12s)：</span>已在 <code class="text-sky-700">docs/NetOps-Wireshark.md</code> 匹配到伏笔段落：“针对 TCP 重传只抓 SYN/ACK，过滤语法为 <code class="text-slate-900 font-bold">tcp.analysis.retransmission</code>”。
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 02 拍案（网文写作工作台拟真视窗） -->
+        <div class="app-window-card">
+          <div class="window-header">
+            <div class="traffic-lights">
+              <span class="traffic-dot dot-red"></span>
+              <span class="traffic-dot dot-yellow"></span>
+              <span class="traffic-dot dot-green"></span>
+            </div>
+            <span class="text-xs font-mono text-slate-400">PaiAn_Studio.exe — v1.0.2</span>
+            <span class="text-[11px] font-mono text-indigo-600">长文大模型</span>
+          </div>
+          <div class="p-5 space-y-3">
+            <h3 class="text-base font-bold text-slate-900">拍案 · 网文创作工作台</h3>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              专为百万字长篇打造的端侧大模型驱动写作台。自动解析前后文伏笔，动态绘制人际关系因果网。
+            </p>
+            <div class="p-3 bg-slate-900 text-slate-300 rounded-md font-mono text-[11px] space-y-1">
+              <div class="text-slate-500">// 伏笔追踪链路分析</div>
+              <div class="text-emerald-400">✓ [第12章] 藏书阁玉佩伏笔</div>
+              <div class="text-sky-300">→ 已在 [第86章] 完美回收 (置信度 98.4%)</div>
+            </div>
+            <div class="text-[11px] font-mono text-slate-400 pt-1">
+              Electron · TypeScript · 端侧长上下文
+            </div>
+          </div>
+        </div>
+
+        <!-- 03 NetOps（离线排障手册拟真终端窗口） -->
+        <div class="app-window-card">
+          <div class="window-header">
+            <div class="traffic-lights">
+              <span class="traffic-dot dot-red"></span>
+              <span class="traffic-dot dot-yellow"></span>
+              <span class="traffic-dot dot-green"></span>
+            </div>
+            <span class="text-xs font-mono text-slate-400">NetOps_Terminal — v2.0.5</span>
+            <span class="text-[11px] font-mono text-emerald-600">纯离线</span>
+          </div>
+          <div class="p-5 space-y-3">
+            <h3 class="text-base font-bold text-slate-900">NetOps · 离线网络排障手册</h3>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              1500+ 网络命令离线对照与抓包实战指南，无网环境完全可用的掌上应急手册。
+            </p>
+            <div class="p-3 bg-slate-900 text-slate-300 rounded-md font-mono text-[11px] space-y-1">
+              <div class="text-slate-500">$ netops diagnose --offline eth0</div>
+              <div class="text-emerald-400">[PASS] MTU: 1500 · Gateway Reachable</div>
+              <div class="text-amber-400">[WARN] DNS Cache Miss · 建议加载应急离线 Hosts</div>
+            </div>
+            <div class="text-[11px] font-mono text-slate-400 pt-1">
+              Android · Kotlin · 纯离线 SQLite
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 底部出版级页脚 -->
+    <footer class="pt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-slate-400">
+      <div>楠屿札记 · 本地软件工匠 © 2026</div>
+      <div class="flex items-center gap-6">
+        <a href="archive.html" class="hover:text-slate-900 transition">技术手记</a>
+        <a href="gallery.html" class="hover:text-slate-900 transition">照片墙</a>
+        <a href="mailto:sevenksq@163.com" class="hover:text-slate-900 transition">联系开发者</a>
+      </div>
+    </footer>
+  </div>
+
+  <audio id="demo-audio" loop src="music/letting-go.mp3"></audio>
+
+  <script>
+    // 鼠标 3D 微倾斜交互 (Tilt effect)
+    document.querySelectorAll('.app-window-card').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        const rotX = (y / (rect.height / 2)) * -4;
+        const rotY = (x / (rect.width / 2)) * 4;
+        card.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-4px)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+      });
+    });
+
+    // 伴读音乐与天顶漫射光波共鸣
+    const audio = document.getElementById('demo-audio');
+    const btn = document.getElementById('audio-toggle');
+    const bloom = document.getElementById('ambient-bloom');
+    let timer = null;
+
+    btn.addEventListener('click', () => {
+      if (audio.paused) {
+        audio.play().then(() => {
+          btn.innerText = '⏸ 暂停伴读音律';
+          btn.classList.add('bg-blue-600', 'text-white');
+          btn.classList.remove('bg-blue-50', 'text-blue-600');
+          timer = setInterval(() => {
+            bloom.classList.toggle('pulse');
+          }, 1200);
+        }).catch(() => {});
+      } else {
+        audio.pause();
+        btn.innerText = '♫ 播放伴读音律';
+        btn.classList.remove('bg-blue-600', 'text-white');
+        btn.classList.add('bg-blue-50', 'text-blue-600');
+        clearInterval(timer);
+        bloom.classList.remove('pulse');
+      }
+    });
+  </script>
+</body>
+</html>

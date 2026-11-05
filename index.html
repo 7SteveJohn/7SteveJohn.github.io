@@ -1,16 +1,27 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="scroll-smooth dark" data-page-node-id="NwokarbLtP77cU0B0eGbW4">
+<html lang="zh-CN" class="scroll-smooth" data-page-node-id="NwokarbLtP77cU0B0eGbW4">
 <head data-page-node-id="aqts7FOPLPb84VEDonB5A5">
   <meta charset="UTF-8" data-page-node-id="7TPFFupex8hVls3DR1MAZP" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="GNWsUgKbtPXYtIZiSjzjrG" />
   <title>楠屿札记 · 本地 AI 应用与桌面工具</title>
 
-  <!-- 在任何样式加载前应用保存的主题，避免亮色用户进站闪黑（FOUC）；并标记 JS 可用（滚动浮现的预隐藏依赖此标记） -->
+  <!-- 默认晨曦明亮科技风（通透开阔、告别压抑沉闷，支持自由切换与持久化） -->
   <script>
     (function () {
       document.documentElement.classList.add('js');
-      // 站点恒深色：无条件挂 dark（旧 visitors 存过 theme=light 会把首屏变亮，2026-09-29 手机端翻车）
-      document.documentElement.classList.add('dark');
+      try {
+        if (localStorage.getItem('sj.theme-v6') !== 'daylight-v1') {
+          localStorage.removeItem('sj.theme');
+          localStorage.setItem('sj.theme-v6', 'daylight-v1');
+        }
+        if (localStorage.getItem('sj.theme') === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      } catch (e) {
+        document.documentElement.classList.remove('dark');
+      }
     })();
   </script>
 
@@ -90,7 +101,7 @@
   <link rel="stylesheet" href="css/cosmos.css" />
   <link rel="stylesheet" href="css/settings-panel.css" />
 </head>
-<body class="bg-white text-[#1d1d1f] dark:bg-[#0a0a0c] dark:text-[#f5f5f7] min-h-screen transition-colors duration-200 antialiased" data-page-node-id="HMv6yxcstcjkCYNAATJeCG">
+<body class="bg-[#f8fafc] dark:bg-[#060911] text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200 antialiased" data-page-node-id="HMv6yxcstcjkCYNAATJeCG">
 
   <!-- 背景画布（js/cosmos/main.js 渲染「本地推理场」：分层节点网 + 沿边前传的脉冲；
        无 WebGL / 初始化失败时回退 js/cosmos.js 2D 版）：
@@ -164,16 +175,15 @@
           <span data-page-node-id="IFNfgk8Ohzc1cBWgZt31Tn">@7SteveJohn</span>
         </a>
 
-        <!-- 主题切换（站点恒深色：hero / 3D 舞台 / 变形带都是深色设计，浅色从未完整做，
-             跟随系统进浅色再遇浏览器强制深色会变成黑底深字，2026-09-24 已砍掉切换） -->
+        <!-- 主题切换（支持一键在「晨曦白昼蓝图」与「极夜深空星云」自由切换） -->
         <button
           id="theme-toggle"
-          hidden
+          type="button"
           aria-label="切换明暗模式"
-          class="p-1.5 rounded-full text-[#86868b] hover:text-black dark:hover:text-white transition cursor-pointer" data-page-node-id="8Q3rqf1EqHEXp6msd6kSjQ"
+          class="p-1.5 rounded-full text-[#475569] dark:text-[#86868b] hover:text-black dark:hover:text-white transition cursor-pointer" data-page-node-id="8Q3rqf1EqHEXp6msd6kSjQ"
         >
-          <i data-lucide="sun" class="w-3.5 h-3.5 hidden dark:block" data-page-node-id="N3e5OBRE4wJcez8ajS2yXY"></i>
-          <i data-lucide="moon" class="w-3.5 h-3.5 block dark:hidden" data-page-node-id="8lMb4KPmJNmbonwu2kA7yL"></i>
+          <i data-lucide="sun" class="w-4 h-4 hidden dark:block" data-page-node-id="N3e5OBRE4wJcez8ajS2yXY"></i>
+          <i data-lucide="moon" class="w-4 h-4 block dark:hidden" data-page-node-id="8lMb4KPmJNmbonwu2kA7yL"></i>
         </button>
 
         <a 
@@ -210,6 +220,16 @@
         <a href="archive.html" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition">归档</a>
         <a href="gallery.html" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition">照片墙</a>
 
+        <div class="pt-2 mt-1 border-t border-[#d2d2d7]/50 dark:border-white/10 flex items-center justify-between py-2">
+          <span class="text-xs text-[#86868b]">外观主题</span>
+          <button id="mobile-theme-toggle" type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-white/10 text-xs font-medium text-[#1d1d1f] dark:text-white">
+            <i data-lucide="sun" class="w-3.5 h-3.5 hidden dark:block"></i>
+            <i data-lucide="moon" class="w-3.5 h-3.5 block dark:hidden"></i>
+            <span class="dark:hidden">切换到极夜</span>
+            <span class="hidden dark:inline">切换到晨曦</span>
+          </button>
+        </div>
+
         <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="py-3.5 hover:underline underline-offset-2 transition" data-page-node-id="xKIUZ78GgECKxsl8v72CvW">GitHub @7SteveJohn</a>
       </nav>
     </div>
@@ -219,7 +239,7 @@
   <main class="space-y-24 sm:space-y-36 pb-24" data-page-node-id="IQmBRN5dTZx1YFzvjDFg6s">
 
  <!-- 1. 🎬 Hero 巨幕发布会首屏-->
-    <section id="home" class="dark px-4 sm:px-6 text-center space-y-6" data-page-node-id="cw2w5BiFKhTuR4AydD5PZ1">
+    <section id="home" class="px-4 sm:px-6 text-center space-y-6" data-page-node-id="cw2w5BiFKhTuR4AydD5PZ1">
       <!-- 文字可读性遮罩：上下压暗，中间留给粒子 -->
       <div class="hero-veil" aria-hidden="true"></div>
       <!-- 眉标 -->
@@ -321,18 +341,18 @@
          且语义与 hero 的作品目录条重复（目录条本身就是「每一件都在用」）。
          删掉后首屏底部直接是第一张卡的开头。翻页分组 collectPageUnits 对
          null 有守卫，不受影响 -->
-    <section id="products" class="dark max-w-5xl mx-auto px-4 sm:px-6 space-y-16 sm:space-y-16 scroll-mt-20" data-page-node-id="v9HuzJx74eqKXEzhilxgcq">
+    <section id="products" class="max-w-5xl mx-auto px-4 sm:px-6 space-y-16 sm:space-y-16 scroll-mt-20" data-page-node-id="v9HuzJx74eqKXEzhilxgcq">
 
       <!-- 单品 1: FileButler -->
       <article data-project-id="filebutler" class="bento-card reveal overflow-hidden" data-page-node-id="tC0KmIuf8B8maWBqB0CMiw">
-        <div class="p-8 sm:p-12 space-y-4 max-w-3xl" data-page-node-id="ke3R5awDo6EvgS6vLdnTuE">
+        <div class="p-8 sm:p-12 space-y-4 w-full" data-page-node-id="ke3R5awDo6EvgS6vLdnTuE">
           <span class="inline-block px-2.5 py-1 rounded-md text-xs font-mono border border-black/8 dark:border-white/12 text-[#86868b]" data-page-node-id="QZPA7LbMhKtWxWRJvAbeG4">
             端侧 AI 桌面应用 · pywebview / Vue 3 / Ollama
           </span>
           <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white" data-page-node-id="j0Im5wPeXbivM0rKRi8JKP">
             FileButler · 本地文件管家
           </h3>
-          <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed" data-page-node-id="SnSlxoZIL8ZXXZzN9OFqkq">只在本地跑的 AI 文件检索与整理工具。基于 Ollama 离线运行，文件绝不上云；支持文件名、拼音、全文及以图搜图。整理文件前先出方案预览，勾选确认后才移动，并支持全流程一键撤销。</p>
+          <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed" data-page-node-id="SnSlxoZIL8ZXXZzN9OFqkq">基于本地模型的智能文件检索与整理工具。支持文件名、拼音、全文及以图搜图。整理文件前先出方案预览，勾选确认后才移动，并支持全流程一键撤销。</p>
 
           <div data-facts class="project-facts" hidden></div>
 
@@ -406,14 +426,14 @@
 
       <!-- 单品 2: 拍案（网文创作工作台，源码在 GitHub） -->
       <article data-project-id="paian" class="bento-card reveal overflow-hidden">
-        <div class="p-8 sm:p-12 space-y-4 max-w-3xl">
+        <div class="p-8 sm:p-12 space-y-4 w-full">
             <span class="inline-block px-2.5 py-1 rounded-md text-xs font-mono border border-black/8 dark:border-white/12 text-[#86868b]">
               Windows 桌面 · Electron / TypeScript
             </span>
             <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white">
               拍案 · 网文创作工作台
             </h3>
-            <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed">纯本地运行的长篇写作工作台。支持细纲驱动的 AI 分章起草与批量撰写，新内容需人工确认才采纳入卷；内置场景拆解重排、伏笔备忘与人物关系图。写作数据全在本机，断网即开即写。</p>
+            <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed">为长篇小说创作设计的写作工具。支持依大纲辅助起草，生成内容经人工确认后再合入正文；内置场景卡片重排、伏笔追踪与人物关系图谱。</p>
 
             <div data-facts class="project-facts" hidden></div>
 
@@ -422,7 +442,7 @@
               <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">Electron</span>
               <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">TypeScript</span>
               <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">CodeMirror 6</span>
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">纯本地</span>
+              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">写作工具</span>
             </div>
 
             <!-- 操作胶囊组 -->
@@ -487,14 +507,14 @@
 
       <!-- 单品 3: NetOps Handbook -->
       <article data-project-id="netops-handbook" class="bento-card reveal overflow-hidden" data-page-node-id="DVVZg6yTThmdgJ4Yjd1BzA">
-        <div class="p-8 sm:p-12 space-y-4 max-w-3xl" data-page-node-id="hxXTOau7NTk7uMoX8MFscd">
+        <div class="p-8 sm:p-12 space-y-4 w-full" data-page-node-id="hxXTOau7NTk7uMoX8MFscd">
           <span class="inline-block px-2.5 py-1 rounded-md text-xs font-mono border border-black/8 dark:border-white/12 text-[#86868b]" data-page-node-id="NZeXiNwZYee2hWmZht1jpU">
-            Android 离线应用 · Gradle 8.9 / 单页 SPA
+            Android 应用 · Gradle 8.9 / 单页 SPA
           </span>
           <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white" data-page-node-id="rBMfW5D7X39ryJ6lq4drQh">
-            NetOps Handbook · 离线网络工程与排障手册
+            NetOps Handbook · 网络工程与排障手册
           </h3>
-          <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed" data-page-node-id="FHwxP5YA9zTO72r9SvGjxs">完全离线的网络运维备忘手册。整合多厂商命令对照、排障步骤、终端模拟及高频面试题。零外部依赖单页架构，安装包不申请网络权限，机房断网也能随时查。</p>
+          <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed" data-page-node-id="FHwxP5YA9zTO72r9SvGjxs">一本随身查阅的网络技术与运维参考手册。收录华为、Cisco、中兴与 Linux 的多厂商命令对照、排障流程与面试题库，以单文件打包，随时秒开。</p>
 
           <div data-facts class="project-facts" hidden></div>
 
@@ -502,8 +522,8 @@
           <div class="flex flex-wrap gap-2 pt-2" data-page-node-id="dufMGBekwn6V9eQfcvByNV">
             <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono" data-page-node-id="dqv4TadvTMDs0WwpftoRGo">Java + WebView 壳层</span>
             <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono" data-page-node-id="BKylKclYGYd4WYhcTRopHu">Edge-to-Edge WebView</span>
-            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono" data-page-node-id="EbrGqrxOffbCDTcSiZ8h4O">未申请网络权限</span>
-            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono" data-page-node-id="2CQCrnhGsMaHOWsaX5Zuld">零外部依赖</span>
+            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono" data-page-node-id="EbrGqrxOffbCDTcSiZ8h4O">CLI 模拟器</span>
+            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono" data-page-node-id="2CQCrnhGsMaHOWsaX5Zuld">离线速查</span>
           </div>
 
           <!-- 操作胶囊组 -->
@@ -567,7 +587,7 @@
 
       <!-- 单品 4: Fluxion（完整版） -->
       <article data-project-id="fluxion" class="bento-card reveal overflow-hidden">
-        <div class="p-8 sm:p-12 space-y-4 max-w-3xl">
+        <div class="p-8 sm:p-12 space-y-4 w-full">
             <div class="flex flex-wrap items-center gap-2">
               <span class="inline-block px-2.5 py-1 rounded-md text-xs font-mono border border-black/8 dark:border-white/12 text-[#86868b]">
                 Windows 原生工具 · C# / WinForms
@@ -660,12 +680,12 @@
         <div class="pa-list">
           <div class="pa-item">
             <p class="pa-name">GameBoost · 游戏底层性能调优</p>
-            <p class="pa-desc">针对 1% Low 帧率尖刺与输入延迟进行底层调优，改动支持一键备份还原。<span class="pa-ver">v1.0.5</span></p>
+            <p class="pa-desc">针对 1% Low 帧率尖刺与输入延迟进行系统调优，改动支持一键备份还原。<span class="pa-ver">v1.0.5</span></p>
             <button type="button" class="pa-open" data-open-project="gameboost">查看详情 <span aria-hidden="true">→</span></button>
           </div>
           <div class="pa-item">
             <p class="pa-name">GameBoost-DLSSG · DLSS 帧生成</p>
-            <p class="pa-desc">为 RTX 20/30 系显卡提供跨代 DLSS 帧生成代理接入与链路运行诊断。<span class="pa-ver">v1.0.0</span></p>
+            <p class="pa-desc">为 RTX 20/30 系显卡提供 DLSS 帧生成代理接入与加载状态诊断。<span class="pa-ver">v1.0.0</span></p>
             <button type="button" class="pa-open" data-open-project="gameboost-dlssg">查看详情 <span aria-hidden="true">→</span></button>
           </div>
         </div>
@@ -674,7 +694,7 @@
     </section>
 
  <!-- 4. 📐 做工具的原则-->
-    <section id="philosophy" class="dark max-w-5xl mx-auto px-4 sm:px-6 space-y-8 scroll-mt-20" data-page-node-id="SbDgjaCqYMy690zENXMBbA">
+    <section id="philosophy" class="max-w-5xl mx-auto px-4 sm:px-6 space-y-8 scroll-mt-20" data-page-node-id="SbDgjaCqYMy690zENXMBbA">
       <div class="reveal text-center space-y-2" data-page-node-id="pqy9PFoV0DLC3gjVmLBd69">
         <p class="text-2xl sm:text-3xl font-bold tracking-tight text-[#1d1d1f] dark:text-white" data-page-node-id="lOaCH5FJalPdytIyMHMpfb">做工具的几条原则</p>
       </div>
@@ -683,27 +703,27 @@
         <!-- 理念 1 -->
         <div class="reveal" data-page-node-id="I90HOjH8LgbmWRl2wIHXnX">
           <div class="text-xs font-mono text-[#86868b] phil-no" data-page-node-id="CZijEOUxJ85woNmIBU8eH3">01</div>
-          <h3 class="text-base font-semibold text-[#1d1d1f] dark:text-white mt-2" data-page-node-id="eTHTOnN60SFOPbs5Bs3SFY">算力和数据都在本地</h3>
+          <h3 class="text-base font-semibold text-[#1d1d1f] dark:text-white mt-2" data-page-node-id="eTHTOnN60SFOPbs5Bs3SFY">改动可逆，操作可控</h3>
           <p class="text-sm text-[#86868b] leading-relaxed mt-2" data-page-node-id="3YtXpSiNWUP3JN9f1TA53T">
-            模型和搜索全在自己电脑上跑，断网也能用，文件和隐私不用往外传。
+            涉及系统修改与文件变更的操作，先出清单预览、做好日志记录，改动清晰明确，随时能够完整撤销还原。
           </p>
         </div>
 
         <!-- 理念 2 -->
         <div class="reveal" data-page-node-id="jUUilof4vu2o2dXT7W7T2b">
           <div class="text-xs font-mono text-[#86868b] phil-no" data-page-node-id="PCEddAhHA7ibabwmFFGIaa">02</div>
-          <h3 class="text-base font-semibold text-[#1d1d1f] dark:text-white mt-2" data-page-node-id="0BqjB0OBZC2uyqGjfNGnrO">拒绝臃肿套壳</h3>
+          <h3 class="text-base font-semibold text-[#1d1d1f] dark:text-white mt-2" data-page-node-id="0BqjB0OBZC2uyqGjfNGnrO">保持轻量与克制</h3>
           <p class="text-sm text-[#86868b] leading-relaxed mt-2" data-page-node-id="htShKOZFCOLlok6qxcD6Fi">
-            桌面端能用原生 C# 就不装庞大运行时；Android 端不申请联网权限，不占后台。
+            优先调用系统自带的原生能力，不塞不必要的重型依赖；专注做好核心功能，不用时不常驻，不打扰电脑日常。
           </p>
         </div>
 
         <!-- 理念 3 -->
         <div class="reveal" data-page-node-id="w4UOa2kzjIPLV4EXWN8vIr">
           <div class="text-xs font-mono text-[#86868b] phil-no" data-page-node-id="NED5OLNUZl0F7P9kfBrwt8">03</div>
-          <h3 class="text-base font-semibold text-[#1d1d1f] dark:text-white mt-2" data-page-node-id="kdJ9y0cWssXUW0pV4g674V">只做真正用得上的</h3>
+          <h3 class="text-base font-semibold text-[#1d1d1f] dark:text-white mt-2" data-page-node-id="kdJ9y0cWssXUW0pV4g674V">做真正趁手的自用工具</h3>
           <p class="text-sm text-[#86868b] leading-relaxed mt-2" data-page-node-id="WL1lnFIJCrZEzoLAVDfovl">
-            针对日常高频遇到的问题写小工具：文件秒搜、游戏防掉帧、离线网络速查。
+            始于自己日常使用中真切碰到的不顺手。不堆花哨无用的功能，把最常用的几个动作打磨顺畅，自己每天都乐意用。
           </p>
         </div>
       </div>
@@ -713,22 +733,26 @@
     <!-- ======================== 关于我 ======================== -->
     <section id="about" class="max-w-5xl mx-auto px-4 sm:px-6 scroll-mt-20">
       <div class="reveal bento-card p-6 sm:p-8">
-        <div class="flex flex-col md:flex-row gap-6 md:gap-8">
-          <img src="assets/images/avatar.webp" alt="SevenJohn 的头像" class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover shrink-0" loading="lazy" />
+        <div class="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
+          <img src="assets/images/avatar.webp" alt="SevenJohn 的头像" class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover shrink-0 border border-white/15 shadow-md bg-slate-900" loading="lazy" />
           <div class="space-y-4 flex-1">
             <div>
               <h2 class="text-2xl font-bold tracking-tight text-[#1d1d1f] dark:text-white">关于我</h2>
-              <p class="text-sm text-[#86868b] mt-1">写本地小工具与桌面应用，偏好轻量和纯离线。</p>
+              <p class="text-sm text-[#86868b] mt-1">独立开发者 · 写桌面工具、端侧应用与系统调优。</p>
             </div>
             <p class="text-sm text-[#1d1d1f] dark:text-[#f5f5f7] leading-relaxed">
-              我是 SevenJohn。平时喜欢做一些自己用得顺手的本地小工具，主要方向是端侧 AI（不依赖外部 API 的本地模型）、Windows 桌面原生应用，以及不联网的 Android 辅助工具。
+              我是 SevenJohn。平时经常写些自己用得上的桌面工具、系统辅助和小软件。
             </p>
             <p class="text-sm text-[#1d1d1f] dark:text-[#f5f5f7] leading-relaxed">
-              做这些工具的动力很直接：自己遇到了效率卡点，市面上又缺少轻量纯净的解法。我坚持计算在本地、数据不离机、系统改动一键可还原；做完后觉得好用，便整理出来开源共享。
+              写这些东西，大多是因为日常折腾时碰到了不顺手的地方，市面上又找不到合心意的，便自己动手写一个。自己用顺手了，就整理开源出来，希望能给有同样需求的朋友多一个踏实的选择。
             </p>
-            <div class="flex flex-wrap gap-x-5 gap-y-2 text-xs pt-1">
-              <a href="mailto:sevenksq@163.com" class="hover:underline underline-offset-2">✉ sevenksq@163.com</a>
-              <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="hover:underline underline-offset-2">GitHub @7SteveJohn</a>
+            <div class="flex flex-wrap gap-3 text-xs pt-1">
+              <a href="mailto:sevenksq@163.com" class="about-contact-chip inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition" title="发送邮件联系">
+                <span>✉ sevenksq@163.com</span>
+              </a>
+              <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="about-contact-chip inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition" title="访问 GitHub 主页">
+                <span>GitHub @7SteveJohn</span>
+              </a>
             </div>
           </div>
         </div>
@@ -885,7 +909,7 @@
       <div id="search-results" class="max-h-[50vh] overflow-y-auto p-2" role="listbox" aria-label="搜索结果" data-page-node-id="9JtimCpHnhuz4sz7049O8M"></div>
       <div class="flex items-center justify-between px-4 py-2 border-t border-black/10 dark:border-white/10 text-[10px] text-[#86868b]" data-page-node-id="JjyIEv24NyZlEFXFHvL7sN">
         <span data-page-node-id="BqRLoTyTIlxPuXf9IBVfAQ"><span class="search-kbd">↑</span><span class="search-kbd">↓</span> 选择 · <span class="search-kbd">Enter</span> 打开</span>
-        <button type="button" id="search-random" class="flex items-center gap-1 hover:text-black dark:hover:text-white transition cursor-pointer" title="随机打开一篇旧文" data-page-node-id="mWzKl54YJz7lFscCDfeFjA">随便看看</button>
+        <button type="button" id="search-random" class="flex items-center gap-1 hover:text-black dark:hover:text-white transition cursor-pointer" title="随机打开一篇旧文" data-page-node-id="mWzKl54YJz7lFscCDfeFjA">随手翻翻</button>
       </div>
     </div>
   </div>
@@ -978,6 +1002,21 @@
     </div>
     <audio id="music-audio" preload="none"></audio>
   </div>
+
+  <!-- 背景视觉方案实时切换台（仅在实验室 cosmos-demo.html 展现，主站保持纯粹） -->
+  <aside id="cosmos-dock" class="cosmos-dock" aria-label="背景视觉方案切换" hidden>
+    <div class="cosmos-dock-inner">
+      <span class="cosmos-dock-label">背景方案</span>
+      <div class="cosmos-dock-tabs" role="radiogroup">
+        <button type="button" class="dock-tab" data-mode="neural" title="端侧推理场 · 神经脉冲流">端侧推理</button>
+        <button type="button" class="dock-tab" data-mode="aurora" title="极光微流体 · 液态深空">极光流体</button>
+        <button type="button" class="dock-tab" data-mode="chladni" title="声学克拉尼微粒谐振场">克拉尼</button>
+        <button type="button" class="dock-tab" data-mode="monolith" title="极简黑曜石天光虚空">黑曜天光</button>
+        <button type="button" class="dock-tab" data-mode="isolines" title="原等高线 (对比)">原等高线</button>
+      </div>
+      <a href="cosmos-demo.html" class="dock-lab-link" title="前往全屏背景视觉实验室">实验室 ↗</a>
+    </div>
+  </aside>
 
   <!-- 推理场音频链路（js/cosmos 驱动）：悬浮控制面板已删，只保留隐藏音轨与文件选择。
        hero「放首歌」走站点歌单；#cosmos-file 供本地曲目接入与真实音频链路验证。 -->

@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>背景视觉实验室 · 4 种去等高线方案实时比对</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #f8fafc;
+      color: #0f172a;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    html.dark body {
+      background: #060911;
+      color: #f1f5f9;
+    }
+    #cosmos-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: auto;
+    }
+    .hud-layer {
+      position: relative;
+      z-index: 10;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      pointer-events: none;
+      padding: 1.5rem;
+    }
+    .interactive { pointer-events: auto; }
+    
+    header.hud-header {
+      width: 100%;
+      max-width: 1080px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .nav-left, .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .hud-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 1rem;
+      font-size: 0.8125rem;
+      color: #94a3b8;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 9999px;
+      background: rgba(10, 16, 30, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .hud-pill:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .btn-audio {
+      color: #38bdf8;
+      border-color: rgba(56, 189, 248, 0.3);
+      background: rgba(56, 189, 248, 0.1);
+    }
+    .btn-audio:hover {
+      color: #7dd3fc;
+      border-color: rgba(56, 189, 248, 0.5);
+      background: rgba(56, 189, 248, 0.2);
+    }
+    .brand-title {
+      font-size: 0.8125rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: #94a3b8;
+    }
+    
+    main.hud-main {
+      width: 100%;
+      max-width: 1080px;
+      margin: auto auto;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      pointer-events: none;
+    }
+    .info-card {
+      max-width: 460px;
+      background: rgba(10, 16, 30, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 1.25rem;
+      padding: 1.5rem 1.75rem;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.6);
+      transition: all 0.3s ease;
+    }
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+    .scheme-badge {
+      font-size: 0.6875rem;
+      font-family: ui-monospace, monospace;
+      padding: 0.2rem 0.55rem;
+      border-radius: 9999px;
+      background: rgba(56, 189, 248, 0.12);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+    .scheme-heading {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 0.6rem;
+      letter-spacing: -0.01em;
+    }
+    .scheme-text {
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+      margin-bottom: 1rem;
+    }
+    .card-bot {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.6875rem;
+      font-family: ui-monospace, monospace;
+      color: #94a3b8;
+    }
+
+    footer.hud-footer {
+      width: 100%;
+      max-width: 1080px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      padding-bottom: 0.5rem;
+    }
+    .footer-hint {
+      font-size: 0.75rem;
+      font-family: ui-monospace, monospace;
+      color: #94a3b8;
+      letter-spacing: 0.04em;
+    }
+    .glass-dock {
+      background: rgba(10, 16, 30, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 9999px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.45rem;
+    }
+    .btn-tab {
+      padding: 0.5rem 1.15rem;
+      border-radius: 9999px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: #94a3b8;
+      border: 1px solid transparent;
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-tab:hover { color: #ffffff; background: rgba(255, 255, 255, 0.06); }
+    .btn-tab.active {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.15);
+      border-color: rgba(56, 189, 248, 0.35);
+      box-shadow: 0 0 16px -2px rgba(56, 189, 248, 0.25);
+    }
+
+    /* 浅色模式适配 */
+    html:not(.dark) .glass-dock {
+      background: rgba(255, 255, 255, 0.85);
+      border-color: rgba(0, 0, 0, 0.08);
+      box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.1);
+    }
+    html:not(.dark) .info-card {
+      background: rgba(255, 255, 255, 0.85);
+      border-color: rgba(0, 0, 0, 0.08);
+      box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.08);
+    }
+    html:not(.dark) .hud-pill {
+      background: rgba(255, 255, 255, 0.85);
+      border-color: rgba(0, 0, 0, 0.08);
+      color: #334155;
+    }
+    html:not(.dark) .hud-pill:hover {
+      background: #ffffff;
+      color: #0f172a;
+    }
+    html:not(.dark) .scheme-heading {
+      color: #0f172a;
+    }
+    html:not(.dark) .scheme-text {
+      color: #475569;
+    }
+    html:not(.dark) .card-bot {
+      border-top-color: rgba(0, 0, 0, 0.06);
+      color: #64748b;
+    }
+    html:not(.dark) .btn-tab {
+      color: #64748b;
+    }
+    html:not(.dark) .btn-tab:hover {
+      color: #0f172a;
+      background: rgba(0, 0, 0, 0.04);
+    }
+    html:not(.dark) .btn-tab.active {
+      color: #0284c7;
+      background: rgba(2, 132, 199, 0.1);
+      border-color: rgba(2, 132, 199, 0.25);
+      box-shadow: 0 0 16px -2px rgba(2, 132, 199, 0.2);
+    }
+  </style>
+</head>
+<body>
+  <!-- 3D 渲染画布 -->
+  <canvas id="cosmos-canvas"></canvas>
+
+  <div class="hud-layer">
+    <!-- 顶栏：标题与操作 -->
+    <header class="hud-header interactive">
+      <div class="nav-left">
+        <a href="index.html" class="hud-pill" style="text-decoration:none;">
+          <span>←</span><span>返回主站</span>
+        </a>
+        <div class="brand-title">
+          <span style="color:#38bdf8; margin-right:4px;">✦</span>背景视觉实验室 · 去等高线全案观察
+        </div>
+      </div>
+      <div class="nav-right">
+        <button id="theme-btn" type="button" class="hud-pill">
+          <span id="theme-text">切换极夜深空</span>
+        </button>
+        <button id="audio-btn" type="button" class="hud-pill btn-audio">
+          <span>♫ 播放测试音乐</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- 中部左侧：方案深度解读卡片 -->
+    <main class="hud-main">
+      <div class="info-card interactive">
+        <div class="card-top">
+          <span id="scheme-id" style="font-size:0.75rem; font-family:ui-monospace, monospace; font-weight:700; color:#38bdf8;">方案 01</span>
+          <span id="scheme-tag" class="scheme-badge">硬核原生 · 契合AI</span>
+        </div>
+        <h2 id="scheme-title" class="scheme-heading">端侧推理场 · 神经脉冲流</h2>
+        <p id="scheme-desc" class="scheme-text">
+          契合“本地大模型 / 端侧 AI 应用”内核。立体神经元分层点阵，邻层张量连线，脉冲沿边自深层向前传导。随节拍激起全场激活波，告别键盘圈桌垫的庸俗感。
+        </p>
+        <div class="card-bot">
+          <span id="scheme-math">算法：多层感知机前传网络 + 动态余温</span>
+          <span style="color:rgba(56, 189, 248, 0.9);">实时可交互</span>
+        </div>
+      </div>
+    </main>
+
+    <!-- 底栏：4 种方案实时切换台 -->
+    <footer class="hud-footer interactive">
+      <div class="footer-hint">
+        点击下方任意方案，背景实时无缝重载渲染：
+      </div>
+      <div class="glass-dock">
+        <button type="button" class="btn-tab active" data-mode="neural">
+          ① 端侧推理场
+        </button>
+        <button type="button" class="btn-tab" data-mode="aurora">
+          ② 极光微流体
+        </button>
+        <button type="button" class="btn-tab" data-mode="chladni">
+          ③ 克拉尼微粒
+        </button>
+        <button type="button" class="btn-tab" data-mode="monolith">
+          ④ 黑曜石天光
+        </button>
+        <button type="button" class="btn-tab" data-mode="isolines" style="color:#64748b;">
+          原等高线 (对比)
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <audio id="demo-audio" loop preload="auto" src="assets/audio/bgm-home.mp3"></audio>
+
+  <!-- Three.js 映射（必须在 module 之前） -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./assets/vendor/three.module.min.js"
+    }
+  }
+  </script>
+
+  <!-- 3D 渲染引擎主脚本 -->
+  <script type="module">
+    import * as THREE from 'three';
+    import { CONFIG } from './js/cosmos/config.js';
+    import { NeuralField } from './js/cosmos/scene/NeuralField.js';
+    import { AuroraField } from './js/cosmos/scene/AuroraField.js';
+    import { ChladniField } from './js/cosmos/scene/ChladniField.js';
+    import { MonolithField } from './js/cosmos/scene/MonolithField.js';
+    import { IsolinesField } from './js/cosmos/scene/IsolinesField.js';
+    import { AudioManager } from './js/cosmos/audio/AudioManager.js';
+    import { BeatDetector } from './js/cosmos/audio/BeatDetector.js';
+    import { InteractionManager } from './js/cosmos/interaction/InteractionManager.js';
+
+    const canvas = document.getElementById('cosmos-canvas');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false });
+    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+    renderer.setSize(innerWidth, innerHeight);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(CONFIG.camera.fov, innerWidth / innerHeight, CONFIG.camera.near, CONFIG.camera.far);
+    camera.position.set(0, 0, CONFIG.camera.zPos);
+
+    const audio = new AudioManager(CONFIG);
+    const beat = new BeatDetector(CONFIG);
+    const interaction = new InteractionManager(CONFIG, camera, canvas);
+
+    const SCHEMES = {
+      neural: {
+        id: '方案 01',
+        tag: '硬核原生 · 契合AI',
+        title: '端侧推理场 · 神经脉冲流',
+        desc: '契合“本地大模型 / 端侧 AI 应用”内核。立体神经元分层点阵，邻层张量连线，脉冲沿边自深层向前传导。随低音强化连线底亮，节拍激起整场激活波，彻底告别键盘圈桌垫的庸俗感。',
+        math: '算法：分层前传网络 + 突触余温 + 空间前传波'
+      },
+      aurora: {
+        id: '方案 02',
+        tag: '极光流体 · 现代高级',
+        title: '极光微流体 · 液态深空',
+        desc: '彻底摒弃任何几何线条与网格。纯粹靠电光青蓝与冷紫极光流体在宇宙深空中柔和翻涌、折叠与呼吸。具有类似 macOS Sonoma / Stripe 顶级光影的丝滑沉浸感，文字置于其上具有最高的阅读舒适度。',
+        math: '算法：多尺度 Domain Warping + FBM 纳维-斯托克斯流场'
+      },
+      chladni: {
+        id: '方案 03',
+        tag: '声学驻波 · 真实物理',
+        title: '声学克拉尼微粒谐振场',
+        desc: '基于真实物理声学驻波实验。14,000 颗星尘微粒在空间引力中浮游，随音乐频率自发聚集成声学干涉共振图景。和弦跃迁时粒子自发重组为不同的声学几何曼陀罗，物理仪式感拉满。',
+        math: '算法：克拉尼谐振盘方程 w(x,y)=0 节线势能梯度引力'
+      },
+      monolith: {
+        id: '方案 04',
+        tag: '极简克制 · 电影天光',
+        title: '极简黑曜石天光虚空',
+        desc: '极致的减法与自信。不设任何线条与微粒干扰，仅在天顶留一束电影级深空微天光，伴随细微的胶片颗粒质感静谧呼吸。低音响起时天光如呼吸般微张，将 100% 视觉焦点完全交给排版与作品。',
+        math: '算法：天顶体积光锥 + 胶片微晶格 + 零视觉干扰'
+      },
+      isolines: {
+        id: '方案 00 (对照)',
+        tag: '原版等高线 · 键盘圈桌垫风',
+        title: '原版等高线岛图 (对照观察)',
+        desc: '当前被键盘圈客制化桌垫广泛滥用的等值线切片。供您直接切回对比：观察其密集的几何线框是如何带来“数码桌垫 / 测绘图纸”的生硬切割感，对比体验“祛魅”的前后差异。',
+        math: '算法：FBM 标量高度场等值线切片'
+      }
+    };
+
+    let currentMode = 'neural';
+    let currentField = null;
+
+    function setMode(mode) {
+      if (currentField) {
+        if (typeof currentField.dispose === 'function') currentField.dispose();
+        else scene.remove(currentField.mesh || currentField.points || currentField.group);
+        currentField = null;
+      }
+      currentMode = mode;
+      switch (mode) {
+        case 'neural':
+          currentField = new NeuralField(scene, CONFIG, false, innerWidth / innerHeight);
+          break;
+        case 'aurora':
+          currentField = new AuroraField(scene);
+          break;
+        case 'chladni':
+          currentField = new ChladniField(scene);
+          break;
+        case 'monolith':
+          currentField = new MonolithField(scene);
+          break;
+        case 'isolines':
+        default:
+          currentField = new IsolinesField(scene);
+          break;
+      }
+      if (currentField && typeof currentField.setRes === 'function') {
+        currentField.setRes(innerWidth, innerHeight);
+      }
+
+      // 更新卡片文案
+      const info = SCHEMES[mode] || SCHEMES.neural;
+      document.getElementById('scheme-id').innerText = info.id;
+      document.getElementById('scheme-tag').innerText = info.tag;
+      document.getElementById('scheme-title').innerText = info.title;
+      document.getElementById('scheme-desc').innerText = info.desc;
+      document.getElementById('scheme-math').innerText = info.math;
+
+      // 更新按钮激活态
+      document.querySelectorAll('.btn-tab').forEach(b => {
+        b.classList.toggle('active', b.dataset.mode === mode);
+      });
+    }
+
+    setMode('aurora');
+
+    // 交互点击
+    addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.interactive')) return;
+      if (currentField && typeof currentField.kick === 'function') {
+        currentField.kick(e.clientX, e.clientY);
+      }
+    });
+
+    addEventListener('resize', () => {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+      if (currentField && typeof currentField.setRes === 'function') {
+        currentField.setRes(innerWidth, innerHeight);
+      }
+    });
+
+    // 主循环
+    let last = performance.now(), sceneT = 0;
+    function animate(now) {
+      requestAnimationFrame(animate);
+      const dtMs = Math.min(now - last, 100);
+      last = now;
+      sceneT += dtMs / 1000;
+
+      interaction.update(dtMs, CONFIG.layers.fieldZ);
+      const a = audio.update(dtMs);
+      const pulse = beat.update(a, dtMs, now);
+
+      if (beat.justBeat) {
+        if (currentField && typeof currentField.onBeat === 'function') {
+          currentField.onBeat(beat.beats % 8 === 0 ? 1.0 : 0.6);
+        }
+        beat.justBeat = false;
+      }
+
+      if (currentField) {
+        if (typeof currentField.updateEngine === 'function') {
+          currentField.updateEngine(sceneT, a, interaction, dtMs);
+        } else if (typeof currentField.update === 'function') {
+          currentField.update(sceneT, a, interaction, dtMs);
+        }
+      }
+
+      const isDark = document.documentElement.classList.contains('dark');
+      renderer.setClearColor(isDark ? 0x05070c : 0xf8fafc, 1);
+      renderer.render(scene, camera);
+    }
+    requestAnimationFrame(animate);
+
+    // 按钮事件
+    document.querySelectorAll('.btn-tab').forEach(btn => {
+      btn.addEventListener('click', () => setMode(btn.dataset.mode));
+    });
+
+    // 音乐播放控制
+    const audioEl = document.getElementById('demo-audio');
+    const audioBtn = document.getElementById('audio-btn');
+    audioBtn.addEventListener('click', () => {
+      audio.ownEl = audioEl;
+      audio.ensureGraph();
+      audio.resume();
+      if (audioEl.paused) {
+        audioEl.play().then(() => {
+          audioBtn.innerText = '⏸ 暂停音乐';
+          audioBtn.classList.add('active');
+        }).catch(() => {});
+      } else {
+        audioEl.pause();
+        audioBtn.innerText = '♫ 播放测试音乐';
+        audioBtn.classList.remove('active');
+      }
+    });
+
+    // 主题切换
+    const themeBtn = document.getElementById('theme-btn');
+    const themeText = document.getElementById('theme-text');
+    themeBtn.addEventListener('click', () => {
+      const isDark = document.documentElement.classList.toggle('dark');
+      themeText.innerText = isDark ? '切换晨曦明亮' : '切换极夜深空';
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>方案 A · 水墨生成艺术与极客数字花园 (Anthony Fu 风格)</title>
+  <link rel="stylesheet" href="assets/vendor/tailwind.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #fbfbf9;
+      color: #1c1917;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+      min-height: 100vh;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    #plum-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .top-switch-bar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(251, 251, 249, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+    .demo-tab {
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.18s ease;
+      color: #78716c;
+    }
+    .demo-tab:hover { color: #1c1917; background: rgba(0, 0, 0, 0.04); }
+    .demo-tab.active {
+      color: #0369a1;
+      background: rgba(3, 105, 161, 0.08);
+      border: 1px solid rgba(3, 105, 161, 0.2);
+    }
+    .garden-card {
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(8px);
+      border-radius: 0.875rem;
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .garden-card:hover {
+      background: #ffffff;
+      border-color: rgba(3, 105, 161, 0.25);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(3, 105, 161, 0.1);
+      transform: translateY(-2px);
+    }
+    .post-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.65rem 0;
+      border-bottom: 1px dashed rgba(0, 0, 0, 0.08);
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+    .post-row:hover .post-title {
+      color: #0284c7;
+      transform: translateX(3px);
+    }
+    .post-title {
+      font-size: 0.9375rem;
+      color: #292524;
+      transition: all 0.15s ease;
+    }
+    .post-date {
+      font-size: 0.75rem;
+      font-family: ui-monospace, monospace;
+      color: #a8a29e;
+      white-space: nowrap;
+    }
+    .music-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .music-pill:hover { border-color: #0284c7; color: #0284c7; }
+    .wave-bar {
+      width: 2px;
+      height: 10px;
+      background: #0284c7;
+      border-radius: 1px;
+      animation: wave 1s ease-in-out infinite alternate;
+    }
+    @keyframes wave {
+      0% { height: 4px; }
+      100% { height: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Anthony Fu 风格：水墨梅花递归生长 Canvas -->
+  <canvas id="plum-canvas"></canvas>
+
+  <!-- 顶栏三套风格切换器 -->
+  <div class="top-switch-bar">
+    <div class="max-w-4xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <a href="index.html" class="text-xs text-stone-500 hover:text-stone-900 font-mono flex items-center gap-1 mr-2" style="text-decoration:none;">
+          <span>←</span><span>主站</span>
+        </a>
+        <span class="text-xs font-mono font-bold text-stone-700">独立博客原型复刻：</span>
+        <a href="demo-anthony-fu.html" class="demo-tab active">① 仿 Anthony Fu (antfu.me)</a>
+        <a href="demo-shuding.html" class="demo-tab">② 仿 Shu Ding (shud.in)</a>
+        <a href="demo-rauno.html" class="demo-tab">③ 仿 Rauno (rauno.me)</a>
+        <a href="demo-flagship.html" class="demo-tab">🌟 晨曦流光旗舰版 (充盈大作)</a>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="plum-redraw" type="button" class="text-xs font-mono text-stone-500 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 px-2.5 py-1 rounded cursor-pointer transition">
+          ↺ 重新萌生水墨
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="relative z-10 max-w-3xl mx-auto px-6 py-12">
+    <!-- 头部身份与状态栏 -->
+    <header class="mb-14">
+      <div class="flex items-center justify-between mb-6">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/60 text-xs font-mono text-emerald-700">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>纯端侧算力 · 100% 离线运行中</span>
+        </div>
+        <div class="music-pill" id="play-btn">
+          <div class="flex items-center gap-0.5">
+            <span class="wave-bar" style="animation-delay: 0s;"></span>
+            <span class="wave-bar" style="animation-delay: 0.2s;"></span>
+            <span class="wave-bar" style="animation-delay: 0.4s;"></span>
+          </div>
+          <span id="music-text">♫ 播放伴读纯音乐</span>
+        </div>
+      </div>
+
+      <h1 class="text-3xl sm:text-4xl font-bold tracking-tight text-stone-900 mb-3">
+        楠屿札记
+      </h1>
+      <p class="text-base text-stone-600 mb-3 font-medium">
+        SevenJohn · 独立开发者 / 软件工匠
+      </p>
+      <p class="text-sm text-stone-500 leading-relaxed max-w-2xl">
+        屿间汇叙，一隅写字，一隅造物。只在本地跑的端侧 AI 应用、轻量桌面工具，以及底层的实测复盘。
+      </p>
+    </header>
+
+    <!-- 模块 1：精选独立作品展台 (Digital Garden Projects) -->
+    <section class="mb-14">
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-xs font-mono uppercase tracking-wider text-stone-400 font-semibold">
+          ✦ 独立作品集 · Projects
+        </h2>
+        <span class="text-xs font-mono text-stone-400">4 款已发布</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- 01 FileButler -->
+        <div class="garden-card p-5">
+          <div class="flex items-start justify-between mb-2">
+            <div>
+              <span class="text-[11px] font-mono font-bold text-sky-600">01</span>
+              <h3 class="text-base font-bold text-stone-800">本地文件管家</h3>
+            </div>
+            <span class="text-[11px] font-mono text-stone-500 px-2 py-0.5 rounded bg-stone-100">v1.4.3</span>
+          </div>
+          <p class="text-xs text-stone-600 leading-relaxed mb-4">
+            基于 Ollama 的纯离线 RAG 问答，支持全盘拼音秒搜、本地以图搜图与撤销归档。数据永不离机。
+          </p>
+          <div class="flex items-center justify-between pt-2 border-t border-stone-100 text-[11px] font-mono text-stone-400">
+            <span>Python · Vue3 · Ollama</span>
+            <span class="text-sky-600 hover:underline cursor-pointer">了解细节 →</span>
+          </div>
+        </div>
+
+        <!-- 02 拍案 -->
+        <div class="garden-card p-5">
+          <div class="flex items-start justify-between mb-2">
+            <div>
+              <span class="text-[11px] font-mono font-bold text-indigo-600">02</span>
+              <h3 class="text-base font-bold text-stone-800">拍案 · 网文工作台</h3>
+            </div>
+            <span class="text-[11px] font-mono text-stone-500 px-2 py-0.5 rounded bg-stone-100">v1.0.2</span>
+          </div>
+          <p class="text-xs text-stone-600 leading-relaxed mb-4">
+            端侧大模型长篇写作驱动，伏笔自动追踪与大体量网文人际网络关系图谱分析。
+          </p>
+          <div class="flex items-center justify-between pt-2 border-t border-stone-100 text-[11px] font-mono text-stone-400">
+            <span>Electron · TS · 端侧大模型</span>
+            <span class="text-indigo-600 hover:underline cursor-pointer">了解细节 →</span>
+          </div>
+        </div>
+
+        <!-- 03 NetOps -->
+        <div class="garden-card p-5">
+          <div class="flex items-start justify-between mb-2">
+            <div>
+              <span class="text-[11px] font-mono font-bold text-emerald-600">03</span>
+              <h3 class="text-base font-bold text-stone-800">离线网络排障手册</h3>
+            </div>
+            <span class="text-[11px] font-mono text-stone-500 px-2 py-0.5 rounded bg-stone-100">v2.0.5</span>
+          </div>
+          <p class="text-xs text-stone-600 leading-relaxed mb-4">
+            1500+ 网络命令离线对照与抓包实战，专为断网环境设计的全功能随身字典。
+          </p>
+          <div class="flex items-center justify-between pt-2 border-t border-stone-100 text-[11px] font-mono text-stone-400">
+            <span>Android · Kotlin · 纯离线</span>
+            <span class="text-emerald-600 hover:underline cursor-pointer">了解细节 →</span>
+          </div>
+        </div>
+
+        <!-- 04 Fluxion -->
+        <div class="garden-card p-5">
+          <div class="flex items-start justify-between mb-2">
+            <div>
+              <span class="text-[11px] font-mono font-bold text-amber-600">04</span>
+              <h3 class="text-base font-bold text-stone-800">游戏性能调优工具</h3>
+            </div>
+            <span class="text-[11px] font-mono text-stone-500 px-2 py-0.5 rounded bg-stone-100">v1.3.0</span>
+          </div>
+          <p class="text-xs text-stone-600 leading-relaxed mb-4">
+            底层压低 1% Low 帧生成抖动，极低开销 Windows 桌面硬件常驻监控。
+          </p>
+          <div class="flex items-center justify-between pt-2 border-t border-stone-100 text-[11px] font-mono text-stone-400">
+            <span>C# · WPF · 硬件监控</span>
+            <span class="text-amber-600 hover:underline cursor-pointer">了解细节 →</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 模块 2：深度技术手记 (Recent Notes) -->
+    <section class="mb-14">
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-xs font-mono uppercase tracking-wider text-stone-400 font-semibold">
+          ✦ 近期手记 · Notes
+        </h2>
+        <a href="archive.html" class="text-xs font-mono text-stone-400 hover:text-stone-800" style="text-decoration:none;">全部归档 →</a>
+      </div>
+
+      <div class="space-y-1">
+        <a href="#article" class="post-row">
+          <span class="post-title">端侧推理实战：为什么我的 RAG 应用坚持选择 100% 本地模型</span>
+          <span class="post-date">2026-10-31</span>
+        </a>
+        <a href="#article" class="post-row">
+          <span class="post-title">压榨最后一滴性能：WPF 桌面工具 1% Low 帧抖动优化实录</span>
+          <span class="post-date">2026-10-23</span>
+        </a>
+        <a href="#article" class="post-row">
+          <span class="post-title">离线网络排障：断网状态下的 Android 诊断工具架构设计</span>
+          <span class="post-date">2026-10-18</span>
+        </a>
+        <a href="#article" class="post-row">
+          <span class="post-title">伏笔与长文记忆：本地大模型在小说大纲创作中的上下文保持策略</span>
+          <span class="post-date">2026-10-12</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- 模块 3：关于与技术哲学 (/About) -->
+    <footer class="pt-8 border-t border-stone-200/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs font-mono text-stone-400">
+      <div>
+        <span>楠屿札记 © 2026</span>
+        <span class="mx-2">·</span>
+        <span>代码与文字均为主权产物</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="https://github.com/7SteveJohn" target="_blank" class="hover:text-stone-800">GitHub</a>
+        <a href="archive.html" class="hover:text-stone-800">归档</a>
+        <a href="gallery.html" class="hover:text-stone-800">照片墙</a>
+        <a href="mailto:sevenksq@163.com" class="hover:text-stone-800">联系邮箱</a>
+      </div>
+    </footer>
+  </div>
+
+  <audio id="demo-audio" loop src="music/letting-go.mp3"></audio>
+
+  <!-- Anthony Fu 水墨梅花算法核心实现 (Plum Algorithm) -->
+  <script>
+    const canvas = document.getElementById('plum-canvas');
+    const ctx = canvas.getContext('2d');
+    let width = innerWidth, height = innerHeight;
+    let pendingTasks = [];
+    let rafId = 0;
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = innerWidth;
+      height = innerHeight;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.scale(dpr, dpr);
+    }
+
+    function random(min, max) { return min + Math.random() * (max - min); }
+
+    function step(x, y, rad, counter) {
+      const length = random(4, 9);
+      const nx = x + Math.cos(rad) * length;
+      const ny = y + Math.sin(rad) * length;
+
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(nx, ny);
+      // 清雅水墨色调：深灰带极微青蓝，随树枝深入逐渐变淡
+      const alpha = Math.max(0.04, 0.16 - counter * 0.0035);
+      ctx.strokeStyle = `rgba(30, 41, 59, ${alpha})`;
+      ctx.lineWidth = Math.max(0.6, 1.8 - counter * 0.04);
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      const maxSteps = 45;
+      if (counter < maxSteps) {
+        // 随机分叉与自然弯曲
+        const rad1 = rad + random(-0.25, 0.25);
+        pendingTasks.push(() => step(nx, ny, rad1, counter + 1));
+
+        if (Math.random() < 0.28) {
+          const rad2 = rad + random(-0.6, 0.6);
+          pendingTasks.push(() => step(nx, ny, rad2, counter + 1));
+        }
+      }
+    }
+
+    function initPlum() {
+      cancelAnimationFrame(rafId);
+      pendingTasks = [];
+      resize();
+      ctx.clearRect(0, 0, width, height);
+
+      // 从四周边缘随机种子萌发
+      // 左侧向右
+      for (let i = 0; i < 3; i++) {
+        const y = random(0, height);
+        pendingTasks.push(() => step(0, y, random(-0.4, 0.4), 0));
+      }
+      // 右侧向左
+      for (let i = 0; i < 3; i++) {
+        const y = random(0, height);
+        pendingTasks.push(() => step(width, y, Math.PI + random(-0.4, 0.4), 0));
+      }
+      // 顶部向下
+      for (let i = 0; i < 2; i++) {
+        const x = random(0, width);
+        pendingTasks.push(() => step(x, 0, Math.PI / 2 + random(-0.4, 0.4), 0));
+      }
+      // 底部向上
+      for (let i = 0; i < 2; i++) {
+        const x = random(0, width);
+        pendingTasks.push(() => step(x, height, -Math.PI / 2 + random(-0.4, 0.4), 0));
+      }
+
+      function loop() {
+        const batch = Math.min(18, pendingTasks.length);
+        for (let i = 0; i < batch; i++) {
+          const fn = pendingTasks.shift();
+          if (fn) fn();
+        }
+        if (pendingTasks.length > 0) {
+          rafId = requestAnimationFrame(loop);
+        }
+      }
+      loop();
+    }
+
+    initPlum();
+    window.addEventListener('resize', initPlum);
+    document.getElementById('plum-redraw').addEventListener('click', initPlum);
+
+    // 点击页面任意处生长一枝
+    window.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('a, button, input, .garden-card')) return;
+      for (let i = 0; i < 3; i++) {
+        const rad = random(0, Math.PI * 2);
+        pendingTasks.push(() => step(e.clientX, e.clientY, rad, 0));
+      }
+      if (pendingTasks.length <= 3) {
+        function loop() {
+          const fn = pendingTasks.shift();
+          if (fn) fn();
+          if (pendingTasks.length > 0) requestAnimationFrame(loop);
+        }
+        loop();
+      }
+    });
+
+    // 音乐播放
+    const audio = document.getElementById('demo-audio');
+    const playBtn = document.getElementById('play-btn');
+    const musicText = document.getElementById('music-text');
+    playBtn.addEventListener('click', () => {
+      if (audio.paused) {
+        audio.play().then(() => {
+          musicText.innerText = '⏸ 暂停伴读纯音乐';
+        }).catch(() => {});
+      } else {
+        audio.pause();
+        musicText.innerText = '♫ 播放伴读纯音乐';
+      }
+    });
+  </script>
+</body>
+</html>

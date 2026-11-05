@@ -5,7 +5,7 @@ date: 2026-09-30
 readTime: 8 分钟
 category: 刷机
 cover: "assets/images/covers/cover-flashing.svg"
-summary: 改完分区开不了机，问题通常不在分区写错，在于校验没过。记录 Android 13 的 init_boot 拆分与 AVB 2.0 校验顺序、现代设备的四种锁态分类，以及 A/B 槽位下保留锁态 OTA 升级的完整底层闭环。
+summary: 改完分区开不了机，问题通常不在分区写错，在于校验没过。记录 Android 13 的 init_boot 拆分与 AVB 2.0 校验顺序、现代设备的四种锁态分类，以及 A/B 槽位下保留锁态 OTA 升级的实操链路与验证方案。
 tags: [刷机, AVB, init_boot, 分区, 9008, 假回锁, OTA]
 ---
 
@@ -38,7 +38,7 @@ tags: [刷机, AVB, init_boot, 分区, 9008, 假回锁, OTA]
 3. **假回锁设备（Fake Lock）**：像荣耀等彻底关闭官方 BL 解锁通道的高通平台机型。依靠底层高通漏洞临时提权后，在引导链极早期（早于系统和 TEE 读取并固化锁状态前）植入内存 payload（如 hnubl、gbl_root_canoe、efisp 补丁），改写内存中的锁标志为 `locked & green`。系统与硬件 TEE 误以为依然处于原厂锁定状态，同时正常加载修补过的内核。
 4. **免解设备**：仅靠用户态或内核运行时提权（通常伴随 SELinux permissive），重启即失效，无法持久。
 
-#### A/B 槽位与保留锁态 OTA 的底层闭环
+#### A/B 槽位与保留锁态 OTA 的升级链路
 
 在假回锁体系下，最危险的动作莫过于系统在线更新（OTA）。
 

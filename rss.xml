@@ -13,7 +13,7 @@
       <guid isPermaLink="false">local-video-reading-pipeline</guid>
       <pubDate>Sun, 18 Oct 2026 00:00:00 GMT</pubDate>
       <category>架构设计</category>
-      <description>长视频全量多模态推理面临显著的算力冗余与显存瓶颈。记录一套纯本地端侧流水线：基于 PySceneDetect 的镜头边界检测、faster-whisper 离线语音转写、端侧 Qwen2.5-VL 关键帧语义提取与向量检索对齐。</description>
+      <description>针对长视频多模态处理的高显存开销与时序冗余问题，记录一套纯本地处理流水线：利用 PySceneDetect 进行镜头转场切分、faster-whisper 离线转写语音、端侧 Qwen2.5-VL 提取关键帧语义并完成向量对齐。</description>
     </item>
     <item>
       <title>像素叙事游戏开发手记：从引擎选型到工程化落地</title>
@@ -28,7 +28,7 @@
       <link>https://7stevejohn.github.io/?post=prompt-optimizer-engine</link>
       <guid isPermaLink="false">prompt-optimizer-engine</guid>
       <pubDate>Thu, 15 Oct 2026 00:00:00 GMT</pubDate>
-      <category>技术手记</category>
+      <category>前端工程</category>
       <description>提示词的结构性缺陷无需依赖大模型二次推理。记录一套零依赖、纯本地单页的 JavaScript 规则诊断引擎：涵盖 10 项结构要素排查、6 组互斥矛盾识别、格式清洗与两级安全修复机制。</description>
     </item>
     <item>
@@ -69,7 +69,7 @@
       <guid isPermaLink="false">flash-vbmeta-trust-chain</guid>
       <pubDate>Wed, 30 Sep 2026 00:00:00 GMT</pubDate>
       <category>刷机</category>
-      <description>改完分区开不了机，问题通常不在分区写错，在于校验没过。记录 Android 13 的 init_boot 拆分与 AVB 2.0 校验顺序、现代设备的四种锁态分类，以及 A/B 槽位下保留锁态 OTA 升级的完整底层闭环。</description>
+      <description>改完分区开不了机，问题通常不在分区写错，在于校验没过。记录 Android 13 的 init_boot 拆分与 AVB 2.0 校验顺序、现代设备的四种锁态分类，以及 A/B 槽位下保留锁态 OTA 升级的实操链路与验证方案。</description>
     </item>
     <item>
       <title>root 藏不住的原因：三层隐藏各管哪一段</title>

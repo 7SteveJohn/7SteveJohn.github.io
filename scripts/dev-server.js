@@ -27,7 +27,7 @@ http.createServer((req, res) => {
       fs.createReadStream(abs).pipe(res);
     }
   });
-}).listen(8328, '127.0.0.1', () => {
+}).listen(8328, () => {
   console.log('node static server (Range OK) on http://localhost:8328');
   // 首屏脚本已合并成 bundle（2026-10-17）：启动时提醒一次是否过期，只提示不自动写（避免静默改工作区）
   const { spawnSync } = require('child_process');
