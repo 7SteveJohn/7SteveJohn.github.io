@@ -1,17 +1,18 @@
-// build-bundles: {"name":"sub","version":"3b977406f0c5","sources":[{"path":"js/subpage.js","sha256":"d6fbfc63cc630d93d667d0a601ab54f64e42487817816f686e34022e17b4f260"}]}
+// build-bundles: {"name":"sub","version":"090afde9ec29","sources":[{"path":"js/subpage.js","sha256":"de9c0116332a8fbabce56c99f683326ead8807c182b1991c6fd873c490ea61c5"}]}
 /* 次级页共用：外壳（SW 注册 / 滚动态 / 浮现）
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/subpage.js */
 
-// ---- js/subpage.js (d6fbfc63cc63) ----
+// ---- js/subpage.js (de9c0116332a) ----
 /**
  * 次级页面（archive.html / gallery.html）共用的小脚本
  * ----------------------------------------------------
- * 只做四件首页 app.js 顺手做了、次级页也得有的事：
+ * 只做五件首页 app.js 顺手做了、次级页也得有的事：
  *   1. Service Worker 注册（同样只认 HTTPS / localhost，file:// 静默跳过）
  *   2. 吸顶导航滚动状态（header.site-header 的 is-scrolled / is-scrolling）
  *   3. 页脚年份
  *   4. 通用滚动浮现（.reveal → .is-visible，与首页同一套 CSS）
+ *   5. 主题切换与持久化（#theme-toggle，支持 View Transitions 圆形扩散）
  * 不引 lucide（次级页图标一律内联 SVG），不引 three，保持次级页轻量。
  */
 (function () {
@@ -74,5 +75,43 @@
   };
 
   window.pageReveal();
+
+  // 5. 主题切换（与首页保持完全一致：持久化、View Transitions 平滑圆形扩散）
+  function initTheme() {
+    const btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+
+    btn.addEventListener('click', (e) => {
+      const applyNow = () => {
+        const isDark = document.documentElement.classList.toggle('dark');
+        try {
+          localStorage.setItem('sj.theme', isDark ? 'dark' : 'light');
+        } catch (_) {}
+      };
+
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (document.startViewTransition && !reduce) {
+        const rect = (e && e.currentTarget ? e.currentTarget : btn).getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+        const r = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+        const vt = document.startViewTransition(applyNow);
+        vt.ready.then(() => {
+          document.documentElement.animate(
+            { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
+            { duration: 480, easing: 'cubic-bezier(0.32, 0.72, 0, 1)', pseudoElement: '::view-transition-new(root)' }
+          );
+        }).catch(() => {});
+      } else {
+        applyNow();
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTheme);
+  } else {
+    initTheme();
+  }
 })();
 

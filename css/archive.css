@@ -4,7 +4,7 @@
    桌面（≥900px）：卡片由 js/archive.js 绝对定位挂在正弦曲线两侧，
    曲线本体是一张 SVG（坐标与卡片同像素空间）；
    窄屏（<900px）：退化为单列 + 左侧竖线，SVG/节点/年份标全部隐藏。
-   配色只取站点既有令牌（星光蓝 #8FB8FF / 暗底 #030712 / 次要字 #86868b）。
+   完美适配明暗双模式与 Linear / Apple 高质感微光反馈。
    ============================================================ */
 
 #archive-wave {
@@ -12,7 +12,7 @@
   margin-top: 0.5rem;
 }
 
-/* 分类筛选胶囊（.chips / .arc-chip）已挪到 css/style.css —— 链接页也要用同一套 */
+/* 分类筛选胶囊（.chips / .arc-chip）在 css/style.css 维护通用样式 */
 
 #archive-list {
   position: relative;
@@ -33,16 +33,23 @@
 
 .wave-line {
   fill: none;
-  stroke: rgba(143, 184, 255, 0.16);
+  stroke: rgba(2, 132, 199, 0.22);
   stroke-width: 1.5;
+}
+.dark .wave-line {
+  stroke: rgba(143, 184, 255, 0.16);
 }
 
 .wave-progress {
   fill: none;
-  stroke: rgba(143, 184, 255, 0.6);
+  stroke: #0284c7;
   stroke-width: 1.5;
-  filter: drop-shadow(0 0 6px rgba(143, 184, 255, 0.35));
+  filter: drop-shadow(0 0 6px rgba(2, 132, 199, 0.35));
   transition: stroke-dashoffset 0.15s linear;
+}
+.dark .wave-progress {
+  stroke: rgba(143, 184, 255, 0.6);
+  filter: drop-shadow(0 0 6px rgba(143, 184, 255, 0.35));
 }
 
 /* 节点：每个卡片在曲线上的锚点 */
@@ -51,10 +58,14 @@
   width: 7px;
   height: 7px;
   border-radius: 9999px;
-  background: #8fb8ff;
-  box-shadow: 0 0 0 4px rgba(143, 184, 255, 0.12), 0 0 12px rgba(143, 184, 255, 0.5);
+  background: #0284c7;
+  box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.14), 0 0 10px rgba(2, 132, 199, 0.4);
   transform: translate(-50%, -50%);
   z-index: 1;
+}
+.dark .wave-node {
+  background: #8fb8ff;
+  box-shadow: 0 0 0 4px rgba(143, 184, 255, 0.12), 0 0 12px rgba(143, 184, 255, 0.5);
 }
 
 /* 年份标：只在该年第一张卡片旁出现一次 */
@@ -63,33 +74,52 @@
   font-family: ui-monospace, Consolas, "Courier New", monospace;
   font-size: 11px;
   letter-spacing: 0.12em;
-  color: rgba(158, 176, 202, 0.72);
-  background: rgba(3, 7, 18, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  font-weight: 600;
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
   border-radius: 9999px;
-  padding: 1px 7px;
+  padding: 1px 8px;
   white-space: nowrap;
   z-index: 2;
 }
+.wave-year:empty {
+  display: none !important;
+}
+}
+.dark .wave-year {
+  color: rgba(158, 176, 202, 0.72);
+  background: rgba(3, 7, 18, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: none;
+}
 
-/* 卡片：位置由 JS 写 top/left/width，这里只管外观与悬停 */
+/* 卡片：位置由 JS 写 top/left/width，配合 .bento-card 与 .glass-spec 实现高级质感 */
 .arc-card {
   position: relative;
   z-index: 2;
   display: block;
-  padding: 1.05rem 1.15rem;
+  padding: 1.1rem 1.25rem;
   color: inherit;
   text-decoration: none;
-  transition: transform 0.25s var(--ease-swift), border-color 0.2s ease, box-shadow 0.25s var(--ease-swift);
+  transition: transform 0.28s var(--ease-swift), border-color 0.2s ease, box-shadow 0.28s var(--ease-swift);
 }
 .arc-card:hover {
-  transform: translateY(-3px);
-  border-color: rgba(143, 184, 255, 0.38);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+  transform: translateY(-4px);
+  border-color: rgba(2, 132, 199, 0.4);
+  box-shadow: 0 16px 36px -8px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(2, 132, 199, 0.25);
+}
+.dark .arc-card:hover {
+  border-color: rgba(56, 189, 248, 0.45);
+  box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(56, 189, 248, 0.25);
 }
 .arc-card:focus-visible {
-  outline: 2px solid rgba(143, 184, 255, 0.7);
+  outline: 2px solid #0284c7;
   outline-offset: 3px;
+}
+.dark .arc-card:focus-visible {
+  outline: 2px solid rgba(56, 189, 248, 0.7);
 }
 
 .arc-meta {
@@ -97,25 +127,45 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 11px;
-  color: #86868b;
+  color: #64748b;
   font-variant-numeric: tabular-nums;
+}
+.dark .arc-meta {
+  color: #86868b;
 }
 
 .arc-pill {
   padding: 2px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(2, 132, 199, 0.22);
   border-radius: 6px;
-  color: #f5f5f7;
+  background: rgba(2, 132, 199, 0.08);
+  color: #0284c7;
   font-size: 11px;
+  font-weight: 600;
+}
+.dark .arc-pill {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f8fafc;
   font-weight: 500;
 }
 
 .arc-title {
   margin: 0.55rem 0 0.4rem;
-  font-size: 15px;
+  font-size: 15.5px;
   font-weight: 600;
   line-height: 1.45;
-  color: #f5f5f7;
+  color: #0f172a;
+  transition: color 0.2s ease;
+}
+.dark .arc-title {
+  color: #f8fafc;
+}
+.arc-card:hover .arc-title {
+  color: #0284c7;
+}
+.dark .arc-card:hover .arc-title {
+  color: #38bdf8;
 }
 
 .arc-sum {
@@ -125,7 +175,10 @@
   overflow: hidden;
   font-size: 12.5px;
   line-height: 1.7;
-  color: #86868b;
+  color: #475569;
+}
+.dark .arc-sum {
+  color: #94a3b8;
 }
 
 .arc-tags {
@@ -136,12 +189,18 @@
   font-family: ui-monospace, Consolas, "Courier New", monospace;
   font-size: 10.5px;
   letter-spacing: 0.02em;
+  color: #64748b;
+}
+.dark .arc-tags {
   color: rgba(158, 176, 202, 0.6);
 }
 
 .arc-empty {
   padding: 1.4rem 0 0.4rem;
   font-size: 13px;
+  color: #64748b;
+}
+.dark .arc-empty {
   color: #86868b;
 }
 
@@ -165,7 +224,7 @@
     top: 8px;
     bottom: 8px;
     width: 1px;
-    background: linear-gradient(rgba(143, 184, 255, 0.4), rgba(143, 184, 255, 0.04));
+    background: linear-gradient(rgba(2, 132, 199, 0.45), rgba(2, 132, 199, 0.05));
   }
   .arc-item::before {
     content: "";
@@ -175,6 +234,13 @@
     width: 7px;
     height: 7px;
     border-radius: 9999px;
+    background: #0284c7;
+    box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.15);
+  }
+  .dark #archive-list::before {
+    background: linear-gradient(rgba(143, 184, 255, 0.4), rgba(143, 184, 255, 0.04));
+  }
+  .dark .arc-item::before {
     background: #8fb8ff;
     box-shadow: 0 0 0 4px rgba(143, 184, 255, 0.12);
   }

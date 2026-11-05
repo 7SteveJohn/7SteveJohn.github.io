@@ -2978,32 +2978,62 @@ html body #waifu-tips span {
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
+  color: #0284c7;
+}
+.dark .page-eyebrow {
   color: rgba(158, 176, 202, 0.55);
 }
 .page-title {
   margin: 0.5rem 0;
-  font-size: 30px;
+  font-size: 32px;
   line-height: 1.2;
   font-weight: 700;
-  letter-spacing: -0.01em;
-  color: #f5f5f7;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+.dark .page-title {
+  color: #f8fafc;
 }
 .page-sub {
   max-width: 46rem;
-  font-size: 13px;
-  line-height: 1.75;
-  color: #86868b;
+  font-size: 13.5px;
+  line-height: 1.8;
+  color: #475569;
+}
+.dark .page-sub {
+  color: #94a3b8;
 }
 .page-sub b,
 .page-sub strong {
-  color: #c2d96b;
+  color: #0284c7;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
-/* 次级页导航里的当前页 */
+.dark .page-sub b,
+.dark .page-sub strong {
+  color: #c2d96b;
+}
+/* 次级页导航里的当前页高亮 */
 .subpage-nav-active {
-  color: #f5f5f7;
+  position: relative;
+  color: #0f172a;
   font-weight: 600;
+}
+.dark .subpage-nav-active {
+  color: #f8fafc;
+}
+.subpage-nav-active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 2px;
+  border-radius: 9999px;
+  background: #0284c7;
+}
+.dark .subpage-nav-active::after {
+  background: #38bdf8;
 }
 
 /* Markdown 渲染器按需加载时的占位（打开文章/章节的一瞬间） */
@@ -3017,12 +3047,16 @@ html body #waifu-tips span {
 /* 空态（链接页的友链/收藏、连载页的书架共用） */
 .empty-state {
   padding: 1.2rem 1rem;
-  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border: 1px dashed rgba(15, 23, 42, 0.15);
   border-radius: 12px;
-  color: #86868b;
+  color: #64748b;
   font-size: 12.5px;
   line-height: 1.8;
   text-align: center;
+}
+.dark .empty-state {
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #86868b;
 }
 .empty-state[hidden] {
   display: none;
@@ -3030,8 +3064,11 @@ html body #waifu-tips span {
 .empty-state code {
   padding: 0.1em 0.35em;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(15, 23, 42, 0.06);
   font-size: 0.95em;
+}
+.dark .empty-state code {
+  background: rgba(255, 255, 255, 0.07);
 }
 
 /* 筛选胶囊（归档页的分类筛选、链接页的收藏分组共用） */
@@ -3042,25 +3079,52 @@ html body #waifu-tips span {
   margin: 1.5rem 0 1.9rem;
 }
 .arc-chip {
-  padding: 0.34rem 0.85rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.38rem 0.9rem;
+  border: 1px solid rgba(15, 23, 42, 0.1);
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.03);
-  color: #86868b;
+  background: rgba(255, 255, 255, 0.85);
+  color: #475569;
   font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
-  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .arc-chip:hover {
-  color: #f5f5f7;
-  border-color: rgba(255, 255, 255, 0.22);
+  color: #0f172a;
+  border-color: rgba(2, 132, 199, 0.35);
+  background: rgba(240, 249, 255, 0.85);
+  transform: translateY(-1px);
 }
 .arc-chip[aria-pressed="true"] {
+  color: #0284c7;
+  border-color: rgba(2, 132, 199, 0.55);
+  background: rgba(224, 242, 254, 0.85);
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.12);
+  font-weight: 600;
+}
+.arc-chip:focus-visible {
+  outline: 2px solid #0284c7;
+  outline-offset: 2px;
+}
+.dark .arc-chip {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  color: #94a3b8;
+  box-shadow: none;
+}
+.dark .arc-chip:hover {
+  color: #f8fafc;
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+}
+.dark .arc-chip[aria-pressed="true"] {
   color: #c2d96b;
   border-color: rgba(194, 217, 107, 0.55);
   background: rgba(194, 217, 107, 0.1);
+  box-shadow: 0 0 12px rgba(194, 217, 107, 0.15);
 }
-.arc-chip:focus-visible {
+.dark .arc-chip:focus-visible {
   outline: 2px solid rgba(194, 217, 107, 0.7);
   outline-offset: 2px;
 }
