@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"0e9708dba3e7","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"863b7bacb628a504496c177b5e568a84dd00ddb9fb66a636169812754bef0858"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"32ec3c5750c0a4776a452b597b91d89beaeba399354408cb02985c1428b54d21"}]}
+// build-bundles: {"name":"home","version":"8fc1df4aced0","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"31d9c9810bbabb6793f20e7c04cae9d53f70fe848470307f52343578b14b60e0"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"32ec3c5750c0a4776a452b597b91d89beaeba399354408cb02985c1428b54d21"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -380,7 +380,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (863b7bacb628) ----
+// ---- js/app.js (31d9c9810bba) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -549,25 +549,26 @@ function buildProjectFacts(project, hookOnly) {
     .join('');
 }
 
-// 更新公告：桌面贴在卡片右上侧，窄屏收成一行；没填 announcement 就不渲染
+// 更新公告：精炼胶囊指示条，嵌入产品卡左栏（完整版在详情弹窗）
 function buildAnnouncement(project) {
   const a = project.announcement;
   if (!a || !Array.isArray(a.items) || !a.items.length) return '';
-  const ver = a.version ? `<span class="announce-ver">${escapeHtml(a.version)}</span>` : '';
-  const items = a.items.map(t => `<li>${escapeHtml(t)}</li>`).join('');
-  const date = a.date ? `<div class="announce-date">${escapeHtml(a.date)}</div>` : '';
-  const line = ['更新', a.version, a.summary || a.items.join(' / ')].filter(Boolean).map(escapeHtml).join(' · ');
+  const ver = a.version ? `<span class="announce-ver font-mono">${escapeHtml(a.version)}</span>` : '';
+  const line = [ver, a.summary || a.items.join(' / ')].filter(Boolean).join(' · ');
   const more = Array.isArray(project.changelog) && project.changelog.length
-    ? `<button class="announce-more" data-open-project="${escapeHtml(project.id)}" data-open-changelog>全部 ${project.changelog.length} 个版本 →</button>`
+    ? `<button class="announce-more hover:underline cursor-pointer text-sky-600 dark:text-sky-400 ml-1.5" data-open-project="${escapeHtml(project.id)}" data-open-changelog>全部 ${project.changelog.length} 个版本 →</button>`
     : '';
   return `
-    <div class="announce-card">
+    <div class="announce-card" aria-hidden="true">
       <div class="announce-top"><span class="announce-label">更新公告</span>${ver}</div>
-      <ul class="announce-items">${items}</ul>
-      ${date}
-      ${more}
+      <ul class="announce-items">${a.items.map(t => `<li>${escapeHtml(t)}</li>`).join('')}</ul>
+      ${a.date ? `<div class="announce-date">${escapeHtml(a.date)}</div>` : ''}
     </div>
-    <p class="announce-line"><span class="announce-dot" aria-hidden="true"></span><span class="announce-line-text">${line}</span></p>`;
+    <div class="announce-line" role="note" aria-label="最新版本公告">
+      <span class="announce-dot" aria-hidden="true"></span>
+      <span class="announce-line-text">${line}</span>
+      ${more}
+    </div>`;
 }
 
 // 更新记录（全部版本）：来自 projects.js 的 changelog，弹窗里折叠展示
@@ -619,7 +620,12 @@ function hydrateProductLinks() {
       aside.className = 'card-announce';
       aside.setAttribute('aria-label', '更新公告');
       aside.innerHTML = announceHtml;
-      card.firstElementChild.appendChild(aside);
+      const titleEl = card.firstElementChild.querySelector('h3');
+      if (titleEl) {
+        titleEl.insertAdjacentElement('afterend', aside);
+      } else {
+        card.firstElementChild.appendChild(aside);
+      }
       card.classList.add('has-announce');
     }
   });
@@ -1129,7 +1135,7 @@ function initHeroIndex() {
       const root = document.documentElement;
       const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       root.classList.add('no-snap');
-      card.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+      card.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
       setTimeout(() => root.classList.remove('no-snap'), 900);
     }
   }
@@ -2042,12 +2048,15 @@ function initProjectSnap() {
   if (cards.length < 2) return;
 
   const root = document.documentElement;
-  const mq = window.matchMedia('(min-width: 640px) and (min-height: 760px) and (prefers-reduced-motion: no-preference)');
-  const HEADER = 64;   // 吸顶导航高度：翻页后卡片顶边落在导航下方
-  // 每次现算（6 个 rect）：卡片是一屏高，行距只随窗口尺寸变，不需要缓存
+  const mq = window.matchMedia('(min-width: 640px) and (min-height: 700px) and (prefers-reduced-motion: no-preference)');
+  // 每次现算（6 个 rect）：垂直居中对齐卡片，与 3D 神经网络球心自然对称
   const tops = () => {
     const y = window.scrollY;
-    return cards.map((c) => c.getBoundingClientRect().top + y - HEADER);
+    const vh = window.innerHeight;
+    return cards.map((c) => {
+      const offset = Math.max(64, Math.round((vh - c.offsetHeight) / 2));
+      return c.getBoundingClientRect().top + y - offset;
+    });
   };
 
   // ---- 到头逃生口：摘掉吸附 + 主动滚出一段（两保险）----
