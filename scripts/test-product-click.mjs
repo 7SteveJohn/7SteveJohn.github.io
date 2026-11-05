@@ -7,73 +7,59 @@ async function main() {
     headless: true
   });
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-  
-  page.on('console', msg => console.log('PAGE LOG:', msg.text()));
-  page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
 
   await page.goto('http://localhost:8328/', { waitUntil: 'networkidle' });
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(800);
 
-  // Check product tabs bar
-  const tabs = await page.$$('.product-tab-btn');
-  console.log('Product tab buttons count:', tabs.length);
+  // 1. Check Hero Index layout (Single clean row, no line wrap)
+  const hiNav = await page.$('.hero-index');
+  const hiRows = await page.$$('.hero-index .hi-row');
+  console.log('Hero index items count:', hiRows.length);
 
-  // Check product cards
+  // Click second item (paian)
+  if (hiRows[1]) {
+    await hiRows[1].click();
+    await page.waitForTimeout(800);
+  }
+
+  // Scroll back to hero to take screenshot of hero index active state
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: 'docs/screenshots/hero-index-clean.png' });
+  console.log('Saved hero-index-clean.png');
+
+  // 2. Check Product Card (FileButler) - verify no Apple traffic lights
+  const trafficDots = await page.$$('.traffic-lights, .window-header');
+  console.log('Apple window header & traffic lights count (should be 0):', trafficDots.length);
+
+  // Scroll to FileButler card
   const cards = await page.$$('#products article[data-project-id]');
-  console.log('Product cards count:', cards.length);
-
-  // Check window headers and traffic lights
-  const headers = await page.$$('.window-header');
-  console.log('Window headers count:', headers.length);
-
-  // Test clicking tab 2 (paian)
-  if (tabs[1]) {
-    console.log('Clicking paian tab...');
-    await tabs[1].click();
-    await page.waitForTimeout(800);
-    
-    const cardSelectedClasses = await page.$$eval('#products article[data-project-id]', els => 
-      els.map(el => ({ id: el.dataset.projectId, classes: el.className }))
-    );
-    console.log('Cards after tab click:', JSON.stringify(cardSelectedClasses, null, 2));
-
-    await page.screenshot({ path: 'docs/screenshots/product-tabs-light.png' });
-  }
-
-  // Test mousemove 3D tilt on card 1 (filebutler)
   if (cards[0]) {
-    console.log('Simulating mousemove 3D tilt on first card...');
-    const box = await cards[0].boundingBox();
-    if (box) {
-      await page.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.2);
-      await page.waitForTimeout(300);
-      const transform = await cards[0].evaluate(el => el.style.transform);
-      console.log('Card transform during mousemove:', transform);
-    }
+    await cards[0].scrollIntoViewIfNeeded();
+    await cards[0].hover();
+    await page.waitForTimeout(500);
+    await page.screenshot({ path: 'docs/screenshots/card-clean-floating.png' });
+    console.log('Saved card-clean-floating.png');
   }
 
-  // Switch to dark mode
-  console.log('Toggling to dark mode...');
-  await page.evaluate(() => {
-    document.documentElement.classList.add('dark');
-  });
-  await page.waitForTimeout(500);
-
-  // Click tab 4 (fluxion) in dark mode
-  if (tabs[3]) {
-    console.log('Clicking fluxion tab in dark mode...');
-    await tabs[3].click();
-    await page.waitForTimeout(800);
-    await page.screenshot({ path: 'docs/screenshots/product-tabs-dark.png' });
+  // 3. Open changelog modal (FileButler "全部 11 个版本 →")
+  const moreBtn = await page.$('article[data-project-id="filebutler"] button[data-open-changelog]');
+  if (moreBtn) {
+    console.log('Clicking changelog button...');
+    await moreBtn.click();
+    await page.waitForTimeout(600);
+    await page.screenshot({ path: 'docs/screenshots/modal-clean-changelog.png' });
+    console.log('Saved modal-clean-changelog.png');
   }
 
-  // Test mobile view
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.waitForTimeout(500);
-  await page.screenshot({ path: 'docs/screenshots/product-tabs-mobile.png' });
+  // Also test in dark mode
+  await page.evaluate(() => document.documentElement.classList.add('dark'));
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: 'docs/screenshots/modal-clean-changelog-dark.png' });
+  console.log('Saved modal-clean-changelog-dark.png');
 
   await browser.close();
-  console.log('All tests completed successfully!');
+  console.log('All tests passed successfully!');
 }
 
 main().catch(console.error);

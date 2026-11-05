@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"a3c721f34d6f","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"8c3c97fe53e41006450bd2a4c4c72e452085097ff0ef713b3b8ec6a6a000f2a6"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"87756b981b00bec7b9110fdf82f29aa72601363a37a1505073f736474aae6335"}]}
+// build-bundles: {"name":"home","version":"19b49228d5fb","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"444a4355fa647df70243b0c666389007b67133ab3f4835dfcb171e6af3297b46"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"87756b981b00bec7b9110fdf82f29aa72601363a37a1505073f736474aae6335"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -380,7 +380,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (8c3c97fe53e4) ----
+// ---- js/app.js (444a4355fa64) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -1111,16 +1111,12 @@ function initHeroStatus() {
   el.classList.remove('hidden');
 }
 
-// 首屏作品索引与视窗切换器（2026-11-06）：
-// 融合 demo-linear-apple 与 demo-flagship 的核心动效：
-// 1. 拟真 macOS 硬件视窗与交通灯控制
-// 2. Linear / Apple 分段产品切换栏（.product-tabs-bar）双向联动
-// 3. 3D 景深物理微倾斜（perspective + rotateX/Y）
-// 4. 自然滚动与点击聚焦的呼吸发光涟漪（card-selected）
+// 首屏作品索引与卡片悬浮聚焦（2026-11-06）：
+// 1. 首屏对称药丸索引（.hero-index .hi-row）极简悬浮与高亮联动
+// 2. 旗舰卡片真·悬浮状态（translateY(-8px) + 景深羽化投影 + 3D 物理微倾斜）
+// 3. 页面自然滚动黄金视口监听（IntersectionObserver）
 function initHeroIndex() {
   const nav = document.querySelector('#home .hero-index');
-  const tabsBar = document.querySelector('.product-tabs-bar');
-  const tabBtns = document.querySelectorAll('.product-tab-btn');
   const productCards = document.querySelectorAll('#products article[data-project-id]');
 
   if (!productCards.length) return;
@@ -1136,17 +1132,11 @@ function initHeroIndex() {
       });
     }
 
-    // 2. 同步浮动产品选项卡（Linear 选项卡）
-    tabBtns.forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.productTab === projectId);
-    });
-
-    // 3. 触发旗舰级卡片选中与呼吸能量涟漪脉冲动效
+    // 2. 触发旗舰级卡片真·悬浮聚焦状态
     productCards.forEach(c => c.classList.remove('card-selected'));
-    void card.offsetWidth;
     card.classList.add('card-selected');
 
-    // 4. 平滑居中入屏
+    // 3. 平滑居中入屏
     if (smoothScroll) {
       const root = document.documentElement;
       const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1168,38 +1158,25 @@ function initHeroIndex() {
     });
   }
 
-  // 浮动分段选项卡点击 (Linear 选项卡)
-  tabBtns.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const pid = btn.dataset.productTab;
-      if (pid) {
-        selectProductCard(pid, true);
-        history.pushState(null, '', '#products');
-      }
-    });
-  });
-
-  // 点击卡片本身触发聚焦状态
+  // 点击卡片本身触发悬浮聚焦状态
   productCards.forEach(card => {
     card.addEventListener('click', (e) => {
-      if (e.target.closest('a, button, video, input, select, textarea, .traffic-dot')) return;
+      if (e.target.closest('a, button, video, input, select, textarea')) return;
       const pid = card.getAttribute('data-project-id');
       if (pid) selectProductCard(pid, false);
     });
   });
 
-  // 鼠标 3D 微倾斜交互 (Tilt effect, 源自 demo-linear-apple)
+  // 鼠标 3D 物理微倾斜悬浮交互 (Tilt effect, 源自 demo-linear-apple)
   if (window.matchMedia('(pointer: fine)').matches && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     productCards.forEach(card => {
       card.addEventListener('mousemove', e => {
         const rect = card.getBoundingClientRect();
         const x = e.clientX - rect.left - rect.width / 2;
         const y = e.clientY - rect.top - rect.height / 2;
-        const rotX = (y / (rect.height / 2)) * -3.5;
-        const rotY = (x / (rect.width / 2)) * 3.5;
-        card.style.transform = `perspective(1000px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) translateY(-4px)`;
+        const rotX = (y / (rect.height / 2)) * -3;
+        const rotY = (x / (rect.width / 2)) * 3;
+        card.style.transform = `perspective(1000px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) translateY(-8px)`;
       });
       card.addEventListener('mouseleave', () => {
         card.style.transform = '';
@@ -1207,20 +1184,15 @@ function initHeroIndex() {
     });
   }
 
-  // 页面滚动时自动监听高亮对应的选项卡
+  // 页面滚动时自动监听高亮首屏对应的条目
   if ('IntersectionObserver' in window) {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           const pid = entry.target.getAttribute('data-project-id');
-          if (pid) {
-            if (nav) {
-              nav.querySelectorAll('[data-hi]').forEach(el => {
-                el.classList.toggle('active', el.dataset.hi === pid);
-              });
-            }
-            tabBtns.forEach(btn => {
-              btn.classList.toggle('active', btn.dataset.productTab === pid);
+          if (pid && nav) {
+            nav.querySelectorAll('[data-hi]').forEach(el => {
+              el.classList.toggle('active', el.dataset.hi === pid);
             });
           }
         }
