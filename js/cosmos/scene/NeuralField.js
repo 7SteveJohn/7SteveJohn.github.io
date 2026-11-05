@@ -511,10 +511,15 @@ export class NeuralField {
     this.kickPulse();
   }
 
-  updateEngine(sceneT, audio, interaction, dtMs) {
+  updateEngine(sceneT, audio, interaction, dtMs, pulse) {
     const mouseWorld = interaction && interaction.mouseWorld ? interaction.mouseWorld : new THREE.Vector3(1e9, 1e9, 0);
     const hasMouse = interaction ? interaction.hasMouse : false;
-    this.update(sceneT, audio || {}, mouseWorld, hasMouse, dtMs, this._beatPulse || 0);
+    const effectiveBeat = Math.max(
+      this._beatPulse || 0,
+      typeof pulse === 'number' ? pulse : 0,
+      audio && audio.beatEnv ? audio.beatEnv : 0
+    );
+    this.update(sceneT, audio || {}, mouseWorld, hasMouse, dtMs, effectiveBeat);
     if (this._beatPulse > 0.01) {
       this._beatPulse *= 0.9;
     } else {

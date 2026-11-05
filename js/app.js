@@ -1880,7 +1880,7 @@ function sanitizeMarkdownHtml(html) {
   let currentMode = 'cymatics';
   try {
     const saved = localStorage.getItem('sj.cosmos-mode');
-    if (saved === 'cymatics' || saved === 'aurora' || saved === 'monolith' || saved === 'chladni') {
+    if (saved === 'cymatics' || saved === 'neural' || saved === 'aurora' || saved === 'monolith' || saved === 'chladni' || saved === 'isolines') {
       currentMode = saved;
     } else {
       currentMode = 'cymatics';

@@ -19,25 +19,34 @@ export class BeatDetector {
     this._hist.push(e);
     if (this._hist.length > 48) this._hist.shift();
 
-    if (audio.beatEnv > 0.12) {
-      hit = audio.beatEnv;                    // 歌单已算好离散拍
+    if (audio.beatEnv > 0.05) {
+      hit = audio.beatEnv;                    // 歌单/视频已算好离散拍
     } else if (audio.playing && this._hist.length > 20) {
       const med = this._median(this._hist);
       let peak = 0;
       for (const v of this._hist) if (v > peak) peak = v;
       const gate = peak * 0.1;                // 噪声门：间奏/静音段不误触
-      if (e > gate && e > med * 1.35 && now - this._lastBeatAt > 280) {
+      if (e > gate && e > med * 1.30 && now - this._lastBeatAt > 240) {
         this._lastBeatAt = now;
-        hit = Math.min(1, Math.sqrt(e / (med + 1e-6)) * 0.8);   // 强度按超出倍数标定
+        hit = Math.min(1, Math.sqrt(e / (med + 1e-6)) * 0.85);   // 强度按超出倍数标定
       }
     }
     const dt = Math.min(dtMs, 100);
-    const k = hit > this.pulse ? attack : release;
+    // 击拍攻击快速响应（0.8），衰减平缓释放（0.12）
+    const k = hit > this.pulse ? 0.80 : 0.12;
     const prev = this.pulse;
     this.pulse += (hit - this.pulse) * Math.min(1, k * dt / 16.7);
     if (this.pulse < 0.001) this.pulse = 0;
-    this.justBeat = prev < 0.5 && this.pulse >= 0.5;
-    if (this.justBeat) this.beats++;
+
+    // 拍点判断：上穿 0.20 且距离上次有效拍点超过 220ms 即判定为有效击拍
+    const isRising = prev < 0.20 && this.pulse >= 0.20;
+    if (isRising && now - this._lastBeatAt > 220) {
+      this._lastBeatAt = now;
+      this.justBeat = true;
+      this.beats++;
+    } else {
+      this.justBeat = false;
+    }
     return this.pulse;
   }
   _median(arr) {

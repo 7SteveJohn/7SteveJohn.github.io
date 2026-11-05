@@ -55,7 +55,7 @@ function boot() {
     let currentMode = 'cymatics';
     try {
       const saved = localStorage.getItem('sj.cosmos-mode');
-      if (saved === 'cymatics' || saved === 'aurora' || saved === 'monolith' || saved === 'chladni') {
+      if (saved === 'cymatics' || saved === 'neural' || saved === 'aurora' || saved === 'monolith' || saved === 'chladni' || saved === 'isolines') {
         currentMode = saved;
       } else {
         currentMode = 'cymatics';
@@ -142,16 +142,16 @@ function boot() {
 
       if (beat.justBeat) {
         if (currentField && typeof currentField.onBeat === 'function') {
-          currentField.onBeat(beat.beats % 8 === 0 ? 1.0 : 0.6);
+          currentField.onBeat(beat.beats % 8 === 0 ? 1.0 : 0.75);
         }
         beat.justBeat = false;
       }
 
       if (currentField) {
         if (typeof currentField.updateEngine === 'function') {
-          currentField.updateEngine(sceneT, a, interaction, dtMs);
+          currentField.updateEngine(sceneT, a, interaction, dtMs, pulse);
         } else if (typeof currentField.update === 'function') {
-          currentField.update(sceneT, a, interaction, dtMs);
+          currentField.update(sceneT, a, interaction, dtMs, pulse);
         }
       }
 

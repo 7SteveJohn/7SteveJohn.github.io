@@ -111,7 +111,7 @@ export class AudioManager {
     } else {
       const B = window.__BEAT;
       if (B && (B.lv || B.level || B.mid || B.treble)) {
-        b = B.lv || 0;
+        b = Math.max(B.lv || 0, (B.level || 0) * 0.85);
         m = B.mid || 0;
         t = B.treble || 0;
         beat = B.level != null ? B.level : 0;   // 拍点必须用 level（离散拍包络）

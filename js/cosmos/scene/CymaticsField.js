@@ -263,22 +263,37 @@ export class CymaticsField {
     this.kickEnergy = 1.0;
   }
 
-  update(sceneT, audio, interaction, dtMs) {
+  update(sceneT, audio, interaction, dtMs, pulse) {
     const isDark = document.documentElement.classList.contains('dark');
     const dt = (dtMs || 16) * 0.001;
 
-    // 自适应明暗材质
-    this.ptMat.opacity = isDark ? 0.85 : 0.65;
+    // 0. 音频信号提取（离散鼓点 pulse + 连续低音能量 bass）
+    const B = (typeof window !== 'undefined' && window.__BEAT) ? window.__BEAT : null;
+    const beatPulse = Math.max(
+      typeof pulse === 'number' ? pulse : 0,
+      audio && audio.beatEnv ? audio.beatEnv : 0,
+      B && B.level != null ? B.level : 0,
+      this.kickEnergy * 0.6
+    );
+    const bass = (audio && audio.bass != null ? audio.bass : (B && B.lv ? B.lv : 0)) + this.kickEnergy * 0.4;
+    this.kickEnergy *= 0.90;
+
+    // 自适应明暗材质与节拍瞬态辉光
+    this.ptMat.opacity = (isDark ? 0.85 : 0.65) + beatPulse * 0.15;
     this.ptMat.blending = isDark ? THREE.AdditiveBlending : THREE.NormalBlending;
     this.cageMat.color.setHex(isDark ? 0x38bdf8 : 0x0284c7);
-    this.cageMat.opacity = isDark ? 0.30 : 0.18;
+    this.cageMat.opacity = (isDark ? 0.30 : 0.18) + beatPulse * 0.16;
     this.cageMat.blending = isDark ? THREE.AdditiveBlending : THREE.NormalBlending;
-    this.ring1Mat.opacity = isDark ? 0.75 : 0.52;
+    this.ring1Mat.opacity = (isDark ? 0.75 : 0.52) + beatPulse * 0.14;
     this.ring1Mat.blending = isDark ? THREE.AdditiveBlending : THREE.NormalBlending;
-    this.ring2Mat.opacity = isDark ? 0.65 : 0.42;
+    this.ring2Mat.opacity = (isDark ? 0.65 : 0.42) + beatPulse * 0.12;
     this.ring2Mat.blending = isDark ? THREE.AdditiveBlending : THREE.NormalBlending;
-    this.flankMat.opacity = isDark ? 0.70 : 0.45;
+    this.flankMat.opacity = (isDark ? 0.70 : 0.45) + beatPulse * 0.15;
     this.flankMat.blending = isDark ? THREE.AdditiveBlending : THREE.NormalBlending;
+
+    // 冲击波环材质自适应（浅色模式采用深天蓝 + 正常混合，杜绝白底隐形）
+    this.ringMat.blending = isDark ? THREE.AdditiveBlending : THREE.NormalBlending;
+    this.ringMat.color.setHex(isDark ? 0x38bdf8 : 0x0284c7);
 
     // 1. 鼠标视差微倾斜 + 平滑自转
     if (interaction && interaction.mouse) {
@@ -302,16 +317,14 @@ export class CymaticsField {
     this.orbitGroup.rotation.x = this.rotX * 0.6;
     this.orbitGroup.rotation.y = this.rotY * 0.6;
 
-    // 2. 音频驱动（低音脉冲与声学驻波）
-    const bass = (audio && audio.bass ? audio.bass : 0) + this.kickEnergy * 0.5;
-    this.kickEnergy *= 0.92;
-
-    // 晶格随低音脉动
-    const cageScale = 1.0 + bass * 0.14 + Math.sin(sceneT * 1.5) * 0.02;
+    // 2. 晶格随低音与重拍显著弹性脉动（动态外扩高达 +25%）
+    const cageScale = 1.0 + beatPulse * 0.25 + bass * 0.10 + Math.sin(sceneT * 1.5) * 0.02;
     this.cageMesh.scale.set(cageScale, cageScale, cageScale);
 
     // 斐波那契点阵偏微分驻波调制 (Spherical Harmonics 声学谐振)
     const pArr = this.geo.attributes.position.array;
+    const waveGain = 0.12 + beatPulse * 0.36 + bass * 0.16;
+    const sphereExpand = beatPulse * 0.12 + bass * 0.06;
     for (let i = 0; i < this.ptCount; i++) {
       const bx = this.basePos[i * 3];
       const by = this.basePos[i * 3 + 1];
@@ -321,31 +334,36 @@ export class CymaticsField {
                    Math.cos(by * 3.8 + sceneT * 1.2) *
                    Math.sin(bz * 3.8);
 
-      const rGain = 1.0 + wave * (0.12 + bass * 0.32);
+      const rGain = 1.0 + wave * waveGain + sphereExpand;
       pArr[i * 3] = bx * rGain;
       pArr[i * 3 + 1] = by * rGain;
       pArr[i * 3 + 2] = bz * rGain;
     }
     this.geo.attributes.position.needsUpdate = true;
 
-    // 3. 伴生两翼流动星尘沿偏微分微波轻柔呼吸起伏
+    // 3. 伴生两翼流动星尘沿偏微分微波轻柔呼吸起伏 + 强拍向两侧爆发
     const fArr = this.flankGeo.attributes.position.array;
     for (let i = 0; i < FLANK_COUNT; i++) {
       const bx = this.flankBasePos[i * 3];
       const by = this.flankBasePos[i * 3 + 1];
       const bz = this.flankBasePos[i * 3 + 2];
-      fArr[i * 3 + 1] = by + Math.sin(bx * 0.5 + sceneT * 0.8) * 0.22 + bass * 0.2;
-      fArr[i * 3] = bx + Math.cos(by * 0.4 + sceneT * 0.5) * 0.08;
+      fArr[i * 3 + 1] = by + Math.sin(bx * 0.5 + sceneT * 0.8) * 0.22 + beatPulse * 0.35 + bass * 0.12;
+      fArr[i * 3] = bx + Math.cos(by * 0.4 + sceneT * 0.5) * 0.08 + Math.sign(bx) * beatPulse * 0.15;
     }
     this.flankGeo.attributes.position.needsUpdate = true;
 
-    // 4. 冲击波扩散环动画
+    // 4. 强拍自动激发声学激波环
+    if (beatPulse > 0.38 && this.shockProgress === 0) {
+      this.shockProgress = 0.01;
+    }
+
+    // 冲击波扩散环动画
     if (this.shockProgress > 0) {
-      this.shockProgress += dt * 1.2;
-      const s = this.shockProgress * 3.4;
+      this.shockProgress += dt * 1.3;
+      const s = this.shockProgress * 3.6;
       this.shockRing.scale.set(s, s, s);
       const fade = Math.max(0, 1.0 - this.shockProgress / 1.5);
-      this.ringMat.opacity = fade * (isDark ? 0.6 : 0.35);
+      this.ringMat.opacity = fade * (isDark ? 0.75 : 0.55);
       if (this.shockProgress >= 1.5) {
         this.shockProgress = 0;
         this.ringMat.opacity = 0;

@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"8484d2b4f47e","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"4d8c7143da695d0febceee50bbc4c44df53413bde6371faabe7a11718a17d724"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"945a163eb14416d49a72f93e4808b361a20d497b8a268546fb67556dfd22dfc9"}]}
+// build-bundles: {"name":"home","version":"eecedbd157ce","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"6f8dbe7be1069c0de77447adf8fb33a2e081ead371be76babdc5a4f11c812c12"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"945a163eb14416d49a72f93e4808b361a20d497b8a268546fb67556dfd22dfc9"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -380,7 +380,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (4d8c7143da69) ----
+// ---- js/app.js (6f8dbe7be106) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -2263,7 +2263,7 @@ function sanitizeMarkdownHtml(html) {
   let currentMode = 'cymatics';
   try {
     const saved = localStorage.getItem('sj.cosmos-mode');
-    if (saved === 'cymatics' || saved === 'aurora' || saved === 'monolith' || saved === 'chladni') {
+    if (saved === 'cymatics' || saved === 'neural' || saved === 'aurora' || saved === 'monolith' || saved === 'chladni' || saved === 'isolines') {
       currentMode = saved;
     } else {
       currentMode = 'cymatics';
