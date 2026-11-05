@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"eecedbd157ce","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"6f8dbe7be1069c0de77447adf8fb33a2e081ead371be76babdc5a4f11c812c12"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"945a163eb14416d49a72f93e4808b361a20d497b8a268546fb67556dfd22dfc9"}]}
+// build-bundles: {"name":"home","version":"283fc9f882a3","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"6f8dbe7be1069c0de77447adf8fb33a2e081ead371be76babdc5a4f11c812c12"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"87756b981b00bec7b9110fdf82f29aa72601363a37a1505073f736474aae6335"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -2401,7 +2401,7 @@ function sanitizeMarkdownHtml(html) {
 
 ;
 
-// ---- js/player.js (945a163eb144) ----
+// ---- js/player.js (87756b981b00) ----
 /**
  * 右下角悬浮背景音乐播放器
  * ----------------------------------------------------
@@ -2677,6 +2677,9 @@ function sanitizeMarkdownHtml(html) {
     titleEl.textContent = SONGS[current].title;
     renderList();
     renderMediaSession();
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: 'prefetch-media', url: SONGS[current].src });
+    }
     if (autoplay) {
       audio.play().catch(() => { /* 用户未交互等场景静默 */ });
     } else {
@@ -2686,32 +2689,29 @@ function sanitizeMarkdownHtml(html) {
     }
   }
 
-  // 起播稳定后让 SW 预热这首歌的全量入库（下次秒开 + 离线可播）：
-  // 消息走 message 事件 + waitUntil，SW 里裸 setTimeout 会被提前终止（2026-09-30 踩过）；
-  // 延迟 2.5s 发，让起播缓冲先把带宽用完。
+  // 播放时全量入库当前曲目与下一曲（二播秒开 + 切歌零网络等待 + 离线可播）：
   audio.addEventListener('playing', function () {
-    setTimeout(function () {
-      var url = audio.currentSrc || audio.src;
-      if (url && navigator.serviceWorker && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({ type: 'prefetch-media', url: url });
-      }
-    }, 2500);
+    var curUrl = audio.currentSrc || audio.src;
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+      if (curUrl) navigator.serviceWorker.controller.postMessage({ type: 'prefetch-media', url: curUrl });
+      var nextSong = SONGS[(current + 1) % SONGS.length];
+      if (nextSong) navigator.serviceWorker.controller.postMessage({ type: 'prefetch-media', url: nextSong.src });
+    }
   });
 
-  // 首曲预热（2026-10-17 加）：只在「用户真的可能听」时才发起网络 ——
-  // 首次交互 / 打开播放面板 / 点播放三者任一，且只做一次。
+  // 首曲预热（全量入库）：
   let primed = false;
   function prime() {
     if (primed) return;
     primed = true;
     try { audio.preload = 'metadata'; } catch (e) {}
-    audio.src = SONGS[current].src;
+    if (!audio.src) audio.src = SONGS[current].src;
     const swRef = navigator.serviceWorker;
     const warmUp = function () {
       try {
         const conn = navigator.connection;
         if (conn && (conn.saveData || /2g$/i.test(conn.effectiveType || ''))) return;   // 省流模式不预热
-        if (swRef && swRef.controller) swRef.controller.postMessage({ type: 'warm-media', url: SONGS[current].src });
+        if (swRef && swRef.controller) swRef.controller.postMessage({ type: 'prefetch-media', url: SONGS[current].src });
       } catch (e) {}
     };
     if (swRef && swRef.controller) warmUp();
@@ -2727,17 +2727,27 @@ function sanitizeMarkdownHtml(html) {
   function restore() {
     clearResume();          // 零播放记录：老访客的续听键一并清掉
     applyOrder();
-    // 2026-10-17 加载优化（D）：首屏**不再**设 audio.src、也不再让 SW 预热首曲。
-    // 原先恢复阶段就 `preload='metadata'; audio.src=…` 并 postMessage 预热 256KB，
-    // 实测首屏会发起一个卡住 10.5 秒、0 字节的 /music/*.mp3 请求，白占一个连接槽。
-    // 现在改成「首次交互 / 打开播放面板 / 点播放」时才 prime()：
-    //   交互时 prime() → metadata 只取时长（几 KB）+ SW 预热首曲前 256KB（点播放零等待）
-    //   真实播放 2.5s 后再全量入库（下方 playing 监听不变）。
     try { mode = (localStorage.getItem(LS_MODE) || legacy(LS_MODE)) === 'one' ? 'one' : 'list'; } catch (e) {}
     titleEl.textContent = SONGS[current].title;
     applyMode();
     renderList();
     renderMediaSession();
+
+    // 首曲元数据就绪与静默预热：预设 audio.src 与 metadata，让歌曲时长立刻展示且点击即播零等待
+    try {
+      audio.preload = 'metadata';
+      audio.src = SONGS[current].src;
+    } catch (e) {}
+    const swRef = navigator.serviceWorker;
+    const warmFirst = function () {
+      try {
+        const conn = navigator.connection;
+        if (conn && (conn.saveData || /2g$/i.test(conn.effectiveType || ''))) return;
+        if (swRef && swRef.controller) swRef.controller.postMessage({ type: 'prefetch-media', url: SONGS[current].src });
+      } catch (e) {}
+    };
+    if (swRef && swRef.controller) warmFirst();
+    else if (swRef) swRef.addEventListener('controllerchange', warmFirst, { once: true });
   }
 
   // —— 事件绑定 ——

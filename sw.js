@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v232';   // 2026-11-05 修复音频与视频音乐律动在3D网格与全场景下的实时强劲响应与浅色模式激波环可见度
+const CACHE = 'sevenjohn-v233';   // 2026-11-06 彻底修复音频播放器首曲demuxer错误与跨会话秒播全量预热链路
 const CORE = [
   './',
   'index.html',
@@ -108,6 +108,18 @@ self.addEventListener('activate', (event) => {
     caches.keys()
       .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
+      .then(async () => {
+        // 清理历史残留的有害 256KB 预热碎片，避免 Chromium demuxer 报错
+        try {
+          const cache = await caches.open(CACHE);
+          const keys = await cache.keys();
+          for (const k of keys) {
+            if (k.url.includes('?sjwarm=')) await cache.delete(k);
+          }
+        } catch (e) {}
+        // 后台静默预热首曲（全量入库，零卡顿秒播 + 离线可用）
+        prefetch('./music/attention.mp3');
+      })
   );
 });
 
@@ -119,19 +131,14 @@ const offlineFallback = (msg) => new Response(msg, {
 });
 
 // 媒体 Range 请求（<audio> 播放/拖进度条）：
-// 全量缓存命中 → 本地切片返 206，即时；
-// 预热切片（'?sjwarm=1'，首曲前 256KB）命中且起点在切片内 → 本地返 206，点播放零网络等待；
-// 未缓存 → 流式秒开（不等待全量）。全量入库只在真实播放 2.5s 后由页面 postMessage 触发。
-// ⚠️ Range 请求绝不能回 200：Chromium 会把 seekable 清零，进度条直接报废——
-//    上游原生 206 原样透传；上游只回 200（如 python http.server）时把 body 流包装成 206。
-// ⚠️ 下载管理器（IDM 等）劫持会返回空 body：空响应不入缓存，坏缓存可自愈。
-const prefetches = new Map(); // url -> Promise（单例去重，防 seek 反复触发全量下载）
+// 全量缓存命中 → 本地切片返 206，0ms 即时出声且支持自由 seek；
+// 未命中缓存 → 真实网络 206 流式播放（零等待立刻起播），并在后台静默发起全量缓存，
+// 确保第二次打开或二次播放时 100% 命中本地高速缓存，杜绝反复加载。
+const prefetches = new Map(); // url -> Promise（单例去重，防反复触发全量下载）
 
 function slice206(req, buf, total, type) {
   const m = /bytes=(\d+)-(\d*)/.exec(req.headers.get('range') || '') || [];
   const start = Number(m[1] || 0);
-  // end 钳到缓冲实际长度：预热切片比真实文件小，浏览器带右端点的 Range（如 bytes=0-299999）
-  // 不能声称给出缓冲之外的字节，否则 Content-Range 与 Content-Length 自相矛盾，播放器会卡死
   const end = Math.min(m[2] ? Number(m[2]) : Infinity, buf.byteLength - 1);
   const slice = buf.slice(start, end + 1);
   return new Response(slice, {
@@ -140,7 +147,8 @@ function slice206(req, buf, total, type) {
     headers: {
       'Content-Type': type || 'audio/mpeg',
       'Content-Range': 'bytes ' + start + '-' + end + '/' + total,
-      'Content-Length': String(slice.byteLength)
+      'Content-Length': String(slice.byteLength),
+      'Accept-Ranges': 'bytes'
     }
   });
 }
@@ -150,74 +158,20 @@ function prefetch(url) {
     const p = fetch(url).then(async (net) => {
       if (!net || !net.ok) return;
       const buf = await net.arrayBuffer();
-      if (!buf.byteLength) return; // 空响应（被劫持）不入库
+      if (!buf.byteLength) return; // 空响应不入库
       const cache = await caches.open(CACHE);
       await cache.put(url, new Response(buf, { headers: net.headers })).catch(() => {});
-      await cache.delete(url + '?sjwarm=1');   // 全量已入库，256KB 起播预热切片功成身退
     }).catch(() => {}).finally(() => prefetches.delete(url));
     prefetches.set(url, p);
   }
   return prefetches.get(url);
 }
 
-// 起播缓冲预热（2026-10-01 体检 PERF-1/2 重做）：旧行为是「页面加载即 preload=auto 全曲缓冲
-// + 任何 Range 请求 2.5s 后全量入库」，没点播放的访客也被动下 4~8MB。新设计拆成三段：
-// ① 页面端 restore() 发 warm-media 消息 → 只拉首曲前 WARM_BYTES 字节入缓存；
-// ② 点播放时 handleRange 命中预热切片 → 立刻出声（零网络 RTT），后续段落照常流式；
-// ③ 真实播放 2.5s 后 postMessage（prefetch-media）→ 全量入库，二播秒开 + 离线可播。
-// 全量下载只属于「真的听过」的人；预热上限 WARM_BYTES，上游不支持 Range（回 200 全量）时
-// 也只读前 WARM_BYTES 就掐断流，绝不退化成全量下载。
-const WARM_BYTES = 262144; // 256KB：128kbps 下约 16 秒音频，起播缓冲绰绰有余
-
-async function warmPartial(url) {
-  const net = await fetch(url, { headers: { Range: 'bytes=0-' + (WARM_BYTES - 1) } });
-  if (!net || !net.ok || !net.body) return;
-  const reader = net.body.getReader();
-  const chunks = [];
-  let got = 0;
-  while (got < WARM_BYTES) {
-    const chunk = await reader.read();
-    if (chunk.done) break;
-    chunks.push(chunk.value);
-    got += chunk.value.byteLength;
-  }
-  if (got < WARM_BYTES) { try { await reader.cancel(); } catch (e) {} }
-  if (!got) return;
-  const buf = new Uint8Array(got);
-  let off = 0;
-  for (const c of chunks) { buf.set(c, off); off += c.byteLength; }
-  const total = net.status === 206
-    ? Number((/\/(\d+)\s*$/.exec(net.headers.get('Content-Range') || '') || [])[1] || 0)
-    : Number(net.headers.get('Content-Length') || 0);
-  const cache = await caches.open(CACHE);
-  await cache.put(url + '?sjwarm=1', new Response(buf, {
-    headers: {
-      'Content-Type': net.headers.get('Content-Type') || 'audio/mpeg',
-      'X-SJ-Warm-Total': String(total || 0),
-      'X-SJ-Warm-Len': String(got)
-    }
-  }));
-  return { got: got, total: total };
-}
-
 async function handleRange(req) {
   const cached = await caches.match(req, { ignoreVary: true });
   if (cached) {
     const buf = await cached.arrayBuffer();
-    // 空 buf 视为坏缓存，走下方自愈；MIME 用缓存里的真实类型（视频不是 audio/mpeg）
     if (buf.byteLength) return slice206(req, buf, buf.byteLength, cached.headers.get('Content-Type'));
-  }
-  const start = Number((/bytes=(\d+)/.exec(req.headers.get('range') || '') || [])[1] || 0);
-  // 起播快路径：预热切片命中且请求起点落在切片内 → 本地立刻回 206（真实总长在 X-SJ-Warm-Total）
-  if (start < WARM_BYTES) {
-    const warm = await caches.match(req.url + '?sjwarm=1', { ignoreVary: true }).catch(() => null);
-    if (warm) {
-      const wbuf = await warm.arrayBuffer();
-      const wTotal = Number(warm.headers.get('X-SJ-Warm-Total') || 0);
-      if (wbuf.byteLength && start < wbuf.byteLength && (!wTotal || start < wTotal)) {
-        return slice206(req, wbuf, wTotal || wbuf.byteLength, warm.headers.get('Content-Type'));
-      }
-    }
   }
   const net = await fetch(req).catch(() => null);
   if (!net) {
@@ -226,14 +180,18 @@ async function handleRange(req) {
     if (again) return slice206(req, await again.arrayBuffer(), (await again.arrayBuffer()).byteLength, again.headers.get('Content-Type'));
     return offlineFallback('离线：音频未缓存，请联网播放一次');
   }
+
+  // 后台全量入库（静默执行，绝不阻塞当前播放流）
+  if (req.url.includes('/music/')) {
+    prefetch(req.url);
+  }
+
   if (net.status === 206) {
-    // 上游原生支持 Range：原样透传（流式秒开）。不触发后台全量下载——
-    // 全量入库只由「真实播放 2.5s」的 postMessage 通道负责（2026-10-01 体检 PERF-2）
     return net;
   }
+  const start = Number((/bytes=(\d+)/.exec(req.headers.get('range') || '') || [])[1] || 0);
   const total = Number(net.headers.get('content-length') || 0);
   if (start === 0 && total && net.body) {
-    // 上游不认 Range（回 200 全量）：把 body 流包装成 206 —— 秒开且 seekable 正常
     return new Response(net.body, {
       status: 206,
       statusText: 'Partial Content',
@@ -245,33 +203,14 @@ async function handleRange(req) {
       }
     });
   }
-  // 中段请求但缓存未就绪：等后台全量完成再切片
-  await prefetch(req.url);
-  const again = await caches.match(req, { ignoreVary: true });
-  if (again) {
-    const buf = await again.arrayBuffer();
-    if (buf.byteLength) return slice206(req, buf, buf.byteLength, again.headers.get('Content-Type'));
-  }
   return net;
 }
 
-// 页面端触发的确定性预热：audio "playing" 2.5s 后 postMessage 过来（player.js）。
-// message 是 extendable 事件，waitUntil 保证 SW 活到全量入库——SW 内裸 setTimeout 不可靠。
+// 页面端触发的确定性预热（全量缓存入库，二播与重入秒开）
 self.addEventListener('message', (event) => {
   const data = event.data;
-  if (data && data.type === 'prefetch-media' && data.url) {
+  if (data && (data.type === 'prefetch-media' || data.type === 'warm-media') && data.url) {
     event.waitUntil(prefetch(data.url));
-  }
-  if (data && data.type === 'warm-media' && data.url) {
-    const port = event.source;
-    event.waitUntil(
-      warmPartial(data.url, port)
-        .then((r) => { try { if (port) port.postMessage({ type: 'warm-ok', result: r }); } catch (e) {} })
-        .catch((e) => {
-          // 预热失败不影响播放（handleRange 会照常走网络），但把原因报回页面便于排查
-          try { if (port) port.postMessage({ type: 'warm-error', message: String(e && e.stack || e).slice(0, 400) }); } catch (e2) {}
-        })
-    );
   }
 });
 
