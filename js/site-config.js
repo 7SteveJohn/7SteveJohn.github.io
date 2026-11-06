@@ -104,4 +104,68 @@
       { href: 'cosmos-home.html', label: '星河随乐而舞（演示页）', sitemap: false, chrome: false }
     ]
   };
+  // 全局 3D 拟物物理左右悬浮引擎（源自 Linear / Apple 交互哲学，全站卡片共用）
+  root.attach3DTilt = function attach3DTilt(elements, options) {
+    if (!elements) return;
+    const cards = (typeof elements === 'string'
+      ? document.querySelectorAll(elements)
+      : (elements.length !== undefined ? Array.from(elements) : [elements])
+    ).filter(Boolean);
+    if (!cards.length) return;
+
+    if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+
+    const opts = options || {};
+    const maxRotX = opts.maxRotX !== undefined ? opts.maxRotX : 6.0;
+    const maxRotY = opts.maxRotY !== undefined ? opts.maxRotY : 9.5;
+    const elev = opts.elev !== undefined ? opts.elev : -6;
+    const perspective = opts.perspective !== undefined ? opts.perspective : 800;
+
+    cards.forEach((card) => {
+      if (card.__hasTilt) return;
+      card.__hasTilt = true;
+
+      function onMouseMove(e) {
+        const rect = card.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+
+        const rotX = (y / (rect.height / 2)) * -maxRotX;
+        const rotY = (x / (rect.width / 2)) * maxRotY;
+
+        // 动态物理光影投射（向左倾斜向右投射深度阴影，反之亦然）
+        const shadowX = (rotY / maxRotY) * -18;
+        const shadowY = 18 + (rotX / maxRotX) * 6;
+
+        card.style.transform = `perspective(${perspective}px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) translateY(${elev}px) scale3d(1.012, 1.012, 1.012)`;
+
+        const isDark = document.documentElement.classList.contains('dark');
+        if (isDark) {
+          card.style.boxShadow = `${shadowX.toFixed(1)}px ${shadowY.toFixed(1)}px 38px -8px rgba(0, 0, 0, 0.75), 0 0 24px rgba(56, 189, 248, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.15)`;
+        } else {
+          card.style.boxShadow = `${shadowX.toFixed(1)}px ${shadowY.toFixed(1)}px 32px -8px rgba(37, 99, 235, 0.18), 0 3px 8px rgba(15, 23, 42, 0.04), inset 0 1px 0 #ffffff`;
+        }
+
+        // 漫射光泽跟随
+        const mx = ((e.clientX - rect.left) / rect.width) * 100;
+        const my = ((e.clientY - rect.top) / rect.height) * 100;
+        card.style.setProperty('--mouse-x', `${mx.toFixed(1)}%`);
+        card.style.setProperty('--mouse-y', `${my.toFixed(1)}%`);
+      }
+
+      function onMouseLeave() {
+        card.style.transform = '';
+        card.style.boxShadow = '';
+        card.style.removeProperty('--mouse-x');
+        card.style.removeProperty('--mouse-y');
+      }
+
+      card.addEventListener('mousemove', onMouseMove);
+      card.addEventListener('mouseleave', onMouseLeave);
+    });
+  };
 })(typeof window !== 'undefined' ? window : globalThis);

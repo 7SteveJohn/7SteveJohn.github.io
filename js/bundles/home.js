@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"4336438c10ac","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"3ffb3e76658304a4df3ebd005fa1125b3ac1136cc9078621b38cb741eb630257"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"87756b981b00bec7b9110fdf82f29aa72601363a37a1505073f736474aae6335"}]}
+// build-bundles: {"name":"home","version":"41a20cb3619a","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"1f083f0a08cdcb6ad318ed89360757a78b87714629452e9cee740969be0771e4"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"87756b981b00bec7b9110fdf82f29aa72601363a37a1505073f736474aae6335"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -380,7 +380,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (3ffb3e766583) ----
+// ---- js/app.js (1f083f0a08cd) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -1169,79 +1169,10 @@ function initHeroIndex() {
     });
   });
 
-  // 鼠标 3D 物理微倾斜与左右悬浮质感交互 (Linear / Apple 3D Craft，60FPS RAF 惯性跟随)
-  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    productCards.forEach((card) => {
-      let rafId = null;
-      let targetRotX = 0;
-      let targetRotY = 0;
-      let currentRotX = 0;
-      let currentRotY = 0;
-      let currentElev = 0;
-      let isHovered = false;
-
-      function update() {
-        if (!isHovered) {
-          const targetBase = card.classList.contains('card-selected') ? -4 : 0;
-          currentRotX += (0 - currentRotX) * 0.16;
-          currentRotY += (0 - currentRotY) * 0.16;
-          currentElev += (targetBase - currentElev) * 0.16;
-
-          if (Math.abs(currentRotX) < 0.04 && Math.abs(currentRotY) < 0.04 && Math.abs(currentElev - targetBase) < 0.08) {
-            currentRotX = 0;
-            currentRotY = 0;
-            currentElev = targetBase;
-            card.style.transform = targetBase ? `perspective(1000px) translateY(${targetBase}px)` : '';
-            card.style.removeProperty('--mouse-x');
-            card.style.removeProperty('--mouse-y');
-            rafId = null;
-            return;
-          }
-        } else {
-          // 悬停时响应光标实时目标：0.24 响应率兼具极速跟手与物理顺滑度
-          currentRotX += (targetRotX - currentRotX) * 0.24;
-          currentRotY += (targetRotY - currentRotY) * 0.24;
-          currentElev += (-8 - currentElev) * 0.22;
-        }
-
-        card.style.transform = `perspective(1000px) rotateX(${currentRotX.toFixed(2)}deg) rotateY(${currentRotY.toFixed(2)}deg) translateY(${currentElev.toFixed(2)}px) scale3d(1.015, 1.015, 1.015)`;
-
-        rafId = requestAnimationFrame(update);
-      }
-
-      function onPointerMove(e) {
-        isHovered = true;
-        const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left - rect.width / 2;
-        const y = e.clientY - rect.top - rect.height / 2;
-
-        // 左右倾斜幅度强化至 ±8°，上下微倾 ±4.5°，形成明显的「左右悬浮」立体触感
-        targetRotY = (x / (rect.width / 2)) * 8.0;
-        targetRotX = (y / (rect.height / 2)) * -4.5;
-
-        // 动态高光光泽坐标
-        const mx = ((e.clientX - rect.left) / rect.width) * 100;
-        const my = ((e.clientY - rect.top) / rect.height) * 100;
-        card.style.setProperty('--mouse-x', `${mx.toFixed(1)}%`);
-        card.style.setProperty('--mouse-y', `${my.toFixed(1)}%`);
-
-        if (!rafId) rafId = requestAnimationFrame(update);
-      }
-
-      card.addEventListener('mouseenter', () => {
-        isHovered = true;
-        if (!rafId) rafId = requestAnimationFrame(update);
-      });
-
-      card.addEventListener('mousemove', onPointerMove);
-
-      card.addEventListener('mouseleave', () => {
-        isHovered = false;
-        targetRotX = 0;
-        targetRotY = 0;
-        if (!rafId) rafId = requestAnimationFrame(update);
-      });
-    });
+  // 鼠标 3D 拟物物理左右悬浮交互 (Linear / Apple 3D Craft，微透视与动态投影)
+  if (window.attach3DTilt) {
+    window.attach3DTilt(productCards, { maxRotX: 6.5, maxRotY: 10.0, elev: -8, perspective: 850 });
+    window.attach3DTilt(document.querySelectorAll('.bento-card'), { maxRotX: 6.5, maxRotY: 10.0, elev: -8, perspective: 850 });
   }
 
   // 页面滚动时自动监听高亮首屏对应的条目

@@ -489,7 +489,7 @@ h1, h2, h3 {
   border-radius: 1.125rem;
   box-shadow: 0 10px 30px -8px rgba(15, 23, 42, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
   overflow: hidden;
-  transition: box-shadow 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease, background-color 0.25s ease !important;
   transform-style: preserve-3d;
   will-change: transform, box-shadow;
 }
@@ -1351,16 +1351,28 @@ main > #home + #products {
   width: 100% !important;
 }
 #home .hero-index:not(.hero-showcase-grid) {
-  display: flex;
+  display: inline-flex;
   flex-wrap: nowrap;
   align-items: center;
   justify-content: center;
-  gap: 0.625rem;
-  width: 100%;
+  gap: 0.35rem;
   max-width: 880px;
   margin: 1.75rem auto 0;
   margin-top: auto;
+  padding: 4px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   font-variant-numeric: tabular-nums;
+  z-index: 10;
+}
+.dark #home .hero-index:not(.hero-showcase-grid) {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 @media (max-width: 640px) {
@@ -1421,26 +1433,23 @@ html:not(.dark) #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card):hove
   color: #0f172a;
 }
 
-/* 浅色激活选中态：极简优雅的悬浮白晶胶囊（无生硬方框，无歪斜位移） */
+/* 浅色激活选中态：极简优雅的悬浮白晶胶囊（无生硬方框，纯粹浮雕质感） */
 html:not(.dark) #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card).active {
   background: #ffffff;
-  border-color: rgba(37, 99, 235, 0.22);
-  box-shadow:
-    0 4px 16px -2px rgba(37, 99, 235, 0.12),
-    0 1px 3px rgba(15, 23, 42, 0.05),
-    inset 0 1px 0 #ffffff;
-  transform: translateY(-2px);
+  color: #0f172a;
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 10px -1px rgba(15, 23, 42, 0.1), 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 html:not(.dark) #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card).active .hi-no {
   color: #2563eb;
   font-weight: 600;
 }
 html:not(.dark) #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card).active .hi-name {
-  color: #1e40af;
+  color: #0f172a;
   font-weight: 600;
 }
 html:not(.dark) #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card).active .hi-ver {
-  color: #3b82f6;
+  color: #2563eb;
 }
 
 /* 深色模式默认态 */

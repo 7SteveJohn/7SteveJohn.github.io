@@ -26,6 +26,26 @@
   }
 }
 
+
+/* 动态光泽层：光标在照片瓷砖悬浮时投射自然柔和的漫射流光 */
+.gal-tile::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(255, 255, 255, 0.22),
+    transparent 65%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 2;
+}
+.gal-tile:hover::before {
+  opacity: 1;
+}
 .gal-tile {
   position: relative;
   display: block;
@@ -38,7 +58,9 @@
   box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.95);
   aspect-ratio: 4 / 3;
   cursor: zoom-in;
-  transition: transform 0.3s var(--ease-swift), border-color 0.25s ease, box-shadow 0.3s var(--ease-swift);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.22s ease !important;
+  transform-style: preserve-3d;
+  will-change: transform, box-shadow;
 }
 .dark .gal-tile {
   border: 1px solid rgba(255, 255, 255, 0.08);

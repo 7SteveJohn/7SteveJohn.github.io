@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v234';   // 2026-11-06 彻底落地卡片左右3D物理微倾斜与真悬浮跟手反馈
+const CACHE = 'sevenjohn-v235';   // 2026-11-06 彻底落地卡片左右3D物理微倾斜与真悬浮跟手反馈
 const CORE = [
   './',
   'index.html',

@@ -95,6 +95,33 @@
 }
 
 /* 卡片：位置由 JS 写 top/left/width，配合 .bento-card 与 .glass-spec 实现高级质感 */
+
+/* 动态光泽层：光标在卡片微倾时投射自然柔和的漫射流光 */
+.arc-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(37, 99, 235, 0.08),
+    transparent 65%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+.arc-card:hover::before {
+  opacity: 1;
+}
+.dark .arc-card::before {
+  background: radial-gradient(
+    400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(56, 189, 248, 0.14),
+    transparent 65%
+  );
+}
 .arc-card {
   position: relative;
   z-index: 2;
@@ -102,7 +129,10 @@
   padding: 1.1rem 1.25rem;
   color: inherit;
   text-decoration: none;
-  transition: transform 0.28s var(--ease-swift), border-color 0.2s ease, box-shadow 0.28s var(--ease-swift);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.22s ease !important;
+  transform-style: preserve-3d;
+  will-change: transform, box-shadow;
+  overflow: hidden;
 }
 .arc-card:hover {
   transform: translateY(-4px);

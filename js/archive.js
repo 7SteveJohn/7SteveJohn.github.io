@@ -97,6 +97,11 @@
     return { art, wrap, card, node, year, side: 'left', x: 0, y: 0 };
   });
 
+  // 挂载次级页卡片 3D 微倾斜左右悬浮交互 (Linear / Apple 极简悬浮)
+  if (window.attach3DTilt) {
+    window.attach3DTilt(items.map(i => i.card), { maxRotX: 5.5, maxRotY: 8.5, elev: -5, perspective: 750 });
+  }
+
   let shown = items.slice();
 
   // ---- 曲线：Catmull-Rom → 三次贝塞尔 ----
