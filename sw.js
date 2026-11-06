@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v238';   // 2026-11-06 零延迟 60fps 3D 跟手物理倾斜引擎与去阻尼直连
+const CACHE = 'sevenjohn-v239';   // 2026-11-07 全端真 3D 左右律动悬浮 (Linear/Apple 物理惯性曲线 + 触控/陀螺仪全支持)
 const CORE = [
   './',
   'index.html',

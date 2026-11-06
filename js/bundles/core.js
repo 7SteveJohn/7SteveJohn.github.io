@@ -1,9 +1,9 @@
-// build-bundles: {"name":"core","version":"c4d69c375ae5","sources":[{"path":"js/site-config.js","sha256":"c5437c2d5c0ee2737381e7daa44aa976392084e3505222d32189123139381098"},{"path":"js/markdown-loader.js","sha256":"9149bca09b58fc21ff58cd7071d9f9470acdb9f4067856265a14260f99cca272"},{"path":"js/wallpaper.js","sha256":"994e9d8228801ad2c5c5ce7c63bfaead43b3286bc35bb14b6d251200e1fe8f80"},{"path":"js/particles.js","sha256":"5e95471046e40560408eeca8895a2541057a6028973ef7ff9dc240c3dd2f5f98"},{"path":"js/settings-panel.js","sha256":"a5c8e3935e3aa25dde44a65526ee4580cd952cee0b54d10f76f85c05643f9c9a"},{"path":"js/tab-nav.js","sha256":"61be36cf6c8375241ee34eda74c16856d4d8bfc84f4ef967e9bb7511bd082956"}]}
+// build-bundles: {"name":"core","version":"e6d286d47853","sources":[{"path":"js/site-config.js","sha256":"95620771f5aa974798740a5e21226f0077e82232de0d7db611e18206805c7955"},{"path":"js/markdown-loader.js","sha256":"9149bca09b58fc21ff58cd7071d9f9470acdb9f4067856265a14260f99cca272"},{"path":"js/wallpaper.js","sha256":"994e9d8228801ad2c5c5ce7c63bfaead43b3286bc35bb14b6d251200e1fe8f80"},{"path":"js/particles.js","sha256":"5e95471046e40560408eeca8895a2541057a6028973ef7ff9dc240c3dd2f5f98"},{"path":"js/settings-panel.js","sha256":"a5c8e3935e3aa25dde44a65526ee4580cd952cee0b54d10f76f85c05643f9c9a"},{"path":"js/tab-nav.js","sha256":"61be36cf6c8375241ee34eda74c16856d4d8bfc84f4ef967e9bb7511bd082956"}]}
 /* 6 页共用：配置 → Markdown 按需加载器 → 壁纸 → 粒子 → 设置面板 → 按住 Tab
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/site-config.js → js/markdown-loader.js → js/wallpaper.js → js/particles.js → js/settings-panel.js → js/tab-nav.js */
 
-// ---- js/site-config.js (c5437c2d5c0e) ----
+// ---- js/site-config.js (95620771f5aa) ----
 /**
  * 站点配置唯一来源（浏览器与 Node 共用，零依赖）
  * ----------------------------------------------------
@@ -110,7 +110,7 @@
       { href: 'cosmos-home.html', label: '星河随乐而舞（演示页）', sitemap: false, chrome: false }
     ]
   };
-  // 全局 3D 拟物物理左右悬浮引擎（源自 Linear / Apple 旗舰视效哲学，全站卡片共用）
+  // 全局 3D 拟物物理左右悬浮引擎（源自 demo-linear-apple.html 旗舰视效哲学，全站卡片共用）
   root.attach3DTilt = function attach3DTilt(elements, options) {
     if (!elements) return;
     const cards = (typeof elements === 'string'
@@ -124,79 +124,110 @@
     }
 
     const opts = options || {};
-    const maxRotX = opts.maxRotX !== undefined ? opts.maxRotX : 7.5;
+    const maxRotX = opts.maxRotX !== undefined ? opts.maxRotX : 7.0;
     const maxRotY = opts.maxRotY !== undefined ? opts.maxRotY : 12.0;
-    const elev = opts.elev !== undefined ? opts.elev : -10;
-    const perspective = opts.perspective !== undefined ? opts.perspective : 900;
+    const elev = opts.elev !== undefined ? opts.elev : -8;
+    const perspective = opts.perspective !== undefined ? opts.perspective : 1000;
 
     cards.forEach((card) => {
       if (card.__hasTiltEngine) return;
       card.__hasTiltEngine = true;
 
-      function onMove(e) {
-        if (e.pointerType === 'touch') return; // 触控保持原生顺畅滚动
+      function updateTilt(clientX, clientY) {
         const rect = card.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) return;
 
-        const x = e.clientX - rect.left - rect.width / 2;
-        const y = e.clientY - rect.top - rect.height / 2;
+        const x = clientX - rect.left - rect.width / 2;
+        const y = clientY - rect.top - rect.height / 2;
 
         const rotX = (y / (rect.height / 2)) * -maxRotX;
         const rotY = (x / (rect.width / 2)) * maxRotY;
 
-        const shadowX = (rotY / maxRotY) * -24;
-        const shadowY = 24 + (rotX / maxRotX) * 7;
+        const shadowX = (rotY / maxRotY) * -20;
+        const shadowY = 22 + (rotX / maxRotX) * 6;
 
-        // 跟手时使用轻微 40ms 极速过渡，杜绝 CSS 慢过渡导致的拖泥带水，保证极致跟手与大幅度 3D 倾角展现
-        card.style.transition = 'transform 0.04s linear, box-shadow 0.12s ease';
+        // 使用 Linear / Apple 经典 0.22s cubic-bezier 曲线，带出物理惯性与顺滑左右浮动感
+        card.style.transition = 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease, border-color 0.22s ease';
         card.style.transform =
           'perspective(' + perspective + 'px) ' +
           'rotateX(' + rotX.toFixed(2) + 'deg) ' +
           'rotateY(' + rotY.toFixed(2) + 'deg) ' +
-          'translateY(' + elev + 'px) ' +
-          'scale3d(1.02, 1.02, 1.02)';
+          'translateY(' + elev + 'px)';
 
         const isDark = document.documentElement.classList.contains('dark');
         if (isDark) {
+          card.style.borderColor = 'rgba(56, 189, 248, 0.45)';
           card.style.boxShadow =
-            shadowX.toFixed(1) + 'px ' + shadowY.toFixed(1) + 'px 45px -6px rgba(0, 0, 0, 0.85), ' +
+            shadowX.toFixed(1) + 'px ' + shadowY.toFixed(1) + 'px 45px -8px rgba(0, 0, 0, 0.85), ' +
             '0 0 28px rgba(56, 189, 248, 0.22), ' +
             'inset 0 1px 0 rgba(255, 255, 255, 0.18)';
         } else {
+          card.style.borderColor = 'rgba(37, 99, 235, 0.38)';
           card.style.boxShadow =
-            shadowX.toFixed(1) + 'px ' + shadowY.toFixed(1) + 'px 38px -6px rgba(37, 99, 235, 0.22), ' +
+            shadowX.toFixed(1) + 'px ' + shadowY.toFixed(1) + 'px 38px -8px rgba(37, 99, 235, 0.22), ' +
             '0 4px 18px rgba(15, 23, 42, 0.06), ' +
             'inset 0 1px 0 #ffffff';
         }
 
-        const mx = ((e.clientX - rect.left) / rect.width) * 100;
-        const my = ((e.clientY - rect.top) / rect.height) * 100;
+        const mx = ((clientX - rect.left) / rect.width) * 100;
+        const my = ((clientY - rect.top) / rect.height) * 100;
         card.style.setProperty('--mouse-x', mx.toFixed(1) + '%');
         card.style.setProperty('--mouse-y', my.toFixed(1) + '%');
       }
 
+      function onMove(e) {
+        if (e.pointerType === 'touch') return;
+        updateTilt(e.clientX, e.clientY);
+      }
+
+      function onTouchMove(e) {
+        if (e.touches && e.touches[0]) {
+          updateTilt(e.touches[0].clientX, e.touches[0].clientY);
+        }
+      }
+
       function onLeave() {
-        // 移出时切换为 Apple 拟物级 0.4s 柔和弹簧曲线复位
-        card.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease';
-        card.style.transform =
-          'perspective(' + perspective + 'px) rotateX(0deg) rotateY(0deg) translateY(0px) scale3d(1, 1, 1)';
+        card.style.transition = 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease, border-color 0.35s ease';
+        card.style.transform = '';
         card.style.boxShadow = '';
+        card.style.borderColor = '';
         card.style.removeProperty('--mouse-x');
         card.style.removeProperty('--mouse-y');
-
-        setTimeout(function () {
-          if (!card.matches(':hover')) {
-            card.style.transition = '';
-            card.style.transform = '';
-          }
-        }, 400);
       }
 
       card.addEventListener('pointermove', onMove, { passive: true });
       card.addEventListener('mousemove', onMove, { passive: true });
       card.addEventListener('pointerleave', onLeave);
       card.addEventListener('mouseleave', onLeave);
+
+      // 移动端触控跟随与点按悬浮反馈
+      card.addEventListener('touchstart', function(e) {
+        if (e.touches && e.touches[0]) {
+          updateTilt(e.touches[0].clientX, e.touches[0].clientY);
+        }
+      }, { passive: true });
+      card.addEventListener('touchmove', onTouchMove, { passive: true });
+      card.addEventListener('touchend', function() {
+        setTimeout(onLeave, 350);
+      }, { passive: true });
+      card.addEventListener('touchcancel', onLeave, { passive: true });
     });
+
+    // 移动端机身陀螺仪微倾斜支持（晃动机身时产生全景 3D 左右浮空）
+    if (typeof window !== 'undefined' && !root.__hasGyroTilt && window.DeviceOrientationEvent) {
+      root.__hasGyroTilt = true;
+      window.addEventListener('deviceorientation', function(ev) {
+        if (ev.gamma === null) return;
+        // gamma: 手机左右倾斜角度 [-90, 90]
+        const rotY = Math.max(-8, Math.min(8, ev.gamma * 0.25));
+        const rotX = Math.max(-5, Math.min(5, ((ev.beta || 45) - 45) * 0.18));
+        const activeCard = document.querySelector('#products article.card-selected, #products article:hover');
+        if (activeCard && !activeCard.style.getPropertyValue('--mouse-x')) {
+          activeCard.style.transition = 'transform 0.25s ease-out';
+          activeCard.style.transform = 'perspective(1000px) rotateX(' + rotX.toFixed(2) + 'deg) rotateY(' + rotY.toFixed(2) + 'deg) translateY(-8px)';
+        }
+      }, { passive: true });
+    }
   };
 })(typeof window !== 'undefined' ? window : globalThis);
 
