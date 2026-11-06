@@ -118,81 +118,60 @@
     }
 
     const opts = options || {};
-    const maxRotX = opts.maxRotX !== undefined ? opts.maxRotX : 7.0;
-    const maxRotY = opts.maxRotY !== undefined ? opts.maxRotY : 11.5;
+    const maxRotX = opts.maxRotX !== undefined ? opts.maxRotX : 7.5;
+    const maxRotY = opts.maxRotY !== undefined ? opts.maxRotY : 12.0;
     const elev = opts.elev !== undefined ? opts.elev : -10;
-    const perspective = opts.perspective !== undefined ? opts.perspective : 950;
+    const perspective = opts.perspective !== undefined ? opts.perspective : 900;
 
     cards.forEach((card) => {
       if (card.__hasTiltEngine) return;
       card.__hasTiltEngine = true;
 
-      let rafId = 0;
-      let targetRotX = 0;
-      let targetRotY = 0;
-      let targetMx = 50;
-      let targetMy = 50;
-      let isHovering = false;
-
-      function updateCardTransform() {
-        rafId = 0;
-        if (!isHovering) return;
-
-        const shadowX = (targetRotY / maxRotY) * -22;
-        const shadowY = 24 + (targetRotX / maxRotX) * 7;
-
-        card.style.transform =
-          'perspective(' + perspective + 'px) ' +
-          'rotateX(' + targetRotX.toFixed(2) + 'deg) ' +
-          'rotateY(' + targetRotY.toFixed(2) + 'deg) ' +
-          'translateY(' + elev + 'px) ' +
-          'scale3d(1.018, 1.018, 1.018)';
-
-        const isDark = document.documentElement.classList.contains('dark');
-        if (isDark) {
-          card.style.boxShadow =
-            shadowX.toFixed(1) + 'px ' + shadowY.toFixed(1) + 'px 42px -6px rgba(0, 0, 0, 0.85), ' +
-            '0 0 28px rgba(56, 189, 248, 0.22), ' +
-            'inset 0 1px 0 rgba(255, 255, 255, 0.18)';
-        } else {
-          card.style.boxShadow =
-            shadowX.toFixed(1) + 'px ' + shadowY.toFixed(1) + 'px 36px -6px rgba(37, 99, 235, 0.20), ' +
-            '0 4px 16px rgba(15, 23, 42, 0.06), ' +
-            'inset 0 1px 0 #ffffff';
-        }
-
-        card.style.setProperty('--mouse-x', targetMx.toFixed(1) + '%');
-        card.style.setProperty('--mouse-y', targetMy.toFixed(1) + '%');
-      }
-
-      function onPointerMove(e) {
+      function onMove(e) {
         if (e.pointerType === 'touch') return; // 触控保持原生顺畅滚动
         const rect = card.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) return;
 
-        isHovering = true;
         const x = e.clientX - rect.left - rect.width / 2;
         const y = e.clientY - rect.top - rect.height / 2;
 
-        targetRotX = (y / (rect.height / 2)) * -maxRotX;
-        targetRotY = (x / (rect.width / 2)) * maxRotY;
+        const rotX = (y / (rect.height / 2)) * -maxRotX;
+        const rotY = (x / (rect.width / 2)) * maxRotY;
 
-        targetMx = ((e.clientX - rect.left) / rect.width) * 100;
-        targetMy = ((e.clientY - rect.top) / rect.height) * 100;
+        const shadowX = (rotY / maxRotY) * -24;
+        const shadowY = 24 + (rotX / maxRotX) * 7;
 
-        if (!rafId) {
-          rafId = requestAnimationFrame(updateCardTransform);
+        // 跟手时使用轻微 40ms 极速过渡，杜绝 CSS 慢过渡导致的拖泥带水，保证极致跟手与大幅度 3D 倾角展现
+        card.style.transition = 'transform 0.04s linear, box-shadow 0.12s ease';
+        card.style.transform =
+          'perspective(' + perspective + 'px) ' +
+          'rotateX(' + rotX.toFixed(2) + 'deg) ' +
+          'rotateY(' + rotY.toFixed(2) + 'deg) ' +
+          'translateY(' + elev + 'px) ' +
+          'scale3d(1.02, 1.02, 1.02)';
+
+        const isDark = document.documentElement.classList.contains('dark');
+        if (isDark) {
+          card.style.boxShadow =
+            shadowX.toFixed(1) + 'px ' + shadowY.toFixed(1) + 'px 45px -6px rgba(0, 0, 0, 0.85), ' +
+            '0 0 28px rgba(56, 189, 248, 0.22), ' +
+            'inset 0 1px 0 rgba(255, 255, 255, 0.18)';
+        } else {
+          card.style.boxShadow =
+            shadowX.toFixed(1) + 'px ' + shadowY.toFixed(1) + 'px 38px -6px rgba(37, 99, 235, 0.22), ' +
+            '0 4px 18px rgba(15, 23, 42, 0.06), ' +
+            'inset 0 1px 0 #ffffff';
         }
+
+        const mx = ((e.clientX - rect.left) / rect.width) * 100;
+        const my = ((e.clientY - rect.top) / rect.height) * 100;
+        card.style.setProperty('--mouse-x', mx.toFixed(1) + '%');
+        card.style.setProperty('--mouse-y', my.toFixed(1) + '%');
       }
 
-      function onPointerLeave() {
-        isHovering = false;
-        if (rafId) {
-          cancelAnimationFrame(rafId);
-          rafId = 0;
-        }
-
-        // 丝滑弹簧复位（保持 perspective 使回弹过程具备完整 3D 景深曲线）
+      function onLeave() {
+        // 移出时切换为 Apple 拟物级 0.4s 柔和弹簧曲线复位
+        card.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease';
         card.style.transform =
           'perspective(' + perspective + 'px) rotateX(0deg) rotateY(0deg) translateY(0px) scale3d(1, 1, 1)';
         card.style.boxShadow = '';
@@ -200,18 +179,17 @@
         card.style.removeProperty('--mouse-y');
 
         setTimeout(function () {
-          if (!card.matches(':hover') && !isHovering) {
+          if (!card.matches(':hover')) {
+            card.style.transition = '';
             card.style.transform = '';
           }
-        }, 260);
+        }, 400);
       }
 
-      card.addEventListener('pointerenter', function (e) {
-        if (e.pointerType === 'touch') return;
-        isHovering = true;
-      });
-      card.addEventListener('pointermove', onPointerMove, { passive: true });
-      card.addEventListener('pointerleave', onPointerLeave);
+      card.addEventListener('pointermove', onMove, { passive: true });
+      card.addEventListener('mousemove', onMove, { passive: true });
+      card.addEventListener('pointerleave', onLeave);
+      card.addEventListener('mouseleave', onLeave);
     });
   };
 })(typeof window !== 'undefined' ? window : globalThis);
