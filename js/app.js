@@ -787,7 +787,7 @@ function initHeroIndex() {
   });
 
   // 鼠标 3D 物理微倾斜与左右悬浮质感交互 (Linear / Apple 3D Craft，60FPS RAF 惯性跟随)
-  if (window.matchMedia('(pointer: fine)').matches && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     productCards.forEach((card) => {
       let rafId = null;
       let targetRotX = 0;
@@ -800,42 +800,40 @@ function initHeroIndex() {
       function update() {
         if (!isHovered) {
           const targetBase = card.classList.contains('card-selected') ? -4 : 0;
-          currentRotX += (0 - currentRotX) * 0.14;
-          currentRotY += (0 - currentRotY) * 0.14;
-          currentElev += (targetBase - currentElev) * 0.14;
+          currentRotX += (0 - currentRotX) * 0.16;
+          currentRotY += (0 - currentRotY) * 0.16;
+          currentElev += (targetBase - currentElev) * 0.16;
 
-          if (Math.abs(currentRotX) < 0.05 && Math.abs(currentRotY) < 0.05 && Math.abs(currentElev - targetBase) < 0.1) {
+          if (Math.abs(currentRotX) < 0.04 && Math.abs(currentRotY) < 0.04 && Math.abs(currentElev - targetBase) < 0.08) {
             currentRotX = 0;
             currentRotY = 0;
             currentElev = targetBase;
             card.style.transform = targetBase ? `perspective(1000px) translateY(${targetBase}px)` : '';
+            card.style.removeProperty('--mouse-x');
+            card.style.removeProperty('--mouse-y');
             rafId = null;
             return;
           }
         } else {
-          // 悬停时响应光标实时目标：0.22 响应率兼具极速跟手与物理顺滑度
-          currentRotX += (targetRotX - currentRotX) * 0.22;
-          currentRotY += (targetRotY - currentRotY) * 0.22;
-          currentElev += (-8 - currentElev) * 0.20;
+          // 悬停时响应光标实时目标：0.24 响应率兼具极速跟手与物理顺滑度
+          currentRotX += (targetRotX - currentRotX) * 0.24;
+          currentRotY += (targetRotY - currentRotY) * 0.24;
+          currentElev += (-8 - currentElev) * 0.22;
         }
 
         card.style.transform = `perspective(1000px) rotateX(${currentRotX.toFixed(2)}deg) rotateY(${currentRotY.toFixed(2)}deg) translateY(${currentElev.toFixed(2)}px) scale3d(1.015, 1.015, 1.015)`;
 
-        if (rafId) rafId = requestAnimationFrame(update);
+        rafId = requestAnimationFrame(update);
       }
 
-      card.addEventListener('mouseenter', () => {
+      function onPointerMove(e) {
         isHovered = true;
-        if (!rafId) rafId = requestAnimationFrame(update);
-      });
-
-      card.addEventListener('mousemove', (e) => {
         const rect = card.getBoundingClientRect();
         const x = e.clientX - rect.left - rect.width / 2;
         const y = e.clientY - rect.top - rect.height / 2;
 
-        // 左右倾斜幅度强化至 ±7.5°，上下微倾 ±4.5°，形成明显的「左右悬浮」立体触感
-        targetRotY = (x / (rect.width / 2)) * 7.5;
+        // 左右倾斜幅度强化至 ±8°，上下微倾 ±4.5°，形成明显的「左右悬浮」立体触感
+        targetRotY = (x / (rect.width / 2)) * 8.0;
         targetRotX = (y / (rect.height / 2)) * -4.5;
 
         // 动态高光光泽坐标
@@ -845,12 +843,20 @@ function initHeroIndex() {
         card.style.setProperty('--mouse-y', `${my.toFixed(1)}%`);
 
         if (!rafId) rafId = requestAnimationFrame(update);
+      }
+
+      card.addEventListener('mouseenter', () => {
+        isHovered = true;
+        if (!rafId) rafId = requestAnimationFrame(update);
       });
+
+      card.addEventListener('mousemove', onPointerMove);
 
       card.addEventListener('mouseleave', () => {
         isHovered = false;
         targetRotX = 0;
         targetRotY = 0;
+        if (!rafId) rafId = requestAnimationFrame(update);
       });
     });
   }
