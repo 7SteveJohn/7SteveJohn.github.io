@@ -788,8 +788,8 @@ function initHeroIndex() {
 
   // 鼠标 3D 拟物物理左右悬浮交互 (Linear / Apple 3D Craft，微透视与动态投影)
   if (window.attach3DTilt) {
-    window.attach3DTilt(productCards, { maxRotX: 6.5, maxRotY: 10.0, elev: -8, perspective: 850 });
-    window.attach3DTilt(document.querySelectorAll('.bento-card'), { maxRotX: 6.5, maxRotY: 10.0, elev: -8, perspective: 850 });
+    window.attach3DTilt(productCards, { maxRotX: 7.0, maxRotY: 11.5, elev: -10, perspective: 950 });
+    window.attach3DTilt(document.querySelectorAll('.bento-card'), { maxRotX: 7.0, maxRotY: 11.5, elev: -10, perspective: 950 });
   }
 
   // 页面滚动时自动监听高亮首屏对应的条目

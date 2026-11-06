@@ -1,9 +1,9 @@
-// build-bundles: {"name":"core","version":"cba727c2a454","sources":[{"path":"js/site-config.js","sha256":"6f1224964ace0a2d11bffc1ea3130d1b95f4f271aaab13e4ffb8d962bd383f8e"},{"path":"js/markdown-loader.js","sha256":"9149bca09b58fc21ff58cd7071d9f9470acdb9f4067856265a14260f99cca272"},{"path":"js/wallpaper.js","sha256":"994e9d8228801ad2c5c5ce7c63bfaead43b3286bc35bb14b6d251200e1fe8f80"},{"path":"js/particles.js","sha256":"5e95471046e40560408eeca8895a2541057a6028973ef7ff9dc240c3dd2f5f98"},{"path":"js/settings-panel.js","sha256":"a5c8e3935e3aa25dde44a65526ee4580cd952cee0b54d10f76f85c05643f9c9a"},{"path":"js/tab-nav.js","sha256":"61be36cf6c8375241ee34eda74c16856d4d8bfc84f4ef967e9bb7511bd082956"}]}
+// build-bundles: {"name":"core","version":"f294a687b449","sources":[{"path":"js/site-config.js","sha256":"964f686983cb51630eb228081e65ae767c0f9286de40131260a594c2f8e806ce"},{"path":"js/markdown-loader.js","sha256":"9149bca09b58fc21ff58cd7071d9f9470acdb9f4067856265a14260f99cca272"},{"path":"js/wallpaper.js","sha256":"994e9d8228801ad2c5c5ce7c63bfaead43b3286bc35bb14b6d251200e1fe8f80"},{"path":"js/particles.js","sha256":"5e95471046e40560408eeca8895a2541057a6028973ef7ff9dc240c3dd2f5f98"},{"path":"js/settings-panel.js","sha256":"a5c8e3935e3aa25dde44a65526ee4580cd952cee0b54d10f76f85c05643f9c9a"},{"path":"js/tab-nav.js","sha256":"61be36cf6c8375241ee34eda74c16856d4d8bfc84f4ef967e9bb7511bd082956"}]}
 /* 6 页共用：配置 → Markdown 按需加载器 → 壁纸 → 粒子 → 设置面板 → 按住 Tab
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/site-config.js → js/markdown-loader.js → js/wallpaper.js → js/particles.js → js/settings-panel.js → js/tab-nav.js */
 
-// ---- js/site-config.js (6f1224964ace) ----
+// ---- js/site-config.js (964f686983cb) ----
 /**
  * 站点配置唯一来源（浏览器与 Node 共用，零依赖）
  * ----------------------------------------------------
@@ -110,7 +110,7 @@
       { href: 'cosmos-home.html', label: '星河随乐而舞（演示页）', sitemap: false, chrome: false }
     ]
   };
-  // 全局 3D 拟物物理左右悬浮引擎（源自 Linear / Apple 交互哲学，全站卡片共用）
+  // 全局 3D 拟物物理左右悬浮引擎（源自 Linear / Apple 旗舰视效哲学，全站卡片共用）
   root.attach3DTilt = function attach3DTilt(elements, options) {
     if (!elements) return;
     const cards = (typeof elements === 'string'
@@ -124,54 +124,100 @@
     }
 
     const opts = options || {};
-    const maxRotX = opts.maxRotX !== undefined ? opts.maxRotX : 6.0;
-    const maxRotY = opts.maxRotY !== undefined ? opts.maxRotY : 9.5;
-    const elev = opts.elev !== undefined ? opts.elev : -6;
-    const perspective = opts.perspective !== undefined ? opts.perspective : 800;
+    const maxRotX = opts.maxRotX !== undefined ? opts.maxRotX : 7.0;
+    const maxRotY = opts.maxRotY !== undefined ? opts.maxRotY : 11.5;
+    const elev = opts.elev !== undefined ? opts.elev : -10;
+    const perspective = opts.perspective !== undefined ? opts.perspective : 950;
 
     cards.forEach((card) => {
-      if (card.__hasTilt) return;
-      card.__hasTilt = true;
+      if (card.__hasTiltEngine) return;
+      card.__hasTiltEngine = true;
 
-      function onMouseMove(e) {
-        const rect = card.getBoundingClientRect();
-        if (rect.width === 0 || rect.height === 0) return;
+      let rafId = 0;
+      let targetRotX = 0;
+      let targetRotY = 0;
+      let targetMx = 50;
+      let targetMy = 50;
+      let isHovering = false;
 
-        const x = e.clientX - rect.left - rect.width / 2;
-        const y = e.clientY - rect.top - rect.height / 2;
+      function updateCardTransform() {
+        rafId = 0;
+        if (!isHovering) return;
 
-        const rotX = (y / (rect.height / 2)) * -maxRotX;
-        const rotY = (x / (rect.width / 2)) * maxRotY;
+        const shadowX = (targetRotY / maxRotY) * -22;
+        const shadowY = 24 + (targetRotX / maxRotX) * 7;
 
-        // 动态物理光影投射（向左倾斜向右投射深度阴影，反之亦然）
-        const shadowX = (rotY / maxRotY) * -18;
-        const shadowY = 18 + (rotX / maxRotX) * 6;
-
-        card.style.transform = `perspective(${perspective}px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) translateY(${elev}px) scale3d(1.012, 1.012, 1.012)`;
+        card.style.transform =
+          'perspective(' + perspective + 'px) ' +
+          'rotateX(' + targetRotX.toFixed(2) + 'deg) ' +
+          'rotateY(' + targetRotY.toFixed(2) + 'deg) ' +
+          'translateY(' + elev + 'px) ' +
+          'scale3d(1.018, 1.018, 1.018)';
 
         const isDark = document.documentElement.classList.contains('dark');
         if (isDark) {
-          card.style.boxShadow = `${shadowX.toFixed(1)}px ${shadowY.toFixed(1)}px 38px -8px rgba(0, 0, 0, 0.75), 0 0 24px rgba(56, 189, 248, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.15)`;
+          card.style.boxShadow =
+            shadowX.toFixed(1) + 'px ' + shadowY.toFixed(1) + 'px 42px -6px rgba(0, 0, 0, 0.85), ' +
+            '0 0 28px rgba(56, 189, 248, 0.22), ' +
+            'inset 0 1px 0 rgba(255, 255, 255, 0.18)';
         } else {
-          card.style.boxShadow = `${shadowX.toFixed(1)}px ${shadowY.toFixed(1)}px 32px -8px rgba(37, 99, 235, 0.18), 0 3px 8px rgba(15, 23, 42, 0.04), inset 0 1px 0 #ffffff`;
+          card.style.boxShadow =
+            shadowX.toFixed(1) + 'px ' + shadowY.toFixed(1) + 'px 36px -6px rgba(37, 99, 235, 0.20), ' +
+            '0 4px 16px rgba(15, 23, 42, 0.06), ' +
+            'inset 0 1px 0 #ffffff';
         }
 
-        // 漫射光泽跟随
-        const mx = ((e.clientX - rect.left) / rect.width) * 100;
-        const my = ((e.clientY - rect.top) / rect.height) * 100;
-        card.style.setProperty('--mouse-x', `${mx.toFixed(1)}%`);
-        card.style.setProperty('--mouse-y', `${my.toFixed(1)}%`);
+        card.style.setProperty('--mouse-x', targetMx.toFixed(1) + '%');
+        card.style.setProperty('--mouse-y', targetMy.toFixed(1) + '%');
       }
 
-      function onMouseLeave() {
-        card.style.transform = '';
+      function onPointerMove(e) {
+        if (e.pointerType === 'touch') return; // 触控保持原生顺畅滚动
+        const rect = card.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+
+        isHovering = true;
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+
+        targetRotX = (y / (rect.height / 2)) * -maxRotX;
+        targetRotY = (x / (rect.width / 2)) * maxRotY;
+
+        targetMx = ((e.clientX - rect.left) / rect.width) * 100;
+        targetMy = ((e.clientY - rect.top) / rect.height) * 100;
+
+        if (!rafId) {
+          rafId = requestAnimationFrame(updateCardTransform);
+        }
+      }
+
+      function onPointerLeave() {
+        isHovering = false;
+        if (rafId) {
+          cancelAnimationFrame(rafId);
+          rafId = 0;
+        }
+
+        // 丝滑弹簧复位（保持 perspective 使回弹过程具备完整 3D 景深曲线）
+        card.style.transform =
+          'perspective(' + perspective + 'px) rotateX(0deg) rotateY(0deg) translateY(0px) scale3d(1, 1, 1)';
         card.style.boxShadow = '';
         card.style.removeProperty('--mouse-x');
         card.style.removeProperty('--mouse-y');
+
+        setTimeout(function () {
+          if (!card.matches(':hover') && !isHovering) {
+            card.style.transform = '';
+          }
+        }, 260);
       }
 
-      card.addEventListener('mousemove', onMouseMove);
-      card.addEventListener('mouseleave', onMouseLeave);
+      card.addEventListener('pointerenter', function (e) {
+        if (e.pointerType === 'touch') return;
+        isHovering = true;
+      });
+      card.addEventListener('pointermove', onPointerMove, { passive: true });
+      card.addEventListener('pointerleave', onPointerLeave);
     });
   };
 })(typeof window !== 'undefined' ? window : globalThis);

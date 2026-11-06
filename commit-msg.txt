@@ -1,0 +1,8 @@
+fix(ui): 落地首页核心旗舰产品卡片真3D物理悬浮微倾斜与视锥重构
+
+- 解除 3D 展平限制：移除首页 4 款大卡上的 overflow-hidden，保留原生 preserve-3d
+- 挂载全局 3D 摄像机：在 #products 声明 perspective: 1200px 与 transform-style: preserve-3d
+- 统一单例 RAF 物理倾斜引擎：提升水平倾角至 ±11.5°，垂直倾角至 ±7.0°，浮空抬升 -10px
+- 注入动态多阶反向羽化深度投影与玻璃漫射高光跟随（--mouse-x, --mouse-y）
+- 彻底解决 site-config.js 与 index.html 监听器双重绑定与强制清零冲突
+- 升级缓存版本至 v237，重新构建 core 与 home 打包文件，全量自动化回归通过
