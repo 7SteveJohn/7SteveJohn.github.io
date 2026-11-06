@@ -132,5 +132,55 @@
   <script src="js/bundles/sub.js" defer></script>
   <script src="js/articles.js" defer></script>
   <script src="js/archive.js" defer></script>
+  <script>
+    (function () {
+      function init3DArchiveTilt() {
+        const cards = document.querySelectorAll('.arc-card');
+        cards.forEach(function (card) {
+          if (card.__inlineTiltBound) return;
+          card.__inlineTiltBound = true;
+
+          card.addEventListener('pointermove', function (e) {
+            const rect = card.getBoundingClientRect();
+            if (rect.width === 0 || rect.height === 0) return;
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+
+            const rotX = (y / (rect.height / 2)) * -5.5;
+            const rotY = (x / (rect.width / 2)) * 9.0;
+            const shadowX = (rotY / 9.0) * -16;
+            const shadowY = 18 + (rotX / 5.5) * 5;
+
+            card.style.transform = 'perspective(700px) rotateX(' + rotX.toFixed(2) + 'deg) rotateY(' + rotY.toFixed(2) + 'deg) translateY(-5px) scale3d(1.015, 1.015, 1.015)';
+
+            const isDark = document.documentElement.classList.contains('dark');
+            if (isDark) {
+              card.style.boxShadow = shadowX.toFixed(1) + 'px ' + shadowY.toFixed(1) + 'px 36px -8px rgba(0, 0, 0, 0.75), 0 0 20px rgba(56, 189, 248, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.15)';
+            } else {
+              card.style.boxShadow = shadowX.toFixed(1) + 'px ' + shadowY.toFixed(1) + 'px 30px -8px rgba(37, 99, 235, 0.18), 0 3px 10px rgba(15, 23, 42, 0.04), inset 0 1px 0 #ffffff';
+            }
+          });
+
+          card.addEventListener('pointerleave', function () {
+            card.style.transform = 'perspective(700px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+            card.style.boxShadow = '';
+            setTimeout(function () {
+              if (!card.matches(':hover')) {
+                card.style.transform = '';
+              }
+            }, 250);
+          });
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init3DArchiveTilt);
+      } else {
+        init3DArchiveTilt();
+      }
+      window.addEventListener('load', init3DArchiveTilt);
+      setInterval(init3DArchiveTilt, 1000);
+    })();
+  </script>
 </body>
 </html>

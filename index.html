@@ -97,7 +97,7 @@
   </script>
 
  <!-- 定制样式-->
-  <link rel="stylesheet" href="css/style.css?v=20261106_v235" data-page-node-id="DJZNUKsUQagCUphQLazIKY" />
+  <link rel="stylesheet" href="css/style.css?v=20261106_v236" data-page-node-id="DJZNUKsUQagCUphQLazIKY" />
   <link rel="stylesheet" href="css/cosmos.css" />
   <link rel="stylesheet" href="css/settings-panel.css" />
 </head>
@@ -1030,9 +1030,9 @@
   <script src="js/projects.js" defer></script>
   <script src="js/articles.js" defer></script>
   <!-- core：站点配置 → Markdown 按需加载器 → 壁纸 → 粒子 → 设置面板 → 按住 Tab -->
-  <script src="js/bundles/core.js?v=20261106_v235" defer></script>
+  <script src="js/bundles/core.js?v=20261106_v236" defer></script>
   <!-- home：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器（必须在 core 之后） -->
-  <script src="js/bundles/home.js?v=20261106_v235" defer></script>
+  <script src="js/bundles/home.js?v=20261106_v236" defer></script>
   <!-- importmap：把 three 的裸导入指到自托管副本（必须在任何 module script 之前）。
        本地推理场场景（js/cosmos/main.js：分层节点网 + 沿边前传的脉冲）；
        无 WebGL 或初始化失败时它内部自动回退加载 2D 版 js/cosmos.js -->
@@ -1054,5 +1054,63 @@
        ❗2026-10-31 暂时下线：模型还没做完，先不放到线上（详见 js/site-config.js 的 live2d 开关）。
        恢复：取消下面那行的注释，并把 site-config.js 的 live2d 改回 true。 -->
   <!-- <script src="js/live2d.js" defer></script> -->
+  <!-- 核心交互：拟真 3D 物理左右悬浮引擎（源自 demo-linear-apple.html，直接内联驱动确保 100% 触发） -->
+  <script>
+    (function () {
+      function init3DCardTilt() {
+        const cards = document.querySelectorAll('#products article[data-project-id], .bento-card, .app-window-card');
+        cards.forEach(function (card) {
+          if (card.__inlineTiltBound) return;
+          card.__inlineTiltBound = true;
+
+          card.addEventListener('pointermove', function (e) {
+            const rect = card.getBoundingClientRect();
+            if (rect.width === 0 || rect.height === 0) return;
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+
+            const rotX = (y / (rect.height / 2)) * -6.0;
+            const rotY = (x / (rect.width / 2)) * 10.5;
+
+            const shadowX = (rotY / 10.5) * -20;
+            const shadowY = 22 + (rotX / 6.0) * 6;
+
+            card.style.transform = 'perspective(750px) rotateX(' + rotX.toFixed(2) + 'deg) rotateY(' + rotY.toFixed(2) + 'deg) translateY(-8px) scale3d(1.015, 1.015, 1.015)';
+
+            const isDark = document.documentElement.classList.contains('dark');
+            if (isDark) {
+              card.style.boxShadow = shadowX.toFixed(1) + 'px ' + shadowY.toFixed(1) + 'px 42px -8px rgba(0, 0, 0, 0.85), 0 0 26px rgba(56, 189, 248, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.15)';
+            } else {
+              card.style.boxShadow = shadowX.toFixed(1) + 'px ' + shadowY.toFixed(1) + 'px 36px -8px rgba(37, 99, 235, 0.22), 0 4px 14px rgba(15, 23, 42, 0.05), inset 0 1px 0 #ffffff';
+            }
+
+            const mx = ((e.clientX - rect.left) / rect.width) * 100;
+            const my = ((e.clientY - rect.top) / rect.height) * 100;
+            card.style.setProperty('--mouse-x', mx.toFixed(1) + '%');
+            card.style.setProperty('--mouse-y', my.toFixed(1) + '%');
+          });
+
+          card.addEventListener('pointerleave', function () {
+            card.style.transform = 'perspective(750px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+            card.style.boxShadow = '';
+            card.style.removeProperty('--mouse-x');
+            card.style.removeProperty('--mouse-y');
+            setTimeout(function () {
+              if (!card.matches(':hover')) {
+                card.style.transform = '';
+              }
+            }, 250);
+          });
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init3DCardTilt);
+      } else {
+        init3DCardTilt();
+      }
+      window.addEventListener('load', init3DCardTilt);
+    })();
+  </script>
 </body>
 </html>

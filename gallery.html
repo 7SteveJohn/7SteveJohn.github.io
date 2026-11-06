@@ -148,5 +148,55 @@
   <script src="js/bundles/core.js" defer></script>
   <script src="js/bundles/sub.js" defer></script>
   <script src="js/gallery.js" defer></script>
+  <script>
+    (function () {
+      function init3DGalleryTilt() {
+        const tiles = document.querySelectorAll('.gal-tile');
+        tiles.forEach(function (tile) {
+          if (tile.__inlineTiltBound) return;
+          tile.__inlineTiltBound = true;
+
+          tile.addEventListener('pointermove', function (e) {
+            const rect = tile.getBoundingClientRect();
+            if (rect.width === 0 || rect.height === 0) return;
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+
+            const rotX = (y / (rect.height / 2)) * -6.0;
+            const rotY = (x / (rect.width / 2)) * 9.5;
+            const shadowX = (rotY / 9.5) * -18;
+            const shadowY = 20 + (rotX / 6.0) * 6;
+
+            tile.style.transform = 'perspective(750px) rotateX(' + rotX.toFixed(2) + 'deg) rotateY(' + rotY.toFixed(2) + 'deg) translateY(-6px) scale3d(1.02, 1.02, 1.02)';
+
+            const isDark = document.documentElement.classList.contains('dark');
+            if (isDark) {
+              tile.style.boxShadow = shadowX.toFixed(1) + 'px ' + shadowY.toFixed(1) + 'px 38px -8px rgba(0, 0, 0, 0.8), 0 0 22px rgba(56, 189, 248, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15)';
+            } else {
+              tile.style.boxShadow = shadowX.toFixed(1) + 'px ' + shadowY.toFixed(1) + 'px 32px -8px rgba(37, 99, 235, 0.2), 0 4px 12px rgba(15, 23, 42, 0.05), inset 0 1px 0 #ffffff';
+            }
+          });
+
+          tile.addEventListener('pointerleave', function () {
+            tile.style.transform = 'perspective(750px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+            tile.style.boxShadow = '';
+            setTimeout(function () {
+              if (!tile.matches(':hover')) {
+                tile.style.transform = '';
+              }
+            }, 250);
+          });
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init3DGalleryTilt);
+      } else {
+        init3DGalleryTilt();
+      }
+      window.addEventListener('load', init3DGalleryTilt);
+      setInterval(init3DGalleryTilt, 1000);
+    })();
+  </script>
 </body>
 </html>

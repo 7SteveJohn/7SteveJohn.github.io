@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v235';   // 2026-11-06 彻底落地卡片左右3D物理微倾斜与真悬浮跟手反馈
+const CACHE = 'sevenjohn-v236';   // 2026-11-06 彻底落地卡片左右3D物理微倾斜与真悬浮跟手反馈
 const CORE = [
   './',
   'index.html',
@@ -240,19 +240,17 @@ self.addEventListener('fetch', (event) => {
     };
     const key = SWR_KEYS[path];
     if (key) {
+      // 页面导航采用网络优先策略：保证在线时永远即时拉取最新代码与版本，离线时秒级回退离线缓存
       event.respondWith(
-        caches.match(key).then((cached) => {
-          const network = fetch(req)
-            .then((res) => {
-              if (res && res.ok) {
-                const copy = res.clone();
-                caches.open(CACHE).then((cache) => cache.put(key, copy));
-              }
-              return res;
-            })
-            .catch(() => cached || offlineFallback('离线：页面未缓存'));
-          return cached || network;
-        })
+        fetch(req)
+          .then((res) => {
+            if (res && res.ok) {
+              const copy = res.clone();
+              caches.open(CACHE).then((cache) => cache.put(key, copy));
+            }
+            return res;
+          })
+          .catch(() => caches.match(key).then((cached) => cached || offlineFallback('离线：页面未缓存')))
       );
     } else {
       // 非首页 HTML：网络优先、离线回退缓存首页（低频页面，不值得各存一份）
