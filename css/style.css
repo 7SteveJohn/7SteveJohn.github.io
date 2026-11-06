@@ -479,7 +479,7 @@ h1, h2, h3 {
 
 /* ============================================================
    Bento 卡片质感与真·3D物理左右悬浮 (源自 demo-linear-apple.html)
-   拟真拟物玻璃质感、微立体边框、物理左右悬浮 (±7.5°) 与景深浮凸
+   拟物级物理翘板：戳哪边哪边深陷下沉，松开弹性回弹
    ============================================================ */
 .bento-card,
 .app-window-card {
@@ -488,12 +488,12 @@ h1, h2, h3 {
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 1.125rem;
   box-shadow: 0 10px 30px -8px rgba(15, 23, 42, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, border-color 0.2s ease, background-color 0.2s ease;
   transform-style: preserve-3d;
   will-change: transform, box-shadow;
 }
 
-/* 动态光泽层：光标在卡片左右移动时投射自然柔和的漫射流光 */
+/* 动态微光泽层：伴随倾斜角度的极微弱漫反射，不抢戏 */
 .bento-card::before,
 .app-window-card::before {
   content: '';
@@ -501,13 +501,13 @@ h1, h2, h3 {
   inset: 0;
   border-radius: inherit;
   background: radial-gradient(
-    600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-    rgba(37, 99, 235, 0.08),
-    transparent 65%
+    500px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(37, 99, 235, 0.06),
+    transparent 60%
   );
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.25s ease;
   z-index: 1;
 }
 .bento-card:hover::before,
@@ -517,48 +517,18 @@ h1, h2, h3 {
 .dark .bento-card::before,
 .dark .app-window-card::before {
   background: radial-gradient(
-    600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-    rgba(56, 189, 248, 0.14),
-    transparent 65%
+    500px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(56, 189, 248, 0.09),
+    transparent 60%
   );
 }
 
-/* 3D 左右律动悬浮浮空关键帧（极具 Linear / Apple 高级拟物呼吸感） */
-@keyframes card-3d-floating-light {
-  0%, 100% {
-    transform: perspective(1000px) rotateX(1.5deg) rotateY(-3.5deg) translateY(-8px);
-    box-shadow: 10px 24px 45px -8px rgba(37, 99, 235, 0.18), 0 2px 8px rgba(15, 23, 42, 0.04), inset 0 1px 0 #ffffff;
-  }
-  50% {
-    transform: perspective(1000px) rotateX(-1.5deg) rotateY(3.5deg) translateY(-14px);
-    box-shadow: -10px 32px 55px -10px rgba(37, 99, 235, 0.22), 0 4px 12px rgba(15, 23, 42, 0.06), inset 0 1px 0 #ffffff;
-  }
-}
-
-@keyframes card-3d-floating-dark {
-  0%, 100% {
-    transform: perspective(1000px) rotateX(1.5deg) rotateY(-3.5deg) translateY(-8px);
-    box-shadow: 10px 26px 50px -10px rgba(0, 0, 0, 0.85), 0 0 24px rgba(56, 189, 248, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  }
-  50% {
-    transform: perspective(1000px) rotateX(-1.5deg) rotateY(3.5deg) translateY(-14px);
-    box-shadow: -10px 34px 60px -10px rgba(0, 0, 0, 0.95), 0 0 32px rgba(56, 189, 248, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.18);
-  }
-}
-
-/* 浅色模式：悬浮状态 (Hover 悬浮 & Selected 选中聚焦) */
+/* 浅色模式：悬浮基态 */
 html:not(.dark) .bento-card:hover,
 html:not(.dark) .bento-card.card-selected,
-html:not(.dark) .bento-card:target,
 html:not(.dark) .app-window-card:hover {
-  transform: perspective(1000px) rotateX(1deg) rotateY(-2.5deg) translateY(-8px);
-  border-color: rgba(37, 99, 235, 0.38);
-  box-shadow: 0 24px 50px -12px rgba(37, 99, 235, 0.18), 0 4px 12px -2px rgba(15, 23, 42, 0.04), inset 0 1px 0 #ffffff;
-}
-
-/* 选中的卡片持续呈现优雅 3D 左右漂浮呼吸 */
-html:not(.dark) .bento-card.card-selected {
-  animation: card-3d-floating-light 5s ease-in-out infinite;
+  border-color: rgba(37, 99, 235, 0.35);
+  box-shadow: 0 20px 45px -10px rgba(37, 99, 235, 0.16), 0 4px 12px -2px rgba(15, 23, 42, 0.04), inset 0 1px 0 #ffffff;
 }
 
 /* 深色模式：暗夜星空半透液态玻璃 */
@@ -571,18 +541,12 @@ html:not(.dark) .bento-card.card-selected {
   -webkit-backdrop-filter: blur(14px) saturate(1.25);
 }
 
-/* 深色模式：悬浮状态 (Hover 悬浮 & Selected 选中聚焦) */
+/* 深色模式：悬浮基态 */
 .dark .bento-card:hover,
 .dark .bento-card.card-selected,
-.dark .bento-card:target,
 .dark .app-window-card:hover {
-  transform: perspective(1000px) rotateX(1deg) rotateY(-2.5deg) translateY(-8px);
   border-color: rgba(56, 189, 248, 0.45);
   box-shadow: 0 24px 55px -10px rgba(0, 0, 0, 0.85), 0 0 30px rgba(56, 189, 248, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-.dark .bento-card.card-selected {
-  animation: card-3d-floating-dark 5s ease-in-out infinite;
 }
 
 /* 按压瞬间微弹性反馈 */
@@ -715,6 +679,8 @@ html:not(.dark) .bento-card [data-card-desc] {
 }
 .js .reveal.is-visible {
   opacity: 1;
+}
+.js .reveal.is-visible:not(.bento-card):not(.app-window-card) {
   transform: none;
 }
 /* 封面图随卡片浮现做 1.02 → 1 微缩放 */
