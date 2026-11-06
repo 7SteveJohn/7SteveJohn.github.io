@@ -1,6 +1,0 @@
-fix(interaction): 终极落地卡片3D真物理倾斜与SW网络优先
-
-1. 根因解决：将 sw.js 页面导航改为 Network-First，根除旧版 HTML/JS 缓存锁死问题；
-2. 架构保障：在 index.html、archive.html、gallery.html 直接内联原生 3D 微倾斜引擎，零时钟依赖 100% 触发；
-3. 样式保底：CSS :hover 显式添加 translateY(-8px) 物理上浮；
-4. 缓存升级：Service Worker 版本升级为 sevenjohn-v236。
