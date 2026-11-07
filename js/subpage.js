@@ -48,7 +48,7 @@
         en.target.classList.add('is-visible');
         io.unobserve(en.target);
       });
-    }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+    }, { threshold: 0.05, rootMargin: '0px 0px 40px 0px' });
     return io;
   }
 
@@ -101,6 +101,14 @@
       }
     });
   }
+
+  // 6. 全局搜索快捷键（次级页按下 Ctrl+K / ⌘K 自动无缝直达首页搜索面板）
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === 'k' || e.code === 'KeyK')) {
+      e.preventDefault();
+      location.href = 'index.html?search=1';
+    }
+  });
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initTheme);

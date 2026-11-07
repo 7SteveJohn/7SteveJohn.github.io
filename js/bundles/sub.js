@@ -1,9 +1,9 @@
-// build-bundles: {"name":"sub","version":"090afde9ec29","sources":[{"path":"js/subpage.js","sha256":"de9c0116332a8fbabce56c99f683326ead8807c182b1991c6fd873c490ea61c5"}]}
+// build-bundles: {"name":"sub","version":"ad3001e2ace9","sources":[{"path":"js/subpage.js","sha256":"eafc9be28f4bb02073e82de13ef1b36d09b33d943ff52d3fda3de8174724de2b"}]}
 /* 次级页共用：外壳（SW 注册 / 滚动态 / 浮现）
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/subpage.js */
 
-// ---- js/subpage.js (de9c0116332a) ----
+// ---- js/subpage.js (eafc9be28f4b) ----
 /**
  * 次级页面（archive.html / gallery.html）共用的小脚本
  * ----------------------------------------------------
@@ -54,7 +54,7 @@
         en.target.classList.add('is-visible');
         io.unobserve(en.target);
       });
-    }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+    }, { threshold: 0.05, rootMargin: '0px 0px 40px 0px' });
     return io;
   }
 
@@ -107,6 +107,14 @@
       }
     });
   }
+
+  // 6. 全局搜索快捷键（次级页按下 Ctrl+K / ⌘K 自动无缝直达首页搜索面板）
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === 'k' || e.code === 'KeyK')) {
+      e.preventDefault();
+      location.href = 'index.html?search=1';
+    }
+  });
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initTheme);

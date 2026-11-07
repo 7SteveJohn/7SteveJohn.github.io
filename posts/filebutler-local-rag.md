@@ -18,6 +18,19 @@ tags: [Python, Ollama, SQLite, RAG, 端侧AI]
 - **文件重组安全流程**：规则或端侧模型生成整理预案 → 生成明确的移动计划清单 → 用户人工勾选确认 → 写入事务日志并原子执行。支持按批次整体撤销回滚。
 - **防御性降级机制**：本地 Ollama 服务不可用时自动降级为规则整理与 FTS5 关键词检索，确保核心功能高可用。
 
+```python
+# 双轨查询：精确匹配走 SQLite FTS5，语义评分仅作重排
+def search_files(cursor, query: str, limit: int = 20) -> list[dict]:
+    sql = """
+        SELECT path, size, modified_at, bm25(files_fts) AS rank
+        FROM files_fts
+        WHERE files_fts MATCH ?
+        ORDER BY rank
+        LIMIT ?
+    """
+    return cursor.execute(sql, (query, limit)).fetchall()
+```
+
 ### 核心难点与工程排障
 1. **避免启动时瞬时构建全盘向量索引。** 启动即触发大批量向量化会导致系统 I/O 与 CPU 瞬时过载，拖慢交互；改为由后台线程在系统闲置时增量扫描入库。
 2. **语义检索不适合精确匹配。** 搜文件名、扩展名、大小这类精确条件，向量检索反而找不准——先让 FTS5 命中，再用语义排序。

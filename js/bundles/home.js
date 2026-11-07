@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"92eda2b9dffa","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"00b4eaa791d699d04cd2f178c2d7d8f553683c530883291c9fa7d4fdc9739fdb"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"87756b981b00bec7b9110fdf82f29aa72601363a37a1505073f736474aae6335"}]}
+// build-bundles: {"name":"home","version":"e9088a0a0e3b","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"b42625fd147c9d469dfd4fd1d230447e89261157ca8500815c1a584e4e3651a8"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"5f73571fc55cdd92d9f3fff0f23fb8d451e2e6e9b568292265725ccb32ff1161"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"87756b981b00bec7b9110fdf82f29aa72601363a37a1505073f736474aae6335"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -19,7 +19,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/search.js (f393eb767118) ----
+// ---- js/search.js (b42625fd147c) ----
 /**
  * ⌘K 站内搜索命令面板 (search.js)
  * ----------------------------------------------------
@@ -206,7 +206,7 @@ window.SITE_STATUS = {
 
   /* ---------- 开关 ---------- */
   function open() {
-    if (!palette.classList.contains('hidden')) return;
+    if (!palette.classList.contains('hidden') && !palette.classList.contains('is-closing')) return;
     buildIndex();
     lastFocus = document.activeElement;
     if (palette._closeTimer) { clearTimeout(palette._closeTimer); palette._closeTimer = null; }
@@ -214,7 +214,10 @@ window.SITE_STATUS = {
     document.body.style.overflow = 'hidden';
     input.value = '';
     render('');
-    input.focus();
+    requestAnimationFrame(() => {
+      input.focus();
+      input.select();
+    });
   }
 
   function close() {
@@ -239,7 +242,7 @@ window.SITE_STATUS = {
   if (openBtn) openBtn.addEventListener('click', open);
 
   document.addEventListener('keydown', (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+    if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === 'k' || e.code === 'KeyK')) {
       e.preventDefault();
       toggle();
       return;
@@ -305,6 +308,16 @@ window.SITE_STATUS = {
       close();
       setTimeout(() => pick.run(), 60);
     });
+  }
+
+  // 支持深链或次级页按 Ctrl+K 传参 ?search=1 唤起搜索
+  if (new URLSearchParams(location.search).get('search') === '1') {
+    setTimeout(open, 80);
+    try {
+      const u = new URL(location.href);
+      u.searchParams.delete('search');
+      history.replaceState(null, '', u.pathname + (u.hash || ''));
+    } catch (_) {}
   }
 })();
 
@@ -380,7 +393,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (00b4eaa791d6) ----
+// ---- js/app.js (5f73571fc55c) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -610,6 +623,11 @@ function hydrateProductLinks() {
       if (anchor && url) anchor.href = url;
     });
 
+    const downloadAnchor = card.querySelector('[data-link="download"]');
+    if (downloadAnchor && project.downloadPwd) {
+      downloadAnchor.dataset.copyPwd = project.downloadPwd;
+    }
+
     const pwd = card.querySelector('[data-pwd]');
     if (pwd) pwd.textContent = project.downloadPwd ? ` (提取码: ${project.downloadPwd})` : '';
 
@@ -711,6 +729,7 @@ window.openProjectModal = function(id) {
       <div class="pt-6 border-t border-black/10 dark:border-white/10 flex flex-wrap gap-3 items-center justify-end">
         ${project.downloadUrl ? `
           <a href="${project.downloadUrl}" target="_blank" rel="noopener noreferrer"
+             ${project.downloadPwd ? `data-copy-pwd="${escapeHtml(project.downloadPwd)}"` : ''}
              class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5">
             <i data-lucide="download" class="w-3.5 h-3.5"></i>
             <span>网盘下载${project.downloadPwd ? ' (提取码: ' + project.downloadPwd + ')' : ''}</span>
@@ -1078,19 +1097,34 @@ function initAnnotations(modalContent, articleId) {
    全局趣味件：toast / 时段问候 / 状态仪表盘 / Konami 彩蛋 / 赞赏
    ============================================================ */
 let toastTimer = null;
-function showToast(msg) {
+function showToast(msg, opt = {}) {
+  const duration = typeof opt === 'number' ? opt : (opt.duration || 2600);
+  const position = typeof opt === 'object' && opt.position ? opt.position : 'bottom';
   let el = document.getElementById('sj-toast');
   if (!el) {
     el = document.createElement('div');
     el.id = 'sj-toast';
-    el.className = 'sj-toast';
     document.body.appendChild(el);
   }
+  el.className = 'sj-toast' + (position === 'top-right' ? ' toast-top-right' : '');
   el.textContent = msg;
+  void el.offsetWidth;
   el.classList.add('is-show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('is-show'), 2600);
+  toastTimer = setTimeout(() => el.classList.remove('is-show'), duration);
 }
+
+// 网盘下载：自动写入提取码至剪贴板，并在右上角呈现微弱优雅 Toast 提示
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-copy-pwd]');
+  if (!btn) return;
+  const pwd = btn.dataset.copyPwd;
+  if (!pwd) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(pwd).catch(() => {});
+  }
+  showToast(`已复制提取码: ${pwd}`, { duration: 1500, position: 'top-right' });
+});
 
 // 时段感知问候（读取访客本地时间）
 function initHeroGreeting() {
@@ -1889,7 +1923,7 @@ const revealObserver = ('IntersectionObserver' in window)
         el.classList.add('is-visible');
         io.unobserve(el);
       });
-    }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' })
+    }, { threshold: 0.05, rootMargin: '0px 0px 40px 0px' })
   : null;
 
 // 幂等：动态列表重渲染后再次调用即可观察新节点
@@ -2190,10 +2224,10 @@ function initArticleProgress() {
     const scroller = (modal && modal.scrollTop > 5) ? modal : (content || modal);
     if (!scroller) return;
     const max = scroller.scrollHeight - scroller.clientHeight;
-    const ratio = max > 40 ? Math.min(Math.max(scroller.scrollTop / max, 0), 1) : 0;
+    const ratio = max > 20 ? Math.min(Math.max(scroller.scrollTop / max, 0), 1) : 0;
     bar.style.width = `${(ratio * 100).toFixed(1)}%`;
     // 读完致谢：滚动到底一次性提示
-    if (max > 40 && ratio >= 0.985 && content && !content.dataset.thanked) {
+    if (max > 20 && ratio >= 0.985 && content && !content.dataset.thanked) {
       content.dataset.thanked = '1';
       showToast('读完了，谢谢你 ❤');
     }
@@ -2203,21 +2237,76 @@ function initArticleProgress() {
   if (modal) modal.addEventListener('scroll', onScroll, { passive: true });
 }
 
-// 为弹窗内的代码块追加一键复制按钮（剪贴板 API 不可用时静默跳过）
+// 为弹窗内的代码块追加微语言徽标与一键复制按钮（含状态反馈）
 function addCopyButtons(modalContent) {
-  if (!navigator.clipboard) return;
   modalContent.querySelectorAll('pre').forEach((pre) => {
-    if (pre.querySelector('.code-copy-btn')) return;
+    // 语言徽标识别与挂载
+    const codeEl = pre.querySelector('code');
+    let lang = '';
+    if (codeEl) {
+      const cls = codeEl.className || '';
+      const m = cls.match(/(?:language|lang)-([a-zA-Z0-9_+-]+)/);
+      if (m) lang = m[1];
+    }
+    const langMap = {
+      js: 'JS',
+      javascript: 'JavaScript',
+      ts: 'TypeScript',
+      typescript: 'TypeScript',
+      py: 'Python',
+      python: 'Python',
+      cs: 'C#',
+      csharp: 'C#',
+      html: 'HTML',
+      css: 'CSS',
+      json: 'JSON',
+      bash: 'Bash',
+      sh: 'Shell',
+      shell: 'Shell',
+      powershell: 'PowerShell',
+      ps1: 'PowerShell',
+      sql: 'SQL',
+      rust: 'Rust',
+      rs: 'Rust',
+      go: 'Go',
+      yaml: 'YAML',
+      yml: 'YAML'
+    };
+    const displayLang = langMap[lang.toLowerCase()] || (lang ? lang.toUpperCase() : 'CODE');
+
+    if (!pre.querySelector('.code-lang-badge')) {
+      const badge = document.createElement('span');
+      badge.className = 'code-lang-badge';
+      badge.textContent = displayLang;
+      pre.appendChild(badge);
+    }
+
+    if (!navigator.clipboard || pre.querySelector('.code-copy-btn')) return;
+
     pre.style.position = 'relative';
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'code-copy-btn';
     btn.textContent = '复制';
+    btn.setAttribute('aria-label', '复制代码');
+
     btn.addEventListener('click', async () => {
       try {
-        await navigator.clipboard.writeText(pre.querySelector('code')?.innerText || pre.innerText);
-        btn.textContent = '已复制 ✓';
-        setTimeout(() => { btn.textContent = '复制'; }, 1200);
+        let textToCopy = '';
+        if (codeEl) {
+          textToCopy = codeEl.innerText;
+        } else {
+          const clone = pre.cloneNode(true);
+          clone.querySelectorAll('.code-copy-btn, .code-lang-badge').forEach((el) => el.remove());
+          textToCopy = clone.innerText;
+        }
+        await navigator.clipboard.writeText(textToCopy);
+        btn.textContent = '✓ 已复制';
+        btn.classList.add('is-copied');
+        setTimeout(() => {
+          btn.textContent = '复制';
+          btn.classList.remove('is-copied');
+        }, 1500);
       } catch (_) { /* 用户拒绝剪贴板权限时保持原样 */ }
     });
     pre.appendChild(btn);

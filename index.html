@@ -97,7 +97,7 @@
   </script>
 
  <!-- 定制样式-->
-  <link rel="stylesheet" href="css/style.css?v=20261107_v244" data-page-node-id="DJZNUKsUQagCUphQLazIKY" />
+  <link rel="stylesheet" href="css/style.css?v=20261107_v245" data-page-node-id="DJZNUKsUQagCUphQLazIKY" />
   <link rel="stylesheet" href="css/cosmos.css" />
   <link rel="stylesheet" href="css/settings-panel.css" />
 </head>
@@ -157,11 +157,15 @@
       <div class="flex items-center gap-3" data-page-node-id="Nj8pPvsxLnVWYNCbexlgee">
         <button
           id="search-open"
+          type="button"
           aria-label="搜索站内内容 (Ctrl+K)"
           title="搜索 (Ctrl+K)"
-          class="p-1.5 rounded-full text-[#86868b] hover:text-black dark:hover:text-white transition cursor-pointer" data-page-node-id="F5CgSaTqHqoKp9Bf8GWlny"
+          class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs text-[#64748b] dark:text-[#86868b] bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] hover:text-black dark:hover:text-white border border-black/5 dark:border-white/10 transition cursor-pointer select-none"
+          data-page-node-id="F5CgSaTqHqoKp9Bf8GWlny"
         >
           <i data-lucide="search" class="w-3.5 h-3.5" data-page-node-id="0Fsc8KnJH1zfn7iOHLMJE5"></i>
+          <span class="hidden sm:inline text-[11.5px]">搜索</span>
+          <kbd class="hidden md:inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-mono text-[#86868b] dark:text-[#94a3b8] bg-black/5 dark:bg-white/10 leading-none">⌘K</kbd>
         </button>
 
         <a 
@@ -369,6 +373,7 @@
             <a
               href="https://wwblz.lanzouu.com/iX5qd4eftu8b"
               data-link="download"
+              data-copy-pwd="8s2i"
               target="_blank"
               rel="noopener noreferrer"
               title="蓝奏云网盘；同一份文件也在 GitHub Releases"
@@ -450,6 +455,7 @@
               <a
                 href="https://pan.baidu.com/s/1bDLB4CS2y2WuAvAo7aESZQ?pwd=cx6g"
                 data-link="download"
+                data-copy-pwd="cx6g"
                 target="_blank"
                 rel="noopener noreferrer"
                 title="百度网盘；同一份文件也在 GitHub Releases"
@@ -531,6 +537,7 @@
             <a
               href="https://wwblz.lanzouu.com/iSxU64ah31kb"
               data-link="download"
+              data-copy-pwd="5d7u"
               target="_blank"
               rel="noopener noreferrer"
               class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5" data-page-node-id="xaqeNags8mfqcDuf0SjRYJ"
@@ -614,6 +621,7 @@
               <a
                 href="https://wwblz.lanzouu.com/b00q1u0qpa"
                 data-link="download"
+                data-copy-pwd="1ici"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5"
@@ -955,8 +963,8 @@
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
         <!-- 阅读进度条紧贴顶栏底边 -->
-        <div class="absolute bottom-0 left-0 right-0 h-[2px] pointer-events-none overflow-hidden" data-page-node-id="qczz8h99IL6LcuTZvp8rjM">
-          <div id="article-progress" class="h-full w-0 bg-[#1d1d1f] dark:bg-[#f5f5f7] transition-[width] duration-75" data-page-node-id="yEFmAmXfPH8BIA4EvYdlGH"></div>
+        <div class="absolute bottom-0 left-0 right-0 h-[2.5px] pointer-events-none overflow-hidden bg-black/[0.04] dark:bg-white/[0.06]" data-page-node-id="qczz8h99IL6LcuTZvp8rjM">
+          <div id="article-progress" class="h-full w-0 transition-[width] duration-75" data-page-node-id="yEFmAmXfPH8BIA4EvYdlGH"></div>
         </div>
       </div>
 
@@ -1030,9 +1038,9 @@
   <script src="js/projects.js" defer></script>
   <script src="js/articles.js" defer></script>
   <!-- core：站点配置 → Markdown 按需加载器 → 壁纸 → 粒子 → 设置面板 → 按住 Tab -->
-  <script src="js/bundles/core.js?v=20261107_v244" defer></script>
+  <script src="js/bundles/core.js?v=20261107_v245" defer></script>
   <!-- home：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器（必须在 core 之后） -->
-  <script src="js/bundles/home.js?v=20261107_v244" defer></script>
+  <script src="js/bundles/home.js?v=20261107_v245" defer></script>
   <!-- importmap：把 three 的裸导入指到自托管副本（必须在任何 module script 之前）。
        本地推理场场景（js/cosmos/main.js：分层节点网 + 沿边前传的脉冲）；
        无 WebGL 或初始化失败时它内部自动回退加载 2D 版 js/cosmos.js -->

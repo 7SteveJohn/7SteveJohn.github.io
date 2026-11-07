@@ -184,7 +184,7 @@
 
   /* ---------- 开关 ---------- */
   function open() {
-    if (!palette.classList.contains('hidden')) return;
+    if (!palette.classList.contains('hidden') && !palette.classList.contains('is-closing')) return;
     buildIndex();
     lastFocus = document.activeElement;
     if (palette._closeTimer) { clearTimeout(palette._closeTimer); palette._closeTimer = null; }
@@ -192,7 +192,10 @@
     document.body.style.overflow = 'hidden';
     input.value = '';
     render('');
-    input.focus();
+    requestAnimationFrame(() => {
+      input.focus();
+      input.select();
+    });
   }
 
   function close() {
@@ -217,7 +220,7 @@
   if (openBtn) openBtn.addEventListener('click', open);
 
   document.addEventListener('keydown', (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+    if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === 'k' || e.code === 'KeyK')) {
       e.preventDefault();
       toggle();
       return;
@@ -283,5 +286,15 @@
       close();
       setTimeout(() => pick.run(), 60);
     });
+  }
+
+  // 支持深链或次级页按 Ctrl+K 传参 ?search=1 唤起搜索
+  if (new URLSearchParams(location.search).get('search') === '1') {
+    setTimeout(open, 80);
+    try {
+      const u = new URL(location.href);
+      u.searchParams.delete('search');
+      history.replaceState(null, '', u.pathname + (u.hash || ''));
+    } catch (_) {}
   }
 })();

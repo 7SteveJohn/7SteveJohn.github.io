@@ -53,14 +53,22 @@
 
     const meta = document.createElement('div');
     meta.className = 'arc-meta';
-    [
+    const metaParts = [
       { cls: 'arc-pill', text: sectionName(art) },
-      { cls: '', text: art.date || '' },
-      { cls: '', text: art.readTime ? '· ' + art.readTime : '' }
-    ].forEach(({ cls, text }) => {
+      { cls: 'arc-date', text: art.date || '' },
+      { cls: 'arc-time', text: (art.readTime || '').replace(/^[·\s]+/, '') }
+    ].filter((it) => it.text);
+
+    metaParts.forEach((it, idx) => {
+      if (idx > 0) {
+        const sep = document.createElement('span');
+        sep.className = 'arc-sep';
+        sep.textContent = '·';
+        meta.appendChild(sep);
+      }
       const span = document.createElement('span');
-      if (cls) span.className = cls;
-      span.textContent = text;
+      if (it.cls) span.className = it.cls;
+      span.textContent = it.text;
       meta.appendChild(span);
     });
     card.appendChild(meta);
@@ -296,7 +304,7 @@
         en.target.classList.add('is-visible');
         io.unobserve(en.target);
       });
-    }, { threshold: 0.1, rootMargin: '0px 0px -5% 0px' });
+    }, { threshold: 0.05, rootMargin: '0px 0px 40px 0px' });
     items.forEach((it) => io.observe(it.wrap));
   }
 

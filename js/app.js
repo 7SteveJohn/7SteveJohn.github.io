@@ -227,6 +227,11 @@ function hydrateProductLinks() {
       if (anchor && url) anchor.href = url;
     });
 
+    const downloadAnchor = card.querySelector('[data-link="download"]');
+    if (downloadAnchor && project.downloadPwd) {
+      downloadAnchor.dataset.copyPwd = project.downloadPwd;
+    }
+
     const pwd = card.querySelector('[data-pwd]');
     if (pwd) pwd.textContent = project.downloadPwd ? ` (提取码: ${project.downloadPwd})` : '';
 
@@ -328,6 +333,7 @@ window.openProjectModal = function(id) {
       <div class="pt-6 border-t border-black/10 dark:border-white/10 flex flex-wrap gap-3 items-center justify-end">
         ${project.downloadUrl ? `
           <a href="${project.downloadUrl}" target="_blank" rel="noopener noreferrer"
+             ${project.downloadPwd ? `data-copy-pwd="${escapeHtml(project.downloadPwd)}"` : ''}
              class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5">
             <i data-lucide="download" class="w-3.5 h-3.5"></i>
             <span>网盘下载${project.downloadPwd ? ' (提取码: ' + project.downloadPwd + ')' : ''}</span>
@@ -695,19 +701,34 @@ function initAnnotations(modalContent, articleId) {
    全局趣味件：toast / 时段问候 / 状态仪表盘 / Konami 彩蛋 / 赞赏
    ============================================================ */
 let toastTimer = null;
-function showToast(msg) {
+function showToast(msg, opt = {}) {
+  const duration = typeof opt === 'number' ? opt : (opt.duration || 2600);
+  const position = typeof opt === 'object' && opt.position ? opt.position : 'bottom';
   let el = document.getElementById('sj-toast');
   if (!el) {
     el = document.createElement('div');
     el.id = 'sj-toast';
-    el.className = 'sj-toast';
     document.body.appendChild(el);
   }
+  el.className = 'sj-toast' + (position === 'top-right' ? ' toast-top-right' : '');
   el.textContent = msg;
+  void el.offsetWidth;
   el.classList.add('is-show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('is-show'), 2600);
+  toastTimer = setTimeout(() => el.classList.remove('is-show'), duration);
 }
+
+// 网盘下载：自动写入提取码至剪贴板，并在右上角呈现微弱优雅 Toast 提示
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-copy-pwd]');
+  if (!btn) return;
+  const pwd = btn.dataset.copyPwd;
+  if (!pwd) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(pwd).catch(() => {});
+  }
+  showToast(`已复制提取码: ${pwd}`, { duration: 1500, position: 'top-right' });
+});
 
 // 时段感知问候（读取访客本地时间）
 function initHeroGreeting() {
@@ -1506,7 +1527,7 @@ const revealObserver = ('IntersectionObserver' in window)
         el.classList.add('is-visible');
         io.unobserve(el);
       });
-    }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' })
+    }, { threshold: 0.05, rootMargin: '0px 0px 40px 0px' })
   : null;
 
 // 幂等：动态列表重渲染后再次调用即可观察新节点
@@ -1807,10 +1828,10 @@ function initArticleProgress() {
     const scroller = (modal && modal.scrollTop > 5) ? modal : (content || modal);
     if (!scroller) return;
     const max = scroller.scrollHeight - scroller.clientHeight;
-    const ratio = max > 40 ? Math.min(Math.max(scroller.scrollTop / max, 0), 1) : 0;
+    const ratio = max > 20 ? Math.min(Math.max(scroller.scrollTop / max, 0), 1) : 0;
     bar.style.width = `${(ratio * 100).toFixed(1)}%`;
     // 读完致谢：滚动到底一次性提示
-    if (max > 40 && ratio >= 0.985 && content && !content.dataset.thanked) {
+    if (max > 20 && ratio >= 0.985 && content && !content.dataset.thanked) {
       content.dataset.thanked = '1';
       showToast('读完了，谢谢你 ❤');
     }
@@ -1820,21 +1841,76 @@ function initArticleProgress() {
   if (modal) modal.addEventListener('scroll', onScroll, { passive: true });
 }
 
-// 为弹窗内的代码块追加一键复制按钮（剪贴板 API 不可用时静默跳过）
+// 为弹窗内的代码块追加微语言徽标与一键复制按钮（含状态反馈）
 function addCopyButtons(modalContent) {
-  if (!navigator.clipboard) return;
   modalContent.querySelectorAll('pre').forEach((pre) => {
-    if (pre.querySelector('.code-copy-btn')) return;
+    // 语言徽标识别与挂载
+    const codeEl = pre.querySelector('code');
+    let lang = '';
+    if (codeEl) {
+      const cls = codeEl.className || '';
+      const m = cls.match(/(?:language|lang)-([a-zA-Z0-9_+-]+)/);
+      if (m) lang = m[1];
+    }
+    const langMap = {
+      js: 'JS',
+      javascript: 'JavaScript',
+      ts: 'TypeScript',
+      typescript: 'TypeScript',
+      py: 'Python',
+      python: 'Python',
+      cs: 'C#',
+      csharp: 'C#',
+      html: 'HTML',
+      css: 'CSS',
+      json: 'JSON',
+      bash: 'Bash',
+      sh: 'Shell',
+      shell: 'Shell',
+      powershell: 'PowerShell',
+      ps1: 'PowerShell',
+      sql: 'SQL',
+      rust: 'Rust',
+      rs: 'Rust',
+      go: 'Go',
+      yaml: 'YAML',
+      yml: 'YAML'
+    };
+    const displayLang = langMap[lang.toLowerCase()] || (lang ? lang.toUpperCase() : 'CODE');
+
+    if (!pre.querySelector('.code-lang-badge')) {
+      const badge = document.createElement('span');
+      badge.className = 'code-lang-badge';
+      badge.textContent = displayLang;
+      pre.appendChild(badge);
+    }
+
+    if (!navigator.clipboard || pre.querySelector('.code-copy-btn')) return;
+
     pre.style.position = 'relative';
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'code-copy-btn';
     btn.textContent = '复制';
+    btn.setAttribute('aria-label', '复制代码');
+
     btn.addEventListener('click', async () => {
       try {
-        await navigator.clipboard.writeText(pre.querySelector('code')?.innerText || pre.innerText);
-        btn.textContent = '已复制 ✓';
-        setTimeout(() => { btn.textContent = '复制'; }, 1200);
+        let textToCopy = '';
+        if (codeEl) {
+          textToCopy = codeEl.innerText;
+        } else {
+          const clone = pre.cloneNode(true);
+          clone.querySelectorAll('.code-copy-btn, .code-lang-badge').forEach((el) => el.remove());
+          textToCopy = clone.innerText;
+        }
+        await navigator.clipboard.writeText(textToCopy);
+        btn.textContent = '✓ 已复制';
+        btn.classList.add('is-copied');
+        setTimeout(() => {
+          btn.textContent = '复制';
+          btn.classList.remove('is-copied');
+        }, 1500);
       } catch (_) { /* 用户拒绝剪贴板权限时保持原样 */ }
     });
     pre.appendChild(btn);
