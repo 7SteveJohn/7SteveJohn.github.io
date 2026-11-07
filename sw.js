@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v251';   // 2026-11-08 全产品杀手级卖点与版本历史胶囊全量对齐上线 (FileButler/PaiAn/Fluxion/NetOps)
+const CACHE = 'sevenjohn-v252';   // 2026-11-08 三大主力产品60秒全景宣传视频与快剪连击全量上线 (FileButler/Fluxion/PaiAn)
 const CORE = [
   './',
   'index.html',

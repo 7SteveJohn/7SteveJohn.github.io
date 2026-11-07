@@ -108,7 +108,7 @@ window.PROJECTS_DATA = [
     sha256: "",
     details: `
 <img src="assets/images/cover-filebutler.webp" alt="FileButler 实机界面" style="width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:block;">
-<p style="font-size:12px;color:#86868b;margin-top:6px;">FileButler 实机主界面；38 秒介绍视频在项目卡片上。</p>
+<p style="font-size:12px;color:#86868b;margin-top:6px;">FileButler 实机主界面；60 秒全景介绍视频在项目卡片上。</p>
 
 ### 💡 这是什么
 一款兼顾文件秒搜、智能归档与本地知识库问答的桌面工具。可以接入 Ollama 或 LM Studio 进行文档语义问答；在不开启大模型时，关键词检索、文件预览、批量整理与重复清理等基础功能依然能够完整运行。
@@ -332,7 +332,7 @@ GameBoost-DLSSG 是专为 **RTX 20/30 系** 显卡定制的 DLSS 帧生成管理
     sha256: "d8f7f12c5e66e6b1e1dab520b35d80848617105a21ef1976c2ab69b112508e06",
     details: `
 <img src="assets/images/cover-paian.webp" alt="拍案 写作页实机" style="width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:block;">
-<p style="font-size:12px;color:#86868b;margin-top:6px;">拍案写作页：章节列表、正文编辑与右侧素材抽屉；38 秒介绍视频在项目卡片上。</p>
+<p style="font-size:12px;color:#86868b;margin-top:6px;">拍案写作页：章节列表、正文编辑与右侧素材抽屉；60 秒全景介绍视频在项目卡片上。</p>
 
 ### 💡 这是什么
 为长篇故事与深度写作量身定制的沉浸桌面工作台。独创码字抽卡激励体系，码字净产出换抽卡破局专治卡文；AI 依大纲起草的内容先暂存至「待审草稿」，经作者主动采纳后才合入正文并生成快照，确保原稿节奏始终由作者掌控；纯本地离线运行，支持连接本地 Ollama 模型或外部接口。
@@ -400,7 +400,7 @@ GameBoost-DLSSG 是专为 **RTX 20/30 系** 显卡定制的 DLSS 帧生成管理
     requires: "Windows 10/11 · NVIDIA RTX 20 系及以上（帧生成功能）",
     details: `
 <img src="assets/images/cover-fluxion.webp" alt="Fluxion 实机界面" style="width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:block;">
-<p style="font-size:12px;color:#86868b;margin-top:6px;">Fluxion 实机主界面；38 秒介绍视频在项目卡片上。</p>
+<p style="font-size:12px;color:#86868b;margin-top:6px;">Fluxion 实机主界面；60 秒全景介绍视频在项目卡片上。</p>
 
 ### 💡 这是什么
 Fluxion 是集 Windows 底层系统调优、全平台游戏库管理与跨代 DLSS 帧生成于一体的竞技级性能套件。包含仪表盘、性能优化、游戏库、实时监控等核心模块：**为 RTX 20/30 系老显卡强开 DLSS 帧生成实现帧率瞬间翻倍，提供 51 项系统级底层调优彻底消除对战交火瞬间的 1% Low 卡顿掉帧，且进游戏自动调优、退出瞬时无感还原。**
