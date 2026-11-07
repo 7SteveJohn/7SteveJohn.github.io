@@ -30,7 +30,7 @@ window.PROJECTS_DATA = [
     category: "desktop",
     categoryName: "桌面应用",
     description: "不挑配置的智能文件检索管家。发票、扫描件与截屏直接搜图内文字（OCR 穿透）；文档不用打开直接问出处并定位页码；智能整理文件先出方案预览确认后再动，支持全流程无损一键撤销。主流云端 API Key 与本地模型双轨自由接入。",
-    tags: ["Python", "OCR穿透秒搜", "免开文档问答(RAG)", "方案预览/一键撤销", "云端API/本地双模"],
+    tags: ["Python 3", "OCR穿透秒搜", "免开文档问答(RAG)", "方案预览/一键撤销", "云端API/本地双模"],
     image: "assets/images/cover-filebutler.webp",
     demoUrl: "https://github.com/7SteveJohn/FileButler/releases",
     githubUrl: "https://github.com/7SteveJohn/FileButler",
@@ -137,8 +137,8 @@ window.PROJECTS_DATA = [
     title: "NetOps Handbook · 网络工程与排障手册",
     category: "android",
     categoryName: "Android 应用",
-    description: "一本随身查阅的网络技术与运维参考手册。收录华为、Cisco、中兴与 Linux 的多厂商命令对照、排障流程与面试题库，以单文件打包，随时秒开。",
-    tags: ["Android", "WebView", "Gradle 8.9", "单页 SPA", "网络运维"],
+    description: "随身携带的实战网络工程排障与面试重器。华为、Cisco、中兴与 Linux 四大主流厂商高频命令同屏并排对照；「现象 ➔ 根因 ➔ 命令 ➔ 验证」四步排障闭环，生产现场秒出处置指令；内置离线 CLI 命令行沙盒模拟器与 53 道大厂高频网络/SRE 结构化面试题库。零权限纯离线，机房地堡随时秒开。",
+    tags: ["Android 移动端", "四厂商命令同屏对照", "四步闭环排障字典", "离线CLI交互沙盒", "大厂面试STAR题库"],
     image: "assets/images/cover-netops.webp",
     demoUrl: "https://github.com/7SteveJohn/netops-handbook/releases",
     githubUrl: "https://github.com/7SteveJohn/netops-handbook",
@@ -157,20 +157,15 @@ window.PROJECTS_DATA = [
 <p style="font-size:12px;color:#86868b;margin-top:6px;">NetOps 2.0 实机界面；38 秒介绍视频在项目卡片上。</p>
 
 ### 💡 这是什么
-NetOps Handbook 是一本网络工程与运维随身参考手册。收录多厂商命令对照、故障排查路径、CLI 模拟器与技术题库，适合在学习、备考或日常维护时对照查阅。
+NetOps Handbook 是专为网络工程师、系统运维与 SRE 量身打造的随身实战与面试武器库。收录华为、Cisco、中兴与 Linux 四大平台命令同屏并排对照、生产排障闭环路径、离线 CLI 沙盒模拟器与大厂面试高频真题；零权限纯离线运行，在无信号机房或严苛安全保密环境中随时秒开查阅。
 
-**产品定位为辅助参考手册**：适合配合教材、在线课程与真机实验使用，用于高频命令速查、跨厂商配置对照、故障排障步骤梳理与面试重点巩固。
-
-### ✨ 里面有什么
-- **68 个知识模块 / 35 个排障案例 / 58 条多厂商命令对照 / 431 条 CLI 命令 / 53 道面试真题**
-- **学习路线图**：从基础网络到云原生与 SRE 分五个递进阶段，每个阶段清晰界定目标并映射对应知识模块
-- **排障字典**：每个故障按「现象 → 根因 → 命令 → 验证」四步展开，点开卡片就是一条完整的排查步骤
-- **命令字典**：同一条命令把华为、Cisco、中兴、Linux 四个平台并排摆出来对照
-- **面试题库**：高频真题带参考答案和 STAR 话术；另有模拟测验（随机抽题、自动判分）和错题本
-- **速查表与术语词典**：提供高频 CLI 命令与网络、云原生技术专有名词索引
-- **CLI 模拟器**：离线沙盒环境，支持直接键入命令，提供前缀联想与历史记录
-- **数据导出**：学习进度、收藏夹与错题记录支持导出为标准 JSON 格式，便于跨设备迁移
-- **多主题与视觉层次**：内置 14 款精选壁纸与三档毛玻璃效果（液态玻璃 / 标准毛玻璃 / 高斯模糊），浮层透明度根据壁纸亮度自动重算，性能受限设备自动降级渲染
+### ✨ 独家杀手级卖点
+- **四大主流厂商命令同屏对照（告别记忆混淆）**：同一网络配置意图，将华为 VRP、思科 IOS、中兴 ROS 与 Linux ip/route/iptables 四大平台命令并排对齐展示，跨平台运维无缝切换，语法差异一览无余
+- **「现象 ➔ 根因 ➔ 命令 ➔ 验证」四步排障字典**：覆盖 35 类高频真实生产故障（路由震荡、ARP 欺骗、BGP 邻居卡死等），直出标准化处置命令，现场排障秒级闭环
+- **离线 CLI 命令行沙盒模拟器**：收录 431 条实机命令，支持前缀联想补全与历史指令回溯，离线沙盒即敲即练，随时随地手机练就扎实手感
+- **53 道大厂网络与 SRE 面试真题**：全套配备 STAR 结构化实战答题话术，支持随机真题抽测、自动判分与错题本攻坚，直击高频考点
+- **零权限纯离线保障**：零 INTERNET 网络权限申请，保密机房与地下室无网环境随时秒开，企业拓扑结构与设备账号绝对不泄露
+- **极客质感视觉体系**：内置 14 款极客壁纸与液态玻璃/高斯模糊毛玻璃视效，低配设备自适应降级，保证丝滑流畅
 
 ### 🛠️ 怎么做的
 - **Android 壳层**：WebView 全屏 + 安全区适配 + 返回手势桥接，纯离线（不申请 INTERNET 权限）
@@ -347,7 +342,7 @@ GameBoost-DLSSG 是专为 **RTX 20/30 系** 显卡定制的 DLSS 帧生成管理
     category: "desktop",
     categoryName: "桌面应用",
     description: "Windows 竞技级游戏性能套件。RTX 20/30 系老显卡强开 DLSS 帧生成，实测帧率 120 ➔ 280 FPS 瞬间翻倍；51 项底层体检专治对战交火 1% Low 掉帧卡顿与输入延迟；进游戏自适应调优，退出瞬时无感还原。",
-    tags: ["C# 原生", "RTX 20/30 强开DLSS帧生成", "51项底层体检", "治1% Low掉帧", "游戏联动/无损还原"],
+    tags: ["C# 原生编译", "RTX 20/30 强开DLSS帧生成", "51项底层体检", "治1% Low掉帧", "游戏联动/无损还原"],
     image: "assets/images/cover-fluxion.webp",
     githubUrl: "https://github.com/7SteveJohn/Fluxion",
     demoUrl: "https://github.com/7SteveJohn/Fluxion/releases",

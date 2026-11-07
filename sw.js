@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v249';   // 2026-11-08 全产品杀手级卖点重塑、拍案码字抽卡激励高光宣传片与海报上线
+const CACHE = 'sevenjohn-v250';   // 2026-11-08 全产品杀手级卖点重塑、NetOps实战排障重器升级、Fluxion封面补齐预缓存、拍案抽卡视频上线
 const CORE = [
   './',
   'index.html',
@@ -90,6 +90,7 @@ const CORE = [
   'assets/images/cover-netops.webp',
   'assets/images/cover-gameboost.webp',
   'assets/images/cover-paian.webp',
+  'assets/images/cover-fluxion.webp',
   'favicon.ico',
   'apple-touch-icon.png',
   'icon-512.png',
