@@ -3,10 +3,10 @@
 > **交付日期**：2026-11-08  
 > **涉及产品**：拍案（PaiAn · 纯本地网文创作工作台，项目 ID: `paian`）  
 > **涉及文件**：
-> - `Temp/make_paian_soundtrack.py`：拍案专属配乐合成器（全面重构）
-> - `Temp/paian-apple-score.m4a`：拍案原声音轨母带（88 BPM Cozy Lo-Fi Chillhop）
+> - `Temp/make_paian_soundtrack.py`：拍案专属配乐合成器（全链路抗截断平滑衰减与和声复调升级）
+> - `Temp/paian-apple-score.m4a`：拍案原声音轨母带（88 BPM Cozy Lo-Fi Chillhop，波形动态比 11.0 dB）
 > - `assets/video/paian-intro.mp4`：拍案 1080p 30fps 官方宣传片（重新封装无损音画同步）
-> - `sw.js`：Service Worker 缓存版本升级至 `sevenjohn-v247`
+> - `sw.js`：Service Worker 缓存版本升级至 `sevenjohn-v248`
 > - `docs/screenshots/`：实测回归验证截图更新
 
 ---
@@ -37,18 +37,22 @@
 - **曲风与速度**：88 BPM Cozy Lo-Fi Chillhop（Lo-Fi 嘻哈/咖啡厅学习专注节拍）；
 - **和声进行（8 小节温暖王道爵士流行循环）**：
   $$\text{Fmaj9} \to \text{G6} \to \text{Em7} \to \text{Am9} \to \text{Dm9} \to \text{G13} \to \text{Cmaj9} \to \text{Am7}$$
-  全段和弦充满大七度、大九度、十三度等明亮温暖且富有回味的爵士复调，彻底告别幽暗与压抑，宛若阳光透过百叶窗照在写字台上；
+  全段和弦充满大七度、大九度、十三度（G13 实装真十三度音 E4，MIDI 64）等明亮温暖且富有回味的爵士复调，彻底告别幽暗与压抑，宛若阳光透过百叶窗照在写字台上；
+- **全链路抗截断平滑衰减（`smooth_release` 消除阶跃杂音）**：
+  - 针对数字合成切音时存在的阶跃杂音（原切分音结尾突跳振幅达 0.466），在 Rhodes、Felt Piano、Sub-Bass、Kick 与所有拟音末端均注入余弦平滑衰减窗（20~40ms），将末端阶跃跳变彻底消解至 0.000004（低于 -108 dBFS，实现完全听觉透明）；
 - **双层复古键盘（Warm Rhodes + Felt Grand Piano）**：
-  - **Vintage Rhodes 电钢琴**：金属簧片敲击（Tine）泛音瞬态，加温润基频与次八度，经 3400Hz 温暖低通滤波器消除数字毛刺；
+  - **Vintage Rhodes 电钢琴**：金属簧片敲击（Tine）泛音瞬态，加温润基频与次八度，经 3200Hz 温暖低通滤波器消除数字毛刺；
   - **Felt 毛毡大三角钢琴**：毛毡击弦瞬态与木质共鸣箱体，叠合自然三弦微调合唱；
   - **拟人化微扫弦（Strum Spread 18ms）**与第 2.5 拍爵士切分重击（Syncopated Stab），极富律动张力。
 
 ### 3. 舒适节奏组与次低音（Chillhop Boom-Bap & Literary Sub-Bass）
+- **动态裕量与声学母带（11.0 dB 波峰因子）**：
+  - 各分轨输入增益科学重配（避免原先 10% 样点硬顶饱和导致的互调失真与压迫感），母带 RMS 控制在优雅的 -12.1 dBFS，保留 11.0 dB 呼吸动态；
 - **Lo-Fi Kick（低音鼓）**：105Hz $\to$ 52Hz 指数扫频，柔和丰满的 54Hz 次低频冲量，饱满击中 Web Audio 60~250Hz 分析窗，杜绝硬敲击刺耳声；
 - **Wooden Rimshot / Brush Snare（木质边击/毛刷军鼓）**：340Hz 木质击打与 1500~5200Hz 细腻沙鼓声线，精准落在第 2 拍与第 4 拍；
 - **Lazy Swing Shaker（慵懒摇荡沙锤）**：八分音符赋予 54% MPC 摇摆延迟（Swing），强弱交替律动；
-- **Vinyl & Room Ambiance（胶片黑胶温床）**：-40dB 极微黑胶颗粒底噪与随机微弱爆鸣，营造安心专注空间氛围；
-- **Literary Sub-Bass（文学次低音）**：45~80Hz 纯净次低频，跟进和弦根音与五音行走，为耳机与大音响提供从容温厚的低频支撑。
+- **Vinyl & Room Ambiance（胶片黑胶温床）**：-42dB 极微黑胶颗粒底噪与窗化微弱爆鸣，营造安心专注空间氛围；
+- **Literary Sub-Bass（文学次低音）**：45~120Hz 纯净次低频，自适应低通滤波跟进和弦根音与五音行走，为耳机与大音响提供从容温厚的低频支撑。
 
 ### 4. 极致毫秒级 Foley 拟音（与视频分镜精确咬合）
 | 时间戳 | 分镜画面动作 | 拟声音效实现 | 听感特征 |

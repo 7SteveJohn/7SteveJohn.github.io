@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v247';   // 2026-11-08 拍案宣传视频专属配乐重塑：拔除惊悚颤音弦乐，全面换装舒适Lo-Fi Chillhop专注乐章 (88 BPM)
+const CACHE = 'sevenjohn-v248';   // 2026-11-08 拍案专属配乐母带打磨：消除截断数字杂音、优化和声音程与动态裕量 (88 BPM Lo-Fi)
 const CORE = [
   './',
   'index.html',
