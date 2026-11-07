@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v246';   // 2026-11-08 拍案网盘更新与历史版本胶囊联动、全站三部核心宣传视频Apple风格重构与独立配乐上线
+const CACHE = 'sevenjohn-v247';   // 2026-11-08 拍案宣传视频专属配乐重塑：拔除惊悚颤音弦乐，全面换装舒适Lo-Fi Chillhop专注乐章 (88 BPM)
 const CORE = [
   './',
   'index.html',
