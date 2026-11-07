@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"b5d9a80ccb8d","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"fd530e81ec6781f7cf07faf4c2d8b3ece3d1612dfa920e272f7b305f42cb854f"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"87756b981b00bec7b9110fdf82f29aa72601363a37a1505073f736474aae6335"}]}
+// build-bundles: {"name":"home","version":"92eda2b9dffa","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"00b4eaa791d699d04cd2f178c2d7d8f553683c530883291c9fa7d4fdc9739fdb"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"87756b981b00bec7b9110fdf82f29aa72601363a37a1505073f736474aae6335"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -380,7 +380,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (fd530e81ec67) ----
+// ---- js/app.js (00b4eaa791d6) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -1167,11 +1167,7 @@ function initHeroIndex() {
     });
   });
 
-  // 鼠标 3D 拟物物理左右悬浮交互 (Linear / Apple 3D Craft，微透视与动态投影)
-  if (window.attach3DTilt) {
-    window.attach3DTilt(productCards, { maxRotX: 10.0, maxRotY: 15.0, perspective: 750 });
-    window.attach3DTilt(document.querySelectorAll('.bento-card, .app-window-card'), { maxRotX: 10.0, maxRotY: 15.0, perspective: 750 });
-  }
+
 
   // 页面滚动时自动监听高亮首屏对应的条目
   if ('IntersectionObserver' in window) {

@@ -130,8 +130,6 @@
   color: inherit;
   text-decoration: none;
   transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.22s ease !important;
-  transform-style: preserve-3d;
-  will-change: transform, box-shadow;
   overflow: hidden;
 }
 .arc-card:hover {

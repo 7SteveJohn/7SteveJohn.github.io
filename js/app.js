@@ -784,11 +784,7 @@ function initHeroIndex() {
     });
   });
 
-  // 鼠标 3D 拟物物理左右悬浮交互 (Linear / Apple 3D Craft，微透视与动态投影)
-  if (window.attach3DTilt) {
-    window.attach3DTilt(productCards, { maxRotX: 10.0, maxRotY: 15.0, perspective: 750 });
-    window.attach3DTilt(document.querySelectorAll('.bento-card, .app-window-card'), { maxRotX: 10.0, maxRotY: 15.0, perspective: 750 });
-  }
+
 
   // 页面滚动时自动监听高亮首屏对应的条目
   if ('IntersectionObserver' in window) {

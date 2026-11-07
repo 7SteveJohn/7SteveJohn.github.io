@@ -86,10 +86,7 @@
   // 瓷砖是这里才生成的，subpage.js 的自动浮现扫不到它们，主动交过去
   if (window.pageReveal) window.pageReveal([...GRID.children]);
 
-  // 挂载照片墙瓷砖 3D 微倾斜左右悬浮交互 (Linear / Apple 极简悬浮)
-  if (window.attach3DTilt) {
-    window.attach3DTilt(GRID.querySelectorAll('.gal-tile'), { maxRotX: 6.0, maxRotY: 9.0, elev: -6, perspective: 800 });
-  }
+
 
   // ---- 灯箱 ----
   function preload(i) {

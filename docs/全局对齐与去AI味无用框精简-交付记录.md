@@ -61,28 +61,16 @@
 5. **拔除正文环境/规格的大灰框**：
    - 移除正文规格卡片的 `rounded-xl border border-black/10 bg-black/[0.02]`，改为轻量内联排版。
 
-### (4) 卡片真·3D物理翘板视差景深（彻底解决“卡片3D还是没有啊”）
-针对用户反馈卡片 3D 感知弱、戳压不生效的根因排查与顶级重构：
+### (4) 卡片 3D 彻底精简与彻底减负
+根据最终体验决策：“既然体现不出来，把 3D 删掉，别徒增缓存和复杂度”，进行了全站连根拔起式的纯净减负：
 
-1. **根因一：父容器双重透视冲突（Double Perspective Distortions & Z-fighting）**：
-   - 在 `css/style.css` 中，父容器 `#products` 原设置有 `perspective: 1200px; transform-style: preserve-3d;`；
-   - 卡片自身又被 JS 施加了内联 `perspective(750px) rotate(...)`；
-   - 当卡片向某一侧倾斜时，下沉深入屏幕（Z < 0）的一侧直接穿透并切出了父级平面的背后，导致浏览器瞬间派发 `mouseleave`，点击与悬浮判定被父容器穿透剥夺！
-   - **解决方案**：移除 `#products` 上的冲突 perspective，让每张卡片通过自身的透视引擎在独立 3D 空间进行翘板运算，旋转时任何角度均绝不穿透裁剪。
-2. **根因二：CSS `:active` 简单动画暴力冲刷掉 JS 3D Transform**：
-   - 原 CSS 存在 `.bento-card:active { transform: scale(0.995); }`，在鼠标或手指按下去的一瞬间，CSS 伪类将内联的 3D 矩阵直接重置压平；
-   - **解决方案**：将按压沉陷完全交由 JS 物理引擎托管，按压时角度放大至 1.4 倍（高达 ±20.32°），卡片真实沉入深处（`translateY(2px), scale(0.985)`），松开手即刻弹性弹回自然悬浮倾斜态。
-3. **根因三：多层空间视差景深（Layered Parallax Depth）补全**：
-   - 此前卡片仅作为一张平面的纸在转动，内部元素在 Z 轴同高度，毫无视差感；
-   - **全面分层**：
-     - 卡片底板：Z = 0
-     - 正文与规格：`transform: translateZ(18px);`
-     - 标题与眉标：`transform: translateZ(26px);`
-     - 公告胶囊：`transform: translateZ(32px);`
-     - 底部操作按钮：`transform: translateZ(36px);`
-     - 右侧视频视窗：`transform: translateZ(42px); box-shadow: 0 20px 42px -10px rgba(0,0,0,0.28);`
-     - 视窗播放按钮：`transform: translateZ(54px);`
-   - 卡片微倾斜时，视窗与按钮比底板明显浮出，文字与底板层层错位，呈现肉眼极具冲击力的真 3D 实体手感。
+1. **JS 引擎与监听器全量清除**：
+   - 彻底删除 `index.html` 底部的 `bootstrapTilt` 脚本逻辑；
+   - 彻底删除 `js/site-config.js` 中的 3D 物理翘板算法、按压深陷、鼠标跟手与陀螺仪（约 170 行代码），保留纯净 no-op 函数兜底；
+   - 彻底删除 `js/app.js`、`js/archive.js`、`js/gallery.js` 中对卡片和瓷砖的 3D tilt 挂载。
+2. **CSS 样式与分层全量还原**：
+   - 彻底移除 `css/style.css`、`css/archive.css`、`css/gallery.css` 中的 `transform-style: preserve-3d`、`will-change`、动态光泽微层以及所有子元素 `translateZ(...)`；
+   - 卡片恢复纯粹、极简的 Apple 风格 Bento 卡片：仅保留悬停轻柔微上浮（`translateY(-2px)`）和点按弹性微缩放（`scale(0.995)`），零重绘开销、零视差抖动、零缓存负担。
 
 ---
 
@@ -90,13 +78,11 @@
 
 1. **重新编译前端 Bundles**：
    - 运行 `node scripts/build-bundles.mjs`，全量更新 `core.js` 与 `home.js`；
-   - 运行 `node scripts/build-bundles.mjs --check`，6 个 bundle 与源文件全部通过逐字节一致性校验；
+   - `core.js` 从 43.0KB 精简至 **35.2KB**，全站 bundle 总体积直降 8.2KB；
+   - 运行 `node scripts/build-bundles.mjs --check`，6 个 bundle 全部通过逐字节一致性校验；
 2. **升级版本控制与缓存**：
-   - 升级 Service Worker 缓存至 `sevenjohn-v243`；
-   - 升级 `index.html` 资源时间戳至 `?v=20261107_v243`；
-3. **Playwright 视觉与交互自动化测试 100% 通过**：
-   - 悬浮左侧：`rotateY(-11.93deg)`，视窗与胶囊 translateZ 分别达到 42px 与 32px；
-   - 按压左侧：深陷 `rotateY(-19.32deg)`，`translateY(2px)`，`scale(0.985)`；
-   - 松开左侧：弹性回弹至 `rotateY(-15deg)`，`translateY(-10px)`；
-   - 悬浮右侧：`rotateY(9.17deg)`，右侧深陷左侧翘起；
-   - 移出卡片：平滑优雅弹性归零（0度）。
+   - 升级 Service Worker 缓存至 `sevenjohn-v244`；
+   - 升级 `index.html` 资源时间戳至 `?v=20261107_v244`；
+3. **Playwright 纯净验证 100% 通过**：
+   - 鼠标划过卡片内联 `style.transform` 保持 `(none)`；
+   - 页面平滑无任何报错，去 AI 味与去框成果完整保留。
