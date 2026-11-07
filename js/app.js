@@ -1839,6 +1839,7 @@ function initArticleProgress() {
 
   if (content) content.addEventListener('scroll', onScroll, { passive: true });
   if (modal) modal.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
 }
 
 // 为弹窗内的代码块追加微语言徽标与一键复制按钮（含状态反馈）
@@ -1878,16 +1879,24 @@ function addCopyButtons(modalContent) {
     };
     const displayLang = langMap[lang.toLowerCase()] || (lang ? lang.toUpperCase() : 'CODE');
 
-    if (!pre.querySelector('.code-lang-badge')) {
+    // 保证 pre 拥有固定的外层定位容器 .code-wrap，横向滚动超长代码时不拉扯按钮与徽标
+    let wrap = pre.closest('.code-wrap');
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.className = 'code-wrap';
+      pre.parentNode.insertBefore(wrap, pre);
+      wrap.appendChild(pre);
+    }
+
+    if (!wrap.querySelector('.code-lang-badge')) {
       const badge = document.createElement('span');
       badge.className = 'code-lang-badge';
       badge.textContent = displayLang;
-      pre.appendChild(badge);
+      wrap.appendChild(badge);
     }
 
-    if (!navigator.clipboard || pre.querySelector('.code-copy-btn')) return;
+    if (!navigator.clipboard || wrap.querySelector('.code-copy-btn')) return;
 
-    pre.style.position = 'relative';
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'code-copy-btn';
@@ -1898,22 +1907,24 @@ function addCopyButtons(modalContent) {
       try {
         let textToCopy = '';
         if (codeEl) {
-          textToCopy = codeEl.innerText;
+          textToCopy = codeEl.innerText || codeEl.textContent || '';
         } else {
           const clone = pre.cloneNode(true);
           clone.querySelectorAll('.code-copy-btn, .code-lang-badge').forEach((el) => el.remove());
-          textToCopy = clone.innerText;
+          textToCopy = clone.innerText || clone.textContent || '';
         }
         await navigator.clipboard.writeText(textToCopy);
+        if (btn._copyTimer) clearTimeout(btn._copyTimer);
         btn.textContent = '✓ 已复制';
         btn.classList.add('is-copied');
-        setTimeout(() => {
+        btn._copyTimer = setTimeout(() => {
           btn.textContent = '复制';
           btn.classList.remove('is-copied');
+          btn._copyTimer = null;
         }, 1500);
       } catch (_) { /* 用户拒绝剪贴板权限时保持原样 */ }
     });
-    pre.appendChild(btn);
+    wrap.appendChild(btn);
   });
 }
 

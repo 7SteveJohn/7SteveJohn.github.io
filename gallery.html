@@ -45,9 +45,9 @@
   <link rel="preload" href="assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="assets/fonts/inter.css" />
   <link rel="stylesheet" href="assets/vendor/tailwind.css" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style.css?v=20261107_v245" />
   <link rel="stylesheet" href="css/cosmos.css" />
-  <link rel="stylesheet" href="css/gallery.css" />
+  <link rel="stylesheet" href="css/gallery.css?v=20261107_v245" />
   <link rel="stylesheet" href="css/settings-panel.css" />
 </head>
 <body class="bg-[#f8fafc] text-slate-800 dark:bg-[#060911] dark:text-slate-100 min-h-screen transition-colors duration-200 antialiased">
@@ -70,6 +70,17 @@
           <a href="gallery.html" class="subpage-nav-active hover:text-black dark:hover:text-white transition" aria-current="page">照片墙</a>
           <a href="index.html" class="hover:text-black dark:hover:text-white transition">返回首页</a>
         </nav>
+        <a
+          id="search-open"
+          href="index.html?search=1"
+          aria-label="搜索站内内容 (Ctrl+K)"
+          title="搜索 (Ctrl+K)"
+          class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs text-[#64748b] dark:text-[#86868b] bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] hover:text-black dark:hover:text-white border border-black/5 dark:border-white/10 transition cursor-pointer select-none"
+        >
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <span class="hidden sm:inline text-[11.5px]">搜索</span>
+          <kbd class="hidden md:inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-mono text-[#86868b] dark:text-[#94a3b8] bg-black/5 dark:bg-white/10 leading-none">⌘K</kbd>
+        </a>
         <button
           id="theme-toggle"
           type="button"
@@ -145,58 +156,8 @@
   </div>
 
   <!-- 全部 defer：subpage.js 管 SW/导航态/主题切换/浮现，gallery.js 负责照片墙渲染与灯箱 -->
-  <script src="js/bundles/core.js" defer></script>
-  <script src="js/bundles/sub.js" defer></script>
-  <script src="js/gallery.js" defer></script>
-  <script>
-    (function () {
-      function init3DGalleryTilt() {
-        const tiles = document.querySelectorAll('.gal-tile');
-        tiles.forEach(function (tile) {
-          if (tile.__inlineTiltBound) return;
-          tile.__inlineTiltBound = true;
-
-          tile.addEventListener('pointermove', function (e) {
-            const rect = tile.getBoundingClientRect();
-            if (rect.width === 0 || rect.height === 0) return;
-            const x = e.clientX - rect.left - rect.width / 2;
-            const y = e.clientY - rect.top - rect.height / 2;
-
-            const rotX = (y / (rect.height / 2)) * -6.0;
-            const rotY = (x / (rect.width / 2)) * 9.5;
-            const shadowX = (rotY / 9.5) * -18;
-            const shadowY = 20 + (rotX / 6.0) * 6;
-
-            tile.style.transform = 'perspective(750px) rotateX(' + rotX.toFixed(2) + 'deg) rotateY(' + rotY.toFixed(2) + 'deg) translateY(-6px) scale3d(1.02, 1.02, 1.02)';
-
-            const isDark = document.documentElement.classList.contains('dark');
-            if (isDark) {
-              tile.style.boxShadow = shadowX.toFixed(1) + 'px ' + shadowY.toFixed(1) + 'px 38px -8px rgba(0, 0, 0, 0.8), 0 0 22px rgba(56, 189, 248, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15)';
-            } else {
-              tile.style.boxShadow = shadowX.toFixed(1) + 'px ' + shadowY.toFixed(1) + 'px 32px -8px rgba(37, 99, 235, 0.2), 0 4px 12px rgba(15, 23, 42, 0.05), inset 0 1px 0 #ffffff';
-            }
-          });
-
-          tile.addEventListener('pointerleave', function () {
-            tile.style.transform = 'perspective(750px) rotateX(0deg) rotateY(0deg) translateY(0px)';
-            tile.style.boxShadow = '';
-            setTimeout(function () {
-              if (!tile.matches(':hover')) {
-                tile.style.transform = '';
-              }
-            }, 250);
-          });
-        });
-      }
-
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init3DGalleryTilt);
-      } else {
-        init3DGalleryTilt();
-      }
-      window.addEventListener('load', init3DGalleryTilt);
-      setInterval(init3DGalleryTilt, 1000);
-    })();
-  </script>
+  <script src="js/bundles/core.js?v=20261107_v245" defer></script>
+  <script src="js/bundles/sub.js?v=20261107_v245" defer></script>
+  <script src="js/gallery.js?v=20261107_v245" defer></script>
 </body>
 </html>

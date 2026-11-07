@@ -199,11 +199,12 @@
   }
 
   function close() {
-    if (palette.classList.contains('hidden')) return;
+    if (palette.classList.contains('hidden') || palette.classList.contains('is-closing')) return;
     document.body.style.overflow = '';
     if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
     // 收起淡出（与弹窗同款退场节奏），动画结束后再隐藏
     palette.classList.add('is-closing');
+    if (palette._closeTimer) clearTimeout(palette._closeTimer);
     palette._closeTimer = setTimeout(() => {
       palette.classList.add('hidden');
       palette.classList.remove('is-closing');
@@ -212,7 +213,7 @@
   }
 
   function toggle() {
-    if (palette.classList.contains('hidden')) open();
+    if (palette.classList.contains('hidden') || palette.classList.contains('is-closing')) open();
     else close();
   }
 
@@ -234,8 +235,11 @@
     if (palette.classList.contains('hidden')) return;
 
     if (e.key === 'Escape') {
+      e.preventDefault();
       e.stopPropagation();
+      e.stopImmediatePropagation();
       close();
+      return;
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       if (filtered.length) {
@@ -294,7 +298,8 @@
     try {
       const u = new URL(location.href);
       u.searchParams.delete('search');
-      history.replaceState(null, '', u.pathname + (u.hash || ''));
+      const qs = u.searchParams.toString();
+      history.replaceState(null, '', u.pathname + (qs ? '?' + qs : '') + (u.hash || ''));
     } catch (_) {}
   }
 })();

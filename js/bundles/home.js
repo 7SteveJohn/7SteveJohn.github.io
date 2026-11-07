@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"e9088a0a0e3b","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"b42625fd147c9d469dfd4fd1d230447e89261157ca8500815c1a584e4e3651a8"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"5f73571fc55cdd92d9f3fff0f23fb8d451e2e6e9b568292265725ccb32ff1161"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"87756b981b00bec7b9110fdf82f29aa72601363a37a1505073f736474aae6335"}]}
+// build-bundles: {"name":"home","version":"4a59c3c5202a","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"50eda09ebf230e6a6e42bfe1c97d06d99a90737f15bd73d9c5361134c656739f"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"18ea93e77337e5ae0aca623723f093e4304eef196d74d31ef4e0fb459a9e17e6"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"87756b981b00bec7b9110fdf82f29aa72601363a37a1505073f736474aae6335"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -19,7 +19,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/search.js (b42625fd147c) ----
+// ---- js/search.js (50eda09ebf23) ----
 /**
  * ⌘K 站内搜索命令面板 (search.js)
  * ----------------------------------------------------
@@ -221,11 +221,12 @@ window.SITE_STATUS = {
   }
 
   function close() {
-    if (palette.classList.contains('hidden')) return;
+    if (palette.classList.contains('hidden') || palette.classList.contains('is-closing')) return;
     document.body.style.overflow = '';
     if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
     // 收起淡出（与弹窗同款退场节奏），动画结束后再隐藏
     palette.classList.add('is-closing');
+    if (palette._closeTimer) clearTimeout(palette._closeTimer);
     palette._closeTimer = setTimeout(() => {
       palette.classList.add('hidden');
       palette.classList.remove('is-closing');
@@ -234,7 +235,7 @@ window.SITE_STATUS = {
   }
 
   function toggle() {
-    if (palette.classList.contains('hidden')) open();
+    if (palette.classList.contains('hidden') || palette.classList.contains('is-closing')) open();
     else close();
   }
 
@@ -256,8 +257,11 @@ window.SITE_STATUS = {
     if (palette.classList.contains('hidden')) return;
 
     if (e.key === 'Escape') {
+      e.preventDefault();
       e.stopPropagation();
+      e.stopImmediatePropagation();
       close();
+      return;
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       if (filtered.length) {
@@ -316,7 +320,8 @@ window.SITE_STATUS = {
     try {
       const u = new URL(location.href);
       u.searchParams.delete('search');
-      history.replaceState(null, '', u.pathname + (u.hash || ''));
+      const qs = u.searchParams.toString();
+      history.replaceState(null, '', u.pathname + (qs ? '?' + qs : '') + (u.hash || ''));
     } catch (_) {}
   }
 })();
@@ -393,7 +398,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (5f73571fc55c) ----
+// ---- js/app.js (18ea93e77337) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -2235,6 +2240,7 @@ function initArticleProgress() {
 
   if (content) content.addEventListener('scroll', onScroll, { passive: true });
   if (modal) modal.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
 }
 
 // 为弹窗内的代码块追加微语言徽标与一键复制按钮（含状态反馈）
@@ -2274,16 +2280,24 @@ function addCopyButtons(modalContent) {
     };
     const displayLang = langMap[lang.toLowerCase()] || (lang ? lang.toUpperCase() : 'CODE');
 
-    if (!pre.querySelector('.code-lang-badge')) {
+    // 保证 pre 拥有固定的外层定位容器 .code-wrap，横向滚动超长代码时不拉扯按钮与徽标
+    let wrap = pre.closest('.code-wrap');
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.className = 'code-wrap';
+      pre.parentNode.insertBefore(wrap, pre);
+      wrap.appendChild(pre);
+    }
+
+    if (!wrap.querySelector('.code-lang-badge')) {
       const badge = document.createElement('span');
       badge.className = 'code-lang-badge';
       badge.textContent = displayLang;
-      pre.appendChild(badge);
+      wrap.appendChild(badge);
     }
 
-    if (!navigator.clipboard || pre.querySelector('.code-copy-btn')) return;
+    if (!navigator.clipboard || wrap.querySelector('.code-copy-btn')) return;
 
-    pre.style.position = 'relative';
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'code-copy-btn';
@@ -2294,22 +2308,24 @@ function addCopyButtons(modalContent) {
       try {
         let textToCopy = '';
         if (codeEl) {
-          textToCopy = codeEl.innerText;
+          textToCopy = codeEl.innerText || codeEl.textContent || '';
         } else {
           const clone = pre.cloneNode(true);
           clone.querySelectorAll('.code-copy-btn, .code-lang-badge').forEach((el) => el.remove());
-          textToCopy = clone.innerText;
+          textToCopy = clone.innerText || clone.textContent || '';
         }
         await navigator.clipboard.writeText(textToCopy);
+        if (btn._copyTimer) clearTimeout(btn._copyTimer);
         btn.textContent = '✓ 已复制';
         btn.classList.add('is-copied');
-        setTimeout(() => {
+        btn._copyTimer = setTimeout(() => {
           btn.textContent = '复制';
           btn.classList.remove('is-copied');
+          btn._copyTimer = null;
         }, 1500);
       } catch (_) { /* 用户拒绝剪贴板权限时保持原样 */ }
     });
-    pre.appendChild(btn);
+    wrap.appendChild(btn);
   });
 }
 

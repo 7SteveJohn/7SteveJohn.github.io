@@ -45,9 +45,9 @@
   <link rel="preload" href="assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="assets/fonts/inter.css" />
   <link rel="stylesheet" href="assets/vendor/tailwind.css" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style.css?v=20261107_v245" />
   <link rel="stylesheet" href="css/cosmos.css" />
-  <link rel="stylesheet" href="css/archive.css" />
+  <link rel="stylesheet" href="css/archive.css?v=20261107_v245" />
   <link rel="stylesheet" href="css/settings-panel.css" />
 </head>
 <body class="bg-[#f8fafc] text-slate-800 dark:bg-[#060911] dark:text-slate-100 min-h-screen transition-colors duration-200 antialiased">
@@ -72,6 +72,17 @@
           <a href="gallery.html" class="hover:text-black dark:hover:text-white transition">照片墙</a>
           <a href="index.html" class="hover:text-black dark:hover:text-white transition">返回首页</a>
         </nav>
+        <a
+          id="search-open"
+          href="index.html?search=1"
+          aria-label="搜索站内内容 (Ctrl+K)"
+          title="搜索 (Ctrl+K)"
+          class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs text-[#64748b] dark:text-[#86868b] bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] hover:text-black dark:hover:text-white border border-black/5 dark:border-white/10 transition cursor-pointer select-none"
+        >
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <span class="hidden sm:inline text-[11.5px]">搜索</span>
+          <kbd class="hidden md:inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-mono text-[#86868b] dark:text-[#94a3b8] bg-black/5 dark:bg-white/10 leading-none">⌘K</kbd>
+        </a>
         <button
           id="theme-toggle"
           type="button"
@@ -128,59 +139,9 @@
   </footer>
 
   <!-- 全部 defer：articles.js 提供 ARTICLES_DATA，subpage.js 管 SW/导航态/主题切换/浮现，archive.js 画时间河 -->
-  <script src="js/bundles/core.js" defer></script>
-  <script src="js/bundles/sub.js" defer></script>
-  <script src="js/articles.js" defer></script>
-  <script src="js/archive.js" defer></script>
-  <script>
-    (function () {
-      function init3DArchiveTilt() {
-        const cards = document.querySelectorAll('.arc-card');
-        cards.forEach(function (card) {
-          if (card.__inlineTiltBound) return;
-          card.__inlineTiltBound = true;
-
-          card.addEventListener('pointermove', function (e) {
-            const rect = card.getBoundingClientRect();
-            if (rect.width === 0 || rect.height === 0) return;
-            const x = e.clientX - rect.left - rect.width / 2;
-            const y = e.clientY - rect.top - rect.height / 2;
-
-            const rotX = (y / (rect.height / 2)) * -5.5;
-            const rotY = (x / (rect.width / 2)) * 9.0;
-            const shadowX = (rotY / 9.0) * -16;
-            const shadowY = 18 + (rotX / 5.5) * 5;
-
-            card.style.transform = 'perspective(700px) rotateX(' + rotX.toFixed(2) + 'deg) rotateY(' + rotY.toFixed(2) + 'deg) translateY(-5px) scale3d(1.015, 1.015, 1.015)';
-
-            const isDark = document.documentElement.classList.contains('dark');
-            if (isDark) {
-              card.style.boxShadow = shadowX.toFixed(1) + 'px ' + shadowY.toFixed(1) + 'px 36px -8px rgba(0, 0, 0, 0.75), 0 0 20px rgba(56, 189, 248, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.15)';
-            } else {
-              card.style.boxShadow = shadowX.toFixed(1) + 'px ' + shadowY.toFixed(1) + 'px 30px -8px rgba(37, 99, 235, 0.18), 0 3px 10px rgba(15, 23, 42, 0.04), inset 0 1px 0 #ffffff';
-            }
-          });
-
-          card.addEventListener('pointerleave', function () {
-            card.style.transform = 'perspective(700px) rotateX(0deg) rotateY(0deg) translateY(0px)';
-            card.style.boxShadow = '';
-            setTimeout(function () {
-              if (!card.matches(':hover')) {
-                card.style.transform = '';
-              }
-            }, 250);
-          });
-        });
-      }
-
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init3DArchiveTilt);
-      } else {
-        init3DArchiveTilt();
-      }
-      window.addEventListener('load', init3DArchiveTilt);
-      setInterval(init3DArchiveTilt, 1000);
-    })();
-  </script>
+  <script src="js/bundles/core.js?v=20261107_v245" defer></script>
+  <script src="js/bundles/sub.js?v=20261107_v245" defer></script>
+  <script src="js/articles.js?v=20261107_v245" defer></script>
+  <script src="js/archive.js?v=20261107_v245" defer></script>
 </body>
 </html>

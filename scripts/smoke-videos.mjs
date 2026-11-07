@@ -1,8 +1,45 @@
 /* 冒烟：卡片介绍视频布局 + 弹窗图片/链接 + 关弹窗停声
-   跑法：python -m http.server 8327 → node scripts/smoke-videos.mjs */
+   自托管 8327 端口，支持单独零依赖直接运行：node scripts/smoke-videos.mjs */
+import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { devRequire as require } from './_dev-require.mjs';
 import { createRequire } from 'module';
 const { chromium } = require('playwright-core');
+
+const ROOT = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
+const MIME = {
+  '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript',
+  '.css': 'text/css', '.json': 'application/json', '.webp': 'image/webp', '.jpg': 'image/jpeg',
+  '.png': 'image/png', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.mp3': 'audio/mpeg', '.mp4': 'video/mp4',
+  '.woff2': 'font/woff2', '.xml': 'application/xml', '.txt': 'text/plain'
+};
+
+let server = null;
+try {
+  server = http.createServer((req, res) => {
+    let p = decodeURIComponent(req.url.split('?')[0]);
+    if (p.endsWith('/') || p === '') p += 'index.html';
+    const abs = path.join(ROOT, p.replace(/^\//, ''));
+    if (!abs.startsWith(ROOT) || !fs.existsSync(abs) || !fs.statSync(abs).isFile()) {
+      res.writeHead(404);
+      return res.end('Not found');
+    }
+    const type = MIME[path.extname(abs).toLowerCase()] || 'application/octet-stream';
+    res.writeHead(200, { 'Content-Type': type });
+    fs.createReadStream(abs).pipe(res);
+  });
+  await new Promise((resolve, reject) => {
+    server.once('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        server = null;
+        resolve();
+      } else reject(err);
+    });
+    server.listen(8327, '127.0.0.1', () => resolve());
+  });
+} catch (_) {}
 
 /* 网盘链接与提取码的期望值取自数据源，别在本文件里硬编码：
    2026-09-30 换蓝奏云链接时，就是这里写死的旧 slug 让断言假报 LINK-MISSING。 */
@@ -74,4 +111,5 @@ const errLine = errs.length ? errs.join(' | ') : 'none';
 console.log(errLine === 'none' ? 'PASS  无 pageerror' : `FAIL  有 pageerror  ${errLine}`);
 if (errLine !== 'none') bad++;
 if (bad) { console.log(`${bad} 项未通过`); process.exitCode = 1; }
+if (server) server.close();
 await b.close();

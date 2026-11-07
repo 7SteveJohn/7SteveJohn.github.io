@@ -262,6 +262,64 @@ async function run() {
     check(copyFeedback && copyFeedback.text.includes('✓ 已复制'), '点击代码块复制按钮立即呈现「✓ 已复制」反馈状态', copyFeedback?.text);
     check(copyFeedback && copyFeedback.isCopiedClass, '复制按钮被赋予 .is-copied 专属高亮样式');
 
+    // 测试长代码横向滚动时徽标与复制按钮牢牢固定不偏移
+    const scrollPinCheck = await page.evaluate(async () => {
+      const wrap = document.querySelector('#article-modal-content .code-wrap');
+      const pre = wrap ? wrap.querySelector('pre') : null;
+      const btn = wrap ? wrap.querySelector('.code-copy-btn') : null;
+      const badge = wrap ? wrap.querySelector('.code-lang-badge') : null;
+      if (!wrap || !pre || !btn || !badge) return null;
+
+      const btnInitialX = btn.getBoundingClientRect().x;
+      const badgeInitialX = badge.getBoundingClientRect().x;
+
+      // 制造超长行并横向滚动 200px
+      const code = pre.querySelector('code');
+      const originalText = code.innerText;
+      code.innerText = 'SELECT ' + 'x'.repeat(400) + ' FROM dual;';
+      pre.scrollLeft = 200;
+      await new Promise((r) => setTimeout(r, 60));
+
+      const btnScrolledX = btn.getBoundingClientRect().x;
+      const badgeScrolledX = badge.getBoundingClientRect().x;
+
+      // 还原
+      code.innerText = originalText;
+      pre.scrollLeft = 0;
+
+      return {
+        hasWrap: true,
+        btnDiff: Math.abs(btnScrolledX - btnInitialX),
+        badgeDiff: Math.abs(badgeScrolledX - badgeInitialX)
+      };
+    });
+    check(scrollPinCheck && scrollPinCheck.hasWrap, '代码块外层成功装配 .code-wrap 定位包裹层');
+    check(
+      scrollPinCheck && scrollPinCheck.btnDiff < 1 && scrollPinCheck.badgeDiff < 1,
+      '代码横向滚动时微语言徽标与复制按钮牢牢固定在右上/左上角，未随滚动条位移',
+      `btnDiff: ${scrollPinCheck?.btnDiff}px, badgeDiff: ${scrollPinCheck?.badgeDiff}px`
+    );
+
+    // 测试文章弹窗中呼出搜索面板时，按下 Esc 只关闭搜索面板而不连带关闭底层文章弹窗
+    await page.keyboard.press('Control+k');
+    await page.waitForTimeout(300);
+    const searchOpenOverModal = await page.evaluate(() => {
+      const sp = document.getElementById('search-palette');
+      const am = document.getElementById('article-modal');
+      return !sp.classList.contains('hidden') && !am.classList.contains('hidden');
+    });
+    check(searchOpenOverModal, '在文章阅读弹窗中可成功呼出搜索面板');
+
+    // 按 Esc 退出搜索
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+    const modalSurvivesEscape = await page.evaluate(() => {
+      const sp = document.getElementById('search-palette');
+      const am = document.getElementById('article-modal');
+      return sp.classList.contains('hidden') && !am.classList.contains('hidden');
+    });
+    check(modalSurvivesEscape, '按 Esc 仅关闭搜索面板，底层文章阅读弹窗完好保留');
+
     // 关闭文章弹窗
     await page.evaluate(() => {
       const btn = document.querySelector('[data-close-modal="article"]');
@@ -270,7 +328,7 @@ async function run() {
     await page.waitForTimeout(300);
 
     // ----------------------------------------------------
-    // 测试项 6: 归档页（archive.html）时间河卡片全面清退“无用小框”
+    // 测试项 6: 归档页（archive.html）时间河卡片全面清退“无用小框”与顶栏搜索按钮
     // ----------------------------------------------------
     await page.goto(`${BASE}archive.html`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(800);
@@ -279,6 +337,9 @@ async function run() {
       const pills = [...document.querySelectorAll('.arc-pill')];
       const metas = [...document.querySelectorAll('.arc-meta')];
       const seps = [...document.querySelectorAll('.arc-sep')];
+      const searchBtn = document.getElementById('search-open');
+      const inlineScripts = [...document.querySelectorAll('script')].map(s => s.textContent || '');
+      const has3DTiltScript = inlineScripts.some(t => t.includes('init3DArchiveTilt'));
 
       const firstPill = pills[0];
       const cs = firstPill ? window.getComputedStyle(firstPill) : null;
@@ -290,7 +351,10 @@ async function run() {
         borderWidth: cs ? cs.borderWidth : null,
         borderStyle: cs ? cs.borderStyle : null,
         backgroundColor: cs ? cs.backgroundColor : null,
-        firstMetaText: metas[0] ? metas[0].innerText.replace(/\s+/g, ' ').trim() : ''
+        firstMetaText: metas[0] ? metas[0].innerText.replace(/\s+/g, ' ').trim() : '',
+        hasSearchBtn: !!searchBtn,
+        searchBtnHref: searchBtn ? searchBtn.getAttribute('href') : null,
+        has3DTiltScript
       };
     });
 
@@ -315,18 +379,45 @@ async function run() {
       '归档条目元信息呈现高级纯净内联排版（分类 · 日期 · 时长）',
       arcCheck.firstMetaText
     );
+    check(arcCheck.hasSearchBtn && arcCheck.searchBtnHref === 'index.html?search=1', '归档页顶栏包含直通站内搜索按钮');
+    check(!arcCheck.has3DTiltScript, '归档页彻底清退遗留 inline 3D tilt 脚本与轮询定时器');
 
     // ----------------------------------------------------
-    // 测试项 7: 次级页面按 Ctrl+K 快捷跳转首页拉起搜索
+    // 测试项 7: 照片墙页（gallery.html）顶栏搜索按钮与清退 3D tilt 验证
+    // ----------------------------------------------------
+    await page.goto(`${BASE}gallery.html`, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(600);
+    const galCheck = await page.evaluate(() => {
+      const searchBtn = document.getElementById('search-open');
+      const inlineScripts = [...document.querySelectorAll('script')].map(s => s.textContent || '');
+      const has3DTiltScript = inlineScripts.some(t => t.includes('init3DGalleryTilt'));
+      return {
+        hasSearchBtn: !!searchBtn,
+        searchBtnHref: searchBtn ? searchBtn.getAttribute('href') : null,
+        has3DTiltScript
+      };
+    });
+    check(galCheck.hasSearchBtn && galCheck.searchBtnHref === 'index.html?search=1', '照片墙页顶栏包含直通站内搜索按钮');
+    check(!galCheck.has3DTiltScript, '照片墙页彻底清退遗留 inline 3D tilt 脚本与轮询定时器');
+
+    // ----------------------------------------------------
+    // 测试项 8: 次级页面按 Ctrl+K 快捷跳转首页拉起搜索并自动聚焦
     // ----------------------------------------------------
     await page.keyboard.press('Control+k');
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(900);
     const redirectedUrl = page.url();
     check(
-      redirectedUrl.includes('index.html') || redirectedUrl.includes('search=1'),
-      '在次级页按下 Ctrl+K 成功自动无缝重定向至首页搜索',
+      redirectedUrl.includes('index.html'),
+      '在次级页按下 Ctrl+K 成功自动无缝重定向至首页',
       redirectedUrl
     );
+
+    const searchActiveAfterRedirect = await page.evaluate(() => {
+      const sp = document.getElementById('search-palette');
+      const inp = document.getElementById('search-input');
+      return sp && !sp.classList.contains('hidden') && document.activeElement === inp;
+    });
+    check(searchActiveAfterRedirect, '重定向至首页后搜索命令面板自动打开且输入框已聚焦');
 
     console.log(`\n========================================`);
     const allPass = checks.every((c) => c.pass);
