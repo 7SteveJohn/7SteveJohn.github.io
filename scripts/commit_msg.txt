@@ -1,8 +1,0 @@
-refactor(ui): 彻底拔除全站卡片3D引擎、陀螺仪与相关样式，回归纯净极简Apple风并彻底减负
-
-- 彻底删除 index.html、js/site-config.js 中的 3D 物理翘板引擎与陀螺仪监听
-- 移除 js/app.js、js/archive.js、js/gallery.js 中的 3D tilt 挂载
-- 移除 style.css、archive.css、gallery.css 中的 preserve-3d、translateZ 与微光层
-- 卡片恢复纯粹极简 Apple 风格 Bento：保留悬停轻柔微抬（translateY -2px）与点击弹性微缩放
-- 重新编译打包前端 bundles（core.js 缩减 7.8KB，全站打包缩减 8.2KB）
-- 升级 Service Worker 缓存至 sevenjohn-v244，彻底刷新客户端缓存
