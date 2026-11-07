@@ -3,7 +3,7 @@
 import { devRequire as require } from './_dev-require.mjs';
 const { chromium } = require('playwright-core');
 
-const BASE = process.env.SITE_BASE || 'http://127.0.0.1:8327/';
+const BASE = process.env.SITE_BASE || 'http://127.0.0.1:8328/';
 const checks = [];
 const ok = (name, pass, detail) => {
   checks.push({ name, pass, detail });
@@ -70,8 +70,8 @@ ok(
 );
 ok('拍案卡片大图 = 介绍片', info.videoSrc === 'assets/video/paian-intro.mp4', String(info.videoSrc));
 ok('拍案海报存在', !!info.poster, String(info.poster));
-ok('拍案网盘胶囊指向百度网盘', /pan\.baidu\.com\/s\/1bDLB4CS2y2WuAvAo7aESZQ/.test(info.dlHref || ''), String(info.dlHref));
-ok('拍案提取码 = cx6g', /cx6g/.test(info.pwdText || ''), String(info.pwdText));
+ok('拍案网盘胶囊指向百度网盘', /pan\.baidu\.com\/s\/1QRPC49ohJ0fbdrVw8sB--w/.test(info.dlHref || ''), String(info.dlHref));
+ok('拍案提取码 = tq52', /tq52/.test(info.pwdText || ''), String(info.pwdText));
 
 // 视频真的能播（拿到元数据）
 const playable = await p.evaluate(async () => {
@@ -86,7 +86,7 @@ const playable = await p.evaluate(async () => {
     setTimeout(() => res('timeout'), 15000);
   });
 });
-ok('拍案介绍片可读元数据', /^meta 1280x720 38s/.test(playable), playable);
+ok('拍案介绍片可读元数据 (1080p 38s)', /^meta 1920x1080 38s/.test(playable), playable);
 
 ok('无 pageerror', errors.length === 0, errors.slice(0, 2).join(' | '));
 

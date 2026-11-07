@@ -29,8 +29,8 @@ window.PROJECTS_DATA = [
     title: "FileButler · 本地文件管家",
     category: "desktop",
     categoryName: "桌面应用",
-    description: "基于本地模型的智能文件检索与整理工具。支持文件名、拼音、全文及以图搜图。整理文件前先出方案预览，勾选确认后才移动，并支持全流程一键撤销。",
-    tags: ["Python", "Vue 3", "Ollama", "SQLite / FTS5", "RAG"],
+    description: "智能文件检索管家。支持主流云端 API Key 接入与本地模型，文件名、拼音、全文及扫描件 OCR 秒搜。整理文件前先出方案预览，勾选确认后才移动，并支持全流程一键撤销。",
+    tags: ["Python", "Vue 3", "Cloud API / 本地AI", "SQLite / FTS5", "RAG"],
     image: "assets/images/cover-filebutler.webp",
     demoUrl: "https://github.com/7SteveJohn/FileButler/releases",
     githubUrl: "https://github.com/7SteveJohn/FileButler",
@@ -272,16 +272,49 @@ GameBoost-DLSSG 是专为 **RTX 20/30 系** 显卡定制的 DLSS 帧生成管理
     image: "assets/images/cover-paian.webp",
     demoUrl: "https://github.com/7SteveJohn/PaiAn/releases",
     githubUrl: "https://github.com/7SteveJohn/PaiAn",
-    downloadUrl: "https://pan.baidu.com/s/1bDLB4CS2y2WuAvAo7aESZQ?pwd=cx6g",
-    downloadPwd: "cx6g",
+    downloadUrl: "https://pan.baidu.com/s/1QRPC49ohJ0fbdrVw8sB--w?pwd=tq52",
+    downloadPwd: "tq52",
     featured: false,
     role: "开发",
     challenge: "长篇创作最忌讳两点：AI 擅自污染正文，以及多章节后剧情设定前后撕裂。为此构建了独立的草稿暂存机制，采纳时自动保存快照；场景卡片重排采用无损文本切分，确保拼合还原与原稿逐字节一致；设定检查限定在实体与专有名词的作用域内，避免日常对话修辞引发误报。",
     // ↓ 版本/运行环境/校验码：填上即显示在弹窗里，留空自动隐藏
-    version: "v1.0.2",
-    updated: "2026-10-01",
+    version: "v1.0.3",
+    updated: "2026-11-07",
+    // 更新公告：精炼胶囊指示条，嵌入产品卡左栏（完整版在详情弹窗）
+    announcement: {
+      version: "v1.0.3",
+      date: "2026-11-07",
+      items: ["体检四页签（敏感词/平台惯例/口头禅）", "文风约束与 AI 味自检", "检查更新（默认关）", "码字冲刺计时"],
+      summary: "体检四页签 / 文风约束"
+    },
+    // 更新记录：来自 GitHub Releases（7SteveJohn/PaiAn），最新在前
+    changelog: [
+      { v: "v1.0.3", date: "2026-11-07", items: [
+        "体检四页签：敏感词检测、平台惯例（章长·长段·对白比）、口头禅雷达与本章汇总",
+        "文风约束：草稿/续写默认带六条可执行文风约束，支持按书覆盖；扩充 AI 味自检词表",
+        "AI 工坊增加 OOC 检查（对照人物卡判台词）与开头结尾钩子体检",
+        "检查更新：设置内可选启动时检查，默认保持关闭坚守纯离线承诺",
+        "码字冲刺：支持 15/25/45 分钟沉浸计时，打字历史自动汇总进统计页",
+        "数据安全与底层加固：单章高速保存、备份镜像双目录、掉电防损坏与关窗自动快照"
+      ]},
+      { v: "v1.0.2", date: "2026-09-30", items: [
+        "API Key 改为标准密码框交互：支持明文切换与持久化存储",
+        "修复 Key 回显接口错误"
+      ]},
+      { v: "v1.0.1", date: "2026-09-30", items: [
+        "书 → 卷 → 章三级结构：导入大纲自动识别卷标与建卷建章",
+        "批量写作：卷头支持「写本卷」，每章字数支持弹性配置",
+        "设置页支持数据文件夹与备份一键安全迁移",
+        "稳定性修复：创建按钮空标题提示、永久删除误报警告修复"
+      ]},
+      { v: "v1.0.0", date: "2026-09-29", items: [
+        "首个开源发布：纯本地长篇网文创作工作台",
+        "CodeMirror 6 深度定制编辑器、场景卡片无损重排与伏笔追踪",
+        "纯本地离线运行，数据 100% 留存在本机"
+      ]}
+    ],
     requires: "Windows 10/11（安装版免装 Node.js）",
-    sha256: "",
+    sha256: "d8f7f12c5e66e6b1e1dab520b35d80848617105a21ef1976c2ab69b112508e06",
     details: `
 <img src="assets/images/cover-paian.webp" alt="拍案 写作页实机" style="width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:block;">
 <p style="font-size:12px;color:#86868b;margin-top:6px;">拍案写作页：章节列表、正文编辑与右侧素材抽屉；38 秒介绍视频在项目卡片上。</p>

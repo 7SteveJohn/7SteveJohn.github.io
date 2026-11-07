@@ -236,6 +236,8 @@ function hydrateProductLinks() {
     if (pwd) pwd.textContent = project.downloadPwd ? ` (提取码: ${project.downloadPwd})` : '';
 
     // 更新公告（数据驱动：只给写了 announcement 的项目渲染，插在卡片内 h3 标题下方）
+    const existingAside = card.querySelector('.card-announce');
+    if (existingAside) existingAside.remove();
     const announceHtml = buildAnnouncement(project);
     if (announceHtml) {
       const aside = document.createElement('aside');
@@ -256,7 +258,7 @@ function hydrateProductLinks() {
 }
 
 // 打开项目详情弹窗
-window.openProjectModal = function(id) {
+window.openProjectModal = function(id, opts = {}) {
   const project = (window.PROJECTS_DATA || []).find(p => p.id === id);
   if (!project) return;
 
@@ -266,6 +268,9 @@ window.openProjectModal = function(id) {
   if (modal._closeTimer) { clearTimeout(modal._closeTimer); modal._closeTimer = null; }
   modal.classList.remove('is-closing');
   modal._lastFocus = document.activeElement;
+
+  const wantChangelog = Boolean(opts && opts.openChangelog) || modalContent.dataset.openChangelog === '1';
+  if (wantChangelog) modalContent.dataset.openChangelog = '1';
 
   const barTitle = document.getElementById('project-bar-title');
   if (barTitle) barTitle.textContent = project.title || '';
@@ -365,6 +370,20 @@ window.openProjectModal = function(id) {
   addCopyButtons(modalContent);
   ensureHighlight(modalContent);
 
+  const focusChangelog = () => {
+    if (modalContent.dataset.openChangelog !== '1') return;
+    delete modalContent.dataset.openChangelog;
+    const box = modalContent.querySelector('.changelog');
+    if (box) {
+      box.open = true;
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          box.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        }, 30);
+      });
+    }
+  };
+
   // 渲染器就绪后补写正文（期间又点了别的项目就放弃，避免覆盖错内容）
   if (needMd && project.details) {
     const token = project.id;
@@ -378,28 +397,27 @@ window.openProjectModal = function(id) {
       addCopyButtons(modalContent);
       ensureHighlight(modalContent);
       if (window.lucide) window.lucide.createIcons();
-      modal.scrollTop = 0;
-      modalContent.scrollTop = 0;
-      // 从公告「全部 N 个版本」进来：正文补写完后展开更新记录并滚到它
-      if (modalContent.dataset.openChangelog === '1') {
-        delete modalContent.dataset.openChangelog;
-        const box = modalContent.querySelector('.changelog');
-        if (box) {
-          box.open = true;
-          setTimeout(() => box.scrollIntoView({ block: 'start', behavior: 'smooth' }), 30);
-        }
+      if (!wantChangelog) {
+        modal.scrollTop = 0;
+        modalContent.scrollTop = 0;
       }
+      // 从公告「全部 N 个版本」进来：正文补写完后展开更新记录并滚到它
+      focusChangelog();
     });
   }
 
   modal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
-  modal.scrollTop = 0;
-  modalContent.scrollTop = 0;
-  requestAnimationFrame(() => {
+  if (wantChangelog) {
+    if (!needMd || !project.details) focusChangelog();
+  } else {
     modal.scrollTop = 0;
     modalContent.scrollTop = 0;
-  });
+    requestAnimationFrame(() => {
+      modal.scrollTop = 0;
+      modalContent.scrollTop = 0;
+    });
+  }
   if (window.lucide) window.lucide.createIcons();
   modal.querySelector('button[aria-label="关闭"]')?.focus({ preventScroll: true });
 };
@@ -1442,13 +1460,8 @@ function initNavigation() {
     }
     const projectTrigger = e.target.closest?.('[data-open-project]');
     if (projectTrigger) {
-      window.openProjectModal(projectTrigger.getAttribute('data-open-project'));
-      if (projectTrigger.hasAttribute('data-open-changelog')) {
-        const content = document.getElementById('project-modal-content');
-        if (content) content.dataset.openChangelog = '1';
-        const box = document.querySelector('#project-modal .changelog');
-        if (box) box.open = true;
-      }
+      const openChangelog = projectTrigger.hasAttribute('data-open-changelog');
+      window.openProjectModal(projectTrigger.getAttribute('data-open-project'), { openChangelog });
       return;
     }
     const closeTrigger = e.target.closest?.('[data-close-modal]');
