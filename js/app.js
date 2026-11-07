@@ -173,7 +173,7 @@ function buildAnnouncement(project) {
   const ver = a.version ? `<span class="announce-ver font-mono">${escapeHtml(a.version)}</span>` : '';
   const line = [ver, a.summary || a.items.join(' / ')].filter(Boolean).join(' · ');
   const more = Array.isArray(project.changelog) && project.changelog.length
-    ? `<button class="announce-more hover:underline cursor-pointer text-sky-600 dark:text-sky-400 ml-1.5" data-open-project="${escapeHtml(project.id)}" data-open-changelog>全部 ${project.changelog.length} 个版本 →</button>`
+    ? `<button class="announce-more cursor-pointer" data-open-project="${escapeHtml(project.id)}" data-open-changelog>全部 ${project.changelog.length} 个版本 →</button>`
     : '';
   return `
     <div class="announce-card" aria-hidden="true">
@@ -281,12 +281,10 @@ window.openProjectModal = function(id) {
     <div class="p-6 sm:p-8 space-y-6">
       <!-- 头部 -->
       <div class="space-y-2 border-b border-black/10 dark:border-white/10 pb-5">
+        ${project.archived ? `
         <div class="flex items-center gap-2">
-          <span class="px-2.5 py-1 text-xs font-mono font-medium rounded-md border border-black/8 dark:border-white/12 text-[#86868b]">
-            ${escapeHtml(project.categoryName || project.category)}
-          </span>
-          ${project.archived ? '<span class="px-2.5 py-1 text-xs font-medium rounded-md border" style="border-color: rgba(194,217,107,.35); color: #c2d96b;">历史项目</span>' : ''}
-        </div>
+          <span class="px-2 py-0.5 text-xs font-medium rounded-md border border-[#c2d96b]/40 text-[#c2d96b]">历史项目</span>
+        </div>` : ''}
         <h2 class="text-2xl font-semibold text-[#1d1d1f] dark:text-white tracking-tight">${escapeHtml(project.title)}</h2>
         <p class="text-[#86868b] text-sm sm:text-base leading-relaxed">${escapeHtml(project.description)}</p>
       </div>
@@ -306,11 +304,11 @@ window.openProjectModal = function(id) {
       ` : ''}
 
       ${(project.version || project.updated || project.requires || project.sha256) ? `
-      <!-- 版本 / 运行环境 / 校验（数据缺失时整块不渲染） -->
-      <div class="rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03] p-4 space-y-2 text-xs">
-        ${project.version ? `<div class="flex gap-2"><span class="text-[#86868b] shrink-0">当前版本</span><span class="font-mono text-[#1d1d1f] dark:text-[#f5f5f7]">${escapeHtml(project.version)}${project.updated ? ' · ' + escapeHtml(project.updated) : ''}</span></div>` : ''}
-        ${project.requires ? `<div class="flex gap-2"><span class="text-[#86868b] shrink-0">运行环境</span><span class="text-[#1d1d1f] dark:text-[#f5f5f7]">${escapeHtml(project.requires)}</span></div>` : ''}
-        ${project.sha256 ? `<div class="flex gap-2"><span class="text-[#86868b] shrink-0">SHA256</span><span class="font-mono text-[#1d1d1f] dark:text-[#f5f5f7] break-all">${escapeHtml(project.sha256)}</span></div>` : ''}
+      <!-- 版本 / 运行环境 / 校验：纯净轻量呈现，无多余边框与脏底色 -->
+      <div class="space-y-1.5 text-xs pt-1">
+        ${project.version ? `<div class="flex items-center gap-2 text-[#86868b]"><span class="shrink-0">当前版本</span><span class="font-mono text-[#1d1d1f] dark:text-[#f5f5f7]">${escapeHtml(project.version)}${project.updated ? ' · ' + escapeHtml(project.updated) : ''}</span></div>` : ''}
+        ${project.requires ? `<div class="flex items-center gap-2 text-[#86868b]"><span class="shrink-0">运行环境</span><span class="text-[#1d1d1f] dark:text-[#f5f5f7]">${escapeHtml(project.requires)}</span></div>` : ''}
+        ${project.sha256 ? `<div class="flex items-center gap-2 text-[#86868b]"><span class="shrink-0">SHA256</span><span class="font-mono text-[#1d1d1f] dark:text-[#f5f5f7] break-all">${escapeHtml(project.sha256)}</span></div>` : ''}
       </div>
       ` : ''}
       ${buildChangelog(project)}
@@ -788,8 +786,8 @@ function initHeroIndex() {
 
   // 鼠标 3D 拟物物理左右悬浮交互 (Linear / Apple 3D Craft，微透视与动态投影)
   if (window.attach3DTilt) {
-    window.attach3DTilt(productCards, { maxRotX: 7.0, maxRotY: 11.5, elev: -10, perspective: 950 });
-    window.attach3DTilt(document.querySelectorAll('.bento-card'), { maxRotX: 7.0, maxRotY: 11.5, elev: -10, perspective: 950 });
+    window.attach3DTilt(productCards, { maxRotX: 10.0, maxRotY: 15.0, perspective: 750 });
+    window.attach3DTilt(document.querySelectorAll('.bento-card, .app-window-card'), { maxRotX: 10.0, maxRotY: 15.0, perspective: 750 });
   }
 
   // 页面滚动时自动监听高亮首屏对应的条目
@@ -1210,11 +1208,9 @@ window.openArticleModal = function(id, skipUrlSync) {
     <div class="p-6 sm:p-8 space-y-5">
       <div class="space-y-2 border-b border-black/10 dark:border-white/10 pb-5">
         <div class="flex items-center gap-2 text-xs font-mono text-[#86868b]">
-          <span class="px-2 py-0.5 rounded-md border border-black/8 dark:border-white/12 font-medium">
-            ${escapeHtml(article.category || '技术手记')}
-          </span>
           <span>${escapeHtml(article.date)}</span>
-          <span>· ${escapeHtml(getReadTime(article))}</span>
+          <span>·</span>
+          <span>${escapeHtml(getReadTime(article))}</span>
         </div>
         <h1 class="text-2xl sm:text-3xl font-extrabold text-[#1d1d1f] dark:text-white tracking-tight">${escapeHtml(article.title)}</h1>
         ${versionChips}

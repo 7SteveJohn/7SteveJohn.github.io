@@ -364,8 +364,8 @@ h1, h2, h3 {
   transition-duration: 0.08s;
 }
 
-/* 产品卡「了解更多 / 全部功能明细」互动胶囊芯片 */
-#products button[data-open-project] {
+/* 产品卡「了解更多 / 全部功能明细」互动胶囊芯片（排除公告内全部版本按钮） */
+#products button[data-open-project]:not(.announce-more) {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
@@ -380,24 +380,24 @@ h1, h2, h3 {
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
 }
-#products button[data-open-project]:hover {
+#products button[data-open-project]:not(.announce-more):hover {
   background: rgba(37, 99, 235, 0.12);
   border-color: rgba(37, 99, 235, 0.32);
   color: #1d4ed8;
   transform: translateX(2px);
   text-decoration: none !important;
 }
-#products button[data-open-project]:active {
+#products button[data-open-project]:not(.announce-more):active {
   transform: scale(0.96);
   transition-duration: 0.08s;
 }
-.dark #products button[data-open-project] {
+.dark #products button[data-open-project]:not(.announce-more) {
   color: #60a5fa;
   background: rgba(96, 165, 250, 0.08);
   border: 1px solid rgba(96, 165, 250, 0.20);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
-.dark #products button[data-open-project]:hover {
+.dark #products button[data-open-project]:not(.announce-more):hover {
   color: #93c5fd;
   background: rgba(96, 165, 250, 0.18);
   border-color: rgba(96, 165, 250, 0.38);
@@ -549,8 +549,8 @@ html:not(.dark) .app-window-card:hover {
   box-shadow: 0 24px 55px -10px rgba(0, 0, 0, 0.85), 0 0 30px rgba(56, 189, 248, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
-/* 按压瞬间微弹性反馈 */
-.bento-card:active {
+/* 按压瞬间物理反馈由 JS attach3DTilt 引擎统一接管（带 3D 沉陷与角度放大），避免简单 CSS transform 冲掉 3D 姿态 */
+.bento-card:active:not([style*="rotateX"]) {
   transform: scale(0.995);
   transition-duration: 0.08s;
 }
@@ -750,9 +750,8 @@ html:not(.dark) .bento-card [data-card-desc] {
 .video-play-btn svg { width: 1.6rem; height: 1.6rem; }
 /* ===== 旗舰产品大卡：单屏完整呈现、左右双栏、透出 3D 神经网络背景 ===== */
 #products {
-  perspective: 1200px;
-  perspective-origin: center;
-  transform-style: preserve-3d;
+  /* 卡片内部使用自身透视引擎，父级保持独立流式定位，避免双重透视导致的 Z 轴穿透裁剪 */
+  position: relative;
 }
 
 #products > article.bento-card {
@@ -843,6 +842,54 @@ html:not(.dark) .bento-card [data-card-desc] {
   border-radius: 0.875rem;
   overflow: hidden;
   transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* ============================================================
+   拟物级 3D 物理翘板分层视差景深 (Linear / Apple 3D Parallax Craft)
+   卡片倾斜时，文字、胶囊、视窗、按钮在 Z 轴不同高度形成真实错位视差
+   ============================================================ */
+#products > article.bento-card {
+  transform-style: preserve-3d !important;
+}
+
+#products > article.bento-card > div:first-child,
+#products > article.bento-card > div:first-of-type,
+#products > article.bento-card > div:last-child,
+#products > article.bento-card > div:last-of-type {
+  transform-style: preserve-3d !important;
+}
+
+@media (min-width: 860px) {
+  #products > article.bento-card [data-card-title],
+  #products > article.bento-card h2,
+  #products > article.bento-card h3 {
+    transform: translateZ(26px);
+    transform-style: preserve-3d;
+  }
+  #products > article.bento-card .card-announce {
+    transform: translateZ(32px);
+    transform-style: preserve-3d;
+  }
+  #products > article.bento-card [data-card-desc],
+  #products > article.bento-card .project-facts {
+    transform: translateZ(18px);
+    transform-style: preserve-3d;
+  }
+  #products > article.bento-card .flex.items-center.gap-3 {
+    transform: translateZ(36px);
+    transform-style: preserve-3d;
+  }
+  #products > article.bento-card .cover-box {
+    transform: translateZ(42px);
+    transform-style: preserve-3d;
+    box-shadow: 0 20px 42px -10px rgba(0, 0, 0, 0.28);
+  }
+  .dark #products > article.bento-card .cover-box {
+    box-shadow: 0 24px 48px -10px rgba(0, 0, 0, 0.75);
+  }
+  #products > article.bento-card .video-play-btn {
+    transform: translateZ(54px);
+  }
 }
 html:not(.dark) #products > article.bento-card .cover-box {
   background: rgba(241, 245, 249, 0.70);
@@ -3345,14 +3392,16 @@ html body #waifu-tips span {
 .announce-line {
   display: inline-flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  padding: 0.3rem 0.75rem;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
   border-radius: 9999px;
   font-size: 11.5px;
-  line-height: 1.4;
+  line-height: 1.2;
   width: fit-content;
   max-width: 100%;
+  vertical-align: middle;
+  box-sizing: border-box;
 }
 html:not(.dark) .announce-line {
   background: rgba(241, 245, 249, 0.85);
@@ -3370,138 +3419,176 @@ html:not(.dark) .announce-line {
   height: 6px;
   border-radius: 9999px;
   background: #0284c7;
-  box-shadow: 0 0 8px rgba(2, 132, 199, 0.6);
+  box-shadow: 0 0 6px rgba(2, 132, 199, 0.6);
+  display: inline-block;
+  vertical-align: middle;
+  align-self: center;
 }
 .dark .announce-dot {
   background: #38bdf8;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.7);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.7);
+}
+.announce-line-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  line-height: 1.2;
+  vertical-align: middle;
 }
 .announce-ver {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-weight: 600;
   color: var(--accent);
+  line-height: 1.2;
 }
 
 /* ============================================================
    更新记录（弹窗内，全部版本）与公告底部入口
    ============================================================ */
 .announce-more {
-  margin-top: 10px;
-  padding: 0;
-  border: 0;
-  background: none;
-  font-size: 11px;
-  color: var(--accent);
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  font-size: 11.5px !important;
+  line-height: 1.2 !important;
+  color: #0284c7 !important;
   cursor: pointer;
+  display: inline-flex !important;
+  align-items: center !important;
+  align-self: center !important;
+  white-space: nowrap;
+  box-shadow: none !important;
+  transform: none !important;
+  outline: none;
+  transition: color 0.15s ease, opacity 0.15s ease;
 }
-.announce-more:hover { text-decoration: underline; }
+.announce-more:hover {
+  text-decoration: underline !important;
+  color: #0369a1 !important;
+  transform: none !important;
+}
+.dark .announce-more {
+  color: #38bdf8 !important;
+}
+.dark .announce-more:hover {
+  color: #7dd3fc !important;
+}
 
 .changelog {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 0.875rem;
-  background: rgba(0, 0, 0, 0.015);
-  margin: 1rem 0;
-  overflow: hidden;
-  transition: border-color 0.2s ease;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  margin: 1rem 0 1.25rem !important;
+  overflow: visible !important;
+  box-shadow: none !important;
 }
 .dark .changelog {
-  border-color: rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.02);
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 .changelog summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 18px;
-  list-style: none;
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #1e293b;
-  user-select: none;
-  transition: background 0.15s ease;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  padding: 0.5rem 0 !important;
+  list-style: none !important;
+  cursor: pointer !important;
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+  color: #1e293b !important;
+  user-select: none !important;
+  background: transparent !important;
+  border-bottom: 0 !important;
+  transition: color 0.15s ease !important;
 }
 .dark .changelog summary {
-  color: #f1f5f9;
+  color: #f1f5f9 !important;
 }
 .changelog summary:hover {
-  background: rgba(0, 0, 0, 0.02);
+  background: transparent !important;
+  color: #0284c7 !important;
 }
 .dark .changelog summary:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: transparent !important;
+  color: #38bdf8 !important;
 }
-.changelog summary::-webkit-details-marker { display: none; }
+.changelog summary::-webkit-details-marker { display: none !important; }
 .changelog[open] summary {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 0 !important;
+  margin-bottom: 0.5rem !important;
 }
 .dark .changelog[open] summary {
-  border-bottom-color: rgba(255, 255, 255, 0.06);
+  border-bottom: 0 !important;
 }
 .cl-count {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #64748b;
-  background: rgba(0, 0, 0, 0.04);
-  padding: 0.15rem 0.5rem;
-  border-radius: 9999px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  color: #86868b !important;
+  background: transparent !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 .dark .cl-count {
-  color: #94a3b8;
-  background: rgba(255, 255, 255, 0.08);
+  color: #94a3b8 !important;
+  background: transparent !important;
 }
-.cl-count::after { content: " +"; }
-.changelog[open] .cl-count::after { content: " −"; }
+.cl-count::after { content: " +" !important; }
+.changelog[open] .cl-count::after { content: " −" !important; }
 .cl-body {
-  padding: 8px 18px 14px;
+  padding: 0 !important;
 }
 .cl-item {
-  padding: 14px 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 0.75rem 0 !important;
+  border-bottom: 0 !important;
 }
-.dark .cl-item {
-  border-bottom-color: rgba(255, 255, 255, 0.06);
-}
-.cl-item:last-child {
-  border-bottom: 0;
+.cl-item:first-child {
+  padding-top: 0.25rem !important;
 }
 .cl-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
 }
 .cl-v {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.775rem;
-  font-weight: 600;
-  padding: 0.15rem 0.5rem;
-  border-radius: 4px;
-  background: rgba(37, 99, 235, 0.08);
-  color: #2563eb;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #0284c7 !important;
+  letter-spacing: -0.01em !important;
+  box-shadow: none !important;
 }
 .dark .cl-v {
-  background: rgba(56, 189, 248, 0.12);
-  color: #38bdf8;
+  background: transparent !important;
+  color: #38bdf8 !important;
 }
 .cl-date {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.75rem;
-  color: #94a3b8;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+  font-size: 0.75rem !important;
+  color: #86868b !important;
 }
 .dark .cl-date {
-  color: #64748b;
+  color: #64748b !important;
 }
 .cl-list {
-  margin: 8px 0 0;
-  padding-left: 1.25em;
-  font-size: 0.825rem;
-  line-height: 1.7;
-  color: #475569;
+  margin: 6px 0 0 !important;
+  padding-left: 1.15em !important;
+  font-size: 0.8125rem !important;
+  line-height: 1.65 !important;
+  color: #475569 !important;
 }
 .dark .cl-list {
-  color: #cbd5e1;
+  color: #cbd5e1 !important;
 }
 
 /* 历史项目（2026-11-02）：GameBoost / GameBoost-DLSSG 的功能已并入 Fluxion，

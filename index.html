@@ -97,7 +97,7 @@
   </script>
 
  <!-- 定制样式-->
-  <link rel="stylesheet" href="css/style.css?v=20261107_v240" data-page-node-id="DJZNUKsUQagCUphQLazIKY" />
+  <link rel="stylesheet" href="css/style.css?v=20261107_v243" data-page-node-id="DJZNUKsUQagCUphQLazIKY" />
   <link rel="stylesheet" href="css/cosmos.css" />
   <link rel="stylesheet" href="css/settings-panel.css" />
 </head>
@@ -346,7 +346,7 @@
       <!-- 单品 1: FileButler -->
       <article data-project-id="filebutler" class="bento-card reveal" data-page-node-id="tC0KmIuf8B8maWBqB0CMiw">
         <div class="p-8 sm:p-12 space-y-4 w-full" data-page-node-id="ke3R5awDo6EvgS6vLdnTuE">
-          <span class="inline-block px-2.5 py-1 rounded-md text-xs font-mono border border-black/8 dark:border-white/12 text-[#86868b]" data-page-node-id="QZPA7LbMhKtWxWRJvAbeG4">
+          <span class="inline-block text-xs font-mono text-[#86868b] tracking-wide" data-page-node-id="QZPA7LbMhKtWxWRJvAbeG4">
             端侧 AI 桌面应用 · pywebview / Vue 3 / Ollama
           </span>
           <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white" data-page-node-id="j0Im5wPeXbivM0rKRi8JKP">
@@ -427,7 +427,7 @@
       <!-- 单品 2: 拍案（网文创作工作台，源码在 GitHub） -->
       <article data-project-id="paian" class="bento-card reveal">
         <div class="p-8 sm:p-12 space-y-4 w-full">
-            <span class="inline-block px-2.5 py-1 rounded-md text-xs font-mono border border-black/8 dark:border-white/12 text-[#86868b]">
+            <span class="inline-block text-xs font-mono text-[#86868b] tracking-wide">
               Windows 桌面 · Electron / TypeScript
             </span>
             <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white">
@@ -508,7 +508,7 @@
       <!-- 单品 3: NetOps Handbook -->
       <article data-project-id="netops-handbook" class="bento-card reveal" data-page-node-id="DVVZg6yTThmdgJ4Yjd1BzA">
         <div class="p-8 sm:p-12 space-y-4 w-full" data-page-node-id="hxXTOau7NTk7uMoX8MFscd">
-          <span class="inline-block px-2.5 py-1 rounded-md text-xs font-mono border border-black/8 dark:border-white/12 text-[#86868b]" data-page-node-id="NZeXiNwZYee2hWmZht1jpU">
+          <span class="inline-block text-xs font-mono text-[#86868b] tracking-wide" data-page-node-id="NZeXiNwZYee2hWmZht1jpU">
             Android 应用 · Gradle 8.9 / 单页 SPA
           </span>
           <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white" data-page-node-id="rBMfW5D7X39ryJ6lq4drQh">
@@ -589,7 +589,7 @@
       <article data-project-id="fluxion" class="bento-card reveal">
         <div class="p-8 sm:p-12 space-y-4 w-full">
             <div class="flex flex-wrap items-center gap-2">
-              <span class="inline-block px-2.5 py-1 rounded-md text-xs font-mono border border-black/8 dark:border-white/12 text-[#86868b]">
+              <span class="inline-block text-xs font-mono text-[#86868b] tracking-wide">
                 Windows 原生工具 · C# / WinForms
               </span>
             </div>
@@ -1030,9 +1030,9 @@
   <script src="js/projects.js" defer></script>
   <script src="js/articles.js" defer></script>
   <!-- core：站点配置 → Markdown 按需加载器 → 壁纸 → 粒子 → 设置面板 → 按住 Tab -->
-  <script src="js/bundles/core.js?v=20261107_v240" defer></script>
+  <script src="js/bundles/core.js?v=20261107_v243" defer></script>
   <!-- home：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器（必须在 core 之后） -->
-  <script src="js/bundles/home.js?v=20261107_v240" defer></script>
+  <script src="js/bundles/home.js?v=20261107_v243" defer></script>
   <!-- importmap：把 three 的裸导入指到自托管副本（必须在任何 module script 之前）。
        本地推理场场景（js/cosmos/main.js：分层节点网 + 沿边前传的脉冲）；
        无 WebGL 或初始化失败时它内部自动回退加载 2D 版 js/cosmos.js -->
@@ -1060,10 +1060,9 @@
       function bootstrapTilt() {
         if (typeof window.attach3DTilt === 'function') {
           window.attach3DTilt(document.querySelectorAll('#products article[data-project-id], .bento-card, .app-window-card'), {
-            maxRotX: 9.0,
-            maxRotY: 14.0,
-            elev: -8,
-            perspective: 800
+            maxRotX: 10.0,
+            maxRotY: 15.0,
+            perspective: 750
           });
         } else {
           setTimeout(bootstrapTilt, 50);

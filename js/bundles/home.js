@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"08da21ffa599","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"0ca72978b798ac6073cc88d3d5dbcca374746062a411ec3cc258459921f43fba"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"87756b981b00bec7b9110fdf82f29aa72601363a37a1505073f736474aae6335"}]}
+// build-bundles: {"name":"home","version":"b5d9a80ccb8d","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"f393eb767118268497c809996ff8f435994680e81abee80e3618f70024a241a5"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"fd530e81ec6781f7cf07faf4c2d8b3ece3d1612dfa920e272f7b305f42cb854f"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"87756b981b00bec7b9110fdf82f29aa72601363a37a1505073f736474aae6335"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -380,7 +380,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (0ca72978b798) ----
+// ---- js/app.js (fd530e81ec67) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -556,7 +556,7 @@ function buildAnnouncement(project) {
   const ver = a.version ? `<span class="announce-ver font-mono">${escapeHtml(a.version)}</span>` : '';
   const line = [ver, a.summary || a.items.join(' / ')].filter(Boolean).join(' · ');
   const more = Array.isArray(project.changelog) && project.changelog.length
-    ? `<button class="announce-more hover:underline cursor-pointer text-sky-600 dark:text-sky-400 ml-1.5" data-open-project="${escapeHtml(project.id)}" data-open-changelog>全部 ${project.changelog.length} 个版本 →</button>`
+    ? `<button class="announce-more cursor-pointer" data-open-project="${escapeHtml(project.id)}" data-open-changelog>全部 ${project.changelog.length} 个版本 →</button>`
     : '';
   return `
     <div class="announce-card" aria-hidden="true">
@@ -664,12 +664,10 @@ window.openProjectModal = function(id) {
     <div class="p-6 sm:p-8 space-y-6">
       <!-- 头部 -->
       <div class="space-y-2 border-b border-black/10 dark:border-white/10 pb-5">
+        ${project.archived ? `
         <div class="flex items-center gap-2">
-          <span class="px-2.5 py-1 text-xs font-mono font-medium rounded-md border border-black/8 dark:border-white/12 text-[#86868b]">
-            ${escapeHtml(project.categoryName || project.category)}
-          </span>
-          ${project.archived ? '<span class="px-2.5 py-1 text-xs font-medium rounded-md border" style="border-color: rgba(194,217,107,.35); color: #c2d96b;">历史项目</span>' : ''}
-        </div>
+          <span class="px-2 py-0.5 text-xs font-medium rounded-md border border-[#c2d96b]/40 text-[#c2d96b]">历史项目</span>
+        </div>` : ''}
         <h2 class="text-2xl font-semibold text-[#1d1d1f] dark:text-white tracking-tight">${escapeHtml(project.title)}</h2>
         <p class="text-[#86868b] text-sm sm:text-base leading-relaxed">${escapeHtml(project.description)}</p>
       </div>
@@ -689,11 +687,11 @@ window.openProjectModal = function(id) {
       ` : ''}
 
       ${(project.version || project.updated || project.requires || project.sha256) ? `
-      <!-- 版本 / 运行环境 / 校验（数据缺失时整块不渲染） -->
-      <div class="rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03] p-4 space-y-2 text-xs">
-        ${project.version ? `<div class="flex gap-2"><span class="text-[#86868b] shrink-0">当前版本</span><span class="font-mono text-[#1d1d1f] dark:text-[#f5f5f7]">${escapeHtml(project.version)}${project.updated ? ' · ' + escapeHtml(project.updated) : ''}</span></div>` : ''}
-        ${project.requires ? `<div class="flex gap-2"><span class="text-[#86868b] shrink-0">运行环境</span><span class="text-[#1d1d1f] dark:text-[#f5f5f7]">${escapeHtml(project.requires)}</span></div>` : ''}
-        ${project.sha256 ? `<div class="flex gap-2"><span class="text-[#86868b] shrink-0">SHA256</span><span class="font-mono text-[#1d1d1f] dark:text-[#f5f5f7] break-all">${escapeHtml(project.sha256)}</span></div>` : ''}
+      <!-- 版本 / 运行环境 / 校验：纯净轻量呈现，无多余边框与脏底色 -->
+      <div class="space-y-1.5 text-xs pt-1">
+        ${project.version ? `<div class="flex items-center gap-2 text-[#86868b]"><span class="shrink-0">当前版本</span><span class="font-mono text-[#1d1d1f] dark:text-[#f5f5f7]">${escapeHtml(project.version)}${project.updated ? ' · ' + escapeHtml(project.updated) : ''}</span></div>` : ''}
+        ${project.requires ? `<div class="flex items-center gap-2 text-[#86868b]"><span class="shrink-0">运行环境</span><span class="text-[#1d1d1f] dark:text-[#f5f5f7]">${escapeHtml(project.requires)}</span></div>` : ''}
+        ${project.sha256 ? `<div class="flex items-center gap-2 text-[#86868b]"><span class="shrink-0">SHA256</span><span class="font-mono text-[#1d1d1f] dark:text-[#f5f5f7] break-all">${escapeHtml(project.sha256)}</span></div>` : ''}
       </div>
       ` : ''}
       ${buildChangelog(project)}
@@ -1171,8 +1169,8 @@ function initHeroIndex() {
 
   // 鼠标 3D 拟物物理左右悬浮交互 (Linear / Apple 3D Craft，微透视与动态投影)
   if (window.attach3DTilt) {
-    window.attach3DTilt(productCards, { maxRotX: 7.0, maxRotY: 11.5, elev: -10, perspective: 950 });
-    window.attach3DTilt(document.querySelectorAll('.bento-card'), { maxRotX: 7.0, maxRotY: 11.5, elev: -10, perspective: 950 });
+    window.attach3DTilt(productCards, { maxRotX: 10.0, maxRotY: 15.0, perspective: 750 });
+    window.attach3DTilt(document.querySelectorAll('.bento-card, .app-window-card'), { maxRotX: 10.0, maxRotY: 15.0, perspective: 750 });
   }
 
   // 页面滚动时自动监听高亮首屏对应的条目
@@ -1593,11 +1591,9 @@ window.openArticleModal = function(id, skipUrlSync) {
     <div class="p-6 sm:p-8 space-y-5">
       <div class="space-y-2 border-b border-black/10 dark:border-white/10 pb-5">
         <div class="flex items-center gap-2 text-xs font-mono text-[#86868b]">
-          <span class="px-2 py-0.5 rounded-md border border-black/8 dark:border-white/12 font-medium">
-            ${escapeHtml(article.category || '技术手记')}
-          </span>
           <span>${escapeHtml(article.date)}</span>
-          <span>· ${escapeHtml(getReadTime(article))}</span>
+          <span>·</span>
+          <span>${escapeHtml(getReadTime(article))}</span>
         </div>
         <h1 class="text-2xl sm:text-3xl font-extrabold text-[#1d1d1f] dark:text-white tracking-tight">${escapeHtml(article.title)}</h1>
         ${versionChips}
