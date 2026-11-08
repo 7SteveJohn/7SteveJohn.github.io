@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v255';   // 2026-11-08 修正2077真实方案（区分3A单机DLSS-MFG代理模式与二游OptiScaler伪装模式）
+const CACHE = 'sevenjohn-v256';   // 2026-11-08 Fluxion v1.3.1（3A游戏全面支持0.4.1进阶内核、启动器穿透探测、更新蓝奏云网盘下载）
 const CORE = [
   './',
   'index.html',

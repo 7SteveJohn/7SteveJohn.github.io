@@ -366,22 +366,28 @@ GameBoost-DLSSG 是专为 **RTX 20/30 系** 显卡定制的 DLSS 帧生成管理
     image: "assets/images/cover-fluxion.webp",
     githubUrl: "https://github.com/7SteveJohn/Fluxion",
     demoUrl: "https://github.com/7SteveJohn/Fluxion/releases",
-    downloadUrl: "https://wwblz.lanzouu.com/b00q1u0qpa",
-    downloadPwd: "1ici",
+    downloadUrl: "https://wwblz.lanzouu.com/b00q1uwpcd",
+    downloadPwd: "gepp",
     featured: true,
     role: "开发",
     challenge: "主要是 51 项系统改动的真实状态回读，以及老显卡帧生成的可靠接入。每项改动前备份环境快照，状态分四档真实回读，对可能影响硬件稳定性的高危项只做检测不给调整；帧生成端根据模块加载和日志做双重校验，未生效时自动尝试其他入口。",
-    version: "v1.3.0",
-    updated: "2026-11-01",
+    version: "v1.3.1",
+    updated: "2026-11-08",
     // 更新公告：精炼胶囊指示条，嵌入产品卡左栏（完整版在详情弹窗）
     announcement: {
-      version: "v1.3.0",
-      date: "2026-11-01",
-      items: ["RTX 20/30 强开DLSS帧生成", "51项底层体检(治1% Low)", "进游戏自动调优/退出还原", "六大平台游戏库全景纳管"],
-      summary: "老卡强开帧生成 / 51项底层体检"
+      version: "v1.3.1",
+      date: "2026-11-08",
+      items: ["3A单机全量支持0.4.1进阶内核", "启动器与真实渲染目录自动穿透", "专用入口智能纠偏", "安装包系统语言自适配"],
+      summary: "3A全面支持0.4.1 / 启动器穿透探测"
     },
     // 更新记录：来自 GitHub Releases（7SteveJohn/Fluxion），最新在前
     changelog: [
+      { v: "v1.3.1", date: "2026-11-08", items: [
+        "3A 单机与通用游戏全面支持 DLSS MFG 0.4.1 进阶内核，支持 2X~4X 灵活倍率调节",
+        "启动器与真实渲染目录自动穿透：精准映射 Cyberpunk 2077（bin\\x64）与巫师 3 渲染核心，彻底解决启动器层误放代理不生效问题",
+        "已知游戏专用入口智能联动：2077 等游戏自动绑定 winmm.dll 入口，无视反作弊干扰",
+        "全自闭环 Inno Setup 多语言安装包，自动匹配系统语言，零多余弹窗直达向导"
+      ]},
       { v: "v1.3.0", date: "2026-11-01", items: [
         "RTX 20/30 系老显卡强开 DLSS 3 帧生成：接管 nvngx_dlssg.dll 代理注入，《赛博朋克 2077》实测 120 ➔ 280 FPS 瞬间翻倍",
         "51 项底层硬核系统体检：18 项可细调，游戏期自适应切档，退出游戏瞬时无感还原",
