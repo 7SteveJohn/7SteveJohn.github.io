@@ -1,8 +1,8 @@
 # Fluxion 真实标杆游戏替换、赛车引擎声浪还原与字形排版根治交付记录
 
 **日期**：2026-11-08  
-**版本**：Service Worker `sevenjohn-v254`  
-**核心目标**：针对用户在 60 秒 Fluxion 宣传片中指出的三大体验问题进行逐项排查、根因修复与母带重铸，确保宣传片在游戏真实度、视听快感与视觉细节上达到顶级水准。
+**版本**：Service Worker `sevenjohn-v255`  
+**核心目标**：针对用户在 60 秒 Fluxion 宣传片中指出的三大体验问题以及《赛博朋克 2077》真实适配方案进行逐项排查、根因修复与母带重铸，确保宣传片在游戏真实度、视听快感与视觉细节上达到顶级水准。
 
 ---
 
@@ -19,11 +19,12 @@
 ## 2. 详细技术改造清单
 
 ### 2.1 标杆大作《Cyberpunk 2077》与 DLSS 3.7+ 真实工作台对接
-- **修改文件**：`Temp/render_fluxion_apple.py`
+- **修改文件**：`Temp/render_fluxion_apple.py`, `Temp/gen_cp_details_v2.py`
 - 将选定窗口 `WIN_LIB_SEL` 绑定为原生渲染的 `real_dark_p2_cp2077.png`。
-- 界面精准呈现：
+- 区分 3A 单机与带反作弊二游的方案边界：
   * **主标题与运行态**：`Cyberpunk 2077` · `Steam · DLSS 3.7+ 代理已启用 · 帧生成就绪`。
-  * **适配方案与底层注入**：`自动 · DLSS 帧生成 (RTX 5090 伪装注入)` · `当前: DLSS 多帧生成已就绪 (120 FPS → 280 FPS)` · `① 代理已挂载: nvngx_dlssg.dll | 伪装入口: D3D12 / DXGI`。
+  * **方案正名**：`自动 · DLSS MFG 0.3.5 (单机代理模式)`（对齐 Fluxion 源码中 3A 单机推荐 `DLSS MFG 0.3.x` 通用模式）。
+  * **运行状态与入口**：`当前: DLSS MFG 多帧生成已就绪 (120 FPS → 280 FPS)` · `① 专用入口: winmm.dll + dlssg_sm86.ini | 架构路由: SM86` · `② 3A 单机通用模式: 接管原生 nvngx_dlssg.dll，无需伪装显卡`。
   * **实测硬核数据**：`实测帧率: 120 FPS → 280 FPS (延迟 41.7ms → 17.8ms)`。
 
 ### 2.2 仪表盘稳帧与赛车引擎声浪（High-Octane Rev Sweep）

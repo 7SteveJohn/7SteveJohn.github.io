@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v254';   // 2026-11-08 Fluxion全面重构（锁定280FPS零抖动、赛车引擎声浪还原、赛博朋克2077真实DLSS帧生成演练、清除缺失字形方框）
+const CACHE = 'sevenjohn-v255';   // 2026-11-08 修正2077真实方案（区分3A单机DLSS-MFG代理模式与二游OptiScaler伪装模式）
 const CORE = [
   './',
   'index.html',
