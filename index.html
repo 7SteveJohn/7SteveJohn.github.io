@@ -691,7 +691,7 @@
             <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white">
               Stacky · 桌面卡片矩阵与启动台
             </h3>
-            <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed">把常用应用、文件夹和小组件收进桌面上的超椭圆卡片。分类直接映射硬盘上的真实目录，拖进去就是真移动，卸载也不删文件；抽屉里输入即搜，支持中文、全拼与拼音首字母，还能算数学表达式、直接执行系统命令。</p>
+            <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed">把常用应用、文件夹和小组件收进桌面上的超椭圆卡片。分类直接映射硬盘上的真实目录，拖进去就是真移动，卸载也不删文件；抽屉里输入即过滤文件，也能算数学表达式、直接执行系统命令或打开网址。</p>
 
             <div data-facts class="project-facts" hidden></div>
 
@@ -700,7 +700,7 @@
               <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">PySide6 / Qt</span>
               <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">真实目录映射</span>
               <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">16px 网格吸附</span>
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">拼音首字母检索</span>
+              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">系统命令直达</span>
               <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">六类桌面小组件</span>
             </div>
 
@@ -1124,7 +1124,7 @@
        ❗2026-10-17 加载优化：首屏 13 个本地脚本已合并成两个 bundle（首页请求 30 → 20 以内）。
          源文件仍在 js/ 下；改完源文件要跑 node scripts/build-bundles.mjs 重建，
          过期时 --check 会报错（dev-server 启动也会提示）。 -->
-  <script src="js/projects.js" defer></script>
+  <script src="js/projects.js?v=20261113b" defer></script>
   <script src="js/articles.js" defer></script>
   <!-- core：站点配置 → Markdown 按需加载器 → 壁纸 → 粒子 → 设置面板 → 按住 Tab -->
   <script src="js/bundles/core.js?v=20261107_v245" defer></script>

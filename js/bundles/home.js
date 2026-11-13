@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"08b5bdd36b32","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"50eda09ebf230e6a6e42bfe1c97d06d99a90737f15bd73d9c5361134c656739f"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"e460dc60157645695e190a6257cc89a474bc7a4cbea7a2f56e05925a67473cd2"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"87756b981b00bec7b9110fdf82f29aa72601363a37a1505073f736474aae6335"}]}
+// build-bundles: {"name":"home","version":"8e5ee5f4d764","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"50eda09ebf230e6a6e42bfe1c97d06d99a90737f15bd73d9c5361134c656739f"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"f0fd02635058bdb896d23810b8be49cc931f33d4e25c62124d5708e2ad060466"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"87756b981b00bec7b9110fdf82f29aa72601363a37a1505073f736474aae6335"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -398,7 +398,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (e460dc601576) ----
+// ---- js/app.js (f0fd02635058) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -661,7 +661,19 @@ function hydrateProductLinks() {
 // 打开项目详情弹窗
 window.openProjectModal = function(id, opts = {}) {
   const project = (window.PROJECTS_DATA || []).find(p => p.id === id);
-  if (!project) return;
+  if (!project) {
+    // 新增项目后，旧版 SW 可能缓存了不含该项目的 projects.js，导致点击静默无反应。
+    // 带唯一参数补拉一次数据文件再打开，避免用户看到「点不开」。
+    if (!window.__projectsRetry) {
+      window.__projectsRetry = true;
+      const s = document.createElement('script');
+      s.src = 'js/projects.js?retry=' + Date.now();
+      s.onload = () => { window.__projectsRetry = false; window.openProjectModal(id, opts); };
+      s.onerror = () => { window.__projectsRetry = false; };
+      document.head.appendChild(s);
+    }
+    return;
+  }
 
   const modal = document.getElementById('project-modal');
   const modalContent = document.getElementById('project-modal-content');

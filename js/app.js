@@ -260,7 +260,19 @@ function hydrateProductLinks() {
 // 打开项目详情弹窗
 window.openProjectModal = function(id, opts = {}) {
   const project = (window.PROJECTS_DATA || []).find(p => p.id === id);
-  if (!project) return;
+  if (!project) {
+    // 新增项目后，旧版 SW 可能缓存了不含该项目的 projects.js，导致点击静默无反应。
+    // 带唯一参数补拉一次数据文件再打开，避免用户看到「点不开」。
+    if (!window.__projectsRetry) {
+      window.__projectsRetry = true;
+      const s = document.createElement('script');
+      s.src = 'js/projects.js?retry=' + Date.now();
+      s.onload = () => { window.__projectsRetry = false; window.openProjectModal(id, opts); };
+      s.onerror = () => { window.__projectsRetry = false; };
+      document.head.appendChild(s);
+    }
+    return;
+  }
 
   const modal = document.getElementById('project-modal');
   const modalContent = document.getElementById('project-modal-content');
