@@ -481,7 +481,7 @@ Fluxion 是集 Windows 底层系统调优、全平台游戏库管理与跨代 DL
     },
     requires: "Windows 10 / 11 x64（安装版与便携版无需 Python）",
     details: `
-<img src="assets/images/cover-stacky.webp" alt="Stacky 卡片矩阵示意" style="width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:block;">
+<img src="assets/images/cover-stacky.webp?v=20261113c" alt="Stacky 卡片矩阵示意" style="width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:block;">
 <p style="font-size:12px;color:#86868b;margin-top:6px;">卡片矩阵示意：分类卡、网格吸附与小组件；60 秒介绍视频在项目卡片上。</p>
 
 ### 💡 这是什么
