@@ -1359,6 +1359,10 @@ main > #home + #products {
     gap: 0.5rem;
     max-width: 380px;
   }
+  /* 作品数为奇数时，最后一项独占一行并居中，避免左半边留一大块空白 */
+  #home .hero-index:not(.hero-showcase-grid) .hi-row:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
 }
 
 #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card) {

@@ -57,7 +57,7 @@ await p.goto('http://127.0.0.1:8327/', { waitUntil: 'domcontentloaded', timeout:
 await p.waitForTimeout(2500);
 
 const vids = await p.evaluate(() =>
-  ['filebutler', 'paian', 'netops-handbook', 'fluxion'].map((id) => {
+  ['filebutler', 'paian', 'netops-handbook', 'fluxion', 'stacky'].map((id) => {
     const v = document.getElementById('video-' + id);
     if (!v) return id + ':MISSING';
     const r = v.getBoundingClientRect();
