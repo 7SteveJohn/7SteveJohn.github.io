@@ -481,8 +481,8 @@ Fluxion 是集 Windows 底层系统调优、全平台游戏库管理与跨代 DL
     },
     requires: "Windows 10 / 11 x64（安装版与便携版无需 Python）",
     details: `
-<img src="assets/images/cover-stacky.webp" alt="Stacky 桌面卡片矩阵实机" style="width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:block;">
-<p style="font-size:12px;color:#86868b;margin-top:6px;">Stacky 实机桌面：分类卡片、搜索抽屉、天气与媒体小组件；60 秒介绍视频在项目卡片上。</p>
+<img src="assets/images/cover-stacky.webp" alt="Stacky 卡片矩阵示意" style="width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:block;">
+<p style="font-size:12px;color:#86868b;margin-top:6px;">卡片矩阵示意：分类卡、网格吸附与小组件；60 秒介绍视频在项目卡片上。</p>
 
 ### 💡 这是什么
 Windows 10 / 11 上的桌面卡片矩阵与启动台。把常用应用、文件夹和小组件收进桌面上的超椭圆卡片，卡片按网格吸附排列；每个分类直接映射硬盘上的真实目录，文件始终可以用资源管理器访问。界面用 PySide6 / Qt 写成，配置、图标缓存与分类目录都留在本机。
