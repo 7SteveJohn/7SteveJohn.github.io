@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"f9c4363e78e2","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"50eda09ebf230e6a6e42bfe1c97d06d99a90737f15bd73d9c5361134c656739f"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"c7461af22e60caa7c966a672a558493151e8a3aecb4cd606571b2d7ca21b74bb"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"87756b981b00bec7b9110fdf82f29aa72601363a37a1505073f736474aae6335"}]}
+// build-bundles: {"name":"home","version":"b8e55b49ee59","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"50eda09ebf230e6a6e42bfe1c97d06d99a90737f15bd73d9c5361134c656739f"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"a6a0eb9d0b5f7c5ea456798aae6c5271474616edfa351ac6c56c0ade438ed5b1"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"87756b981b00bec7b9110fdf82f29aa72601363a37a1505073f736474aae6335"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -398,7 +398,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (c7461af22e60) ----
+// ---- js/app.js (a6a0eb9d0b5f) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -1875,17 +1875,21 @@ function initBlogCards() {
   btnDeck.addEventListener('click', () => { setView('deck'); mountShelf(); });
   btnList.addEventListener('click', () => setView('list'));
 
-  // 分类目录（栏头下方）：两级——卷宗名+篇数（点=拆封仪式），其下每篇文章标题（点=直接读）
+  // 分类目录（卡包架下方附录，默认收起）：summary 一行 mono；展开=两级索引
   const toc = document.getElementById('blog-toc');
   if (toc) {
     const data = window.ARTICLES_DATA || [];
-    const label = document.createElement('span');
-    label.className = 'font-mono text-xs text-[#86868b]';
-    label.textContent = '// 目录';
-    toc.appendChild(label);
+    const cats = [...new Set(data.map((a) => a.category))];
+    const details = document.createElement('details');
+    details.style.cssText = 'margin-top:10px;';
+    const summary = document.createElement('summary');
+    summary.style.cssText = 'list-style:none;cursor:pointer;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;'
+      + 'font-size:12px;color:var(--accent);letter-spacing:.06em;';
+    summary.textContent = '// 目录 · ' + cats.length + ' 卷 ' + data.length + ' 篇 · 点开看全部文章标题';
+    details.appendChild(summary);
     const grid = document.createElement('div');
-    grid.style.cssText = 'display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 44px;flex:1 1 100%;';
-    [...new Set(data.map((a) => a.category))].forEach((cat) => {
+    grid.style.cssText = 'display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 44px;margin-top:16px;';
+    cats.forEach((cat) => {
       const arts = data.filter((a) => a.category === cat);
       const group = document.createElement('div');
       const head = document.createElement('button');
@@ -1906,7 +1910,8 @@ function initBlogCards() {
       });
       grid.appendChild(group);
     });
-    toc.appendChild(grid);
+    details.appendChild(grid);
+    toc.appendChild(details);
   }
 
   // 懒加载：#blog 接近视口才拉资源；默认卷宗视图时先挂 shelf

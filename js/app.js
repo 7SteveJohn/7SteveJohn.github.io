@@ -1474,17 +1474,21 @@ function initBlogCards() {
   btnDeck.addEventListener('click', () => { setView('deck'); mountShelf(); });
   btnList.addEventListener('click', () => setView('list'));
 
-  // 分类目录（栏头下方）：两级——卷宗名+篇数（点=拆封仪式），其下每篇文章标题（点=直接读）
+  // 分类目录（卡包架下方附录，默认收起）：summary 一行 mono；展开=两级索引
   const toc = document.getElementById('blog-toc');
   if (toc) {
     const data = window.ARTICLES_DATA || [];
-    const label = document.createElement('span');
-    label.className = 'font-mono text-xs text-[#86868b]';
-    label.textContent = '// 目录';
-    toc.appendChild(label);
+    const cats = [...new Set(data.map((a) => a.category))];
+    const details = document.createElement('details');
+    details.style.cssText = 'margin-top:10px;';
+    const summary = document.createElement('summary');
+    summary.style.cssText = 'list-style:none;cursor:pointer;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;'
+      + 'font-size:12px;color:var(--accent);letter-spacing:.06em;';
+    summary.textContent = '// 目录 · ' + cats.length + ' 卷 ' + data.length + ' 篇 · 点开看全部文章标题';
+    details.appendChild(summary);
     const grid = document.createElement('div');
-    grid.style.cssText = 'display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 44px;flex:1 1 100%;';
-    [...new Set(data.map((a) => a.category))].forEach((cat) => {
+    grid.style.cssText = 'display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 44px;margin-top:16px;';
+    cats.forEach((cat) => {
       const arts = data.filter((a) => a.category === cat);
       const group = document.createElement('div');
       const head = document.createElement('button');
@@ -1505,7 +1509,8 @@ function initBlogCards() {
       });
       grid.appendChild(group);
     });
-    toc.appendChild(grid);
+    details.appendChild(grid);
+    toc.appendChild(details);
   }
 
   // 懒加载：#blog 接近视口才拉资源；默认卷宗视图时先挂 shelf
