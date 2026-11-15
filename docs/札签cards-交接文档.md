@@ -7,7 +7,7 @@
 
 ## 1. 一句话现状
 
-札签已从单文件 demo 升级为**三件套模块**：`js/cards.js`（CardsCore，体验本体零重写）+ `css/cards.css`（.cards-scope 作用域化）+ `cards.html`（thin shell 独立页）。**首页 #blog 已内嵌卷宗架**（默认视图，「札签卷宗 ⇄ 文章列表」切换），点卷宗开全屏 portal。独立页与首页共用同一模块。全部链路实测绿、零报错；**本地 main 领先远端 13 个提交，push 等用户确认**。
+札签已从单文件 demo 升级为**三件套模块**：`js/cards.js`（CardsCore，体验本体零重写）+ `css/cards.css`（.cards-scope 作用域化）+ `cards.html`（thin shell 独立页）。**首页 #blog 已内嵌卷宗架**（默认视图，「札签卷宗 ⇄ 文章列表」切换），点卷宗开全屏 portal。独立页与首页共用同一模块。**2026-11-16 晚：用户拍板「全部文章卡包化」——创作/随笔/AI 学习三个列表区块连同导航锚点撤除，#blog 成为唯一文章区（全库 19 篇 9 卷，标题「文章 · 开发手记、创作随笔与 AI 学习」，导航标签「文章」），列表视图也是全库同口径。**全部链路实测绿、零报错；本地 main 领先远端，push 等用户确认。
 
 ## 2. 交付物与文件
 
@@ -16,8 +16,8 @@
 | `D:\HTML\js\cards.js` | 新增（37.9KB） | CardsCore 模块：`mount(root, opts)` / `destroy()`；体验逻辑从旧 cards.html 内联脚本**整体提取、零重写**（构建器 `$TEMP/cards-js-build.mjs`，37 条精确替换+断言） |
 | `D:\HTML\css\cards.css` | 新增（31.7KB） | 全部选择器 `.cards-scope ` 前缀；:root/html.dark 25 变量 → `.cards-scope` / `html.dark .cards-scope`；body 级规则拆 `body.cards-page`（独立页）+ `#cards-root`（portal）；末尾 `.cards-scope--inline` 覆写段（首页内嵌用） |
 | `D:\HTML\cards.html` | thin shell（1585→80 行） | 壳顶栏/页脚 + VT 时长 + body 级规则内联自持；`CardsCore.mount(#cards-main, {mode:'full', standalone:true, themeBtn})` |
-| `D:\HTML\index.html` | 已改 | #blog 栏头 `札签卷宗 ⇄ 文章列表` toggle 按钮 + `<div id="blog-cards" class="cards-scope cards-scope--inline" hidden>`；home.js ?v=20261116a |
-| `D:\HTML\js\app.js` | 已改 | `initBlogCards()`（视图记忆 sj.blogView / IO 懒加载 / openPortal+token 门控 / ✕ 按钮）；已进 home bundle 重建 |
+| `D:\HTML\index.html` | 已改 | #blog 栏头 `札签卷宗 ⇄ 文章列表` toggle 按钮 + `<div id="blog-cards" class="cards-scope cards-scope--inline" hidden>`；**#ai/#creation/#essays 三区块已删**，标题「文章 · 开发手记、创作随笔与 AI 学习」；home.js ?v=20261116b |
+| `D:\HTML\js\app.js` | 已改 | `initBlogCards()`（视图记忆 sj.blogView / IO 懒加载 / openPortal+token 门控 / ✕ 按钮）；`initArticles` match=`()=>true`（列表=全库）；`initCreation/initEssays/initAi` 已删；已进 home bundle 重建 |
 | `D:\HTML\sw.js` | **故意没动** | cards.css/js 不进 CORE（SWR 运行时缓存兜底，离线首访回落列表）；archive/index 只改内容不改 CORE 清单 → 不 bump |
 | `C:\...\Temp\cards-css-build.mjs` / `cards-js-build.mjs` | 临时构建器 | 从 `cards-style-raw.css` / `cards-script-raw.js`（旧 cards.html 的 sed 抽取）生成，可复跑幂等；改模块后重跑 |
 | 本文档 + memory `card-deck-3d-bookshelf.md` | 持久 | 交接知识库 |
@@ -44,8 +44,8 @@ opts.themeBtn   standalone 主题钮元素（在壳顶栏里，不在挂载根�
 | 挂载 | 宿主 | 位置 |
 |---|---|---|
 | 独立页 full | cards.html | `#cards-main`（body.cards-scope.cards-page 之下） |
-| 首页 shelf | index.html #blog | `#blog-cards.cards-scope.cards-scope--inline`（hidden 切换，**列表 DOM 永不清**） |
-| 首页 portal | app.js 动态建 | `#cards-root.cards-scope`（fixed inset:0 z-55，destroy+remove） |
+| 首页 shelf | index.html #blog | `#blog-cards.cards-scope.cards-scope--inline`（hidden 切换，**列表 DOM 永不清**）；**不传 filter = 全库 19 篇 9 卷**（首页唯一文章区） |
+| 首页 portal | app.js 动态建 | `#cards-root.cards-scope`（fixed inset:0 z-55，destroy+remove）；同全库口径 |
 
 **作用域手术要点**（改 CSS 前读）：冻结类 `cat-open` 挂 **scope 根**（`scopeEl = root.closest('.cards-scope') || root`）；gacha fx 挂 scopeEl（portal 内 z 正确、standalone=body 与旧一致）；`--ink` 取色用 `getComputedStyle(scopeEl)`；`::view-transition` 三条**只在独立页 shell 内联**（首页用自己的 VT 时长）；`.spread` 是纯 JS 状态类无 CSS（grep 扫孤儿类时别误报）。
 
@@ -54,7 +54,7 @@ opts.themeBtn   standalone 主题钮元素（在壳顶栏里，不在挂载根�
 - **视图切换**：`sj.blogView` 记忆（默认 deck）；列表 DOM 永远渲染只切显示——`test-scroll-and-covers / verify-all-covers-complete / video-fx-smoke / test-review-verification` 四个脚本锁死 `#articles-list` DOM 形态，**别清列表**
 - **懒加载**：IO rootMargin 600px 观察 #blog → 注入 cards.css+cards.js → mount shelf；失败回落列表并藏按钮。⚠️ IAB/后台页签 IO 会节流不触发（同 §7.3 rAF 冻结），测试走按钮点击路径
 - **portal 生命周期**：openPortal 建 root → mount（✕ 按钮**必须在 mount 之后追加**，innerHTML 会清根）→ pushState `{cardsOv:'portal', portalToken}` → body 锁滚；退出三路（✕/Esc 两下/后退手势）都走 history.back() → popstate **token 门控**销毁：`(history.state?.portalToken) !== portal.token` 即关——一次性 token 防多 portal 条目残留（刷新前的旧条目）误放行
-- **口径**：首页 shelf+portal 都传 `filter:a=>!a.section`（9 篇 6 卷，与 blog-count 一致）；随笔/游戏创作/AI 学习分类被收走属预期
+- **口径（2026-11-16 晚定）**：shelf/portal/列表视图一律**全库 19 篇 9 卷**（filter 已移除）；创作/随笔/AI 学习三区块已撤，文章唯一入口=#blog 卡包
 - **弹窗互斥**：嵌入模式阅读页「在博客中阅读」被 hidden（防文章弹窗叠 portal 抢 body 锁）；模块 `closeReaderNow` 在 standalone 才解锁 body（嵌入模式的锁归宿主）
 
 ## 6. 剩余工作

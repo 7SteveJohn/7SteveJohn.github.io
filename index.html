@@ -136,17 +136,14 @@
       <nav class="hidden md:flex items-center gap-6 text-[#1d1d1f] dark:text-[#86868b] text-xs" data-page-node-id="EPrCov4TxjabVTps9AREsb">
         <a href="#home" class="hover:text-black dark:hover:text-white transition" data-page-node-id="UZPARON1aLjtcVT09iVTa3">概览</a>
         <a href="#products" class="hover:text-black dark:hover:text-white transition" data-page-node-id="2sMryMC13zp8ZhrTmDipKw">工具</a>
-        <a href="#ai" class="hover:text-black dark:hover:text-white transition">AI 学习</a>
-        <a href="#blog" class="hover:text-black dark:hover:text-white transition" data-page-node-id="nzjulzm2McykVNsZuSW2Ps">技术手记</a>
+        <a href="#blog" class="hover:text-black dark:hover:text-white transition" data-page-node-id="nzjulzm2McykVNsZuSW2Ps">文章</a>
         <a href="#philosophy" class="hover:text-black dark:hover:text-white transition" data-page-node-id="8dxmxLLRZMVsWtbYS7lHXg">理念</a>
         <a href="#about" class="hover:text-black dark:hover:text-white transition">关于</a>
         <!-- 二级导航：创作与随笔不占主导航位（首屏要先把「做本地 AI 和工具」立住） -->
         <details id="nav-more" class="nav-more">
           <summary class="hover:text-black dark:hover:text-white transition cursor-pointer">更多</summary>
           <div class="nav-menu">
-            <a href="#creation" class="hover:text-black dark:hover:text-white transition" data-page-node-id="HWmcv0DBntZFypJDpi3ZUK">创作</a>
-            <a href="#essays" class="hover:text-black dark:hover:text-white transition" data-page-node-id="BpMx29kRzQdeMYMJgTp4wN">随笔</a>
-            <!-- 两个次级页面（归档 / 照片墙）不占主导航位，和创作、随笔一起收在「更多」里 -->
+            <!-- 两个次级页面（归档 / 照片墙）不占主导航位，收在「更多」里 -->
             <a href="archive.html" class="hover:text-black dark:hover:text-white transition">归档</a>
             <a href="gallery.html" class="hover:text-black dark:hover:text-white transition">照片墙</a>
           </div>
@@ -214,13 +211,10 @@
       <nav class="max-w-6xl mx-auto px-4 py-2 flex flex-col text-sm" data-page-node-id="XhZZ1mZzPuEHye26gF6Es6">
         <a href="#home" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="T5Bx2uA5alVfSy26GKRhGH">概览</a>
         <a href="#products" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="n23csEzYWcN71QyJBmi5cz">工具</a>
-        <a href="#ai" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition">AI 学习</a>
-        <a href="#blog" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="hewlzzAE8juOFrOXqOb6KN">技术手记</a>
+        <a href="#blog" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="hewlzzAE8juOFrOXqOb6KN">文章</a>
         <a href="#philosophy" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="rZfLT25iJNXjWwdH3oQrbn">理念</a>
         <a href="#about" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition">关于</a>
         <div class="pt-2 mt-1 border-t border-[#d2d2d7]/50 dark:border-white/10 text-[11px] text-[#86868b]">更多</div>
-        <a href="#creation" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="DmXHLrjKQLhp1YnmlQobo">创作</a>
-        <a href="#essays" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="ApRZu82DcU01wl1aVlao8U">随笔</a>
         <a href="archive.html" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition">归档</a>
         <a href="gallery.html" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition">照片墙</a>
 
@@ -856,22 +850,10 @@
       </div>
     </section>
 
-    <!-- 6. 🧠 AI 学习模块（「把 AI 想明白」系列七篇，无内容时自动隐藏；「更多」组内排第一） -->
-    <section id="ai" class="max-w-5xl mx-auto px-4 sm:px-6 space-y-6 scroll-mt-20">
-      <div class="reveal border-b border-[#d2d2d7]/50 dark:border-white/10 pb-4 flex items-end justify-between">
-        <p class="font-display text-2xl text-[#1d1d1f] dark:text-white mt-1">把 AI 想明白 · 概念、原理与真实边界</p>
-        <p id="ai-count" class="text-xs text-[#86868b] pb-1.5 whitespace-nowrap"></p>
-      </div>
-
-      <div id="ai-list" class="space-y-3" data-reveal-stagger>
-        <!-- 动态渲染或无文章时自动隐藏 -->
-      </div>
-    </section>
-
     <section id="blog" class="max-w-5xl mx-auto px-4 sm:px-6 space-y-6 scroll-mt-20" data-page-node-id="kIAwZ7BTw3BsDxY0a8YyUh">
       <div class="reveal border-b border-[#d2d2d7]/50 dark:border-white/10 pb-4 flex items-end justify-between" data-page-node-id="Dss6KGnyspLxm8aQanenf7">
         <div data-page-node-id="5Tc9uYIUUw5VLmkXzLkvTP">
-          <p class="font-display text-2xl text-[#1d1d1f] dark:text-white mt-1" data-page-node-id="gqS5KeNqQBU0NZpDzMH5Zg">技术手记 · 开发过程与系统调优记录</p>
+          <p class="font-display text-2xl text-[#1d1d1f] dark:text-white mt-1" data-page-node-id="gqS5KeNqQBU0NZpDzMH5Zg">文章 · 开发手记、创作随笔与 AI 学习</p>
         </div>
         <div class="flex items-center gap-4 pb-1.5">
           <p id="blog-count" class="text-xs text-[#86868b] whitespace-nowrap"></p>
@@ -901,56 +883,6 @@
       <div id="blog-cards" class="cards-scope cards-scope--inline" hidden></div>
 
       <div id="articles-list" class="space-y-3" data-reveal-stagger data-page-node-id="Lmp1jklPMyBpo7A9D2cowh">
-        <!-- 动态渲染或无文章时自动隐藏 -->
-      </div>
-    </section>
-
-    <!-- 7. 📖 创作模块（小说 / 游戏创作，无内容时自动隐藏） -->
-    <section id="creation" class="max-w-5xl mx-auto px-4 sm:px-6 space-y-6 scroll-mt-20" data-page-node-id="vM8asO3FaiXjXR4K95d6Tx">
-      <div class="reveal border-b border-[#d2d2d7]/50 dark:border-white/10 pb-4 flex items-end justify-between gap-4" data-page-node-id="nhOLRvnXD1K7VqRGfEbdBz">
-        <div data-page-node-id="zoYnUh4lGn0ZIoYucftq5V">
-          <p class="font-display text-2xl text-[#1d1d1f] dark:text-white mt-1" data-page-node-id="zoYnUh4lGn0ZIoYucftq5V-2">创作工坊 · 叙事小说与独立游戏开发</p>
-        </div>
-        <p id="creation-count" class="text-xs text-[#86868b] pb-1.5 whitespace-nowrap" data-page-node-id="cntCRE"></p>
-      </div>
-
-      <div id="creation-novel" class="space-y-4" data-page-node-id="pigIE3jnN3VBdmRLfHscAw">
-        <div class="reveal flex items-center gap-2.5" data-page-node-id="ZrAUZdTKj8WXf0lFmpq42t">
-          <span class="w-7 h-7 rounded-lg border border-black/8 dark:border-white/12 text-[#86868b] flex items-center justify-center flex-shrink-0" data-page-node-id="icoNOV">
-            <i data-lucide="book-open" class="w-4 h-4" data-page-node-id="icoNOV-i"></i>
-          </span>
-          <h3 class="text-sm font-bold text-[#1d1d1f] dark:text-white whitespace-nowrap" data-page-node-id="ttlNOV">小说</h3>
-          <span data-group-count class="text-xs text-[#86868b] whitespace-nowrap" data-page-node-id="cntNOV"></span>
-          <span class="flex-1 border-t border-[#d2d2d7]/50 dark:border-white/10 ml-2" data-page-node-id="ruleNOV"></span>
-        </div>
-        <div data-creation-list class="space-y-4" data-reveal-stagger data-page-node-id="z94EA0hpdHB2gkeO9GTxXi">
-          <!-- 动态渲染或无内容时自动隐藏 -->
-        </div>
-      </div>
-
-      <div id="creation-game" class="space-y-4" data-page-node-id="jiSlYIMhsiCrHpEuoaoah5">
-        <div class="reveal flex items-center gap-2.5" data-page-node-id="jhuFUcTcd0jlIBmOWGm3MR">
-          <span class="w-7 h-7 rounded-lg border border-black/8 dark:border-white/12 text-[#86868b] flex items-center justify-center flex-shrink-0" data-page-node-id="icoGAME">
-            <i data-lucide="gamepad-2" class="w-4 h-4" data-page-node-id="icoGAME-i"></i>
-          </span>
-          <h3 class="text-sm font-bold text-[#1d1d1f] dark:text-white whitespace-nowrap" data-page-node-id="ttlGAME">游戏创作</h3>
-          <span data-group-count class="text-xs text-[#86868b] whitespace-nowrap" data-page-node-id="cntGAME"></span>
-          <span class="flex-1 border-t border-[#d2d2d7]/50 dark:border-white/10 ml-2" data-page-node-id="ruleGAME"></span>
-        </div>
-        <div data-creation-list class="space-y-4" data-reveal-stagger data-page-node-id="dA6drdfGukXIegFEX3QiEZ">
-          <!-- 动态渲染或无内容时自动隐藏 -->
-        </div>
-      </div>
-    </section>
-
-    <!-- 8. 📝 随笔模块（无内容时自动隐藏） -->
-    <section id="essays" class="max-w-5xl mx-auto px-4 sm:px-6 space-y-6 scroll-mt-20" data-page-node-id="EA6Yyy7pfXmxhVm6CGnOvF">
-      <div class="reveal border-b border-[#d2d2d7]/50 dark:border-white/10 pb-4 flex items-end justify-between" data-page-node-id="t3kFFNKoC8w4lKKcmTIkMk">
-        <p class="font-display text-2xl text-[#1d1d1f] dark:text-white mt-1" data-page-node-id="8czy6mxUdlLJ23GJLA5Z5k">随笔杂谈 · 生活记录与所见所想</p>
-        <p id="essays-count" class="text-xs text-[#86868b] pb-1.5 whitespace-nowrap"></p>
-      </div>
-
-      <div id="essays-list" class="space-y-3" data-reveal-stagger data-page-node-id="QSy1CQxadWbO1fRirSGWJF">
         <!-- 动态渲染或无文章时自动隐藏 -->
       </div>
     </section>
@@ -1135,7 +1067,7 @@
   <!-- core：站点配置 → Markdown 按需加载器 → 壁纸 → 粒子 → 设置面板 → 按住 Tab -->
   <script src="js/bundles/core.js?v=20261107_v245" defer></script>
   <!-- home：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器（必须在 core 之后） -->
-  <script src="js/bundles/home.js?v=20261116a" defer></script>
+  <script src="js/bundles/home.js?v=20261116b" defer></script>
   <!-- importmap：把 three 的裸导入指到自托管副本（必须在任何 module script 之前）。
        本地推理场场景（js/cosmos/main.js：分层节点网 + 沿边前传的脉冲）；
        无 WebGL 或初始化失败时它内部自动回退加载 2D 版 js/cosmos.js -->

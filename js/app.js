@@ -35,9 +35,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 3. 渲染四个文字模块：技术手记 / 创作（小说·游戏创作）/ 随笔 / AI 学习（无内容自动隐藏）
   initArticles();
-  initCreation();
-  initEssays();
-  initAi();
 
   // 3.5 技术手记区：札签卷宗 ⇄ 文章列表视图切换（cards.js 懒加载，sj.blogView 记忆）
   initBlogCards();
@@ -1002,7 +999,7 @@ function renderArticleSection({ match, sectionId, navHref, listId, useArrayOrder
 
   sectionEl.style.display = '';
   navLinks.forEach(link => link.style.display = '');
-  // 栏目头右侧计数（blog-count / ai-count / essays-count），格式与创作模块一致
+  // 栏目头右侧计数（blog-count）
   const countEl = document.getElementById(`${sectionId}-count`);
   if (countEl) countEl.textContent = items.length === 1 ? '共 1 篇' : `共 ${items.length} 篇`;
   if (listContainer) {
@@ -1012,76 +1009,13 @@ function renderArticleSection({ match, sectionId, navHref, listId, useArrayOrder
   }
 }
 
-// 创作模块：按 category 分「小说 / 游戏创作」两个子列表，空子列表单独隐藏
-function initCreation() {
-  const sectionEl = document.getElementById('creation');
-  if (!sectionEl) return;
-
-  const navLinks = document.querySelectorAll('a[href="#creation"]');
-  const items = getSortedArticles().filter(a => a.section === 'creation');
-
-  if (items.length === 0) {
-    sectionEl.style.display = 'none';
-    navLinks.forEach(link => link.style.display = 'none');
-    return;
-  }
-
-  sectionEl.style.display = '';
-  navLinks.forEach(link => link.style.display = '');
-
-  const groups = [
-    { wrapId: 'creation-novel', match: (a) => a.category !== '游戏创作' },
-    { wrapId: 'creation-game', match: (a) => a.category === '游戏创作' }
-  ];
-  groups.forEach(g => {
-    const wrap = document.getElementById(g.wrapId);
-    if (!wrap) return;
-    const list = wrap.querySelector('[data-creation-list]');
-    const groupItems = items.filter(g.match);
-    if (groupItems.length === 0) {
-      wrap.style.display = 'none';
-      return;
-    }
-    wrap.style.display = '';
-    const countEl = wrap.querySelector('[data-group-count]');
-    if (countEl) countEl.textContent = groupItems.length === 1 ? '1 篇' : `${groupItems.length} 篇`;
-    if (list) {
-      list.innerHTML = groupItems.map((a) => articleCardHtml(a, { hideCategory: true })).join('');
-      if (window.lucide) window.lucide.createIcons();
-      observeReveals();
-    }
-  });
-
-  // 栏目头右侧总数
-  const countEl = document.getElementById('creation-count');
-  if (countEl) countEl.textContent = items.length === 1 ? '共 1 篇' : `共 ${items.length} 篇`;
-}
-
+// 文章区唯一渲染入口：列表视图 = 全库（与卷宗架同口径）
 function initArticles() {
   renderArticleSection({
-    match: (a) => !a.section,
+    match: () => true,
     sectionId: 'blog',
     navHref: '#blog',
     listId: 'articles-list'
-  });
-}
-
-function initEssays() {
-  renderArticleSection({
-    match: (a) => a.section === 'essay',
-    sectionId: 'essays',
-    navHref: '#essays',
-    listId: 'essays-list'
-  });
-}
-
-function initAi() {
-  renderArticleSection({
-    match: (a) => a.section === 'ai',
-    sectionId: 'ai',
-    navHref: '#ai',
-    listId: 'ai-list',
-    useArrayOrder: true
   });
 }
 
@@ -1474,7 +1408,6 @@ function initBlogCards() {
       if (!wrap.dataset.cardsMounted) {
         const inst = window.CardsCore.mount(wrap, {
           mode: 'shelf',
-          filter: (a) => !a.section,   // #blog 只收手记，与栏头 blog-count 口径一致
           requestOpen: (cat) => openPortal(cat),
         });
         if (!inst) fallbackToList('文章数据为空');
@@ -1491,7 +1424,7 @@ function initBlogCards() {
     root.id = 'cards-root';
     root.className = 'cards-scope';
     document.body.appendChild(root);
-    const inst = window.CardsCore.mount(root, { mode: 'full', startPack: cat, filter: (a) => !a.section, onExit: () => { if (portal) history.back(); } });
+    const inst = window.CardsCore.mount(root, { mode: 'full', startPack: cat, onExit: () => { if (portal) history.back(); } });
     if (!inst) { root.remove(); return; }
     // ✕ 必须在 mount 之后追加——mount 的 innerHTML 会清空挂载根
     const x = document.createElement('button');

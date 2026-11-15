@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"44b5eabb5bd5","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"50eda09ebf230e6a6e42bfe1c97d06d99a90737f15bd73d9c5361134c656739f"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"592a3ee7f38d8ab0b28dc7f95b5f338d2d84f139d55e331ac548126198d929cf"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"87756b981b00bec7b9110fdf82f29aa72601363a37a1505073f736474aae6335"}]}
+// build-bundles: {"name":"home","version":"036a4d2162d7","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"50eda09ebf230e6a6e42bfe1c97d06d99a90737f15bd73d9c5361134c656739f"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"2e1b9814e844a46693133b1635eda8d50e35b186330661a6ad3b7d0cbef50972"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"87756b981b00bec7b9110fdf82f29aa72601363a37a1505073f736474aae6335"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -398,7 +398,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (592a3ee7f38d) ----
+// ---- js/app.js (2e1b9814e844) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -436,9 +436,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 3. 渲染四个文字模块：技术手记 / 创作（小说·游戏创作）/ 随笔 / AI 学习（无内容自动隐藏）
   initArticles();
-  initCreation();
-  initEssays();
-  initAi();
 
   // 3.5 技术手记区：札签卷宗 ⇄ 文章列表视图切换（cards.js 懒加载，sj.blogView 记忆）
   initBlogCards();
@@ -1403,7 +1400,7 @@ function renderArticleSection({ match, sectionId, navHref, listId, useArrayOrder
 
   sectionEl.style.display = '';
   navLinks.forEach(link => link.style.display = '');
-  // 栏目头右侧计数（blog-count / ai-count / essays-count），格式与创作模块一致
+  // 栏目头右侧计数（blog-count）
   const countEl = document.getElementById(`${sectionId}-count`);
   if (countEl) countEl.textContent = items.length === 1 ? '共 1 篇' : `共 ${items.length} 篇`;
   if (listContainer) {
@@ -1413,76 +1410,13 @@ function renderArticleSection({ match, sectionId, navHref, listId, useArrayOrder
   }
 }
 
-// 创作模块：按 category 分「小说 / 游戏创作」两个子列表，空子列表单独隐藏
-function initCreation() {
-  const sectionEl = document.getElementById('creation');
-  if (!sectionEl) return;
-
-  const navLinks = document.querySelectorAll('a[href="#creation"]');
-  const items = getSortedArticles().filter(a => a.section === 'creation');
-
-  if (items.length === 0) {
-    sectionEl.style.display = 'none';
-    navLinks.forEach(link => link.style.display = 'none');
-    return;
-  }
-
-  sectionEl.style.display = '';
-  navLinks.forEach(link => link.style.display = '');
-
-  const groups = [
-    { wrapId: 'creation-novel', match: (a) => a.category !== '游戏创作' },
-    { wrapId: 'creation-game', match: (a) => a.category === '游戏创作' }
-  ];
-  groups.forEach(g => {
-    const wrap = document.getElementById(g.wrapId);
-    if (!wrap) return;
-    const list = wrap.querySelector('[data-creation-list]');
-    const groupItems = items.filter(g.match);
-    if (groupItems.length === 0) {
-      wrap.style.display = 'none';
-      return;
-    }
-    wrap.style.display = '';
-    const countEl = wrap.querySelector('[data-group-count]');
-    if (countEl) countEl.textContent = groupItems.length === 1 ? '1 篇' : `${groupItems.length} 篇`;
-    if (list) {
-      list.innerHTML = groupItems.map((a) => articleCardHtml(a, { hideCategory: true })).join('');
-      if (window.lucide) window.lucide.createIcons();
-      observeReveals();
-    }
-  });
-
-  // 栏目头右侧总数
-  const countEl = document.getElementById('creation-count');
-  if (countEl) countEl.textContent = items.length === 1 ? '共 1 篇' : `共 ${items.length} 篇`;
-}
-
+// 文章区唯一渲染入口：列表视图 = 全库（与卷宗架同口径）
 function initArticles() {
   renderArticleSection({
-    match: (a) => !a.section,
+    match: () => true,
     sectionId: 'blog',
     navHref: '#blog',
     listId: 'articles-list'
-  });
-}
-
-function initEssays() {
-  renderArticleSection({
-    match: (a) => a.section === 'essay',
-    sectionId: 'essays',
-    navHref: '#essays',
-    listId: 'essays-list'
-  });
-}
-
-function initAi() {
-  renderArticleSection({
-    match: (a) => a.section === 'ai',
-    sectionId: 'ai',
-    navHref: '#ai',
-    listId: 'ai-list',
-    useArrayOrder: true
   });
 }
 
@@ -1875,7 +1809,6 @@ function initBlogCards() {
       if (!wrap.dataset.cardsMounted) {
         const inst = window.CardsCore.mount(wrap, {
           mode: 'shelf',
-          filter: (a) => !a.section,   // #blog 只收手记，与栏头 blog-count 口径一致
           requestOpen: (cat) => openPortal(cat),
         });
         if (!inst) fallbackToList('文章数据为空');
@@ -1892,7 +1825,7 @@ function initBlogCards() {
     root.id = 'cards-root';
     root.className = 'cards-scope';
     document.body.appendChild(root);
-    const inst = window.CardsCore.mount(root, { mode: 'full', startPack: cat, filter: (a) => !a.section, onExit: () => { if (portal) history.back(); } });
+    const inst = window.CardsCore.mount(root, { mode: 'full', startPack: cat, onExit: () => { if (portal) history.back(); } });
     if (!inst) { root.remove(); return; }
     // ✕ 必须在 mount 之后追加——mount 的 innerHTML 会清空挂载根
     const x = document.createElement('button');
