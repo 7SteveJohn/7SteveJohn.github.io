@@ -1,23 +1,24 @@
-# 札签 cards.html · 交接文档（2026-11-15）
+# 札签 cards.html · 交接文档（2026-11-15，2026-11-16 更新）
 
 > 给新对话的完整上下文。目标：把「札签卷宗」文章抽卡页收尾融入博客。
 > 本文档假设读者从零开始读，所有历史决策都写明了原因。
+> **2026-11-16 更新**：提交完成（8d22509）、`reduce` 定案写明注释、归档页入口已加。
+> 剩余 = 用户真机验收 + 可选深化（第 5 节）。
 
 ---
 
 ## 1. 一句话现状
 
-`D:\HTML\cards.html`（1585 行，单文件、零框架、读 `js/articles.js` 真数据）已经是**博客正式子页**：手写壳 + 主题同键 + 首页入口 + 正文渲染走博客管线 + `?post=` 深链闭环，全部交互可用、零报错。**git 里还没提交**（cards.html 未跟踪、index.html 已改未提交）。新对话的职责 = 按第 5 节收尾。
+`D:\HTML\cards.html`（单文件、零框架、读 `js/articles.js` 真数据）已经是**博客正式子页**：手写壳 + 主题同键 + 首页/归档入口 + 正文渲染走博客管线 + `?post=` 深链闭环，全部交互可用、零报错。**已提交（8d22509），本地 main 领先 origin/main，push 等用户确认**。剩余工作见第 5 节。
 
 ## 2. 交付物与文件
 
 | 文件 | 状态 | 说明 |
 |---|---|---|
-| `D:\HTML\cards.html` | 未提交 | 全部本体：卷宗架→拆封→牌堆→阅读 + 总目抽屉 + 已入册托盘 |
-| `D:\HTML\index.html` | 已改未提交 | `#blog` 栏头加了「札签卷宗 →」链接（878 行附近） |
-| `D:\HTML\sw.js` | **故意没动** | cards.html 不进 CORE（低频页走导航 SWR 自动入库，免 bump 版本号全量重拉 1MB） |
-| `C:\Users\SevenJohn\AppData\Local\Temp\deck-patch4~11.mjs` | 临时脚本，可丢 | 历次改动都**已应用**进 cards.html；脚本本身只是修改工具 |
-| `C:\Users\SevenJohn\AppData\Local\Temp\deck-server.cjs` / `deck-server-guard.cjs` | 临时 | 本地测试服务器（8391，no-store），guard 带自动重启 |
+| `D:\HTML\cards.html` | 已提交（8d22509） | 全部本体：卷宗架→拆封→牌堆→阅读 + 总目抽屉 + 已入册托盘；`reduce` 定案注释（11-16） |
+| `D:\HTML\index.html` | 已提交 | `#blog` 栏头「札签卷宗 →」链接 |
+| `D:\HTML\archive.html` | 已提交 | 归档页 page-sub 尾部同款「札签卷宗 →」链接（11-16 收尾） |
+| `D:\HTML\sw.js` | **故意没动** | cards.html 不进 CORE（低频页走导航 SWR 自动入库）；archive.html 只是改内容不改 CORE 清单，按 sw.js 头部新规不 bump |
 | 本文档 + memory `card-deck-3d-bookshelf.md` | 持久 | 交接知识库 |
 
 ## 3. 页面结构（已定型，别重做）
@@ -37,16 +38,16 @@
 3. **暗色 = 博客同款液态玻璃**：`--paper:rgba(16,22,34,.75)`、`--glass:blur(14px) saturate(1.25)`（挂在 pack/card-inner/cat-panel/pile-book），accent/hover 用 sky `#38bdf8`；亮色 `--glass:none`。底色 `#060911` 对齐博客。
 4. **正文管线**：`<script src="js/markdown-loader.js" defer>`（独立 IIFE 无副作用）→ `renderBody()` 走 `ensureMarkdown()`→marked+DOMPurify；`miniMd()` 仅兜底；`ensureBodyHl()` 复刻博客 ensureHighlight（正文真有 `pre code` 才拉 highlight）。
 5. **深链闭环**：阅读页「在博客中阅读 →」→ `./?post=<id>`（博客 app.js 原生支持深链开弹窗）。
-6. **入口**：首页 `#blog` 栏头「札签卷宗 →」。
+6. **入口**：首页 `#blog` 栏头「札签卷宗 →」+ 归档页 page-sub 尾部同款链接（11-16）。
 7. **历史集成**：reader/抽屉打开各 `pushState({cardsOv})`，popstate 统一关层，UI 关闭走 `history.back()` → 浏览器后退手势 = 关浮层而非退回博客。牌堆↔卷宗架的视图切换**故意没**进 history（有 ← 按钮承担，避免后退链变长）。
 8. **性能**：总目浮层 backdrop 拆两层（blur 层只显隐不做 opacity 过渡，白纱层承担渐入），浮层开着时 `body.cat-open` 冻结底下所有装饰动画与牌堆视差，openCatalog 不再包 View Transition，关闭即收无退场动画。
 
-## 5. 剩余工作（新对话按优先级推进）
+## 5. 剩余工作（按优先级）
 
-1. **提交**：`git add cards.html index.html && git commit`，中文信息如「札签卷宗页：文章抽卡纸墨化融入博客，首页加入口」。push 后 GitHub Pages 生效（用户确认后才 push）。
+1. ~~**提交**~~ ✅ 已完成：8d22509（cards.html + index.html + 本文档）。本地 main 领先远端 12 个提交，**push 等用户确认**。
 2. **用户真机验收**（headless 测不了，逐条让用户看）：拆封仪式节奏、扇面卡汇入牌堆、玻璃质感与 sky 辉光、抽屉滑入手感、暗色观感。
-3. **`reduce` 常量决策**（cards.html:775 `const reduce = false`）：demo 期为对冲用户机器误报 `prefers-reduced-motion:reduce` 而强制全特效。正式页二选一：保持 false（用户自己的机器就这么报的，动了等于自断特效）或改回 `matchMedia`。**建议保持 false，注释写明原因**。
-4. **归档页入口**：`archive.html` 加同款「札签卷宗 →」链接（对齐 index.html 878 行的写法）。
+3. ~~**`reduce` 常量决策**~~ ✅ 已定案（11-16）：保持 `const reduce = false`（cards.html:774），注释写明「本机 prefers-reduced-motion:reduce 误报，接 matchMedia 等于自断全部特效」。
+4. ~~**归档页入口**~~ ✅ 已完成（11-16）：archive.html page-sub 尾部加了同款「札签卷宗 →」链接（类名照抄 index.html #blog 栏头，四个类名已验证在预编译 tailwind.css 里，无需重建）。
 5. **可选深化**（问用户要不要）：① 首页 #blog 做「列表 ⇄ 卷宗」视图切换，卷宗架嵌进首页（动态加载 cards.html 的核心逻辑，首屏零成本）；② 归档页与札签互链成「表格/卡片/卷宗」三种浏览形态。
 
 ## 6. 验证工作流（新对话照抄）

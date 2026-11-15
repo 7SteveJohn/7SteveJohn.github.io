@@ -771,7 +771,7 @@ html.dark .reader{background:#0d1220}     /* 阅读页实色：正文底不能�
 const DATA = (window.ARTICLES_DATA || []).slice();
 if (!DATA.length) { document.getElementById('hint').textContent = '未找到文章数据 js/articles.js'; return; }
 
-// demo 阶段全特效常开（?motion 钩子保留）；迁正式站时这里改回 matchMedia 接系统设置
+// 恒 false 是定案：本机 prefers-reduced-motion:reduce 误报，接 matchMedia 等于自断全部特效（2026-11-16 收尾）
 const reduce = false;
 const $ = id => document.getElementById(id);
 const hud = $('hud'), stage = $('stage'),
