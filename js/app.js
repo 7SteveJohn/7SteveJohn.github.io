@@ -1418,32 +1418,43 @@ function initBlogCards() {
   /* ----- 全屏 portal ----- */
   let portal = null;
   let portalSeq = 0;
+  function mountPortal(mountOpts) {
+    const root = document.createElement('div');
+    root.id = 'cards-root';
+    root.className = 'cards-scope';
+    document.body.appendChild(root);
+    const inst = window.CardsCore.mount(root, mountOpts);
+    if (!inst) { root.remove(); return; }
+    // ✕ 必须在 mount 之后追加——mount 的 innerHTML 会清空挂载根
+    const x = document.createElement('button');
+    x.type = 'button';
+    x.textContent = '✕ 退出卷宗';
+    x.setAttribute('aria-label', '退出札签卷宗');
+    x.style.cssText = 'position:fixed;top:14px;right:16px;z-index:22;padding:6px 12px;font-size:12px;'
+      + 'border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--ink);'
+      + 'cursor:pointer;letter-spacing:.04em;';
+    x.addEventListener('click', () => { if (portal) history.back(); });   // 出栈由 popstate 统一销毁
+    root.appendChild(x);
+    const token = ++portalSeq;
+    portal = { root, inst, x, token };
+    document.body.style.overflow = 'hidden';
+    history.pushState({ cardsOv: 'portal', portalToken: token }, '');
+  }
   function openPortal(cat) {
     if (portal) return;
     // 目录条/未滚到 #blog 时可能还没加载 cards.js——先确保模块就位
     ensureCards().then((ok) => {
       if (!ok) { fallbackToList('cards.js 加载失败'); return; }
       if (portal) return;
-      const root = document.createElement('div');
-      root.id = 'cards-root';
-      root.className = 'cards-scope';
-      document.body.appendChild(root);
-      const inst = window.CardsCore.mount(root, { mode: 'full', startPack: cat, onExit: () => { if (portal) history.back(); } });
-      if (!inst) { root.remove(); return; }
-      // ✕ 必须在 mount 之后追加——mount 的 innerHTML 会清空挂载根
-      const x = document.createElement('button');
-      x.type = 'button';
-      x.textContent = '✕ 退出卷宗';
-      x.setAttribute('aria-label', '退出札签卷宗');
-      x.style.cssText = 'position:fixed;top:14px;right:16px;z-index:22;padding:6px 12px;font-size:12px;'
-        + 'border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--ink);'
-        + 'cursor:pointer;letter-spacing:.04em;';
-      x.addEventListener('click', () => { if (portal) history.back(); });   // 出栈由 popstate 统一销毁
-      root.appendChild(x);
-      const token = ++portalSeq;
-      portal = { root, inst, x, token };
-      document.body.style.overflow = 'hidden';
-      history.pushState({ cardsOv: 'portal', portalToken: token }, '');
+      mountPortal({ mode: 'full', startPack: cat, onExit: () => { if (portal) history.back(); } });
+    });
+  }
+  function openArticleFromToc(id) {
+    if (portal) return;
+    ensureCards().then((ok) => {
+      if (!ok) { fallbackToList('cards.js 加载失败'); return; }
+      if (portal) return;
+      mountPortal({ mode: 'full', startArticle: id, onExit: () => { if (portal) history.back(); } });
     });
   }
   function closePortal() {
@@ -1463,25 +1474,38 @@ function initBlogCards() {
   btnDeck.addEventListener('click', () => { setView('deck'); mountShelf(); });
   btnList.addEventListener('click', () => setView('list'));
 
-  // 分类目录（栏头下方）：卷宗名 + 篇数，点击直达该卷拆封仪式
+  // 分类目录（栏头下方）：两级——卷宗名+篇数（点=拆封仪式），其下每篇文章标题（点=直接读）
   const toc = document.getElementById('blog-toc');
   if (toc) {
     const data = window.ARTICLES_DATA || [];
-    const counts = {};
-    data.forEach((a) => { counts[a.category] = (counts[a.category] || 0) + 1; });
     const label = document.createElement('span');
     label.className = 'font-mono text-xs text-[#86868b]';
     label.textContent = '// 目录';
     toc.appendChild(label);
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 44px;flex:1 1 100%;';
     [...new Set(data.map((a) => a.category))].forEach((cat) => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'text-xs text-[#86868b] hover:text-black dark:hover:text-white transition cursor-pointer';
-      b.innerHTML = cat + '&thinsp;<span class="font-mono">' + (counts[cat] || 0) + '</span>';
-      b.setAttribute('aria-label', `打开卷宗：${cat}（${counts[cat] || 0} 篇）`);
-      b.addEventListener('click', () => openPortal(cat));
-      toc.appendChild(b);
+      const arts = data.filter((a) => a.category === cat);
+      const group = document.createElement('div');
+      const head = document.createElement('button');
+      head.type = 'button';
+      head.className = 'text-xs font-bold text-[#1d1d1f] dark:text-white transition cursor-pointer';
+      head.innerHTML = cat + '&thinsp;<span class="font-mono" style="font-weight:400;color:var(--accent)">' + arts.length + '</span>';
+      head.setAttribute('aria-label', `打开卷宗：${cat}（${arts.length} 篇）`);
+      head.addEventListener('click', () => openPortal(cat));
+      group.appendChild(head);
+      arts.forEach((a) => {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'block text-left text-xs text-[#86868b] hover:text-black dark:hover:text-white transition cursor-pointer';
+        item.textContent = a.title;
+        item.setAttribute('aria-label', '阅读：' + a.title);
+        item.addEventListener('click', () => openArticleFromToc(a.id));
+        group.appendChild(item);
+      });
+      grid.appendChild(group);
     });
+    toc.appendChild(grid);
   }
 
   // 懒加载：#blog 接近视口才拉资源；默认卷宗视图时先挂 shelf

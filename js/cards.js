@@ -836,6 +836,7 @@ if (opts.mode === 'full'){
   addEventListener('pointermove', onMove);
 }
 if (opts.mode === 'full' && opts.startPack) setTimeout(() => { openPack(opts.startPack); }, 60);
+if (opts.mode === 'full' && opts.startArticle){ const a0 = DATA.find(x => x.id === opts.startArticle); if (a0) setTimeout(() => { openReader(a0, 'other'); }, 60); }
 function destroy(){
   removeEventListener('popstate', onPop);
   removeEventListener('keydown', onKey);
