@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v266';   // 2026-11-14 Stacky 升 v1.0.1，换网盘链接并补历史版本记录
+const CACHE = 'sevenjohn-v267';   // 2026-11-15 Stacky 升 v1.0.2，换网盘链接并更新历史版本
 const CORE = [
   './',
   'index.html',
