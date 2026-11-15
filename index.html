@@ -863,6 +863,9 @@
         </div>
       </div>
 
+      <!-- 分类目录：点卷宗名直达该卷拆封仪式（initBlogCards 渲染，数据驱动） -->
+      <div id="blog-toc" class="flex flex-wrap items-center gap-2"></div>
+
       <!-- 从这里开始（2026-10-31）：21 篇手记没有入口，新访客默认行为是直接关掉。
            挑两篇最能代表作者的放列表前面：一篇讲技术取舍（对应主打产品），
            一篇是拿来就能用的实操。复用 data-open-article 的弹窗机制，不新增 JS -->
@@ -1067,7 +1070,7 @@
   <!-- core：站点配置 → Markdown 按需加载器 → 壁纸 → 粒子 → 设置面板 → 按住 Tab -->
   <script src="js/bundles/core.js?v=20261107_v245" defer></script>
   <!-- home：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器（必须在 core 之后） -->
-  <script src="js/bundles/home.js?v=20261116b" defer></script>
+  <script src="js/bundles/home.js?v=20261116c" defer></script>
   <!-- importmap：把 three 的裸导入指到自托管副本（必须在任何 module script 之前）。
        本地推理场场景（js/cosmos/main.js：分层节点网 + 沿边前传的脉冲）；
        无 WebGL 或初始化失败时它内部自动回退加载 2D 版 js/cosmos.js -->

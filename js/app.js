@@ -1420,26 +1420,31 @@ function initBlogCards() {
   let portalSeq = 0;
   function openPortal(cat) {
     if (portal) return;
-    const root = document.createElement('div');
-    root.id = 'cards-root';
-    root.className = 'cards-scope';
-    document.body.appendChild(root);
-    const inst = window.CardsCore.mount(root, { mode: 'full', startPack: cat, onExit: () => { if (portal) history.back(); } });
-    if (!inst) { root.remove(); return; }
-    // ✕ 必须在 mount 之后追加——mount 的 innerHTML 会清空挂载根
-    const x = document.createElement('button');
-    x.type = 'button';
-    x.textContent = '✕ 退出卷宗';
-    x.setAttribute('aria-label', '退出札签卷宗');
-    x.style.cssText = 'position:fixed;top:14px;right:16px;z-index:22;padding:6px 12px;font-size:12px;'
-      + 'border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--ink);'
-      + 'cursor:pointer;letter-spacing:.04em;';
-    x.addEventListener('click', () => { if (portal) history.back(); });   // 出栈由 popstate 统一销毁
-    root.appendChild(x);
-    const token = ++portalSeq;
-    portal = { root, inst, x, token };
-    document.body.style.overflow = 'hidden';
-    history.pushState({ cardsOv: 'portal', portalToken: token }, '');
+    // 目录条/未滚到 #blog 时可能还没加载 cards.js——先确保模块就位
+    ensureCards().then((ok) => {
+      if (!ok) { fallbackToList('cards.js 加载失败'); return; }
+      if (portal) return;
+      const root = document.createElement('div');
+      root.id = 'cards-root';
+      root.className = 'cards-scope';
+      document.body.appendChild(root);
+      const inst = window.CardsCore.mount(root, { mode: 'full', startPack: cat, onExit: () => { if (portal) history.back(); } });
+      if (!inst) { root.remove(); return; }
+      // ✕ 必须在 mount 之后追加——mount 的 innerHTML 会清空挂载根
+      const x = document.createElement('button');
+      x.type = 'button';
+      x.textContent = '✕ 退出卷宗';
+      x.setAttribute('aria-label', '退出札签卷宗');
+      x.style.cssText = 'position:fixed;top:14px;right:16px;z-index:22;padding:6px 12px;font-size:12px;'
+        + 'border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--ink);'
+        + 'cursor:pointer;letter-spacing:.04em;';
+      x.addEventListener('click', () => { if (portal) history.back(); });   // 出栈由 popstate 统一销毁
+      root.appendChild(x);
+      const token = ++portalSeq;
+      portal = { root, inst, x, token };
+      document.body.style.overflow = 'hidden';
+      history.pushState({ cardsOv: 'portal', portalToken: token }, '');
+    });
   }
   function closePortal() {
     if (!portal) return;
@@ -1457,6 +1462,27 @@ function initBlogCards() {
 
   btnDeck.addEventListener('click', () => { setView('deck'); mountShelf(); });
   btnList.addEventListener('click', () => setView('list'));
+
+  // 分类目录（栏头下方）：卷宗名 + 篇数，点击直达该卷拆封仪式
+  const toc = document.getElementById('blog-toc');
+  if (toc) {
+    const data = window.ARTICLES_DATA || [];
+    const counts = {};
+    data.forEach((a) => { counts[a.category] = (counts[a.category] || 0) + 1; });
+    const label = document.createElement('span');
+    label.className = 'font-mono text-xs text-[#86868b]';
+    label.textContent = '// 目录';
+    toc.appendChild(label);
+    [...new Set(data.map((a) => a.category))].forEach((cat) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'text-xs text-[#86868b] hover:text-black dark:hover:text-white transition cursor-pointer';
+      b.innerHTML = cat + '&thinsp;<span class="font-mono">' + (counts[cat] || 0) + '</span>';
+      b.setAttribute('aria-label', `打开卷宗：${cat}（${counts[cat] || 0} 篇）`);
+      b.addEventListener('click', () => openPortal(cat));
+      toc.appendChild(b);
+    });
+  }
 
   // 懒加载：#blog 接近视口才拉资源；默认卷宗视图时先挂 shelf
   const io = new IntersectionObserver((entries) => {

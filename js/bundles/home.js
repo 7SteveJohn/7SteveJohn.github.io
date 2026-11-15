@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"036a4d2162d7","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"50eda09ebf230e6a6e42bfe1c97d06d99a90737f15bd73d9c5361134c656739f"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"2e1b9814e844a46693133b1635eda8d50e35b186330661a6ad3b7d0cbef50972"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"87756b981b00bec7b9110fdf82f29aa72601363a37a1505073f736474aae6335"}]}
+// build-bundles: {"name":"home","version":"fd59ee7babc1","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"50eda09ebf230e6a6e42bfe1c97d06d99a90737f15bd73d9c5361134c656739f"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"d5961d485df11b6ad9e91dd25d4e0182c65f31baef617bff2134c5c12ec8b355"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"87756b981b00bec7b9110fdf82f29aa72601363a37a1505073f736474aae6335"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -398,7 +398,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (2e1b9814e844) ----
+// ---- js/app.js (d5961d485df1) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -1821,26 +1821,31 @@ function initBlogCards() {
   let portalSeq = 0;
   function openPortal(cat) {
     if (portal) return;
-    const root = document.createElement('div');
-    root.id = 'cards-root';
-    root.className = 'cards-scope';
-    document.body.appendChild(root);
-    const inst = window.CardsCore.mount(root, { mode: 'full', startPack: cat, onExit: () => { if (portal) history.back(); } });
-    if (!inst) { root.remove(); return; }
-    // ✕ 必须在 mount 之后追加——mount 的 innerHTML 会清空挂载根
-    const x = document.createElement('button');
-    x.type = 'button';
-    x.textContent = '✕ 退出卷宗';
-    x.setAttribute('aria-label', '退出札签卷宗');
-    x.style.cssText = 'position:fixed;top:14px;right:16px;z-index:22;padding:6px 12px;font-size:12px;'
-      + 'border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--ink);'
-      + 'cursor:pointer;letter-spacing:.04em;';
-    x.addEventListener('click', () => { if (portal) history.back(); });   // 出栈由 popstate 统一销毁
-    root.appendChild(x);
-    const token = ++portalSeq;
-    portal = { root, inst, x, token };
-    document.body.style.overflow = 'hidden';
-    history.pushState({ cardsOv: 'portal', portalToken: token }, '');
+    // 目录条/未滚到 #blog 时可能还没加载 cards.js——先确保模块就位
+    ensureCards().then((ok) => {
+      if (!ok) { fallbackToList('cards.js 加载失败'); return; }
+      if (portal) return;
+      const root = document.createElement('div');
+      root.id = 'cards-root';
+      root.className = 'cards-scope';
+      document.body.appendChild(root);
+      const inst = window.CardsCore.mount(root, { mode: 'full', startPack: cat, onExit: () => { if (portal) history.back(); } });
+      if (!inst) { root.remove(); return; }
+      // ✕ 必须在 mount 之后追加——mount 的 innerHTML 会清空挂载根
+      const x = document.createElement('button');
+      x.type = 'button';
+      x.textContent = '✕ 退出卷宗';
+      x.setAttribute('aria-label', '退出札签卷宗');
+      x.style.cssText = 'position:fixed;top:14px;right:16px;z-index:22;padding:6px 12px;font-size:12px;'
+        + 'border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--ink);'
+        + 'cursor:pointer;letter-spacing:.04em;';
+      x.addEventListener('click', () => { if (portal) history.back(); });   // 出栈由 popstate 统一销毁
+      root.appendChild(x);
+      const token = ++portalSeq;
+      portal = { root, inst, x, token };
+      document.body.style.overflow = 'hidden';
+      history.pushState({ cardsOv: 'portal', portalToken: token }, '');
+    });
   }
   function closePortal() {
     if (!portal) return;
@@ -1858,6 +1863,27 @@ function initBlogCards() {
 
   btnDeck.addEventListener('click', () => { setView('deck'); mountShelf(); });
   btnList.addEventListener('click', () => setView('list'));
+
+  // 分类目录（栏头下方）：卷宗名 + 篇数，点击直达该卷拆封仪式
+  const toc = document.getElementById('blog-toc');
+  if (toc) {
+    const data = window.ARTICLES_DATA || [];
+    const counts = {};
+    data.forEach((a) => { counts[a.category] = (counts[a.category] || 0) + 1; });
+    const label = document.createElement('span');
+    label.className = 'font-mono text-xs text-[#86868b]';
+    label.textContent = '// 目录';
+    toc.appendChild(label);
+    [...new Set(data.map((a) => a.category))].forEach((cat) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'text-xs text-[#86868b] hover:text-black dark:hover:text-white transition cursor-pointer';
+      b.innerHTML = cat + '&thinsp;<span class="font-mono">' + (counts[cat] || 0) + '</span>';
+      b.setAttribute('aria-label', `打开卷宗：${cat}（${counts[cat] || 0} 篇）`);
+      b.addEventListener('click', () => openPortal(cat));
+      toc.appendChild(b);
+    });
+  }
 
   // 懒加载：#blog 接近视口才拉资源；默认卷宗视图时先挂 shelf
   const io = new IntersectionObserver((entries) => {
