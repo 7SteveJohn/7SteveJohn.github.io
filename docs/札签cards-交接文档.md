@@ -55,7 +55,7 @@ opts.themeBtn   standalone 主题钮元素（在壳顶栏里，不在挂载根�
 - **懒加载**：IO rootMargin 600px 观察 #blog → 注入 cards.css+cards.js → mount shelf；失败回落列表并藏按钮。⚠️ IAB/后台页签 IO 会节流不触发（同 §7.3 rAF 冻结），测试走按钮点击路径
 - **portal 生命周期**：openPortal 建 root → mount（✕ 按钮**必须在 mount 之后追加**，innerHTML 会清根）→ pushState `{cardsOv:'portal', portalToken}` → body 锁滚；退出三路（✕/Esc 两下/后退手势）都走 history.back() → popstate **token 门控**销毁：`(history.state?.portalToken) !== portal.token` 即关——一次性 token 防多 portal 条目残留（刷新前的旧条目）误放行
 - **口径（2026-11-16 晚定）**：shelf/portal/列表视图一律**全库 19 篇 9 卷**（filter 已移除）；创作/随笔/AI 学习三区块已撤，文章唯一入口=#blog 卡包
-- **分类目录条**（#blog 栏头下 `#blog-toc`）：`// 目录` + 9 个卷宗名+mono 篇数（ARTICLES_DATA 驱动）；点击 → openPortal 直达拆封；openPortal 已包 ensureCards（懒加载前点目录也能直达）；类名全是已编译类（gap-x-4 未编译别用）
+- **分类目录条**（`#blog-toc`，在卡包架/列表**下方附录位**，details **默认收起**）：summary 一行 mono「// 目录 · 9 卷 19 篇」；展开=两级索引（分类+accent 篇数，点=拆封仪式 / 每篇文章标题，点=startArticle 直达阅读）；openPortal/openArticleFromToc 都包 ensureCards（懒加载前点也能直达）；grid 用 inline style（gap-x-4 未编译别用）。曾放栏头下展开态，被用户评「抢了卡包的风头」→ 降位+收起（14ce6c8）
 - **弹窗互斥**：嵌入模式阅读页「在博客中阅读」被 hidden（防文章弹窗叠 portal 抢 body 锁）；模块 `closeReaderNow` 在 standalone 才解锁 body（嵌入模式的锁归宿主）
 
 ## 6. 剩余工作
