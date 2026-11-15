@@ -875,8 +875,9 @@
         </div>
         <div class="flex items-center gap-4 pb-1.5">
           <p id="blog-count" class="text-xs text-[#86868b] whitespace-nowrap"></p>
+          <button id="blog-view-deck" type="button" class="text-xs text-[#86868b] hover:text-black dark:hover:text-white transition whitespace-nowrap cursor-pointer">札签卷宗</button>
+          <button id="blog-view-list" type="button" class="text-xs text-[#86868b] hover:text-black dark:hover:text-white transition whitespace-nowrap cursor-pointer">文章列表</button>
           <a href="archive.html" class="text-xs text-[#86868b] hover:text-black dark:hover:text-white transition whitespace-nowrap">全部文章 → 归档</a>
-          <a href="cards.html" class="text-xs text-[#86868b] hover:text-black dark:hover:text-white transition whitespace-nowrap">札签卷宗 →</a>
         </div>
       </div>
 
@@ -894,6 +895,10 @@
           <span class="start-here-arrow" aria-hidden="true">→</span>
         </button>
       </div>
+
+      <!-- 卷宗视图（默认）：js/cards.js 的 shelf 模式懒加载注入，点卷宗开全屏 portal；
+           与下方列表二选一显示，切换由 app.js initBlogCards 管理（sj.blogView 记忆） -->
+      <div id="blog-cards" class="cards-scope cards-scope--inline" hidden></div>
 
       <div id="articles-list" class="space-y-3" data-reveal-stagger data-page-node-id="Lmp1jklPMyBpo7A9D2cowh">
         <!-- 动态渲染或无文章时自动隐藏 -->
@@ -1130,7 +1135,7 @@
   <!-- core：站点配置 → Markdown 按需加载器 → 壁纸 → 粒子 → 设置面板 → 按住 Tab -->
   <script src="js/bundles/core.js?v=20261107_v245" defer></script>
   <!-- home：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器（必须在 core 之后） -->
-  <script src="js/bundles/home.js?v=20261107_v245" defer></script>
+  <script src="js/bundles/home.js?v=20261116a" defer></script>
   <!-- importmap：把 three 的裸导入指到自托管副本（必须在任何 module script 之前）。
        本地推理场场景（js/cosmos/main.js：分层节点网 + 沿边前传的脉冲）；
        无 WebGL 或初始化失败时它内部自动回退加载 2D 版 js/cosmos.js -->

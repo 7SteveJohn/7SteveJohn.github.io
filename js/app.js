@@ -39,6 +39,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initEssays();
   initAi();
 
+  // 3.5 技术手记区：札签卷宗 ⇄ 文章列表视图切换（cards.js 懒加载，sj.blogView 记忆）
+  initBlogCards();
+
   // 4. 初始化移动端抽屉菜单与滚动状态导航
   initNavigation();
   initNavScrollState();
@@ -1409,6 +1412,130 @@ window.addEventListener('popstate', () => {
     window.closeArticleModal(true);
   }
 });
+
+/* ============================================================
+   3.5 技术手记区视图切换：札签卷宗（cards.js shelf）⇄ 文章列表
+   - 视图记忆 sj.blogView（默认卷宗）；cards.css/js 在 #blog 接近视口时才注入，首屏零成本
+   - 点卷宗 → 全屏 portal（CardsCore mount mode:'full'），history 压 {cardsOv:'portal'}，
+     后退手势/Esc/✕ 三路一致关闭；列表 DOM 永远保留（只切显示），验收脚本不破
+   ============================================================ */
+function initBlogCards() {
+  const sec = document.getElementById('blog');
+  const wrap = document.getElementById('blog-cards');
+  const list = document.getElementById('articles-list');
+  const btnDeck = document.getElementById('blog-view-deck');
+  const btnList = document.getElementById('blog-view-list');
+  if (!sec || !wrap || !list || !btnDeck || !btnList) return;
+
+  let view = 'deck';
+  try { if (localStorage.getItem('sj.blogView') === 'list') view = 'list'; } catch (_) {}
+
+  function setView(v) {
+    view = v;
+    try { localStorage.setItem('sj.blogView', v); } catch (_) {}
+    wrap.hidden = v !== 'deck';
+    list.hidden = v !== 'list';
+    const paint = (btn, active) => {
+      btn.style.color = active ? 'var(--accent)' : '';
+      btn.style.textDecoration = active ? 'underline' : '';
+      btn.style.textUnderlineOffset = active ? '3px' : '';
+    };
+    paint(btnDeck, v === 'deck');
+    paint(btnList, v === 'list');
+  }
+
+  let loading = null;
+  function ensureCards() {
+    if (window.CardsCore) return Promise.resolve(true);
+    if (loading) return loading;
+    loading = new Promise((resolve) => {
+      const css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = 'css/cards.css';
+      document.head.appendChild(css);
+      const s = document.createElement('script');
+      s.src = 'js/cards.js';
+      s.onload = () => resolve(!!window.CardsCore);
+      s.onerror = () => resolve(false);
+      document.head.appendChild(s);
+    });
+    return loading;
+  }
+
+  function fallbackToList(reason) {
+    console.warn('[blog-cards] 卷宗视图不可用，回落文章列表：' + reason);
+    btnDeck.hidden = true;
+    setView('list');
+  }
+
+  function mountShelf() {
+    ensureCards().then((ok) => {
+      if (!ok) { fallbackToList('cards.js 加载失败'); return; }
+      if (!wrap.dataset.cardsMounted) {
+        const inst = window.CardsCore.mount(wrap, {
+          mode: 'shelf',
+          filter: (a) => !a.section,   // #blog 只收手记，与栏头 blog-count 口径一致
+          requestOpen: (cat) => openPortal(cat),
+        });
+        if (!inst) fallbackToList('文章数据为空');
+      }
+    });
+  }
+
+  /* ----- 全屏 portal ----- */
+  let portal = null;
+  let portalSeq = 0;
+  function openPortal(cat) {
+    if (portal) return;
+    const root = document.createElement('div');
+    root.id = 'cards-root';
+    root.className = 'cards-scope';
+    document.body.appendChild(root);
+    const inst = window.CardsCore.mount(root, { mode: 'full', startPack: cat, filter: (a) => !a.section, onExit: () => { if (portal) history.back(); } });
+    if (!inst) { root.remove(); return; }
+    // ✕ 必须在 mount 之后追加——mount 的 innerHTML 会清空挂载根
+    const x = document.createElement('button');
+    x.type = 'button';
+    x.textContent = '✕ 退出卷宗';
+    x.setAttribute('aria-label', '退出札签卷宗');
+    x.style.cssText = 'position:fixed;top:14px;right:16px;z-index:22;padding:6px 12px;font-size:12px;'
+      + 'border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--ink);'
+      + 'cursor:pointer;letter-spacing:.04em;';
+    x.addEventListener('click', () => { if (portal) history.back(); });   // 出栈由 popstate 统一销毁
+    root.appendChild(x);
+    const token = ++portalSeq;
+    portal = { root, inst, x, token };
+    document.body.style.overflow = 'hidden';
+    history.pushState({ cardsOv: 'portal', portalToken: token }, '');
+  }
+  function closePortal() {
+    if (!portal) return;
+    portal.inst.destroy();
+    portal.root.remove();
+    portal = null;
+    document.body.style.overflow = '';
+  }
+  window.addEventListener('popstate', () => {
+    // 一次性 token 门控：模块自己的 reader/catalog 条目出栈后，落回的仍是本 portal
+    // 条目（token 相同）→ 不动；弹到低于本 portal 的任何条目（token 不匹配）→ 销毁。
+    // 这样即使历史里残留旧 portal 条目（刷新前的会话），一次 back 也能正确退出。
+    if (portal && (history.state && history.state.portalToken) !== portal.token) closePortal();
+  });
+
+  btnDeck.addEventListener('click', () => { setView('deck'); mountShelf(); });
+  btnList.addEventListener('click', () => setView('list'));
+
+  // 懒加载：#blog 接近视口才拉资源；默认卷宗视图时先挂 shelf
+  const io = new IntersectionObserver((entries) => {
+    if (entries.some((e) => e.isIntersecting)) {
+      io.disconnect();
+      if (view === 'deck') mountShelf();
+    }
+  }, { rootMargin: '600px 0px' });
+  io.observe(sec);
+
+  setView(view);
+}
 
 /* ============================================================
    4. 响应式导航与弹窗基础交互
