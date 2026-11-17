@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"b8e55b49ee59","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"50eda09ebf230e6a6e42bfe1c97d06d99a90737f15bd73d9c5361134c656739f"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"a6a0eb9d0b5f7c5ea456798aae6c5271474616edfa351ac6c56c0ade438ed5b1"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"87756b981b00bec7b9110fdf82f29aa72601363a37a1505073f736474aae6335"}]}
+// build-bundles: {"name":"home","version":"2846e316afc4","sources":[{"path":"js/status.js","sha256":"dc844cf007542be24355c660c6810f47827531f60eb29539362a7df20237fc5f"},{"path":"js/search.js","sha256":"50eda09ebf230e6a6e42bfe1c97d06d99a90737f15bd73d9c5361134c656739f"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"ec919ee51dc2df39d24ac8262d881f7a4e61a3f765b78a9beb347c65d628462c"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"87756b981b00bec7b9110fdf82f29aa72601363a37a1505073f736474aae6335"}]}
 /* 仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/status.js → js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -398,7 +398,7 @@ window.SITE_STATUS = {
 
 ;
 
-// ---- js/app.js (a6a0eb9d0b5f) ----
+// ---- js/app.js (ec919ee51dc2) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -609,6 +609,10 @@ function hydrateProductLinks() {
   document.querySelectorAll('article[data-project-id]').forEach(card => {
     const project = (window.PROJECTS_DATA || []).find(p => p.id === card.dataset.projectId);
     if (!project) return;
+
+    // 首屏作品索引的版本号：静态 HTML 只作无 JS 兜底，这里按数据源对齐，升版不用再手改
+    const hiVer = document.querySelector(`[data-hi="${project.id}"] .hi-ver`);
+    if (hiVer && project.version) hiVer.textContent = project.version;
 
     // 卡片上的两行署名信息（容器在 index.html 里是空壳，没数据就保持隐藏）
     const facts = card.querySelector('[data-facts]');

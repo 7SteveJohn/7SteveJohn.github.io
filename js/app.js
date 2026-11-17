@@ -209,6 +209,10 @@ function hydrateProductLinks() {
     const project = (window.PROJECTS_DATA || []).find(p => p.id === card.dataset.projectId);
     if (!project) return;
 
+    // 首屏作品索引的版本号：静态 HTML 只作无 JS 兜底，这里按数据源对齐，升版不用再手改
+    const hiVer = document.querySelector(`[data-hi="${project.id}"] .hi-ver`);
+    if (hiVer && project.version) hiVer.textContent = project.version;
+
     // 卡片上的两行署名信息（容器在 index.html 里是空壳，没数据就保持隐藏）
     const facts = card.querySelector('[data-facts]');
     const factsHtml = buildProjectFacts(project, true);
