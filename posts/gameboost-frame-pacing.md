@@ -4,7 +4,7 @@ title: 帧率防抖：平均 300 帧为什么不跟手
 date: 2026-08-10
 readTime: 7 分钟
 category: 系统调优
-summary: 针对竞技游戏中平均帧率很高却依然偶发微卡顿、操作不跟手的现象，剖析单帧生成时间突刺的底层成因，并记录自研系统调优工具 GameBoost 在时钟中断、线程调度与环境安全还原上的实践。
+summary: 针对竞技游戏中平均帧率很高却依然偶发微卡顿、操作不跟手的现象，剖析单帧生成时间突刺的底层成因，并记录系统调优工具 GameBoost 在时钟中断、线程调度与环境安全还原上的实践。
 cover: assets/images/covers/cover-gameboost.svg
 tags: ["C#", Windows, 帧率防抖, 性能调优]
 ---

@@ -194,7 +194,7 @@ window.PROJECTS_DATA = [
 <p style="font-size:12px;color:#86868b;margin-top:6px;">脉络 v2.1.0 实机总览；1 分 38 秒全景介绍视频在项目卡片上。</p>
 
 ### 💡 这是什么
-脉络（NetCraft，原 NetOps Handbook）是专为网络工程师、Linux / 云原生系统运维与 SRE 打造的随身离线手册与实战题库。完全离线、零系统权限、打开即用；老版本用户直接覆盖安装 \`NetCraft-v2.1.0.apk\` 即可平滑升级，学习进度、收藏夹与错题记录 100% 保留。
+脉络（NetCraft，原 NetOps Handbook）是面向网络工程、Linux / 云原生系统运维与 SRE 的随身离线手册与实战题库。完全离线、零系统权限、打开即用；老版本用户直接覆盖安装 \`NetCraft-v2.1.0.apk\` 即可平滑升级，学习进度、收藏夹与错题记录 100% 保留。
 
 ### ✨ 核心亮点
 - **120 万字「运维教材全书」（12 大领域 · 50 章 · 1,003 小节）**：体系化覆盖网络基础、园区与无线、OSPF / IS-IS / BGP / VXLAN / EVPN、广域网与 VPN、安全与 QoS、虚拟化与 K8s 容器网络、Linux 服务器与数据库运维（8 章）、监控与自动化、备份容灾、综合布线与排障方法论；支持首屏直达、章节 H2 胶囊快跳、断点续读与 \`< 0.3ms\` 全局倒排索引秒搜
@@ -297,7 +297,7 @@ GameBoost-DLSSG 是专为 **RTX 20/30 系** 显卡定制的 DLSS 帧生成管理
     title: "拍案 · 网文创作工作台",
     category: "desktop",
     categoryName: "桌面应用",
-    description: "为长篇小说量身打造的沉浸写作工作台。独创码字抽卡激励体系，码字净产出换抽卡，抽取 N~SSR 四级灵感卡牌专治卡文破局；网文体检四页签深度排查敏感词、口头禅与对白节奏；支持依大纲起草、场景卡片无损重排与伏笔因果牵线。",
+    description: "长篇小说离线写作工作台。内置码字抽卡激励机制，码字净产出换抽卡，抽取 N~SSR 四级灵感卡牌辅助破局；网文体检四页签排查敏感词、口头禅与对白节奏；支持依大纲起草、场景卡片重排与伏笔因果牵线。",
     tags: ["Electron", "码字抽卡激励 (N~SSR)", "网文体检雷达", "大纲AI起草", "伏笔追踪与牵线"],
     image: "assets/images/cover-paian.webp",
     demoUrl: "https://github.com/7SteveJohn/PaiAn/releases",
@@ -377,7 +377,7 @@ GameBoost-DLSSG 是专为 **RTX 20/30 系** 显卡定制的 DLSS 帧生成管理
     title: "Fluxion · 完整版性能套件",
     category: "desktop",
     categoryName: "桌面应用",
-    description: "Windows 竞技级游戏性能套件。提供 50 余项底层体检与 LowLatencyKit 低延迟调优，搭配 Standby 内存净化与 Win11 EcoQoS 压制，专治对战交火 1% Low 掉帧与输入延迟；支持单机帧生成管理，进局自动调优、退局毫秒无损还原，并内置游戏启动器一站直达。",
+    description: "Windows 游戏性能优化工具。提供 50 余项底层体检与 LowLatencyKit 低延迟调优，搭配 Standby 内存净化与 Win11 EcoQoS 压制，减少对战交火 1% Low 掉帧与输入延迟；支持单机帧生成管理，进局自动调优、退局毫秒无损还原，并内置游戏启动器一站直达。",
     tags: ["C# 原生编译", "50+项底层体检", "治1% Low掉帧", "单机帧生成管理", "内置游戏启动器"],
     image: "assets/images/cover-fluxion.webp?v=20261118v4",
     githubUrl: "https://github.com/7SteveJohn/Fluxion",
@@ -399,7 +399,7 @@ GameBoost-DLSSG 是专为 **RTX 20/30 系** 显卡定制的 DLSS 帧生成管理
     // 更新记录：来自 GitHub Releases（7SteveJohn/Fluxion），最新在前
     changelog: [
       { v: "v1.3.3", date: "2026-11-18", items: [
-        "旗舰级视觉重塑：推出「画廊暖石白瓷 / 黑曜星夜靛蓝」双主题三阶材质与 BtnKind 四级按钮体系，新增首页 DashSpotlight 快速开局横幅",
+        "浅深双主题视觉重塑：推出「画廊暖石白瓷 / 黑曜星夜靛蓝」双主题三阶材质与 BtnKind 四级按钮体系，新增首页 DashSpotlight 快速开局横幅",
         "全平台统一游戏启动器：自动发现 Steam、WeGame、米哈游 HoYoPlay、库洛鸣潮、Epic 与桌面快捷方式，支持免平台直启 EXE 与 -silent 静默唤起，提取 256×256 图标合成 2:3 暗夜海报",
         "系统底层优化全套模块：集成 Standby List 备用内存净化（MemCleaner）、Win11 EcoQoS 后台能效核压制、LowLatencyKit（DWM MPO / CPU 核心停放 / PCIe MSI / Resizable BAR 状态核验）与并发 DNS 测速"
       ]},
