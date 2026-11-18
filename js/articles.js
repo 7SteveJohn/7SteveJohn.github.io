@@ -330,7 +330,7 @@ def search_files(cursor: sqlite3.Cursor, query: str, limit: int = 20) -> list[di
     readTime: "6 分钟",
     category: "刷机",
     summary: "从最初使用现成的 Magisk 模块，到理解 Android 验证启动机制、设备自签名与双分区 OTA 维护，回顾两年间围绕多台高通设备展开的系统定制与排障历程。",
-    cover: "assets/images/covers/cover-two-years-of-flashing.svg",
+    cover: "assets/images/covers/cover-two-years-flashing.svg",
     tags: ["刷机", "Y700", "KernelSU", "假回锁"],
     content: `
 最初入手 K60 Pro 时，我对刷机的理解还停留在“获取最高权限（Root）”。真正促使我动手的诉求很具体：希望绕过原厂系统的默认限制，对后台调度、全局刷新率等系统级行为做更细致的定制。

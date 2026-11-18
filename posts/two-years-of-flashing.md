@@ -4,7 +4,7 @@ title: 两年刷机记：从 K60 Pro 到拯救者 Y700 与假回锁
 date: 2026-09-30
 readTime: 6 分钟
 category: 刷机
-cover: "assets/images/covers/cover-two-years-of-flashing.svg"
+cover: "assets/images/covers/cover-two-years-flashing.svg"
 summary: 从最初使用现成的 Magisk 模块，到理解 Android 验证启动机制、设备自签名与双分区 OTA 维护，回顾两年间围绕多台高通设备展开的系统定制与排障历程。
 tags: [刷机, Y700, KernelSU, 假回锁]
 ---
