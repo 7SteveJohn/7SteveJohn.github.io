@@ -2037,16 +2037,23 @@ try { localStorage.removeItem('sj.cosmos-mode'); } catch (e) {}
 
   const io = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
       const v = entry.target;
-      if (v.preload === 'none') {
-        v.preload = 'metadata';
+      if (entry.isIntersecting) {
+        if (v.preload === 'none') v.preload = 'metadata';
       }
-      io.unobserve(v);
     });
-  }, { rootMargin: '360px 0px', threshold: 0.01 });
+  }, { rootMargin: '420px 0px', threshold: 0.01 });
 
-  videos.forEach((v) => io.observe(v));
+  videos.forEach((v) => {
+    io.observe(v);
+    // 悬停/触碰卡片即刻预缓冲当前这 1 个视频（其余保持 metadata 不抢带宽），点击起播秒开
+    const card = v.closest('.product-featurette') || v;
+    const warmOne = () => {
+      if (v.preload !== 'auto') v.preload = 'auto';
+    };
+    card.addEventListener('pointerenter', warmOne, { once: true, passive: true });
+    card.addEventListener('touchstart', warmOne, { once: true, passive: true });
+  });
 })();
 
 

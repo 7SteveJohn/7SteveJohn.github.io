@@ -192,7 +192,10 @@ self.addEventListener('message', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const req = event.request;
-  if (req.method !== 'GET' || !req.url.startsWith('http')) return;  // 媒体 Range 请求交给切片处理（必须先于缓存分支：206 无法 cache.put）
+  if (req.method !== 'GET' || !req.url.startsWith('http')) return;
+  // 视频流直连 Chromium 原生 Range 管道与媒体缓存，避免 SW 拦截拖慢起播
+  if (req.destination === 'video' || req.url.includes('/video/')) return;
+  // 音频 Range 请求交给切片处理（必须先于缓存分支：206 无法 cache.put）
   if (req.headers.has('range')) {
     event.respondWith(handleRange(req));
     return;
