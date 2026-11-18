@@ -357,12 +357,17 @@
   function mountStaticFallbackAvatar() {
     if (!stageEl || avatar) return;
     const img = document.createElement('img');
-    img.className = 'sjc-static-fallback';
+    img.className = 'sjc-static-fallback is-loaded';
     img.src = 'assets/vendor/live2d/7steve-v2-static.webp?v=20261118r2';
     img.alt = 'SevenJohn 看板娘';
     img.decoding = 'async';
-    img.style.objectFit = 'contain';
-    img.style.objectPosition = 'bottom center';
+    img.onload = () => img.classList.add('is-loaded');
+    img.onerror = () => {
+      if (!img.dataset.triedBackup) {
+        img.dataset.triedBackup = '1';
+        img.src = 'assets/vendor/live2d/7steve-static.webp';
+      }
+    };
     stageEl.appendChild(img);
     avatar = {
       setExpression: () => {},
