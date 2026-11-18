@@ -157,10 +157,7 @@ async function handleRange(req) {
     return offlineFallback('离线：音频未缓存，请联网播放一次');
   }
 
-  // 后台全量入库（静默执行，绝不阻塞当前播放流）
-  if (req.url.includes('/music/')) {
-    prefetch(req.url);
-  }
+  // 不在首播 byte-0 阶段抢占带宽并发全量 prefetch；改为由 player.js 在 canplaythrough 后发 warm-media 静默入库
 
   if (net.status === 206) {
     return net;

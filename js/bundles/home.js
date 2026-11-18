@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"73e48389b0ee","sources":[{"path":"js/search.js","sha256":"09d12f167d1105d1616278784f2305cf193616627aaa1ceeebe8fcdfac3633b7"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"2cfdfbe95864041da5313b643d07b1600c41b3cb973d8dd13078aae9711866ed"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"bcf8dfa7a8935dd05d38bd78749cde61a54fbc877c93d1bc52ff72f0d0f9fb4a"}]}
+// build-bundles: {"name":"home","version":"f9a1013c52d3","sources":[{"path":"js/search.js","sha256":"09d12f167d1105d1616278784f2305cf193616627aaa1ceeebe8fcdfac3633b7"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"2cfdfbe95864041da5313b643d07b1600c41b3cb973d8dd13078aae9711866ed"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"ab914045d23d300cc5be7b7818f511536e534977ec75344d62e48596a126b9b2"}]}
 /* 仅首页：搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -2526,7 +2526,7 @@ try { localStorage.removeItem('sj.cosmos-mode'); } catch (e) {}
 
 ;
 
-// ---- js/player.js (bcf8dfa7a893) ----
+// ---- js/player.js (ab914045d23d) ----
 /**
  * 右下角悬浮背景音乐播放器
  * ----------------------------------------------------
@@ -2851,9 +2851,6 @@ try { localStorage.removeItem('sj.cosmos-mode'); } catch (e) {}
     renderList();
     renderMediaSession();
     emitMusicState();
-    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({ type: 'prefetch-media', url: SONGS[current].src });
-    }
     if (autoplay) {
       audio.play().catch(() => { /* 用户未交互等场景静默 */ });
     } else {
@@ -2863,8 +2860,8 @@ try { localStorage.removeItem('sj.cosmos-mode'); } catch (e) {}
     }
   }
 
-  // 播放时全量入库当前曲目与下一曲（二播秒开 + 切歌零网络等待 + 离线可播）：
-  audio.addEventListener('playing', function () {
+  // 当前曲目已缓冲就绪后再静默入库（避免首播抢带宽导致转圈）：
+  audio.addEventListener('canplaythrough', function () {
     var curUrl = audio.currentSrc || audio.src;
     if (navigator.serviceWorker && navigator.serviceWorker.controller) {
       if (curUrl) navigator.serviceWorker.controller.postMessage({ type: 'prefetch-media', url: curUrl });
@@ -3142,7 +3139,7 @@ try { localStorage.removeItem('sj.cosmos-mode'); } catch (e) {}
       const io = new IntersectionObserver((entries) => {
         entries.forEach((en) => {
           const v = en.target;
-          if (v.paused || v.ended || v.currentTime === 0) return;
+          if (v.paused || v.ended) return;
           // 当视频滚出视口或可见比例低于 60%（用户已向下滚动阅读卡片其他信息或后续板块）
           if (!en.isIntersecting || en.intersectionRatio < 0.6) {
             v.pause();

@@ -322,9 +322,6 @@
     renderList();
     renderMediaSession();
     emitMusicState();
-    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({ type: 'prefetch-media', url: SONGS[current].src });
-    }
     if (autoplay) {
       audio.play().catch(() => { /* 用户未交互等场景静默 */ });
     } else {
@@ -334,8 +331,8 @@
     }
   }
 
-  // 播放时全量入库当前曲目与下一曲（二播秒开 + 切歌零网络等待 + 离线可播）：
-  audio.addEventListener('playing', function () {
+  // 当前曲目已缓冲就绪后再静默入库（避免首播抢带宽导致转圈）：
+  audio.addEventListener('canplaythrough', function () {
     var curUrl = audio.currentSrc || audio.src;
     if (navigator.serviceWorker && navigator.serviceWorker.controller) {
       if (curUrl) navigator.serviceWorker.controller.postMessage({ type: 'prefetch-media', url: curUrl });
@@ -613,7 +610,7 @@
       const io = new IntersectionObserver((entries) => {
         entries.forEach((en) => {
           const v = en.target;
-          if (v.paused || v.ended || v.currentTime === 0) return;
+          if (v.paused || v.ended) return;
           // 当视频滚出视口或可见比例低于 60%（用户已向下滚动阅读卡片其他信息或后续板块）
           if (!en.isIntersecting || en.intersectionRatio < 0.6) {
             v.pause();
