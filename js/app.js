@@ -2019,11 +2019,9 @@ try { localStorage.removeItem('sj.cosmos-mode'); } catch (e) {}
   const videos = Array.from(document.querySelectorAll('video.cover-video'));
   if (!videos.length) return;
 
-  const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-  const saveData = Boolean(conn && (conn.saveData || conn.effectiveType === '2g' || conn.effectiveType === 'slow-2g'));
-
-  // 单路播放互斥：同时只允许一个产品视频解码播放，避免移动端内存峰值
+  // 单路播放互斥：同时只允许一个产品视频解码播放，避免移动端内存峰值与带宽竞争
   videos.forEach((v) => {
+    if (v.preload !== 'none') v.preload = 'none';
     v.addEventListener('play', () => {
       videos.forEach((other) => {
         if (other !== v && !other.paused) {
@@ -2031,28 +2029,6 @@ try { localStorage.removeItem('sj.cosmos-mode'); } catch (e) {}
         }
       });
     });
-  });
-
-  if (saveData || !('IntersectionObserver' in window)) return;
-
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      const v = entry.target;
-      if (entry.isIntersecting) {
-        if (v.preload === 'none') v.preload = 'metadata';
-      }
-    });
-  }, { rootMargin: '420px 0px', threshold: 0.01 });
-
-  videos.forEach((v) => {
-    io.observe(v);
-    // 悬停/触碰卡片即刻预缓冲当前这 1 个视频（其余保持 metadata 不抢带宽），点击起播秒开
-    const card = v.closest('.product-featurette') || v;
-    const warmOne = () => {
-      if (v.preload !== 'auto') v.preload = 'auto';
-    };
-    card.addEventListener('pointerenter', warmOne, { once: true, passive: true });
-    card.addEventListener('touchstart', warmOne, { once: true, passive: true });
   });
 })();
 

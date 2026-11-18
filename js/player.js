@@ -348,16 +348,6 @@
     primed = true;
     try { audio.preload = 'metadata'; } catch (e) {}
     if (!audio.src) audio.src = SONGS[current].src;
-    const swRef = navigator.serviceWorker;
-    const warmUp = function () {
-      try {
-        const conn = navigator.connection;
-        if (conn && (conn.saveData || /2g$/i.test(conn.effectiveType || ''))) return;   // 省流模式不预热
-        if (swRef && swRef.controller) swRef.controller.postMessage({ type: 'prefetch-media', url: SONGS[current].src });
-      } catch (e) {}
-    };
-    if (swRef && swRef.controller) warmUp();
-    else if (swRef) swRef.addEventListener('controllerchange', warmUp, { once: true });
   }
 
   function togglePlay() {
@@ -374,22 +364,6 @@
     applyMode();
     renderList();
     renderMediaSession();
-
-    // 首曲元数据就绪与静默预热：预设 audio.src 与 metadata，让歌曲时长立刻展示且点击即播零等待
-    try {
-      audio.preload = 'metadata';
-      audio.src = SONGS[current].src;
-    } catch (e) {}
-    const swRef = navigator.serviceWorker;
-    const warmFirst = function () {
-      try {
-        const conn = navigator.connection;
-        if (conn && (conn.saveData || /2g$/i.test(conn.effectiveType || ''))) return;
-        if (swRef && swRef.controller) swRef.controller.postMessage({ type: 'prefetch-media', url: SONGS[current].src });
-      } catch (e) {}
-    };
-    if (swRef && swRef.controller) warmFirst();
-    else if (swRef) swRef.addEventListener('controllerchange', warmFirst, { once: true });
   }
 
   // —— 事件绑定 ——

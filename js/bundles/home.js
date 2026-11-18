@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"f9a1013c52d3","sources":[{"path":"js/search.js","sha256":"09d12f167d1105d1616278784f2305cf193616627aaa1ceeebe8fcdfac3633b7"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"2cfdfbe95864041da5313b643d07b1600c41b3cb973d8dd13078aae9711866ed"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"ab914045d23d300cc5be7b7818f511536e534977ec75344d62e48596a126b9b2"}]}
+// build-bundles: {"name":"home","version":"db2364d6aed8","sources":[{"path":"js/search.js","sha256":"09d12f167d1105d1616278784f2305cf193616627aaa1ceeebe8fcdfac3633b7"},{"path":"js/video-gate.js","sha256":"77b852ecf52b71222129ce6a045ec18170e902964dc7871562df632d77c33137"},{"path":"js/app.js","sha256":"550fdf927248ba9b1104c0e0a998ff76fb6954a18e484745c2e50b1896f6ecb9"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"abac1dd86a726f4ab33392d80aabbdfe1cd429937429330de8924998f16dec6c"}]}
 /* 仅首页：搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -314,7 +314,7 @@
 
 ;
 
-// ---- js/video-gate.js (18b7765c7634) ----
+// ---- js/video-gate.js (77b852ecf52b) ----
 /**
  * 介绍视频「海报 + 播放键」体验（2026-09-30，C1；同日修不显示 bug）
  * ----------------------------------------------------
@@ -344,6 +344,7 @@
 
       function open() {
         layer.remove();
+        v.preload = 'auto';
         v.setAttribute('controls', '');
         v.play().catch(() => {});               // 用户手势内，直接起播
         v.focus({ preventScroll: true });       // 键盘用户焦点落回视频
@@ -359,22 +360,9 @@
       v.addEventListener('play', () => { layer.remove(); });
       box.appendChild(layer);
 
-      // 元数据懒加载（2026-10-05）：四个视频都在首屏之下，preload=metadata 会让
-      // 每次打开都发 4 个 Range 请求（慢网/本机 IDM 劫持场景下平白拖慢开屏）。
-      // 预加载放行推迟到"滚动接近"时——接近视口才恢复 metadata 提示。
-      if ('IntersectionObserver' in window && v.preload !== 'none') {
+      // 点击播放前保持 preload=none，避免浏览页面时后台抢跑下载 20MB+ 视频
+      if (v.preload !== 'none') {
         v.preload = 'none';
-      }
-      if ('IntersectionObserver' in window) {
-        const near = new IntersectionObserver((entries) => {
-          entries.forEach((en) => {
-            if (en.isIntersecting) {
-              v.preload = 'metadata';
-              near.disconnect();
-            }
-          });
-        }, { rootMargin: '600px 0px' });
-        near.observe(v);
       }
     });
   }
@@ -384,7 +372,7 @@
 
 ;
 
-// ---- js/app.js (2cfdfbe95864) ----
+// ---- js/app.js (550fdf927248) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -2406,11 +2394,9 @@ try { localStorage.removeItem('sj.cosmos-mode'); } catch (e) {}
   const videos = Array.from(document.querySelectorAll('video.cover-video'));
   if (!videos.length) return;
 
-  const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-  const saveData = Boolean(conn && (conn.saveData || conn.effectiveType === '2g' || conn.effectiveType === 'slow-2g'));
-
-  // 单路播放互斥：同时只允许一个产品视频解码播放，避免移动端内存峰值
+  // 单路播放互斥：同时只允许一个产品视频解码播放，避免移动端内存峰值与带宽竞争
   videos.forEach((v) => {
+    if (v.preload !== 'none') v.preload = 'none';
     v.addEventListener('play', () => {
       videos.forEach((other) => {
         if (other !== v && !other.paused) {
@@ -2418,28 +2404,6 @@ try { localStorage.removeItem('sj.cosmos-mode'); } catch (e) {}
         }
       });
     });
-  });
-
-  if (saveData || !('IntersectionObserver' in window)) return;
-
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      const v = entry.target;
-      if (entry.isIntersecting) {
-        if (v.preload === 'none') v.preload = 'metadata';
-      }
-    });
-  }, { rootMargin: '420px 0px', threshold: 0.01 });
-
-  videos.forEach((v) => {
-    io.observe(v);
-    // 悬停/触碰卡片即刻预缓冲当前这 1 个视频（其余保持 metadata 不抢带宽），点击起播秒开
-    const card = v.closest('.product-featurette') || v;
-    const warmOne = () => {
-      if (v.preload !== 'auto') v.preload = 'auto';
-    };
-    card.addEventListener('pointerenter', warmOne, { once: true, passive: true });
-    card.addEventListener('touchstart', warmOne, { once: true, passive: true });
   });
 })();
 
@@ -2526,7 +2490,7 @@ try { localStorage.removeItem('sj.cosmos-mode'); } catch (e) {}
 
 ;
 
-// ---- js/player.js (ab914045d23d) ----
+// ---- js/player.js (abac1dd86a72) ----
 /**
  * 右下角悬浮背景音乐播放器
  * ----------------------------------------------------
@@ -2877,16 +2841,6 @@ try { localStorage.removeItem('sj.cosmos-mode'); } catch (e) {}
     primed = true;
     try { audio.preload = 'metadata'; } catch (e) {}
     if (!audio.src) audio.src = SONGS[current].src;
-    const swRef = navigator.serviceWorker;
-    const warmUp = function () {
-      try {
-        const conn = navigator.connection;
-        if (conn && (conn.saveData || /2g$/i.test(conn.effectiveType || ''))) return;   // 省流模式不预热
-        if (swRef && swRef.controller) swRef.controller.postMessage({ type: 'prefetch-media', url: SONGS[current].src });
-      } catch (e) {}
-    };
-    if (swRef && swRef.controller) warmUp();
-    else if (swRef) swRef.addEventListener('controllerchange', warmUp, { once: true });
   }
 
   function togglePlay() {
@@ -2903,22 +2857,6 @@ try { localStorage.removeItem('sj.cosmos-mode'); } catch (e) {}
     applyMode();
     renderList();
     renderMediaSession();
-
-    // 首曲元数据就绪与静默预热：预设 audio.src 与 metadata，让歌曲时长立刻展示且点击即播零等待
-    try {
-      audio.preload = 'metadata';
-      audio.src = SONGS[current].src;
-    } catch (e) {}
-    const swRef = navigator.serviceWorker;
-    const warmFirst = function () {
-      try {
-        const conn = navigator.connection;
-        if (conn && (conn.saveData || /2g$/i.test(conn.effectiveType || ''))) return;
-        if (swRef && swRef.controller) swRef.controller.postMessage({ type: 'prefetch-media', url: SONGS[current].src });
-      } catch (e) {}
-    };
-    if (swRef && swRef.controller) warmFirst();
-    else if (swRef) swRef.addEventListener('controllerchange', warmFirst, { once: true });
   }
 
   // —— 事件绑定 ——

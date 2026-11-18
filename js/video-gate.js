@@ -27,6 +27,7 @@
 
       function open() {
         layer.remove();
+        v.preload = 'auto';
         v.setAttribute('controls', '');
         v.play().catch(() => {});               // 用户手势内，直接起播
         v.focus({ preventScroll: true });       // 键盘用户焦点落回视频
@@ -42,22 +43,9 @@
       v.addEventListener('play', () => { layer.remove(); });
       box.appendChild(layer);
 
-      // 元数据懒加载（2026-10-05）：四个视频都在首屏之下，preload=metadata 会让
-      // 每次打开都发 4 个 Range 请求（慢网/本机 IDM 劫持场景下平白拖慢开屏）。
-      // 预加载放行推迟到"滚动接近"时——接近视口才恢复 metadata 提示。
-      if ('IntersectionObserver' in window && v.preload !== 'none') {
+      // 点击播放前保持 preload=none，避免浏览页面时后台抢跑下载 20MB+ 视频
+      if (v.preload !== 'none') {
         v.preload = 'none';
-      }
-      if ('IntersectionObserver' in window) {
-        const near = new IntersectionObserver((entries) => {
-          entries.forEach((en) => {
-            if (en.isIntersecting) {
-              v.preload = 'metadata';
-              near.disconnect();
-            }
-          });
-        }, { rootMargin: '600px 0px' });
-        near.observe(v);
       }
     });
   }

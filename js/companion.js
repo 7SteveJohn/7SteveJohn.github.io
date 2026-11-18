@@ -649,9 +649,30 @@
     }
   });
 
-  // 启动挂载：仅在展开态挂载重型 Live2D（移动端默认 mini 态不消耗首屏流量，点击 <7> 时按需秒载）
+  // 启动挂载：首屏先用轻量静态立绘秒出，待页面 load 空闲后或用户与看板娘交互时再按需升级为 Live2D
   if (currentState === 'open') {
-    mountAvatarIfReady(25);
+    let live2dScheduled = false;
+    const triggerLive2D = () => {
+      if (live2dScheduled || avatar || currentState !== 'open') return;
+      live2dScheduled = true;
+      mountAvatarIfReady(25);
+    };
+    if (stageEl) {
+      stageEl.addEventListener('pointerenter', triggerLive2D, { once: true, passive: true });
+      stageEl.addEventListener('click', triggerLive2D, { once: true, passive: true });
+    }
+    const scheduleIdle = () => {
+      const start = () => {
+        if (typeof requestIdleCallback === 'function') {
+          requestIdleCallback(() => setTimeout(triggerLive2D, 1500), { timeout: 3000 });
+        } else {
+          setTimeout(triggerLive2D, 2200);
+        }
+      };
+      if (document.readyState === 'complete') start();
+      else window.addEventListener('load', start, { once: true });
+    };
+    scheduleIdle();
   }
   updateMusicUI(false);
 

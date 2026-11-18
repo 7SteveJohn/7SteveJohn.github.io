@@ -11,66 +11,22 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v297';   // 2026-11-18 PC/移动端视频流与看板娘按需并发加载性能适配
+const CACHE = 'sevenjohn-v298';   // 2026-11-18 精简 CORE 预缓存，消除首屏并发拥堵
 const CORE = [
   './',
   'index.html',
   '404.html',
-  // 归档、照片墙与札签卷宗：文本资源精简，直接预缓存，断网可翻
-  'archive.html',
-  'gallery.html',
-  'cards.html',
-  // 看板娘静态兜底图（桌面端首帧秒开）
-  'assets/vendor/live2d/7steve-v2-static.webp?v=20261118r2',
-  // 二次元照片墙精选（全量 WebP）
-  'assets/images/anime/regulus-insight2.webp',
-  'assets/images/anime/regulus-default.webp',
-  'assets/images/anime/rem-enhanced.webp',
-  'assets/images/anime/rikka-enhanced.webp',
-  'assets/images/anime/beatrice.webp',
-  'assets/images/anime/rikka.webp',
-  'assets/images/anime/rem.webp',
   'css/style.css',
   'css/cosmos.css',
   'css/companion.css',
-  'css/archive.css',
-  'css/gallery.css',
-  'css/cards.css',
-  'js/cosmos.js',        // 手机 / 无 WebGL 时的 2D 星河回退（js/cosmos/main.js 引导层按需加载）
-  'js/cosmos/config.js',
-  'js/cosmos/main.js',   // 背景引导层：设备分档（full/lite/static），桌面动态 import main3d
-  'js/cosmos/main3d.js', // 桌面 3D 背景引擎（非默认场景按需动态 import，减少无谓预取）
-  'js/cosmos/scene/CymaticsField.js',
-  'js/cosmos/audio/AudioManager.js',
-  'js/cosmos/audio/BeatDetector.js',
-  'js/cosmos/interaction/InteractionManager.js',
   'assets/vendor/tailwind.css',
-  'assets/vendor/github-dark.min.css',
   'js/bundles/core.js',
   'js/bundles/home.js',
-  'js/bundles/sub.js',
-  'js/articles.js',
-  'js/projects.js',
-  'js/archive.js',
-  'js/gallery.js',
-  'js/cards.js',
-  'js/companion-avatar.js',
-  'js/companion.js',
   'assets/fonts/inter.css',
   'assets/fonts/inter-var-latin.woff2',
-  'assets/vendor/lucide.min.js',
   'assets/images/avatar.webp',
-  'assets/images/cover-filebutler.webp',
-  'assets/images/cover-netops.webp',
-  'assets/images/cover-gameboost.webp',
-  'assets/images/cover-paian.webp',
-  'assets/images/cover-fluxion.webp',
-  'assets/images/cover-stacky.webp',
   'favicon.ico',
-  'apple-touch-icon.png',
-  'icon-512.png',
-  'manifest.json',
-  'rss.xml'
+  'manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
@@ -93,8 +49,6 @@ self.addEventListener('activate', (event) => {
             if (k.url.includes('?sjwarm=')) await cache.delete(k);
           }
         } catch (e) {}
-        // 后台静默预热首曲（全量入库，零卡顿秒播 + 离线可用）
-        prefetch('./music/attention.mp3');
       })
   );
 });
