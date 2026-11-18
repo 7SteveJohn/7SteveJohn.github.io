@@ -403,6 +403,7 @@
       hideBubble();
       safePaused(true);
     } else {
+      if (!avatar) mountAvatarIfReady(25);
       safePaused(false);
       safeMusic(isAnyAudioPlaying());
       summonMobileDock(5200);
@@ -646,8 +647,10 @@
     }
   });
 
-  // 启动挂载
-  mountAvatarIfReady(25);
+  // 启动挂载：仅在展开态挂载重型 Live2D（移动端默认 mini 态不消耗首屏流量，点击 <7> 时按需秒载）
+  if (currentState === 'open') {
+    mountAvatarIfReady(25);
+  }
   updateMusicUI(false);
 
   // 暴露轻量调试与验收句柄

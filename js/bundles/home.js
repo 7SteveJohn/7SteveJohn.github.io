@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"af9cb5870b04","sources":[{"path":"js/search.js","sha256":"09d12f167d1105d1616278784f2305cf193616627aaa1ceeebe8fcdfac3633b7"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"64d5940adb837e1112f0991032bfcddebb367ee2f8c48f346d1946e387a6e61c"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"bcf8dfa7a8935dd05d38bd78749cde61a54fbc877c93d1bc52ff72f0d0f9fb4a"}]}
+// build-bundles: {"name":"home","version":"571fc9b0c876","sources":[{"path":"js/search.js","sha256":"09d12f167d1105d1616278784f2305cf193616627aaa1ceeebe8fcdfac3633b7"},{"path":"js/video-gate.js","sha256":"18b7765c76347cbd7b87347b8cb8da0a3fbc6ecfb7b3ea1006151d41346343ec"},{"path":"js/app.js","sha256":"3b6ed8a557d012857431fb840a3544642f943b6cc8a65ff241ed48edb6a03efb"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"bcf8dfa7a8935dd05d38bd78749cde61a54fbc877c93d1bc52ff72f0d0f9fb4a"}]}
 /* 仅首页：搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -384,7 +384,7 @@
 
 ;
 
-// ---- js/app.js (64d5940adb83) ----
+// ---- js/app.js (3b6ed8a557d0) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -2397,6 +2397,43 @@ try { localStorage.removeItem('sj.cosmos-mode'); } catch (e) {}
       updateAudioUI(!audio.paused && audio.currentTime > 0);
     }, 100);
   }
+})();
+
+/* ============================================================
+   全站产品视频自适应预加载与单路播放互斥（PC / 移动端）
+   ============================================================ */
+(function initAdaptiveVideos() {
+  const videos = Array.from(document.querySelectorAll('video.cover-video'));
+  if (!videos.length) return;
+
+  const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  const saveData = Boolean(conn && (conn.saveData || conn.effectiveType === '2g' || conn.effectiveType === 'slow-2g'));
+
+  // 单路播放互斥：同时只允许一个产品视频解码播放，避免移动端内存峰值
+  videos.forEach((v) => {
+    v.addEventListener('play', () => {
+      videos.forEach((other) => {
+        if (other !== v && !other.paused) {
+          try { other.pause(); } catch (_) {}
+        }
+      });
+    });
+  });
+
+  if (saveData || !('IntersectionObserver' in window)) return;
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      const v = entry.target;
+      if (v.preload === 'none') {
+        v.preload = 'metadata';
+      }
+      io.unobserve(v);
+    });
+  }, { rootMargin: '360px 0px', threshold: 0.01 });
+
+  videos.forEach((v) => io.observe(v));
 })();
 
 ;

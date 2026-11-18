@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v296';   // 2026-11-18 精简多余 3D 背景场与实验室页，统一锁定声学谐振场
+const CACHE = 'sevenjohn-v297';   // 2026-11-18 PC/移动端视频流与看板娘按需并发加载性能适配
 const CORE = [
   './',
   'index.html',
@@ -20,6 +20,8 @@ const CORE = [
   'archive.html',
   'gallery.html',
   'cards.html',
+  // 看板娘静态兜底图（桌面端首帧秒开）
+  'assets/vendor/live2d/7steve-v2-static.webp?v=20261118r2',
   // 二次元照片墙精选（全量 WebP）
   'assets/images/anime/regulus-insight2.webp',
   'assets/images/anime/regulus-default.webp',

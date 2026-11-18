@@ -2012,5 +2012,43 @@ try { localStorage.removeItem('sj.cosmos-mode'); } catch (e) {}
   }
 })();
 
+/* ============================================================
+   全站产品视频自适应预加载与单路播放互斥（PC / 移动端）
+   ============================================================ */
+(function initAdaptiveVideos() {
+  const videos = Array.from(document.querySelectorAll('video.cover-video'));
+  if (!videos.length) return;
+
+  const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  const saveData = Boolean(conn && (conn.saveData || conn.effectiveType === '2g' || conn.effectiveType === 'slow-2g'));
+
+  // 单路播放互斥：同时只允许一个产品视频解码播放，避免移动端内存峰值
+  videos.forEach((v) => {
+    v.addEventListener('play', () => {
+      videos.forEach((other) => {
+        if (other !== v && !other.paused) {
+          try { other.pause(); } catch (_) {}
+        }
+      });
+    });
+  });
+
+  if (saveData || !('IntersectionObserver' in window)) return;
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      const v = entry.target;
+      if (v.preload === 'none') {
+        v.preload = 'metadata';
+      }
+      io.unobserve(v);
+    });
+  }, { rootMargin: '360px 0px', threshold: 0.01 });
+
+  videos.forEach((v) => io.observe(v));
+})();
+
+
 
 

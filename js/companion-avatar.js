@@ -91,6 +91,17 @@
     }
     if (coreLoadPromise) return coreLoadPromise;
 
+    // 并行预热 ESM 运行时与模型清单，消除 Core -> ESM 串行瀑布流延迟
+    if (document.head) {
+      if (!document.querySelector('link[data-sjc-preload-esm]')) {
+        var ml = document.createElement('link');
+        ml.rel = 'modulepreload';
+        ml.href = resolveAssetUrl(RUNTIME_ESM_REL);
+        ml.setAttribute('data-sjc-preload-esm', '1');
+        document.head.appendChild(ml);
+      }
+    }
+
     coreLoadPromise = new Promise(function (resolve, reject) {
       var existing = document.querySelector('script[data-sjc-cubism-core]');
       if (existing) {
