@@ -26,8 +26,8 @@
   window.GALLERY_PROJECTS_BACKUP = [
     { src: 'assets/images/cover-filebutler.webp', caption: 'FileButler · 本地文件管家', meta: '项目封面 · 桌面应用', span: 'wide' },
     { src: 'assets/images/filebutler-tour-poster.jpg', caption: 'FileButler · 功能导览', meta: '介绍视频封面' },
-    { src: 'assets/images/cover-netops.webp', caption: 'NetOps Handbook · 离线网络手册', meta: '项目封面 · Android' },
-    { src: 'assets/images/netops-tour-poster.jpg', caption: 'NetOps Handbook · 功能导览', meta: '介绍视频封面', span: 'tall' },
+    { src: 'assets/images/cover-netops.webp', caption: '脉络 · 离线网络手册', meta: '项目封面 · Android' },
+    { src: 'assets/images/netops-tour-poster.jpg', caption: '脉络 · 功能导览', meta: '介绍视频封面', span: 'tall' },
     { src: 'assets/images/cover-gameboost.webp', caption: 'GameBoost · 打游戏前点一下', meta: '项目封面 · 桌面应用' },
     { src: 'assets/images/cover-dlssg.webp', caption: 'GameBoost-DLSSG · DLSS 帧生成', meta: '项目封面 · 桌面应用' },
     { src: 'assets/images/paian-tour-poster.jpg', caption: '拍案 · 网文创作工作台', meta: '介绍视频封面', span: 'wide' },

@@ -95,6 +95,32 @@
   const BEAT_HIST = [];                      // bass 功率历史（~0.8s，自适应中值阈值用）
   let beatPeak = 0.05;                       // AGC：3s 衰减式峰值跟随（初值取典型 RMS 量级，过高会让开头律动沉底）
   let bassEnv = 0, midEnv = 0, treEnv = 0;   // 非对称指数包络（attack 10ms / release 120ms）
+  // 缓存视频节点与频谱控件：彻底消除 beatLoop 每秒 60~120 次的 querySelectorAll 开销
+  let cachedProductVideos = null;
+  let cachedHeroMusicBtn = null;
+  let cachedHudRight = null;
+  function getProductVideos() {
+    if (!cachedProductVideos) {
+      cachedProductVideos = Array.from(document.querySelectorAll('#products video')).map((v) => ({
+        v,
+        box: v.closest('.cover-box')
+      }));
+    }
+    return cachedProductVideos;
+  }
+  function emitMusicState() {
+    try {
+      window.dispatchEvent(new CustomEvent('sj-music-state', {
+        detail: {
+          playing: !!(audio && !audio.paused),
+          title: SONGS[current] ? SONGS[current].title : '背景音乐',
+          index: current,
+          total: SONGS.length
+        }
+      }));
+    } catch (e) {}
+  }
+
   function beatLoop() {
     // ❗句柄必须"只在本帧排下一帧"时赋值：早先写成帧首 beatRaf = rAF(...)，
     // 而切歌/暂停会触发 stopBeat() 把这个句柄 cancel 掉——但此时下一帧其实已经
@@ -134,7 +160,7 @@
     BEAT_HIST.push(e);
     if (BEAT_HIST.length > 48) BEAT_HIST.shift();
     if (BEAT_HIST.length > 20) {
-      const sorted = BEAT_HIST.slice().sort((a, b) => a - b);
+      const sorted = BEAT_HIST.toSorted((a, b) => a - b);
       const med = sorted[sorted.length >> 1];
       let peak = 0;
       for (const v of BEAT_HIST) if (v > peak) peak = v;
@@ -145,20 +171,42 @@
     }
     beatPulse *= Math.exp(-dt / 0.30);               // 指数回落（线性回落观感生硬）
     if (beatPulse < 0.02) beatPulse = 0;
+    const bp = Math.min(1, beatPulse);
     window.__BEAT = {
-      level: Math.min(1, beatPulse), lv: lv, slow: beatPeak, rise: e,
+      level: bp, lv: lv, slow: beatPeak, rise: e,
       mid: mid, treble: tre, ctx: actx ? actx.state : '-'
     };
 
-    // 若当前有介绍视频正在播放，驱动对应视频视窗的外框光晕律动
-    var playingVid = Array.from(document.querySelectorAll('#products video')).find(function (v) {
-      return !v.paused && !v.ended;
-    });
-    if (playingVid) {
-      var box = playingVid.closest('.cover-box');
-      if (box) {
-        box.classList.add('is-playing-beat');
-        box.style.setProperty('--beat-pulse', (beatPulse * 0.75 + lv * 0.25).toFixed(3));
+    // 实时驱动首屏音频胶囊四段频谱柱与悬浮 FAB 微律动（纯 transform scaleY 变量，零回流）
+    if (!cachedHeroMusicBtn) cachedHeroMusicBtn = document.getElementById('cosmos-enter');
+    if (!cachedHudRight) cachedHudRight = document.querySelector('.cosmos-hud.tr');
+    const e1 = (0.24 + Math.min(1, lv * 0.65 + bp * 0.35) * 0.76).toFixed(3);
+    const e2 = (0.28 + Math.min(1, mid * 0.60 + bp * 0.40) * 0.72).toFixed(3);
+    const e3 = (0.22 + Math.min(1, (mid + tre) * 0.42 + bp * 0.30) * 0.78).toFixed(3);
+    const e4 = (0.20 + Math.min(1, tre * 0.70 + bp * 0.25) * 0.80).toFixed(3);
+    if (cachedHeroMusicBtn && cachedHeroMusicBtn.classList.contains('is-playing')) {
+      cachedHeroMusicBtn.style.setProperty('--eq-1', e1);
+      cachedHeroMusicBtn.style.setProperty('--eq-2', e2);
+      cachedHeroMusicBtn.style.setProperty('--eq-3', e3);
+      cachedHeroMusicBtn.style.setProperty('--eq-4', e4);
+    }
+    if (fab && fab.classList.contains('is-playing')) {
+      fab.style.setProperty('--beat-scale', (1 + bp * 0.06).toFixed(3));
+    }
+    if (cachedHudRight) {
+      cachedHudRight.style.setProperty('--hud-beat', bp.toFixed(3));
+    }
+
+    // 若当前有介绍视频正在播放，驱动对应视频视窗的外框光晕律动（走缓存列表，零 DOM 查询）
+    const vids = getProductVideos();
+    for (let k = 0; k < vids.length; k++) {
+      const item = vids[k];
+      if (!item.v.paused && !item.v.ended) {
+        if (item.box) {
+          item.box.classList.add('is-playing-beat');
+          item.box.style.setProperty('--beat-pulse', (bp * 0.75 + lv * 0.25).toFixed(3));
+        }
+        break;
       }
     }
 
@@ -225,7 +273,7 @@
 
   // —— 渲染 ——
   function renderList() {
-    listEl.innerHTML = '';
+    listEl.replaceChildren();
     SONGS.forEach((song, i) => {
       const li = document.createElement('li');
       const btn = document.createElement('button');
@@ -273,6 +321,7 @@
     titleEl.textContent = SONGS[current].title;
     renderList();
     renderMediaSession();
+    emitMusicState();
     if (navigator.serviceWorker && navigator.serviceWorker.controller) {
       navigator.serviceWorker.controller.postMessage({ type: 'prefetch-media', url: SONGS[current].src });
     }
@@ -426,14 +475,17 @@
     fab.classList.add('is-playing');
     startBeat();   // 兜底（正常路径已在手势里建图）
     renderMediaSession();
+    emitMusicState();
   });
   audio.addEventListener('pause', () => {
     playBtn.classList.remove('is-playing');
     fab.classList.remove('is-playing');
-    const anyVideoPlaying = Array.from(document.querySelectorAll('#products video')).some(function (v) {
-      return !v.paused && !v.ended;
+    fab.style.removeProperty('--beat-scale');
+    const anyVideoPlaying = getProductVideos().some(function (it) {
+      return !it.v.paused && !it.v.ended;
     });
     if (!anyVideoPlaying) stopBeat();
+    emitMusicState();
   });
   audio.addEventListener('error', stopBeat);
   // 单曲循环（mode==='one'）由 audio.loop 处理，ended 只在顺序循环走到这里

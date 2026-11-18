@@ -41,8 +41,7 @@
 
   // ---- 对外只暴露「结论」：lite = 这台机器吃不动重效果 ----
   let current = null;
-  let resolveTier;
-  const done = new Promise((r) => { resolveTier = r; });
+  const { promise: done, resolve: resolveTier } = Promise.withResolvers();
   window.__fxTier = { get tier() { return current; }, done };
   const publish = (t) => { if (!current) { current = t; resolveTier(t); } };
 

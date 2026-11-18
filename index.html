@@ -1,85 +1,99 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="scroll-smooth" data-page-node-id="NwokarbLtP77cU0B0eGbW4">
-<head data-page-node-id="aqts7FOPLPb84VEDonB5A5">
-  <meta charset="UTF-8" data-page-node-id="7TPFFupex8hVls3DR1MAZP" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="GNWsUgKbtPXYtIZiSjzjrG" />
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>楠屿札记 · 本地 AI 应用与桌面工具</title>
 
-  <!-- 默认晨曦明亮科技风（通透开阔、告别压抑沉闷，支持自由切换与持久化） -->
+  <meta name="color-scheme" content="light dark" />
+  <!-- 默认晨曦明亮科技风（支持自由切换与持久化，同步原生 color-scheme） -->
   <script>
     (function () {
-      document.documentElement.classList.add('js');
+      var root = document.documentElement;
+      root.classList.add('js');
+      var isDark = false;
       try {
         if (localStorage.getItem('sj.theme-v6') !== 'daylight-v1') {
           localStorage.removeItem('sj.theme');
           localStorage.setItem('sj.theme-v6', 'daylight-v1');
         }
-        if (localStorage.getItem('sj.theme') === 'dark') {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-      } catch (e) {
-        document.documentElement.classList.remove('dark');
-      }
+        isDark = localStorage.getItem('sj.theme') === 'dark';
+      } catch (e) {}
+      root.classList.toggle('dark', isDark);
+      var m = document.querySelector('meta[name="color-scheme"]');
+      if (m) m.content = isDark ? 'dark' : 'light';
     })();
   </script>
 
-  <meta name="description" content="楠屿札记：本地 AI 应用与桌面工具，Python / C# / Android。包括本地文件管家、离线网络手册、游戏性能工具，AI 全部在本机运行。" data-page-node-id="eeyJ3T55hSfhm0o0lWaWUE" />
-  <link rel="canonical" href="https://7stevejohn.github.io/" data-page-node-id="s7AeEQL1XWFBvL4jb4L7WH" />
+  <!-- 悬停预测预取与预渲染（Speculation Rules API：多页跳转零延迟秒开） -->
+  <script type="speculationrules">
+  {
+    "prefetch": [{
+      "tag": "nanyu-nav-prefetch",
+      "where": {
+        "and": [
+          { "href_matches": "/*" },
+          { "not": { "href_matches": ["/assets/*", "/music/*", "/rss.xml"] } },
+          { "not": { "selector_matches": "[target=_blank], [download], [data-link], [href^='#']" } }
+        ]
+      },
+      "eagerness": "moderate"
+    }],
+    "prerender": [{
+      "tag": "nanyu-nav-prerender",
+      "where": {
+        "and": [
+          { "selector_matches": "header a[href$='.html'], footer a[href$='.html'], .blog-archive-link" },
+          { "not": { "selector_matches": "[target=_blank], [download]" } }
+        ]
+      },
+      "eagerness": "moderate"
+    }]
+  }
+  </script>
 
-  <!-- Open Graph / Twitter Card（分享到微信、QQ、X 等平台的预览卡片） -->
-  <meta property="og:type" content="website" data-page-node-id="zP8dHffLJAzV8SfpFQ10tJ" />
-  <meta property="og:site_name" content="楠屿札记" data-page-node-id="kfjujytbugTzFbw3Q8ATTf" />
-  <meta property="og:title" content="楠屿札记" data-page-node-id="xyx628BKmOPOWFAcaAiCdd" />
-  <meta property="og:description" content="本地 AI 应用与桌面工具，Python / C# / Android：本地文件管家、离线网络手册、游戏性能工具，附开发手记。" data-page-node-id="bZsYkV6ruvU88fezBUCxWC" />
-  <meta property="og:url" content="https://7stevejohn.github.io/" data-page-node-id="f0eBknEAYoJYShascCdfsT" />
-  <meta property="og:image" content="https://7stevejohn.github.io/og-image.png" data-page-node-id="6G06pR1qEUtZbVlMYGfuLJ" />
-  <meta property="og:image:width" content="1200" data-page-node-id="ioS3ziCmfuGvGujg0AlT7d" />
-  <meta property="og:image:height" content="630" data-page-node-id="PBFbw0gseIBmlQiCaXswqi" />
-  <meta property="og:image:alt" content="楠屿札记" data-page-node-id="iSr3ymyeO2OiEutDNEqAhB" />
-  <meta name="twitter:card" content="summary_large_image" data-page-node-id="M5xC59rESD2bNlBCqIt0UA" />
-  <meta name="twitter:title" content="楠屿札记" data-page-node-id="hzFJePCViS4SnXQPIkRdvL" />
-  <meta name="twitter:description" content="本地 AI 应用与桌面工具，Python / C# / Android：本地文件管家、离线网络手册、游戏性能工具，附开发手记。" data-page-node-id="CJZILADjquwagqiJEKsQt5" />
-  <meta name="twitter:image" content="https://7stevejohn.github.io/og-image.png" data-page-node-id="0Ekw7zYB5dzGXJlmaQnkAu" />
+  <meta name="description" content="楠屿札记：本地 AI 应用与桌面工具，Python / C# / Android。包括本地文件管家、离线网络手册、游戏性能工具，AI 全部在本机运行。" />
+  <link rel="canonical" href="https://7stevejohn.github.io/" />
+
+  <!-- Open Graph / Twitter Card -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="楠屿札记" />
+  <meta property="og:title" content="楠屿札记" />
+  <meta property="og:description" content="本地 AI 应用与桌面工具，Python / C# / Android：本地文件管家、离线网络手册、游戏性能工具，附开发手记。" />
+  <meta property="og:url" content="https://7stevejohn.github.io/" />
+  <meta property="og:image" content="https://7stevejohn.github.io/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="楠屿札记" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="楠屿札记" />
+  <meta name="twitter:description" content="本地 AI 应用与桌面工具，Python / C# / Android：本地文件管家、离线网络手册、游戏性能工具，附开发手记。" />
+  <meta name="twitter:image" content="https://7stevejohn.github.io/og-image.png" />
 
   <!-- RSS 订阅 -->
-  <link rel="alternate" type="application/rss+xml" title="楠屿札记 · 手记与创作" href="rss.xml" data-page-node-id="bhQ8JWElb0SiueIPk2rSWk" />
+  <link rel="alternate" type="application/rss+xml" title="楠屿札记 · 手记与创作" href="rss.xml" />
 
-  <!-- 按系统明暗适配移动端浏览器地址栏颜色 -->
-  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" data-page-node-id="mKLavsVdmo4ZnutUT9qtKc" />
-  <meta name="theme-color" content="#0a0a0c" media="(prefers-color-scheme: dark)" data-page-node-id="HoY82hyH9AR6MqfJtjrqDF" />
+  <!-- 系统明暗地址栏适配 -->
+  <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#060911" media="(prefers-color-scheme: dark)" />
 
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d1d1f'/%3E%3Ctext x='32' y='43' font-family='Inter,-apple-system,sans-serif' font-size='34' font-weight='700' fill='white' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E" data-page-node-id="6kO1EqpKNSlfSiCP3CHY19" />
-  <link rel="apple-touch-icon" href="apple-touch-icon.png" data-page-node-id="rFqVQZZsvdDcMiyGbLNB48" />
-  <link rel="shortcut icon" href="favicon.ico" data-page-node-id="1fNcWZiUmAqEK0Ioc0RTWh" />
-  <link rel="manifest" href="manifest.json" data-page-node-id="ypluPxiT1p91RQOWZTufd3" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d1d1f'/%3E%3Ctext x='32' y='43' font-family='Inter,-apple-system,sans-serif' font-size='34' font-weight='700' fill='white' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="shortcut icon" href="favicon.ico" />
+  <link rel="manifest" href="manifest.json" />
 
-  <!-- 只预载首屏内确实要用的小图（hero 角标头像）。❗原来还预载了三张产品封面
-       （55/106/90 KB，全在折线以下、img/video 本来就有 lazy），high 优先级会和 4 个
-       render-blocking 的 CSS 抢带宽——实测手机 4G 上首屏可见 1.88s 里大半是它们 -->
-  <link rel="preload" as="image" href="assets/images/avatar.webp" type="image/webp" fetchpriority="high" data-page-node-id="ZCNmZpl9ihCiXW9dZYSWYX" />
-
-  <!-- ❗不预载 three（676KB）：它会在手机上跟首屏 CSS 抢带宽，实测 4G 下首屏可见被拖到 2.9s。
-       改成首帧画完之后再动态 import（见文末 module 脚本），引擎自己带 1.1s 淡入，观感不受影响 -->
-
-  <!-- Inter 字体（自托管 latin 子集，避免大陆访问 Google Fonts 阻塞） -->
-  <!-- 字体提前并行请求（47KB；不加这个要等 CSS 解析完才发现，实测曾是最慢的 7.2s 请求） -->
+  <!-- 首屏关键资源预载 -->
+  <link rel="preload" as="image" href="assets/images/avatar.webp" type="image/webp" fetchpriority="high" />
   <link rel="preload" href="assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/fonts/inter.css" data-page-node-id="9EErQatlmHBQHE0mykYO9k" />
+  <link rel="stylesheet" href="assets/fonts/inter.css" />
 
-  <!-- Tailwind CSS 3.4.17（本地静态构建，零外部依赖；新增类名后用 scripts/tailwind.config.js 重建） -->
+  <!-- Tailwind CSS 3.4.17（本地静态构建） -->
   <link rel="stylesheet" href="assets/vendor/tailwind.css" />
 
-  <!-- Lucide Icons（自托管，仅打包站点实际用到的 14 个图标；避免 unpkg 大陆访问不稳定） -->
+  <!-- Lucide Icons（自托管精简包） -->
   <script src="assets/vendor/lucide.min.js" defer></script>
 
-  <!-- Marked.js (Markdown 解析器，自托管) -->
-  <!-- marked / purify 改为按需加载（js/markdown-loader.js）：打开文章或项目详情时才拉，首屏不再带 61KB -->
-
-  <!-- Highlight.js：改为按需加载（见 js/app.js ensureHighlight()）——119KB 只有文章里真有代码块时才值得拉 -->
-
-  <!-- 结构化数据（搜索引擎富摘要） -->
+  <!-- 结构化数据 -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -96,123 +110,130 @@
   }
   </script>
 
- <!-- 定制样式-->
-  <link rel="stylesheet" href="css/style.css?v=20261107_v245" data-page-node-id="DJZNUKsUQagCUphQLazIKY" />
-  <link rel="stylesheet" href="css/cosmos.css" />
-  <link rel="stylesheet" href="css/settings-panel.css" />
+  <!-- 定制样式 -->
+  <link rel="stylesheet" href="css/style.css?v=20261118mwg1" />
+  <link rel="stylesheet" href="css/cosmos.css?v=20261118c2" />
+  <link rel="stylesheet" href="css/companion.css?v=20261118m1" />
 </head>
-<body class="bg-[#f8fafc] dark:bg-[#060911] text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200 antialiased" data-page-node-id="HMv6yxcstcjkCYNAATJeCG">
+<body class="bg-[#f8fafc] dark:bg-[#060911] text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200 antialiased">
 
-  <!-- 背景画布（js/cosmos/main.js 渲染「本地推理场」：分层节点网 + 沿边前传的脉冲；
-       无 WebGL / 初始化失败时回退 js/cosmos.js 2D 版）：
-       固定铺满视口、压在所有内容之下，页面滚动时它不动 -->
+  <!-- 3D 拓扑谐振场画布（桌面 WebGL 驱动 CymaticsField + 音频节拍包络；移动端回退 2D 星河） -->
   <canvas id="cosmos-canvas" aria-hidden="true"></canvas>
-  <!-- 深空壁纸层（js/wallpaper.js 门控：图片加载成功才挂 html.has-wallpaper 显示）：
-       压在推理场画布之上、暗角之下——桌面细指针设备用 screen 混合，壁纸亮部从推理场
-       深底里透出来；触摸/窄屏改为低透明度静态层。图缺失即完全退回今天的观感 -->
+  <!-- 深空环境壁纸层 -->
   <div id="site-wallpaper" aria-hidden="true"></div>
-  <!-- 暗角 + 冷蓝环境辉光：CSS 静态层（cosmos.css .cosmos-veil），两版引擎共用 -->
+  <!-- 暗角与冷蓝环境天光遮罩 -->
   <div id="cosmos-veil" class="cosmos-veil" aria-hidden="true"></div>
-  <!-- IGLOO 式 HUD 角标（纯装饰，等宽小字，不拦交互，手机上隐藏） -->
-  <div class="cosmos-hud tl" aria-hidden="true">// nanyu notes</div>
-  <div class="cosmos-hud tr" aria-hidden="true">///// local inference</div>
 
-  <!-- 背景光粒子画布（js/particles.js 渲染，服务主题不抢主体；3D 背景在场时自动让位） -->
-  <canvas id="particle-canvas" aria-hidden="true" data-page-node-id="9SmLPF51YM79j7ATE8HasW"></canvas>
+  <!-- 精密微距 HUD 遥测角标（左：当前章节坐标；右：声学谐振律动状态指示） -->
+  <div class="cosmos-hud tl" aria-hidden="true">
+    <span class="hud-dot"></span>
+    <span>NANYU.NOTES</span>
+    <span class="hud-sep">/</span>
+    <span id="hud-sec-code">01 · OVERVIEW</span>
+  </div>
+  <div class="cosmos-hud tr" aria-hidden="true">
+    <span class="hud-beat-led" id="hud-beat-led"></span>
+    <span>CYMATICS · 声学谐振</span>
+  </div>
+
+  <!-- 2D 降级环境光粒子画布（3D 背景在场时自动让位零开销） -->
+  <canvas id="particle-canvas" aria-hidden="true"></canvas>
 
   <!-- 键盘无障碍跳转 -->
-  <a href="#products" class="skip-link" data-page-node-id="7rZTODvxamOKtwHCuyJAHv">跳转到工具</a>
+  <a href="#products" class="skip-link">跳转到工具</a>
 
- <!-- 吸顶二级导航 (Sticky LocalNav) -->
-  <header class="site-header sticky top-0 z-40 w-full site-nav glass-spec bg-white/80 dark:bg-[#0a0a0c]/80 border-b border-[#d2d2d7]/50 dark:border-white/10 transition-colors" data-page-node-id="wBj932GONkqSLvsu9BJycE">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-12 flex items-center justify-between text-xs" data-page-node-id="DkqZRxW8M3RRbqJdpbCjbi">
-      
-      <!-- 品牌名 -->
-      <a href="#home" class="flex items-center gap-2 font-semibold text-sm tracking-tight text-[#1d1d1f] dark:text-white hover:opacity-80 transition" data-page-node-id="oLtYg9aXp1aUowRXnjkAVh">
-        <span data-page-node-id="vlEcECdd9jFYJTZwbVlaxM">楠屿札记</span>
+  <!-- 吸顶精密导航栏 (Sticky LocalNav) -->
+  <header class="site-header sticky top-0 z-40 w-full site-nav glass-spec bg-white/80 dark:bg-[#0a0a0c]/80 border-b border-[#d2d2d7]/50 dark:border-white/10 transition-colors">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-12 flex items-center justify-between text-xs">
+      <!-- 品牌徽标与站名 -->
+      <a href="#home" class="brand-lockup flex items-center gap-2 font-semibold text-sm tracking-tight text-[#1d1d1f] dark:text-white hover:opacity-85 transition">
+        <svg class="brand-glyph" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <rect x="1.5" y="1.5" width="17" height="17" rx="5" stroke="currentColor" stroke-width="1.4" stroke-opacity="0.32"/>
+          <path d="M6.5 13.5L10 6.5L13.5 13.5M7.8 11.2H12.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>楠屿札记</span>
       </a>
 
-      <!-- 导航锚点 -->
-      <nav class="hidden md:flex items-center gap-6 text-[#1d1d1f] dark:text-[#86868b] text-xs" data-page-node-id="EPrCov4TxjabVTps9AREsb">
-        <a href="#home" class="hover:text-black dark:hover:text-white transition" data-page-node-id="UZPARON1aLjtcVT09iVTa3">概览</a>
-        <a href="#products" class="hover:text-black dark:hover:text-white transition" data-page-node-id="2sMryMC13zp8ZhrTmDipKw">工具</a>
-        <a href="#blog" class="hover:text-black dark:hover:text-white transition" data-page-node-id="nzjulzm2McykVNsZuSW2Ps">文章</a>
-        <a href="#philosophy" class="hover:text-black dark:hover:text-white transition" data-page-node-id="8dxmxLLRZMVsWtbYS7lHXg">理念</a>
+      <!-- 居中胶囊导航锚点 -->
+      <nav class="hidden md:flex items-center gap-6 text-[#1d1d1f] dark:text-[#86868b] text-xs nav-capsule-track">
+        <a href="#home" class="hover:text-black dark:hover:text-white transition">概览</a>
+        <a href="#products" class="hover:text-black dark:hover:text-white transition">工具</a>
+        <a href="#blog" class="hover:text-black dark:hover:text-white transition">文章</a>
+        <a href="#philosophy" class="hover:text-black dark:hover:text-white transition">理念</a>
         <a href="#about" class="hover:text-black dark:hover:text-white transition">关于</a>
-        <!-- 二级导航：创作与随笔不占主导航位（首屏要先把「做本地 AI 和工具」立住） -->
         <details id="nav-more" class="nav-more">
           <summary class="hover:text-black dark:hover:text-white transition cursor-pointer">更多</summary>
           <div class="nav-menu">
-            <!-- 两个次级页面（归档 / 照片墙）不占主导航位，收在「更多」里 -->
             <a href="archive.html" class="hover:text-black dark:hover:text-white transition">归档</a>
             <a href="gallery.html" class="hover:text-black dark:hover:text-white transition">照片墙</a>
           </div>
         </details>
       </nav>
 
-      <!-- 快捷操作栏 -->
-      <div class="flex items-center gap-3" data-page-node-id="Nj8pPvsxLnVWYNCbexlgee">
+      <!-- 右侧命令与主题快捷栏 -->
+      <div class="flex items-center gap-2.5">
         <button
           id="search-open"
           type="button"
           aria-label="搜索站内内容 (Ctrl+K)"
           title="搜索 (Ctrl+K)"
-          class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs text-[#64748b] dark:text-[#86868b] bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] hover:text-black dark:hover:text-white border border-black/5 dark:border-white/10 transition cursor-pointer select-none"
-          data-page-node-id="F5CgSaTqHqoKp9Bf8GWlny"
+          class="nav-cmd-btn cursor-pointer select-none"
         >
-          <i data-lucide="search" class="w-3.5 h-3.5" data-page-node-id="0Fsc8KnJH1zfn7iOHLMJE5"></i>
-          <span class="hidden sm:inline text-[11.5px]">搜索</span>
-          <kbd class="hidden md:inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-mono text-[#86868b] dark:text-[#94a3b8] bg-black/5 dark:bg-white/10 leading-none">⌘K</kbd>
+          <i data-lucide="search" class="w-3.5 h-3.5"></i>
+          <span class="nav-cmd-text">搜索</span>
+          <kbd class="nav-cmd-kbd">⌘K</kbd>
         </button>
 
-        <a 
-          href="https://github.com/7SteveJohn" 
-          target="_blank" 
+        <a
+          href="https://github.com/7SteveJohn"
+          target="_blank"
           rel="noopener noreferrer"
-          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-black dark:hover:text-white transition"
-          title="GitHub 个人主页" data-page-node-id="fAinYBWs0mBOM9JBpC4q0C"
+          class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-black dark:hover:text-white transition nav-gh-pill"
+          title="GitHub 个人主页"
         >
-          <svg viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5" aria-hidden="true" data-page-node-id="7K7TPkCnjUIhUv9mdQwkSM"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" data-page-node-id="tfzRuM66bCLMXEWtyoRMJk"/></svg>
-          <span data-page-node-id="IFNfgk8Ohzc1cBWgZt31Tn">@7SteveJohn</span>
+          <svg viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+          <span>@7SteveJohn</span>
         </a>
 
-        <!-- 主题切换（支持一键在「晨曦白昼蓝图」与「极夜深空星云」自由切换） -->
         <button
           id="theme-toggle"
           type="button"
           aria-label="切换明暗模式"
-          class="p-1.5 rounded-full text-[#475569] dark:text-[#86868b] hover:text-black dark:hover:text-white transition cursor-pointer" data-page-node-id="8Q3rqf1EqHEXp6msd6kSjQ"
+          title="切换晨曦/极夜模式"
+          class="nav-icon-btn p-1.5 rounded-full text-[#475569] dark:text-[#86868b] hover:text-black dark:hover:text-white transition cursor-pointer"
         >
-          <i data-lucide="sun" class="w-4 h-4 hidden dark:block" data-page-node-id="N3e5OBRE4wJcez8ajS2yXY"></i>
-          <i data-lucide="moon" class="w-4 h-4 block dark:hidden" data-page-node-id="8lMb4KPmJNmbonwu2kA7yL"></i>
+          <i data-lucide="sun" class="w-4 h-4 hidden dark:block"></i>
+          <i data-lucide="moon" class="w-4 h-4 block dark:hidden"></i>
         </button>
 
-        <a 
-          href="#products" 
-          class="btn-primary px-3 py-1 text-xs" data-page-node-id="DMCDA6FUQGZHBPEub78K5W"
-        >
+        <a href="#products" class="btn-primary px-3 py-1 text-xs whitespace-nowrap">
           查看作品
         </a>
 
-        <!-- 移动端菜单按钮（仅 md 以下显示） -->
-        <button 
-          id="mobile-menu-btn" 
+        <!-- 移动端菜单按钮 -->
+        <button
+          id="mobile-menu-btn"
           aria-label="打开导航菜单"
           aria-expanded="false"
-          class="md:hidden p-1.5 rounded-full text-[#86868b] hover:text-black dark:hover:text-white transition cursor-pointer" data-page-node-id="oqxun13GfA9rw9uEehCCZE"
+          class="md:hidden p-1.5 rounded-full text-[#86868b] hover:text-black dark:hover:text-white transition cursor-pointer"
         >
-          <i data-lucide="menu" class="w-4 h-4" data-page-node-id="BKMj1GY8Fz6yP0sH7ykEi7"></i>
+          <i data-lucide="menu" class="w-4 h-4"></i>
         </button>
       </div>
     </div>
 
-    <!-- 移动端导航面板（仅 md 以下显示） -->
-    <div id="mobile-menu" class="hidden md:hidden border-t border-[#d2d2d7]/50 dark:border-white/10 bg-white/95 dark:bg-[#0a0a0c]/95 site-nav" data-page-node-id="unkMvZaOUbDL4kpqhJGRst">
-      <nav class="max-w-6xl mx-auto px-4 py-2 flex flex-col text-sm" data-page-node-id="XhZZ1mZzPuEHye26gF6Es6">
-        <a href="#home" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="T5Bx2uA5alVfSy26GKRhGH">概览</a>
-        <a href="#products" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="n23csEzYWcN71QyJBmi5cz">工具</a>
-        <a href="#blog" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="hewlzzAE8juOFrOXqOb6KN">文章</a>
-        <a href="#philosophy" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition" data-page-node-id="rZfLT25iJNXjWwdH3oQrbn">理念</a>
+    <!-- 顶栏底边全页阅读滚动进度极细光丝 -->
+    <div class="header-progress-track" aria-hidden="true">
+      <div id="page-scroll-bar" class="header-progress-bar"></div>
+    </div>
+
+    <!-- 移动端导航抽屉 -->
+    <div id="mobile-menu" class="hidden md:hidden border-t border-[#d2d2d7]/50 dark:border-white/10 bg-white/95 dark:bg-[#0a0a0c]/95 site-nav">
+      <nav class="max-w-6xl mx-auto px-4 py-2 flex flex-col text-sm">
+        <a href="#home" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition">概览</a>
+        <a href="#products" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition">工具</a>
+        <a href="#blog" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition">文章</a>
+        <a href="#philosophy" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition">理念</a>
         <a href="#about" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition">关于</a>
         <div class="pt-2 mt-1 border-t border-[#d2d2d7]/50 dark:border-white/10 text-[11px] text-[#86868b]">更多</div>
         <a href="archive.html" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition">归档</a>
@@ -228,95 +249,101 @@
           </button>
         </div>
 
-        <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="py-3.5 hover:underline underline-offset-2 transition" data-page-node-id="xKIUZ78GgECKxsl8v72CvW">GitHub @7SteveJohn</a>
+        <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="py-3.5 hover:underline underline-offset-2 transition">GitHub @7SteveJohn</a>
       </nav>
     </div>
   </header>
 
   <!-- 主体画卷内容 -->
-  <main class="space-y-24 sm:space-y-36 pb-24" data-page-node-id="IQmBRN5dTZx1YFzvjDFg6s">
+  <main class="space-y-24 sm:space-y-32 pb-24">
 
- <!-- 1. 🎬 Hero 巨幕发布会首屏-->
-    <section id="home" class="px-4 sm:px-6 text-center space-y-6" data-page-node-id="cw2w5BiFKhTuR4AydD5PZ1">
-      <!-- 文字可读性遮罩：上下压暗，中间留给粒子 -->
+    <!-- 1. Hero 巨幕首屏（透出 3D 声学拓扑谐振场 + 实时音乐频谱联动 + 五联作品矩阵） -->
+    <section id="home" class="px-4 sm:px-6 text-center">
       <div class="hero-veil" aria-hidden="true"></div>
-      <!-- 眉标 -->
-      <p class="hero-anim hero-eyebrow text-xs sm:text-sm font-semibold tracking-wide uppercase text-[#86868b]" style="--i:0" data-page-node-id="JKvSQnK9APGuTT8kqmHr7p">
-        本地 AI 应用 · 桌面工具 · Android
-      </p>
 
-      <!-- 巨幅标题：站名 -->
-      <h1 class="hero-anim font-display text-4xl sm:text-6xl text-[#1d1d1f] dark:text-white leading-[1.15]" style="--i:1" data-page-node-id="6cAQASbRNiIb0Djzh8Tnlg">
-        楠屿札记
-      </h1>
+      <div class="hero-core">
+        <!-- 呼吸信号眉标胶囊 -->
+        <p class="hero-anim hero-eyebrow" style="--i:0">
+          本地 AI 应用 · 桌面工具 · Android
+        </p>
 
-      <!-- 站点副标题 site_subtitle：写法 = 四字题 · 对句，改这一行即可
-           备选：岁稿存匣 · 收纳工具手记，贮藏随笔与星章
-                星砚耕行 · 研器书行迹，落笔揽晚星
-                尘页实录 · 于此留存工具实践、技术手记与笔下故事
-           ❗下面不再放自白/描述行（2026-09-30 用户要求删掉：它不是副标题，能力域由眉标 + 关于我承担） -->
-      <p id="site-subtitle" class="hero-anim max-w-xl mx-auto text-sm sm:text-2xl leading-relaxed" style="--i:2">
-        屿间汇叙 · 一隅写字，一隅造物
-      </p>
+        <!-- 站名主标题 -->
+        <h1 class="hero-anim font-display hero-title text-4xl sm:text-6xl text-[#1d1d1f] dark:text-white leading-[1.12]" style="--i:1">
+          楠屿札记
+        </h1>
 
-      <!-- 人话定位（2026-10-31）：对句负责气质，这句负责让陌生人在 10 秒内知道
-           这站是什么、跟他有什么关系。与对句同帧出现（--i:2）。
-           与 2026-09-30「不放自白行」的决定不冲突：那版删的是能力自夸，这句是事实陈述 -->
-      <p class="hero-anim max-w-xl mx-auto text-sm sm:text-base" style="--i:2">
-        只在本地跑的 AI 应用、轻量桌面工具，以及底层的实测调优记录。
-      </p>
-      <!-- 最近更新：由 app.js 从 PROJECTS_DATA 取最新 updated 填充，不写死日期（写死会过期变成假证据） -->
-      <p id="hero-updated" class="hero-anim text-xs font-mono tracking-wide" style="--i:2" hidden></p>
+        <!-- 站点对句副标题（继承渐变字） -->
+        <p id="site-subtitle" class="hero-anim max-w-xl mx-auto text-base sm:text-2xl leading-relaxed" style="--i:2">
+          屿间汇叙 · 一隅写字，一隅造物
+        </p>
 
-      <!-- 双行动按钮 -->
-      <div class="hero-anim flex flex-wrap items-center justify-center gap-4 pt-4" style="--i:3" data-page-node-id="9k9USFkpWLPqOIc8MoG9Az">
-        <a href="#products" class="btn-primary px-6 py-2.5 text-sm" data-page-node-id="wtewTutKOwPW5utKD86pR3">
-          浏览项目
-        </a>
-        <!-- ❗这里不再放「关于我」按钮：左下角标整卡也是 #about（含「了解我 →」），两个入口重复（2026-09-30 用户指出） -->
-        <a
-          href="https://github.com/7SteveJohn"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center gap-1.5 hover:underline underline-offset-2 text-sm font-medium" data-page-node-id="WTHWKeHRVDmC8tmrXX2nwm"
-        >
-          <span data-page-node-id="imeIQ3vEO0Bb9XxIeBVnmJ">更多项目见 GitHub</span>
-          <i data-lucide="chevron-right" class="w-4 h-4" data-page-node-id="TmrGCGCrH0HGqprPlX7rO3"></i>
-        </a>
-        <!-- 推理场入口：点击即放歌，脉冲跟着音乐跑（用户手势内解锁 AudioContext） -->
-        <button id="cosmos-enter" type="button"
-          class="hero-ghost glass-spec px-5 py-2.5 text-sm inline-flex items-center gap-2"
-          title="播放音乐，背景律动会随节拍变化">
-          <span aria-hidden="true">♫</span><span>播放音乐</span>
-        </button>
+        <!-- 清晰定位陈述 -->
+        <p class="hero-anim hero-lead max-w-xl mx-auto text-sm sm:text-base" style="--i:2">
+          只在本地跑的 AI 应用、轻量桌面工具，以及底层的实测调优记录。
+        </p>
+
+        <!-- 最近更新动态遥测胶囊（app.js 从 PROJECTS_DATA 自动提取最新项并支持点击直达） -->
+        <p id="hero-updated" class="hero-anim hero-telemetry-pill font-mono" style="--i:2" hidden></p>
+
+        <!-- 核心行动组（含四频段实时律动音频胶囊） -->
+        <div class="hero-anim hero-actions flex flex-wrap items-center justify-center gap-3.5 pt-3" style="--i:3">
+          <a href="#products" class="btn-primary px-6 py-2.5 text-sm">
+            浏览项目
+          </a>
+          <a
+            href="https://github.com/7SteveJohn"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1.5 text-sm font-medium"
+          >
+            <span>更多项目见 GitHub</span>
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </a>
+          <button
+            id="cosmos-enter"
+            type="button"
+            class="hero-ghost glass-spec"
+            title="播放背景音乐，3D 谐振球与频谱柱随节拍实时律动"
+          >
+            <span class="hero-music-note" aria-hidden="true">♫</span>
+            <span class="hero-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+            <span id="hero-music-status">播放音乐</span>
+          </button>
+        </div>
       </div>
 
-      <!-- 作品索引（2026-10-31）：首屏原来只有标题 + 三个按钮，中间近 300px 全空，
-           打开第一眼看不到任何「做出来的东西」——这是「打开就劝退」的直接原因。
-           这里把四个工具按卡序摆成目录，既是内容也是入口，点了直接落到对应卡片。
-           ❗名称手写在这里；版本号由 app.js 按 projects.js 自动对齐，静态值只作无 JS 兜底。
-           加项目要跟 projects.js 一起加一行 -->
+      <!-- 五联旗舰作品命令矩阵（点击平滑落位对应卡片，滚动时自动跟随高亮） -->
       <nav class="hero-anim hero-index" aria-label="作品索引" style="--i:4">
         <a href="#products" class="hi-row" data-hi="filebutler">
-          <span class="hi-no">01</span><span class="hi-name">FileButler</span><span class="hi-ver">v1.4.4</span>
+          <span class="hi-top"><span class="hi-no">01</span><span class="hi-ver">v1.4.5</span></span>
+          <span class="hi-name">FileButler</span>
+          <span class="hi-role">本地文件 AI 管家</span>
         </a>
         <a href="#products" class="hi-row" data-hi="paian">
-          <span class="hi-no">02</span><span class="hi-name">拍案</span><span class="hi-ver">v1.0.3</span>
+          <span class="hi-top"><span class="hi-no">02</span><span class="hi-ver">v1.0.3</span></span>
+          <span class="hi-name">拍案</span>
+          <span class="hi-role">网文创作工作台</span>
         </a>
         <a href="#products" class="hi-row" data-hi="netops-handbook">
-          <span class="hi-no">03</span><span class="hi-name">NetOps</span><span class="hi-ver">v2.0.5</span>
+          <span class="hi-top"><span class="hi-no">03</span><span class="hi-ver">v2.1.0</span></span>
+          <span class="hi-name">脉络</span>
+          <span class="hi-role">离线运维知识库</span>
         </a>
         <a href="#products" class="hi-row" data-hi="fluxion">
-          <span class="hi-no">04</span><span class="hi-name">Fluxion</span><span class="hi-ver">v1.3.1</span>
+          <span class="hi-top"><span class="hi-no">04</span><span class="hi-ver">v1.3.2</span></span>
+          <span class="hi-name">Fluxion</span>
+          <span class="hi-role">游戏帧率调优套件</span>
         </a>
         <a href="#products" class="hi-row" data-hi="stacky">
-          <span class="hi-no">05</span><span class="hi-name">Stacky</span><span class="hi-ver">v1.0.2</span>
+          <span class="hi-top"><span class="hi-no">05</span><span class="hi-ver">v1.0.3</span></span>
+          <span class="hi-name">Stacky</span>
+          <span class="hi-role">桌面卡片启动台</span>
         </a>
       </nav>
 
-      <!-- 真实头像与创作者介绍（点击进「关于我」） -->
-      <a href="#about" class="hero-anim hero-who flex items-center gap-4 text-left" style="--i:5" title="关于我" data-page-node-id="Q3QNk18xnLDCY550n40CHw">
-        <div class="w-14 h-14 rounded-full overflow-hidden border border-black/10 dark:border-white/20 shadow-md" data-page-node-id="bD1WWLYIXTF9DJC4o6TtPq">
+      <!-- 左下创作者身份徽章（首屏唯一 #about 入口） -->
+      <a href="#about" class="hero-anim hero-who flex items-center gap-3 text-left" style="--i:5" title="关于我">
+        <div class="hero-who-avatar w-14 h-14 rounded-full overflow-hidden border border-black/10 dark:border-white/20 shadow-sm shrink-0">
           <img
             src="assets/images/avatar.webp"
             alt="SevenJohn Avatar"
@@ -324,444 +351,485 @@
             loading="eager"
             fetchpriority="high"
             decoding="async"
-            onerror="this.src='assets/images/avatar.jpg'" data-page-node-id="LJW1F7vFZBFlUZJ09lvGWV"
+            onerror="this.src='assets/images/avatar.jpg'"
           />
         </div>
-        <div data-page-node-id="mO9pBdfRjBgUEFwEcm2I1x">
-          <div id="hero-greeting" class="text-xs text-[#86868b] font-medium" data-page-node-id="HSvyH7FDEAEHmDNHXTf972"></div>
-          <div class="text-sm font-bold text-[#1d1d1f] dark:text-white" data-page-node-id="4HNDn4GntrNu34iv22W2Ww">SevenJohn</div>
-          <div class="text-xs text-[#86868b]" data-page-node-id="9RgoOd30lFlk8cqyW1TArl">做端侧 AI 与轻量桌面工具</div>
-          <div class="hero-who-more text-xs text-[#c8d2e2] mt-0.5">了解我 <span aria-hidden="true">→</span></div>
-          <div id="hero-status" class="hidden text-xs text-[#86868b] mt-0.5" data-page-node-id="qreOfmg5FdVuKGwKzJmbxv"></div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-bold text-[#1d1d1f] dark:text-white">SevenJohn</span>
+            <span class="hero-who-sep" aria-hidden="true">·</span>
+            <span id="hero-greeting" class="text-[11px] text-[#86868b] font-medium truncate"></span>
+          </div>
+          <div class="text-[11.5px] text-[#64748b] dark:text-[#94a3b8] leading-snug">做端侧 AI 与轻量桌面工具</div>
+          <div class="hero-who-more text-[11px] mt-0.5">了解我 <span aria-hidden="true">→</span></div>
         </div>
       </a>
     </section>
 
-    <!-- 2. 🚀 三大旗舰单品画卷式深度专栏 (Product Featurettes)
-         ❗原来的栏目标题（「手边诸器 · …」独立 reveal 块）已于 2026-10-31 删除：
-         首屏收短到 78svh 后它会孤零零露在首屏底部一行，用户反馈「很割裂」；
-         且语义与 hero 的作品目录条重复（目录条本身就是「每一件都在用」）。
-         删掉后首屏底部直接是第一张卡的开头。翻页分组 collectPageUnits 对
-         null 有守卫，不受影响 -->
-    <section id="products" class="max-w-5xl mx-auto px-4 sm:px-6 space-y-16 sm:space-y-16 scroll-mt-20" data-page-node-id="v9HuzJx74eqKXEzhilxgcq">
+    <!-- 2. 五大主力工具专栏 (Product Featurettes) -->
+    <section id="products" class="max-w-5xl mx-auto px-4 sm:px-6 space-y-16 scroll-mt-20">
 
       <!-- 单品 1: FileButler -->
-      <article data-project-id="filebutler" class="bento-card reveal" data-page-node-id="tC0KmIuf8B8maWBqB0CMiw">
-        <div class="p-8 sm:p-12 space-y-4 w-full" data-page-node-id="ke3R5awDo6EvgS6vLdnTuE">
-          <span class="inline-block text-xs font-mono text-[#86868b] tracking-wide" data-page-node-id="QZPA7LbMhKtWxWRJvAbeG4">
-            智能桌面应用 · pywebview / Vue 3 / Cloud API &amp; 本地 AI
-          </span>
-          <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white" data-page-node-id="j0Im5wPeXbivM0rKRi8JKP">
+      <article data-project-id="filebutler" class="bento-card product-featurette reveal">
+        <div class="p-8 sm:p-12 space-y-3.5 w-full">
+          <div class="card-spec-head">
+            <span class="card-idx">01</span>
+            <span class="card-spec-div" aria-hidden="true"></span>
+            <span class="inline-block text-xs font-mono text-[#64748b] dark:text-[#94a3b8] tracking-wide">
+              智能桌面应用 · pywebview / Vue 3 / Cloud API &amp; 本地 AI
+            </span>
+          </div>
+          <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white">
             FileButler · 本地文件管家
           </h3>
-          <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed" data-page-node-id="SnSlxoZIL8ZXXZzN9OFqkq">文件多了找不到、文档懒得翻、整理怕动错。文件名、正文与图内文字一起索引，发票和扫描件能直接搜到内容；文档不用逐个打开，提问就能拿到带页码的出处；整理先出方案清单由你勾选，执行后整批可撤销。默认在本机跑，检索、预览、整理与去重不依赖模型；云端与本地模型在设置里自己选。</p>
+          <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed">文件多了找不到、文档懒得翻、整理怕动错。文件名、正文与图内文字一起索引，发票和扫描件能直接搜到内容；文档不用逐个打开，提问就能拿到带页码的出处；整理先出方案清单由你勾选，执行后整批可撤销。默认在本机跑，检索、预览、整理与去重不依赖模型；云端与本地模型在设置里自己选。</p>
 
           <div data-facts class="project-facts" hidden></div>
 
-          <!-- 标签 -->
-          <div class="flex flex-wrap gap-2 pt-2" data-page-node-id="3JX671bhAWFJTbZ35qPmEM">
-            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono" data-page-node-id="vfSYWyzIepPsduyBH1Tzrb">Python 3</span>
-            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono" data-page-node-id="wa3ML4DLjmTeEsb3aC1xKi">OCR穿透秒搜</span>
-            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono" data-page-node-id="eudAG13M09PNrWbK7S7dJr">免开文档问答(RAG)</span>
-            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">方案预览/一键撤销</span>
-            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono" data-page-node-id="hKe6lnbEHHe9cCmNlWwaLf">云端API/本地双模</span>
+          <div class="flex flex-wrap gap-2 pt-1.5">
+            <span class="tech-chip font-mono">Python 3</span>
+            <span class="tech-chip font-mono">OCR穿透秒搜</span>
+            <span class="tech-chip font-mono">免开文档问答(RAG)</span>
+            <span class="tech-chip font-mono">方案预览/一键撤销</span>
+            <span class="tech-chip font-mono">云端API/本地双模</span>
           </div>
 
-          <!-- 操作胶囊组 -->
-          <div class="flex flex-wrap items-center gap-3 pt-4" data-page-node-id="1IkSfjrR5xN1UGh8RmXVkD">
+          <div class="flex flex-wrap items-center gap-3 pt-3">
             <a
-              href="https://wwblz.lanzouu.com/ioNFp4gc8jlg"
+              href="https://wwblz.lanzouu.com/iVHCO4gf7tvi"
               data-link="download"
-              data-copy-pwd="8tp0"
+              data-copy-pwd="5z6z"
               target="_blank"
               rel="noopener noreferrer"
-              title="蓝奏云网盘；同一份文件也在 GitHub Releases"
-              class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5" data-page-node-id="o8653gZ0xokGWHsAuSTopS"
+              title="蓝奏云网盘（点击自动复制提取码）；同一份文件也在 GitHub Releases"
+              class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5 whitespace-nowrap"
             >
-              <i data-lucide="download" class="w-3.5 h-3.5" data-page-node-id="O4d1GRFv5I3d22tbiPfm1E"></i>
-              <span data-page-node-id="AJKGKfoaSM3P4AT0qzH3nz">网盘下载<span data-pwd data-page-node-id="GC2es3wI7Cxg8IuJBVF9rs"> (提取码: 8tp0)</span></span>
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>网盘下载<span data-pwd> (提取码: 5z6z)</span></span>
             </a>
             <a
               href="https://github.com/7SteveJohn/FileButler/releases"
               data-link="releases"
-              target="_blank" 
+              target="_blank"
               rel="noopener noreferrer"
-              class="btn-secondary px-4 py-2 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white flex items-center gap-1.5" data-page-node-id="nvYeyckNFDbAU8IdGzeH0B"
+              class="btn-secondary px-4 py-2 text-xs flex items-center gap-1.5 whitespace-nowrap"
             >
-              <span data-page-node-id="ElWde7OAoglqDvU48eQG3T">GitHub Releases</span>
-              <i data-lucide="arrow-up-right" class="w-3.5 h-3.5" data-page-node-id="sqgDMAXE9f6FpRalVsblDS"></i>
+              <span>GitHub Releases</span>
+              <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
             </a>
-            <a 
-              href="https://github.com/7SteveJohn/FileButler" 
+            <a
+              href="https://github.com/7SteveJohn/FileButler"
               data-link="github"
-              target="_blank" 
+              target="_blank"
               rel="noopener noreferrer"
               class="p-2 rounded-full text-[#86868b] hover:text-black dark:hover:text-white transition"
-              title="查看 GitHub 仓库" data-page-node-id="G92SLAkXHEnc6dTuXUA0QX"
+              title="查看 GitHub 仓库"
             >
               <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
             </a>
-            <button 
-              data-open-project="filebutler"
-              class="text-xs hover:underline underline-offset-2 ml-2 cursor-pointer font-medium" data-page-node-id="zXbIjudMbp5snZGCStUyZl"
-            >
+            <button data-open-project="filebutler" class="text-xs ml-1 cursor-pointer font-medium whitespace-nowrap">
               了解更多 &gt;
             </button>
           </div>
         </div>
 
-        <!-- 大幅产品图 -->
-        <div class="px-8 sm:px-12 pb-8 sm:pb-12"><div class="cover-box rounded-xl border border-black/8 dark:border-white/10 shadow-sm overflow-hidden bg-white dark:bg-black/20" data-page-node-id="7pgoqPBEJSZhWdHTvPv45a">
-          <video
-            id="video-filebutler"
-            controls
-            playsinline
-            webkit-playsinline
-            x5-video-player-type="h5"
-            x5-playsinline="true"
-            preload="none"
-            poster="assets/images/filebutler-tour-poster.jpg"
-            src="assets/video/filebutler-intro.mp4"
-            class="cover-video"
-          ></video>
+        <div class="px-8 sm:px-12 pb-8 sm:pb-12">
+          <div class="studio-monitor">
+            <div class="studio-bar" aria-hidden="true">
+              <span class="studio-dots"><i></i><i></i><i></i></span>
+              <span class="studio-label">KEYNOTE FILM · FILEBUTLER 1.4.5</span>
+              <span class="studio-res">01:36</span>
+            </div>
+            <div class="cover-box">
+              <video
+                id="video-filebutler"
+                controls
+                loading="lazy"
+                width="1920"
+                height="1080"
+                playsinline
+                webkit-playsinline
+                x5-video-player-type="h5"
+                x5-playsinline="true"
+                preload="none"
+                poster="assets/images/filebutler-tour-poster.jpg?v=20261118v1"
+                src="assets/video/filebutler-intro.mp4?v=20261118v1"
+                class="cover-video"
+              ></video>
+            </div>
           </div>
         </div>
       </article>
 
-      <!-- 单品 2: 拍案（网文创作工作台，源码在 GitHub） -->
-      <article data-project-id="paian" class="bento-card reveal">
-        <div class="p-8 sm:p-12 space-y-4 w-full">
-            <span class="inline-block text-xs font-mono text-[#86868b] tracking-wide">
+      <!-- 单品 2: 拍案 -->
+      <article data-project-id="paian" class="bento-card product-featurette reveal">
+        <div class="p-8 sm:p-12 space-y-3.5 w-full">
+          <div class="card-spec-head">
+            <span class="card-idx">02</span>
+            <span class="card-spec-div" aria-hidden="true"></span>
+            <span class="inline-block text-xs font-mono text-[#64748b] dark:text-[#94a3b8] tracking-wide">
               Windows 桌面 · Electron / TypeScript
             </span>
-            <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white">
-              拍案 · 网文创作工作台
-            </h3>
-            <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed">为长篇小说量身打造的沉浸写作工作台。独创码字抽卡激励体系，码字净产出换抽卡，抽取 N~SSR 四级灵感卡牌专治卡文破局；网文体检四页签深度排查敏感词、口头禅与对白节奏；支持依大纲起草、场景卡片无损重排与伏笔因果牵线。</p>
-
-            <div data-facts class="project-facts" hidden></div>
-
-            <!-- 标签 -->
-            <div class="flex flex-wrap gap-2 pt-2">
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">Electron</span>
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">码字抽卡激励 (N~SSR)</span>
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">网文体检雷达</span>
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">大纲AI起草</span>
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">伏笔追踪与牵线</span>
-            </div>
-
-            <!-- 操作胶囊组 -->
-            <div class="flex flex-wrap items-center gap-3 pt-4">
-              <a
-                href="https://pan.baidu.com/s/1QRPC49ohJ0fbdrVw8sB--w?pwd=tq52"
-                data-link="download"
-                data-copy-pwd="tq52"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="百度网盘；同一份文件也在 GitHub Releases"
-                class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5"
-              >
-                <i data-lucide="download" class="w-3.5 h-3.5"></i>
-                <span>网盘下载<span data-pwd> (提取码: tq52)</span></span>
-              </a>
-              <a
-                href="https://github.com/7SteveJohn/PaiAn/releases"
-                data-link="releases"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="btn-secondary px-4 py-2 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white flex items-center gap-1.5"
-              >
-                <span>GitHub Releases</span>
-                <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
-              </a>
-              <a
-                href="https://github.com/7SteveJohn/PaiAn"
-                data-link="github"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="p-2 rounded-full text-[#86868b] hover:text-black dark:hover:text-white transition"
-                title="查看 GitHub 仓库"
-              >
-                <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
-              </a>
-              <button
-                data-open-project="paian"
-                class="text-xs hover:underline underline-offset-2 ml-2 cursor-pointer font-medium"
-              >
-                了解更多 &gt;
-              </button>
-            </div>
           </div>
-
-        <!-- 大幅产品图：卡片直接嵌全景介绍片（封面图放进详情弹窗） -->
-        <div class="px-8 sm:px-12 pb-8 sm:pb-12"><div class="cover-box rounded-xl border border-black/8 dark:border-white/10 shadow-sm overflow-hidden bg-white dark:bg-black/20">
-          <video
-            id="video-paian"
-            controls
-            playsinline
-            webkit-playsinline
-            x5-video-player-type="h5"
-            x5-playsinline="true"
-            preload="none"
-            poster="assets/images/paian-tour-poster.jpg"
-            src="assets/video/paian-intro.mp4"
-            class="cover-video"
-          ></video>
-          </div>
-        </div>
-      </article>
-
-      <!-- 单品 3: NetOps Handbook -->
-      <article data-project-id="netops-handbook" class="bento-card reveal" data-page-node-id="DVVZg6yTThmdgJ4Yjd1BzA">
-        <div class="p-8 sm:p-12 space-y-4 w-full" data-page-node-id="hxXTOau7NTk7uMoX8MFscd">
-          <span class="inline-block text-xs font-mono text-[#86868b] tracking-wide" data-page-node-id="NZeXiNwZYee2hWmZht1jpU">
-            Android 移动端 · 零权限纯离线 / 交互沙盒
-          </span>
-          <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white" data-page-node-id="rBMfW5D7X39ryJ6lq4drQh">
-            NetOps Handbook · 网络工程与排障手册
+          <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white">
+            拍案 · 网文创作工作台
           </h3>
-          <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed" data-page-node-id="FHwxP5YA9zTO72r9SvGjxs">随身携带的实战网络工程排障与面试重器。华为、Cisco、中兴与 Linux 四大主流厂商高频命令同屏并排对照；「现象 ➔ 根因 ➔ 命令 ➔ 验证」四步排障闭环，生产现场秒出处置指令；内置离线 CLI 命令行沙盒模拟器与 53 道大厂高频网络/SRE 结构化面试题库。零权限纯离线，机房地堡随时秒开。</p>
+          <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed">为长篇小说量身打造的沉浸写作工作台。独创码字抽卡激励体系，码字净产出换抽卡，抽取 N~SSR 四级灵感卡牌专治卡文破局；网文体检四页签深度排查敏感词、口头禅与对白节奏；支持依大纲起草、场景卡片无损重排与伏笔因果牵线。</p>
 
           <div data-facts class="project-facts" hidden></div>
 
-          <!-- 标签 -->
-          <div class="flex flex-wrap gap-2 pt-2" data-page-node-id="dufMGBekwn6V9eQfcvByNV">
-            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono" data-page-node-id="dqv4TadvTMDs0WwpftoRGo">Android 移动端</span>
-            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono" data-page-node-id="BKylKclYGYd4WYhcTRopHu">四厂商命令同屏对照</span>
-            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono" data-page-node-id="EbrGqrxOffbCDTcSiZ8h4O">四步闭环排障字典</span>
-            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono" data-page-node-id="2CQCrnhGsMaHOWsaX5Zuld">离线CLI交互沙盒</span>
-            <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">大厂面试STAR题库</span>
+          <div class="flex flex-wrap gap-2 pt-1.5">
+            <span class="tech-chip font-mono">Electron</span>
+            <span class="tech-chip font-mono">码字抽卡激励 (N~SSR)</span>
+            <span class="tech-chip font-mono">网文体检雷达</span>
+            <span class="tech-chip font-mono">大纲AI起草</span>
+            <span class="tech-chip font-mono">伏笔追踪与牵线</span>
           </div>
 
-          <!-- 操作胶囊组 -->
-          <div class="flex flex-wrap items-center gap-3 pt-4" data-page-node-id="Tt6QFxXW9xRBkoeZaZvdyh">
+          <div class="flex flex-wrap items-center gap-3 pt-3">
             <a
-              href="https://wwblz.lanzouu.com/iSxU64ah31kb"
+              href="https://pan.baidu.com/s/1QRPC49ohJ0fbdrVw8sB--w?pwd=tq52"
               data-link="download"
-              data-copy-pwd="5d7u"
+              data-copy-pwd="tq52"
               target="_blank"
               rel="noopener noreferrer"
-              class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5" data-page-node-id="xaqeNags8mfqcDuf0SjRYJ"
+              title="百度网盘（点击自动复制提取码）；同一份文件也在 GitHub Releases"
+              class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5 whitespace-nowrap"
             >
-              <i data-lucide="download" class="w-3.5 h-3.5" data-page-node-id="R1gbZ2tWemOzNoWsRuGjX1"></i>
-              <span data-page-node-id="1wdvl7HDvWiZ1GoTLnOVdu">网盘下载<span data-pwd data-page-node-id="NrboFVWcvMPU0wHhlSzMgC"> (提取码: 5d7u)</span></span>
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>网盘下载<span data-pwd> (提取码: tq52)</span></span>
+            </a>
+            <a
+              href="https://github.com/7SteveJohn/PaiAn/releases"
+              data-link="releases"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn-secondary px-4 py-2 text-xs flex items-center gap-1.5 whitespace-nowrap"
+            >
+              <span>GitHub Releases</span>
+              <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+            </a>
+            <a
+              href="https://github.com/7SteveJohn/PaiAn"
+              data-link="github"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="p-2 rounded-full text-[#86868b] hover:text-black dark:hover:text-white transition"
+              title="查看 GitHub 仓库"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+            </a>
+            <button data-open-project="paian" class="text-xs ml-1 cursor-pointer font-medium whitespace-nowrap">
+              了解更多 &gt;
+            </button>
+          </div>
+        </div>
+
+        <div class="px-8 sm:px-12 pb-8 sm:pb-12">
+          <div class="studio-monitor">
+            <div class="studio-bar" aria-hidden="true">
+              <span class="studio-dots"><i></i><i></i><i></i></span>
+              <span class="studio-label">PREVIEW · PAIAN STUDIO</span>
+              <span class="studio-res">1080P</span>
+            </div>
+            <div class="cover-box">
+              <video
+                id="video-paian"
+                controls
+                loading="lazy"
+                width="1920"
+                height="1080"
+                playsinline
+                webkit-playsinline
+                x5-video-player-type="h5"
+                x5-playsinline="true"
+                preload="none"
+                poster="assets/images/paian-tour-poster.jpg"
+                src="assets/video/paian-intro.mp4"
+                class="cover-video"
+              ></video>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 单品 3: 脉络（原 NetOps Handbook） -->
+      <article data-project-id="netops-handbook" class="bento-card product-featurette reveal">
+        <div class="p-8 sm:p-12 space-y-3.5 w-full">
+          <div class="card-spec-head">
+            <span class="card-idx">03</span>
+            <span class="card-spec-div" aria-hidden="true"></span>
+            <span class="inline-block text-xs font-mono text-[#64748b] dark:text-[#94a3b8] tracking-wide">
+              Android 原生应用 · Jetpack Compose / 液态玻璃 / 零权限离线
+            </span>
+          </div>
+          <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white">
+            脉络 · 离线网络工程与运维手册
+          </h3>
+          <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed">装进口袋的离线网络工程与 Linux / 云原生系统运维随身手册。全新接入 120 万字「运维教材全书」（12 大领域 · 50 章 · 1,003 小节，全局倒排索引秒搜 &lt; 0.3ms）；华为、Cisco、中兴、Linux 与 Windows 五平台 76 条高频命令同屏对照，覆盖 89 个知识模块与 41 个四步闭环排障案例；内置 738 条离线 CLI 沙盒模拟器、53 道 STAR 面试真题与 199 道自测题。全站 Jetpack Compose + 液态玻璃原生重构，零权限纯离线，机房随时秒开。</p>
+
+          <div data-facts class="project-facts" hidden></div>
+
+          <div class="flex flex-wrap gap-2 pt-1.5">
+            <span class="tech-chip font-mono">Jetpack Compose</span>
+            <span class="tech-chip font-mono">120万字运维教材</span>
+            <span class="tech-chip font-mono">五平台命令对照</span>
+            <span class="tech-chip font-mono">738条离线CLI沙盒</span>
+            <span class="tech-chip font-mono">Liquid Glass液态玻璃</span>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3 pt-3">
+            <a
+              href="https://wwblz.lanzouu.com/b00q1vy4ra"
+              data-link="download"
+              data-copy-pwd="991e"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="蓝奏云网盘（点击自动复制提取码）；同一份文件也在 GitHub Releases"
+              class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5 whitespace-nowrap"
+            >
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>网盘下载<span data-pwd> (提取码: 991e)</span></span>
             </a>
             <a
               href="https://github.com/7SteveJohn/netops-handbook/releases"
               data-link="releases"
-              target="_blank" 
+              target="_blank"
               rel="noopener noreferrer"
-              class="btn-secondary px-4 py-2 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white flex items-center gap-1.5" data-page-node-id="5ZViMqwmGk1UBb33fsrY9s"
+              class="btn-secondary px-4 py-2 text-xs flex items-center gap-1.5 whitespace-nowrap"
             >
-              <span data-page-node-id="u2NzKvoOrEboX0f6laEr3h">GitHub Releases</span>
-              <i data-lucide="arrow-up-right" class="w-3.5 h-3.5" data-page-node-id="IbRFn7kiewUaRuwejlVbVA"></i>
+              <span>GitHub Releases</span>
+              <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
             </a>
-            <a 
-              href="https://github.com/7SteveJohn/netops-handbook" 
+            <a
+              href="https://github.com/7SteveJohn/netops-handbook"
               data-link="github"
-              target="_blank" 
+              target="_blank"
               rel="noopener noreferrer"
               class="p-2 rounded-full text-[#86868b] hover:text-black dark:hover:text-white transition"
-              title="查看 GitHub 仓库" data-page-node-id="x2QPP4RasfRfUW8QrrqE1B"
+              title="查看 GitHub 仓库"
             >
               <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
             </a>
-            <button 
-              data-open-project="netops-handbook"
-              class="text-xs hover:underline underline-offset-2 ml-2 cursor-pointer font-medium" data-page-node-id="j15RHXRViQFCgJfJ2RrAwL"
-            >
+            <button data-open-project="netops-handbook" class="text-xs ml-1 cursor-pointer font-medium whitespace-nowrap">
               了解更多 &gt;
             </button>
           </div>
         </div>
 
-        <!-- 大幅产品图 -->
-        <div class="px-8 sm:px-12 pb-8 sm:pb-12"><div class="cover-box rounded-xl border border-black/8 dark:border-white/10 shadow-sm overflow-hidden bg-white dark:bg-black/20" data-page-node-id="x4pADpkMbOT0n6J38pmSfR">
-          <video
-            id="video-netops-handbook"
-            controls
-            playsinline
-            webkit-playsinline
-            x5-video-player-type="h5"
-            x5-playsinline="true"
-            preload="none"
-            poster="assets/images/netops-tour-poster.jpg"
-            src="assets/video/netops-intro.mp4"
-            class="cover-video"
-          ></video>
+        <div class="px-8 sm:px-12 pb-8 sm:pb-12">
+          <div class="studio-monitor">
+            <div class="studio-bar" aria-hidden="true">
+              <span class="studio-dots"><i></i><i></i><i></i></span>
+              <span class="studio-label">KEYNOTE FILM · NETCRAFT 2.1</span>
+              <span class="studio-res">01:38</span>
+            </div>
+            <div class="cover-box">
+              <video
+                id="video-netops-handbook"
+                controls
+                loading="lazy"
+                width="1920"
+                height="1080"
+                playsinline
+                webkit-playsinline
+                x5-video-player-type="h5"
+                x5-playsinline="true"
+                preload="none"
+                poster="assets/images/netops-tour-poster.jpg?v=20261118v2"
+                src="assets/video/netops-intro.mp4?v=20261118v2"
+                class="cover-video"
+              ></video>
+            </div>
           </div>
         </div>
       </article>
 
-      <!-- 单品 4: Fluxion（完整版） -->
-      <article data-project-id="fluxion" class="bento-card reveal">
-        <div class="p-8 sm:p-12 space-y-4 w-full">
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="inline-block text-xs font-mono text-[#86868b] tracking-wide">
-                Windows 原生工具 · C# / WinForms
-              </span>
-            </div>
-            <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white">
-              Fluxion · 完整版性能套件
-            </h3>
-            <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed">Windows 竞技级游戏性能套件。RTX 20/30 系老显卡强开 DLSS 帧生成，实测帧率 120 ➔ 280 FPS 瞬间翻倍；51 项底层体检专治对战交火 1% Low 掉帧卡顿与输入延迟；进游戏自适应调优，退出瞬时无感还原。</p>
+      <!-- 单品 4: Fluxion -->
+      <article data-project-id="fluxion" class="bento-card product-featurette reveal">
+        <div class="p-8 sm:p-12 space-y-3.5 w-full">
+          <div class="card-spec-head">
+            <span class="card-idx">04</span>
+            <span class="card-spec-div" aria-hidden="true"></span>
+            <span class="inline-block text-xs font-mono text-[#64748b] dark:text-[#94a3b8] tracking-wide">
+              Windows 原生工具 · C# / WinForms
+            </span>
+          </div>
+          <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white">
+            Fluxion · 完整版性能套件
+          </h3>
+          <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed">Windows 竞技级游戏性能套件。RTX 20/30 系老显卡强开 DLSS 帧生成，实测帧率 120 ➔ 280 FPS 瞬间翻倍；51 项底层体检专治对战交火 1% Low 掉帧卡顿与输入延迟；进游戏自适应调优，退出瞬时无感还原。</p>
 
-            <div data-facts class="project-facts" hidden></div>
+          <div data-facts class="project-facts" hidden></div>
 
-            <!-- 标签 -->
-            <div class="flex flex-wrap gap-2 pt-2">
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">C# 原生编译</span>
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">RTX 20/30 强开DLSS帧生成</span>
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">51项底层体检</span>
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">治1% Low掉帧</span>
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">游戏联动/无损还原</span>
-            </div>
-
-            <!-- 操作胶囊组 -->
-            <div class="flex flex-wrap items-center gap-3 pt-4">
-              <a
-                href="https://wwblz.lanzouu.com/b00q1uwpcd"
-                data-link="download"
-                data-copy-pwd="gepp"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5"
-              >
-                <i data-lucide="download" class="w-3.5 h-3.5"></i>
-                <span>网盘下载<span data-pwd> (提取码: gepp)</span></span>
-              </a>
-              <a
-                href="https://github.com/7SteveJohn/Fluxion/releases"
-                data-link="releases"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="btn-secondary px-4 py-2 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white flex items-center gap-1.5"
-              >
-                <span>GitHub Releases</span>
-                <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
-              </a>
-              <a
-                href="https://github.com/7SteveJohn/Fluxion"
-                data-link="github"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="p-2 rounded-full text-[#86868b] hover:text-black dark:hover:text-white transition"
-                title="查看 GitHub 仓库"
-              >
-                <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
-              </a>
-              <button
-                data-open-project="fluxion"
-                class="text-xs hover:underline underline-offset-2 ml-2 cursor-pointer font-medium"
-              >
-                全部功能明细 &gt;
-              </button>
-            </div>
+          <div class="flex flex-wrap gap-2 pt-1.5">
+            <span class="tech-chip font-mono">C# 原生编译</span>
+            <span class="tech-chip font-mono">RTX 20/30 强开DLSS帧生成</span>
+            <span class="tech-chip font-mono">51项底层体检</span>
+            <span class="tech-chip font-mono">治1% Low掉帧</span>
+            <span class="tech-chip font-mono">游戏联动/无损还原</span>
           </div>
 
-        <!-- 大幅产品图 -->
-        <div class="px-8 sm:px-12 pb-8 sm:pb-12"><div class="cover-box rounded-xl border border-black/8 dark:border-white/10 shadow-sm overflow-hidden bg-white dark:bg-black/20">
-          <video
-            id="video-fluxion"
-            controls
-            playsinline
-            webkit-playsinline
-            x5-video-player-type="h5"
-            x5-playsinline="true"
-            preload="none"
-            poster="assets/images/fluxion-tour-poster.jpg"
-            src="assets/video/fluxion-intro.mp4"
-            class="cover-video"
-          ></video>
+          <div class="flex flex-wrap items-center gap-3 pt-3">
+            <a
+              href="https://wwblz.lanzouu.com/b00q1vy56f"
+              data-link="download"
+              data-copy-pwd="7j06"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="蓝奏云网盘（点击自动复制提取码）；同一份文件也在 GitHub Releases"
+              class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5 whitespace-nowrap"
+            >
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>网盘下载<span data-pwd> (提取码: 7j06)</span></span>
+            </a>
+            <a
+              href="https://github.com/7SteveJohn/Fluxion/releases"
+              data-link="releases"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn-secondary px-4 py-2 text-xs flex items-center gap-1.5 whitespace-nowrap"
+            >
+              <span>GitHub Releases</span>
+              <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+            </a>
+            <a
+              href="https://github.com/7SteveJohn/Fluxion"
+              data-link="github"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="p-2 rounded-full text-[#86868b] hover:text-black dark:hover:text-white transition"
+              title="查看 GitHub 仓库"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+            </a>
+            <button data-open-project="fluxion" class="text-xs ml-1 cursor-pointer font-medium whitespace-nowrap">
+              全部功能明细 &gt;
+            </button>
+          </div>
+        </div>
+
+        <div class="px-8 sm:px-12 pb-8 sm:pb-12">
+          <div class="studio-monitor">
+            <div class="studio-bar" aria-hidden="true">
+              <span class="studio-dots"><i></i><i></i><i></i></span>
+              <span class="studio-label">PREVIEW · FLUXION SUITE</span>
+              <span class="studio-res">1080P</span>
+            </div>
+            <div class="cover-box">
+              <video
+                id="video-fluxion"
+                controls
+                loading="lazy"
+                width="1920"
+                height="1080"
+                playsinline
+                webkit-playsinline
+                x5-video-player-type="h5"
+                x5-playsinline="true"
+                preload="none"
+                poster="assets/images/fluxion-tour-poster.jpg"
+                src="assets/video/fluxion-intro.mp4"
+                class="cover-video"
+              ></video>
+            </div>
           </div>
         </div>
       </article>
 
-      <!-- 单品 5: Stacky（桌面卡片矩阵与启动台） -->
-      <article data-project-id="stacky" class="bento-card reveal">
-        <div class="p-8 sm:p-12 space-y-4 w-full">
-            <span class="inline-block text-xs font-mono text-[#86868b] tracking-wide">
+      <!-- 单品 5: Stacky -->
+      <article data-project-id="stacky" class="bento-card product-featurette reveal">
+        <div class="p-8 sm:p-12 space-y-3.5 w-full">
+          <div class="card-spec-head">
+            <span class="card-idx">05</span>
+            <span class="card-spec-div" aria-hidden="true"></span>
+            <span class="inline-block text-xs font-mono text-[#64748b] dark:text-[#94a3b8] tracking-wide">
               Windows 桌面 · PySide6 / Qt
             </span>
-            <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white">
-              Stacky · 桌面卡片矩阵与启动台
-            </h3>
-            <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed">把常用应用、文件夹和小组件收进桌面上的超椭圆卡片。分类直接映射硬盘上的真实目录，拖进去就是真移动，卸载也不删文件；抽屉里输入即过滤文件，也能算数学表达式、直接执行系统命令或打开网址。</p>
+          </div>
+          <h3 class="text-2xl font-semibold tracking-tight text-[#1d1d1f] dark:text-white">
+            Stacky · 桌面卡片矩阵与启动台
+          </h3>
+          <p data-card-desc class="text-sm sm:text-base text-[#86868b] leading-relaxed">把常用应用、文件夹和小组件收进桌面上的超椭圆卡片。分类直接映射硬盘上的真实目录，拖进去就是真移动，卸载也不删文件；抽屉里输入即过滤文件，也能算数学表达式、直接执行系统命令或打开网址。</p>
 
-            <div data-facts class="project-facts" hidden></div>
+          <div data-facts class="project-facts" hidden></div>
 
-            <!-- 标签 -->
-            <div class="flex flex-wrap gap-2 pt-2">
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">PySide6 / Qt</span>
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">真实目录映射</span>
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">16px 网格吸附</span>
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">系统命令直达</span>
-              <span class="px-2.5 py-1 text-xs rounded-md bg-black/5 dark:bg-white/10 text-[#86868b] dark:text-slate-300 font-mono">六类桌面小组件</span>
-            </div>
-
-            <!-- 操作胶囊组 -->
-            <div class="flex flex-wrap items-center gap-3 pt-4">
-              <a
-                href="https://wwblz.lanzouu.com/b00q1vo3eb"
-                data-link="download"
-                data-copy-pwd="56p0"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="蓝奏云网盘；同一份文件也在 GitHub Releases"
-                class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5"
-              >
-                <i data-lucide="download" class="w-3.5 h-3.5"></i>
-                <span>网盘下载<span data-pwd> (提取码: 56p0)</span></span>
-              </a>
-              <a
-                href="https://github.com/7SteveJohn/Stacky/releases"
-                data-link="releases"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="btn-secondary px-4 py-2 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white flex items-center gap-1.5"
-              >
-                <span>GitHub Releases</span>
-                <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
-              </a>
-              <a
-                href="https://github.com/7SteveJohn/Stacky"
-                data-link="github"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="p-2 rounded-full text-[#86868b] hover:text-black dark:hover:text-white transition"
-                title="查看 GitHub 仓库"
-              >
-                <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
-              </a>
-              <button
-                data-open-project="stacky"
-                class="text-xs hover:underline underline-offset-2 ml-2 cursor-pointer font-medium"
-              >
-                全部功能明细 &gt;
-              </button>
-            </div>
+          <div class="flex flex-wrap gap-2 pt-1.5">
+            <span class="tech-chip font-mono">PySide6 / Qt</span>
+            <span class="tech-chip font-mono">真实目录映射</span>
+            <span class="tech-chip font-mono">16px 网格吸附</span>
+            <span class="tech-chip font-mono">系统命令直达</span>
+            <span class="tech-chip font-mono">六类桌面小组件</span>
           </div>
 
-        <!-- 大幅产品图 -->
-        <div class="px-8 sm:px-12 pb-8 sm:pb-12"><div class="cover-box rounded-xl border border-black/8 dark:border-white/10 shadow-sm overflow-hidden bg-white dark:bg-black/20">
-          <video
-            id="video-stacky"
-            controls
-            playsinline
-            webkit-playsinline
-            x5-video-player-type="h5"
-            x5-playsinline="true"
-            preload="none"
-            poster="assets/images/stacky-tour-poster.jpg"
-            src="assets/video/stacky-intro.mp4"
-            class="cover-video"
-          ></video>
+          <div class="flex flex-wrap items-center gap-3 pt-3">
+            <a
+              href="https://wwblz.lanzouu.com/b00q1vx53g"
+              data-link="download"
+              data-copy-pwd="475v"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="蓝奏云网盘（点击自动复制提取码）；同一份文件也在 GitHub Releases"
+              class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5 whitespace-nowrap"
+            >
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>网盘下载<span data-pwd> (提取码: 475v)</span></span>
+            </a>
+            <a
+              href="https://github.com/7SteveJohn/Stacky/releases"
+              data-link="releases"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn-secondary px-4 py-2 text-xs flex items-center gap-1.5 whitespace-nowrap"
+            >
+              <span>GitHub Releases</span>
+              <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+            </a>
+            <a
+              href="https://github.com/7SteveJohn/Stacky"
+              data-link="github"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="p-2 rounded-full text-[#86868b] hover:text-black dark:hover:text-white transition"
+              title="查看 GitHub 仓库"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+            </a>
+            <button data-open-project="stacky" class="text-xs ml-1 cursor-pointer font-medium whitespace-nowrap">
+              全部功能明细 &gt;
+            </button>
+          </div>
+        </div>
+
+        <div class="px-8 sm:px-12 pb-8 sm:pb-12">
+          <div class="studio-monitor">
+            <div class="studio-bar" aria-hidden="true">
+              <span class="studio-dots"><i></i><i></i><i></i></span>
+              <span class="studio-label">PREVIEW · STACKY MATRIX</span>
+              <span class="studio-res">1080P</span>
+            </div>
+            <div class="cover-box">
+              <video
+                id="video-stacky"
+                controls
+                loading="lazy"
+                width="1920"
+                height="1080"
+                playsinline
+                webkit-playsinline
+                x5-video-player-type="h5"
+                x5-playsinline="true"
+                preload="none"
+                poster="assets/images/stacky-tour-poster.jpg"
+                src="assets/video/stacky-intro.mp4"
+                class="cover-video"
+              ></video>
+            </div>
           </div>
         </div>
       </article>
 
-      <!-- 历史项目（2026-11-02）：GameBoost 与 GameBoost-DLSSG 的功能已并入 Fluxion，
-           完成版上架后从主展示撤下，默认收起留档；详情仍走项目弹窗 -->
+      <!-- 历史项目归档抽屉 -->
       <details class="proj-archive reveal">
         <summary>
           <span class="pa-label">历史项目</span>
@@ -785,52 +853,70 @@
 
     </section>
 
- <!-- 4. 📐 做工具的原则-->
-    <section id="philosophy" class="max-w-5xl mx-auto px-4 sm:px-6 space-y-8 scroll-mt-20" data-page-node-id="SbDgjaCqYMy690zENXMBbA">
-      <div class="reveal text-center space-y-2" data-page-node-id="pqy9PFoV0DLC3gjVmLBd69">
-        <p class="text-2xl sm:text-3xl font-bold tracking-tight text-[#1d1d1f] dark:text-white" data-page-node-id="lOaCH5FJalPdytIyMHMpfb">做工具的几条原则</p>
+    <!-- 3. 做工具的原则 -->
+    <section id="philosophy" class="max-w-5xl mx-auto px-4 sm:px-6 space-y-8 scroll-mt-20">
+      <div class="reveal text-center space-y-2">
+        <span class="section-eyebrow">ENGINEERING PRINCIPLES</span>
+        <p class="text-2xl sm:text-3xl font-bold tracking-tight text-[#1d1d1f] dark:text-white">做工具的几条原则</p>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8" data-reveal-stagger data-page-node-id="iloJjGrp0eSxCfxYhBKLCm">
-        <!-- 理念 1 -->
-        <div class="reveal" data-page-node-id="I90HOjH8LgbmWRl2wIHXnX">
-          <div class="text-xs font-mono text-[#86868b] phil-no" data-page-node-id="CZijEOUxJ85woNmIBU8eH3">01</div>
-          <h3 class="text-base font-semibold text-[#1d1d1f] dark:text-white mt-2" data-page-node-id="eTHTOnN60SFOPbs5Bs3SFY">改动可逆，操作可控</h3>
-          <p class="text-sm text-[#86868b] leading-relaxed mt-2" data-page-node-id="3YtXpSiNWUP3JN9f1TA53T">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6" data-reveal-stagger>
+        <div class="reveal phil-card">
+          <div class="phil-head">
+            <span class="text-xs font-mono phil-no">01</span>
+            <span class="phil-tag font-mono">REVERSIBLE</span>
+          </div>
+          <h3 class="text-base font-semibold text-[#1d1d1f] dark:text-white mt-3">改动可逆，操作可控</h3>
+          <p class="text-sm text-[#64748b] dark:text-[#94a3b8] leading-relaxed mt-2">
             涉及系统修改与文件变更的操作，先出清单预览、做好日志记录，改动清晰明确，随时能够完整撤销还原。
           </p>
         </div>
 
-        <!-- 理念 2 -->
-        <div class="reveal" data-page-node-id="jUUilof4vu2o2dXT7W7T2b">
-          <div class="text-xs font-mono text-[#86868b] phil-no" data-page-node-id="PCEddAhHA7ibabwmFFGIaa">02</div>
-          <h3 class="text-base font-semibold text-[#1d1d1f] dark:text-white mt-2" data-page-node-id="0BqjB0OBZC2uyqGjfNGnrO">保持轻量与克制</h3>
-          <p class="text-sm text-[#86868b] leading-relaxed mt-2" data-page-node-id="htShKOZFCOLlok6qxcD6Fi">
+        <div class="reveal phil-card">
+          <div class="phil-head">
+            <span class="text-xs font-mono phil-no">02</span>
+            <span class="phil-tag font-mono">LIGHTWEIGHT</span>
+          </div>
+          <h3 class="text-base font-semibold text-[#1d1d1f] dark:text-white mt-3">保持轻量与克制</h3>
+          <p class="text-sm text-[#64748b] dark:text-[#94a3b8] leading-relaxed mt-2">
             优先调用系统自带的原生能力，不塞不必要的重型依赖；专注做好核心功能，不用时不常驻，不打扰电脑日常。
           </p>
         </div>
 
-        <!-- 理念 3 -->
-        <div class="reveal" data-page-node-id="w4UOa2kzjIPLV4EXWN8vIr">
-          <div class="text-xs font-mono text-[#86868b] phil-no" data-page-node-id="NED5OLNUZl0F7P9kfBrwt8">03</div>
-          <h3 class="text-base font-semibold text-[#1d1d1f] dark:text-white mt-2" data-page-node-id="kdJ9y0cWssXUW0pV4g674V">做真正趁手的自用工具</h3>
-          <p class="text-sm text-[#86868b] leading-relaxed mt-2" data-page-node-id="WL1lnFIJCrZEzoLAVDfovl">
+        <div class="reveal phil-card">
+          <div class="phil-head">
+            <span class="text-xs font-mono phil-no">03</span>
+            <span class="phil-tag font-mono">DOGFOODING</span>
+          </div>
+          <h3 class="text-base font-semibold text-[#1d1d1f] dark:text-white mt-3">做真正趁手的自用工具</h3>
+          <p class="text-sm text-[#64748b] dark:text-[#94a3b8] leading-relaxed mt-2">
             始于自己日常使用中真切碰到的不顺手。不堆花哨无用的功能，把最常用的几个动作打磨顺畅，自己每天都乐意用。
           </p>
         </div>
       </div>
     </section>
 
- <!-- 5. ✍️ 技术手记与博客-->
-    <!-- ======================== 关于我 ======================== -->
+    <!-- 4. 关于我 -->
     <section id="about" class="max-w-5xl mx-auto px-4 sm:px-6 scroll-mt-20">
-      <div class="reveal bento-card p-6 sm:p-8">
+      <div class="reveal bento-card about-dossier p-6 sm:p-9">
         <div class="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
-          <img src="assets/images/avatar.webp" alt="SevenJohn 的头像" class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover shrink-0 border border-white/15 shadow-md bg-slate-900" loading="lazy" />
-          <div class="space-y-4 flex-1">
-            <div>
-              <h2 class="text-2xl font-bold tracking-tight text-[#1d1d1f] dark:text-white">关于我</h2>
-              <p class="text-sm text-[#86868b] mt-1">独立开发者 · 写桌面工具、端侧应用与系统调优。</p>
+          <div class="about-avatar-col shrink-0">
+            <img src="assets/images/avatar.webp" alt="SevenJohn 的头像" class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border border-black/10 dark:border-white/15 shadow-md bg-slate-900" loading="lazy" />
+          </div>
+          <div class="space-y-4 flex-1 min-w-0">
+            <div class="flex flex-wrap items-baseline justify-between gap-2">
+              <div>
+                <span class="section-eyebrow">CREATOR PROFILE</span>
+                <h2 class="text-2xl font-bold tracking-tight text-[#1d1d1f] dark:text-white mt-0.5">关于我</h2>
+                <p class="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">独立开发者 · 写桌面工具、端侧应用与系统调优。</p>
+              </div>
+              <div class="about-stack-pills">
+                <span class="tech-chip font-mono">Python</span>
+                <span class="tech-chip font-mono">C# / .NET</span>
+                <span class="tech-chip font-mono">Jetpack Compose</span>
+                <span class="tech-chip font-mono">TypeScript</span>
+                <span class="tech-chip font-mono">Local LLM</span>
+              </div>
             </div>
             <p class="text-sm text-[#1d1d1f] dark:text-[#f5f5f7] leading-relaxed">
               我是 SevenJohn。平时经常写些自己用得上的桌面工具、系统辅助和小软件。
@@ -838,12 +924,18 @@
             <p class="text-sm text-[#1d1d1f] dark:text-[#f5f5f7] leading-relaxed">
               写这些东西，大多是因为日常折腾时碰到了不顺手的地方，市面上又找不到合心意的，便自己动手写一个。自己用顺手了，就整理开源出来，希望能给有同样需求的朋友多一个踏实的选择。
             </p>
-            <div class="flex flex-wrap gap-3 text-xs pt-1">
+            <div class="flex flex-wrap gap-2.5 text-xs pt-1">
               <a href="mailto:sevenksq@163.com" class="about-contact-chip inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition" title="发送邮件联系">
                 <span>✉ sevenksq@163.com</span>
               </a>
               <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="about-contact-chip inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition" title="访问 GitHub 主页">
                 <span>GitHub @7SteveJohn</span>
+              </a>
+              <a href="archive.html" class="about-contact-chip inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition" title="查看时间线归档">
+                <span>时间河归档 →</span>
+              </a>
+              <a href="rss.xml" target="_blank" class="about-contact-chip inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition" title="RSS 订阅源">
+                <span>RSS 订阅</span>
               </a>
             </div>
           </div>
@@ -851,113 +943,118 @@
       </div>
     </section>
 
-    <section id="blog" class="max-w-5xl mx-auto px-4 sm:px-6 space-y-6 scroll-mt-20" data-page-node-id="kIAwZ7BTw3BsDxY0a8YyUh">
-      <div class="reveal border-b border-[#d2d2d7]/50 dark:border-white/10 pb-4 flex items-end justify-between" data-page-node-id="Dss6KGnyspLxm8aQanenf7">
-        <div data-page-node-id="5Tc9uYIUUw5VLmkXzLkvTP">
-          <p class="font-display text-2xl text-[#1d1d1f] dark:text-white mt-1" data-page-node-id="gqS5KeNqQBU0NZpDzMH5Zg">文章 · 开发手记、创作随笔与 AI 学习</p>
+    <!-- 5. 技术手记与博客 -->
+    <section id="blog" class="max-w-5xl mx-auto px-4 sm:px-6 space-y-6 scroll-mt-20">
+      <div class="reveal blog-head-bar border-b border-[#d2d2d7]/50 dark:border-white/10 pb-4 flex items-end justify-between">
+        <div>
+          <span class="section-eyebrow">FIELD NOTES &amp; DECKS</span>
+          <p class="font-display text-2xl text-[#1d1d1f] dark:text-white mt-1">文章 · 开发手记、创作随笔与 AI 学习</p>
         </div>
-        <div class="flex items-center gap-4 pb-1.5">
-          <p id="blog-count" class="text-xs text-[#86868b] whitespace-nowrap"></p>
-          <button id="blog-view-deck" type="button" class="text-xs text-[#86868b] hover:text-black dark:hover:text-white transition whitespace-nowrap cursor-pointer">札签卷宗</button>
-          <button id="blog-view-list" type="button" class="text-xs text-[#86868b] hover:text-black dark:hover:text-white transition whitespace-nowrap cursor-pointer">文章列表</button>
-          <a href="archive.html" class="text-xs text-[#86868b] hover:text-black dark:hover:text-white transition whitespace-nowrap">全部文章 → 归档</a>
+        <div class="flex items-center gap-3 pb-0.5">
+          <p id="blog-count" class="text-xs font-mono text-[#86868b] whitespace-nowrap"></p>
+          <div class="blog-seg-ctrl" role="group" aria-label="文章视图切换">
+            <button id="blog-view-deck" type="button" class="blog-seg-btn is-active cursor-pointer">札签卷宗</button>
+            <button id="blog-view-list" type="button" class="blog-seg-btn cursor-pointer">文章列表</button>
+          </div>
+          <a href="archive.html" class="blog-archive-link text-xs text-[#64748b] dark:text-[#94a3b8] hover:text-black dark:hover:text-white transition whitespace-nowrap">全部文章 → 归档</a>
         </div>
       </div>
 
-      <!-- 从这里开始（2026-10-31）：21 篇手记没有入口，新访客默认行为是直接关掉。
-           挑两篇最能代表作者的放列表前面：一篇讲技术取舍（对应主打产品），
-           一篇是拿来就能用的实操。复用 data-open-article 的弹窗机制，不新增 JS -->
+      <!-- 精选导读双栏条（清晰毛玻璃底衬，消除背景粒子穿字干扰） -->
       <div class="start-here reveal">
-        <p class="start-here-label">从这里开始</p>
-        <button type="button" data-open-article="filebutler-local-rag" class="start-here-item">
-          <span>本地文件管家：秒搜与可撤销怎么同时成立</span>
-          <span class="start-here-arrow" aria-hidden="true">→</span>
-        </button>
-        <button type="button" data-open-article="local-llm-8gb-vram" class="start-here-item">
-          <span>8GB 显存跑本地大模型：先算显存账，再挑模型</span>
-          <span class="start-here-arrow" aria-hidden="true">→</span>
-        </button>
+        <div class="start-here-head">
+          <span class="start-here-label">START HERE · 从这里开始</span>
+        </div>
+        <div class="start-here-grid">
+          <button type="button" data-open-article="filebutler-local-rag" class="start-here-item">
+            <span class="sh-meta font-mono">01 · 架构取舍</span>
+            <span class="sh-title">本地文件管家：秒搜与可撤销怎么同时成立</span>
+            <span class="start-here-arrow" aria-hidden="true">→</span>
+          </button>
+          <button type="button" data-open-article="local-llm-8gb-vram" class="start-here-item">
+            <span class="sh-meta font-mono">02 · 端侧实操</span>
+            <span class="sh-title">8GB 显存跑本地大模型：先算显存账，再挑模型</span>
+            <span class="start-here-arrow" aria-hidden="true">→</span>
+          </button>
+        </div>
       </div>
 
-      <!-- 卷宗视图（默认）：js/cards.js 的 shelf 模式懒加载注入，点卷宗开全屏 portal；
-           与下方列表二选一显示，切换由 app.js initBlogCards 管理（sj.blogView 记忆） -->
+      <!-- 卷宗视图（默认原地拆封抽卡） -->
       <div id="blog-cards" class="cards-scope cards-scope--inline" hidden></div>
 
-      <div id="articles-list" class="space-y-3" data-reveal-stagger data-page-node-id="Lmp1jklPMyBpo7A9D2cowh">
-        <!-- 动态渲染或无文章时自动隐藏 -->
-      </div>
+      <!-- 列表视图 -->
+      <div id="articles-list" class="space-y-3" data-reveal-stagger></div>
 
-      <!-- 分类目录（附录位，默认收起）：卡包是主角，目录退居其后；
-           展开=两级索引（卷宗名+篇数 / 每篇文章标题），initBlogCards 渲染 -->
+      <!-- 分类目录附录 -->
       <div id="blog-toc"></div>
     </section>
 
   </main>
 
-  <!-- 回到顶部浮动按钮（滚动 600px 后出现） -->
+  <!-- 回到顶部浮动按钮 -->
   <button
     id="back-to-top"
     aria-label="回到顶部"
-    class="fixed bottom-6 right-6 z-40 w-10 h-10 rounded-full bg-white dark:bg-[#1d1d1f] border border-black/10 dark:border-white/15 shadow-lg text-[#1d1d1f] dark:text-white flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-200 cursor-pointer hover:border-black dark:hover:border-white" data-page-node-id="qTwSq7dZNa82I1qy0XofBk"
+    class="fixed bottom-6 right-6 z-40 w-10 h-10 rounded-full bg-white dark:bg-[#1d1d1f] border border-black/10 dark:border-white/15 shadow-lg text-[#1d1d1f] dark:text-white flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-200 cursor-pointer hover:border-black dark:hover:border-white"
   >
-    <i data-lucide="chevron-up" class="w-4 h-4" data-page-node-id="61XSxWizqJiZt0kGBG7nSn"></i>
+    <i data-lucide="chevron-up" class="w-4 h-4"></i>
   </button>
 
-  <!-- 逐页下翻按钮：点击滑到下一个区块，一页一页翻（显隐由 app.js 随滚动切换） -->
+  <!-- 逐页下翻按钮 -->
   <button id="page-next" aria-label="翻到下一页" class="glass-spec opacity-0 pointer-events-none">
     <i data-lucide="chevron-down" class="w-4 h-4"></i>
   </button>
 
-  <footer class="border-t border-[#d2d2d7]/50 dark:border-white/10 py-12 bg-slate-50 dark:bg-[#0a0a0c] text-xs text-[#86868b]" data-page-node-id="HKKYWCDR6Pf2PlZcm4CSM9">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 space-y-4" data-page-node-id="hd9e5GkgHeZOv5I5aQgza5">
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-4" data-page-node-id="HFQWgR5wz5UEe6xATMbbvl">
-        <div data-page-node-id="64p5L4FEwdfZHEJGt0SLhz">
-          <span class="font-semibold text-black dark:text-white" data-page-node-id="BDWPAOqNAWLhm1vyFdyZAy">楠屿札记</span>
-          <span data-page-node-id="GCbCnbz68NsfIcAtbmDlSf">· 本地工具、技术手记与文字创作</span>
+  <footer class="site-footer border-t border-[#d2d2d7]/50 dark:border-white/10 py-12 bg-slate-50/90 dark:bg-[#080b12]/90 text-xs text-[#86868b]">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 space-y-4">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <span class="font-semibold text-black dark:text-white">楠屿札记</span>
+          <span>· 本地工具、技术手记与文字创作</span>
         </div>
-        <div class="flex items-center gap-6" data-page-node-id="UarKTP2SX9BcJHhpau0bUS">
-          <a href="#home" class="hover:text-black dark:hover:text-white transition" data-page-node-id="3eDalBFwYjoNKhDdoBPyvF">回到顶部 ↑</a>
+        <div class="flex flex-wrap items-center justify-center gap-5">
+          <a href="#home" class="hover:text-black dark:hover:text-white transition">回到顶部 ↑</a>
           <a href="archive.html" class="hover:text-black dark:hover:text-white transition">归档</a>
           <a href="gallery.html" class="hover:text-black dark:hover:text-white transition">照片墙</a>
-
+          <a href="rss.xml" target="_blank" class="hover:text-black dark:hover:text-white transition">RSS</a>
           <a href="mailto:sevenksq@163.com" class="hover:text-black dark:hover:text-white transition">sevenksq@163.com</a>
-          <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="hover:text-black dark:hover:text-white transition" data-page-node-id="0VBHbCwE7UYE2eV7xE1B4m">@7SteveJohn</a>
+          <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="hover:text-black dark:hover:text-white transition">@7SteveJohn</a>
         </div>
       </div>
-      <p class="text-[11px] text-[#86868b]/80 border-t border-[#d2d2d7]/30 dark:border-white/5 pt-4" data-page-node-id="zgWJF1LNehvm9HUY8ClwfV">
-        © <span id="footer-year" data-page-node-id="Z2TMlbO7XHFSPPaEmdrN97">2026</span> 楠屿札记. 慢慢写，慢慢看。
-      </p>
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-[#86868b]/80 border-t border-[#d2d2d7]/30 dark:border-white/5 pt-4">
+        <p>© <span id="footer-year">2026</span> 楠屿札记. 慢慢写，慢慢看。</p>
+        <p class="font-mono text-[10.5px] opacity-75">LOCAL-FIRST · ZERO TRACKERS · PRESS ⌘K TO SEARCH</p>
+      </div>
     </div>
   </footer>
 
   <!-- ======================== 弹窗层 ======================== -->
   <!-- ⌘K 站内搜索命令面板 -->
-  <div id="search-palette" role="dialog" aria-modal="true" aria-label="站内搜索" class="modal-overlay hidden fixed inset-0 z-[60] flex items-start justify-center pt-[12vh] p-4 bg-black/55 lg-dim overflow-y-auto" data-page-node-id="YWRALxaKpWbP6prsv1PDME">
-    <div class="modal-panel glass-spec relative w-full max-w-xl bg-white dark:bg-[#161617] rounded-2xl shadow-2xl border border-black/10 dark:border-white/10 overflow-hidden my-8" data-page-node-id="5SHPdxaCEio5gdTZ0BsPnG">
-      <div class="flex items-center gap-2.5 px-4 border-b border-black/10 dark:border-white/10" data-page-node-id="bwNPLkraULMBLyRDIWGmzb">
-        <i data-lucide="search" class="w-4 h-4 text-[#86868b] flex-shrink-0" data-page-node-id="Oa1OaDCErwbDIkkZAhufIi"></i>
+  <div id="search-palette" role="dialog" aria-modal="true" aria-label="站内搜索" class="modal-overlay hidden fixed inset-0 z-[60] flex items-start justify-center pt-[12vh] p-4 bg-black/55 lg-dim overflow-y-auto">
+    <div class="modal-panel glass-spec relative w-full max-w-xl bg-white dark:bg-[#161617] rounded-2xl shadow-2xl border border-black/10 dark:border-white/10 overflow-hidden my-8">
+      <div class="flex items-center gap-2.5 px-4 border-b border-black/10 dark:border-white/10">
+        <i data-lucide="search" class="w-4 h-4 text-[#86868b] flex-shrink-0"></i>
         <input
           id="search-input"
           type="text"
           placeholder="搜索手记、小说、游戏创作、工具…"
           autocomplete="off"
           spellcheck="false"
-          class="w-full py-3.5 bg-transparent outline-none text-sm text-[#1d1d1f] dark:text-white placeholder-[#86868b]" data-page-node-id="3M6E4MpmS0Elm5IGWkaVYg"
+          class="w-full py-3.5 bg-transparent outline-none text-sm text-[#1d1d1f] dark:text-white placeholder-[#86868b]"
         />
-        <kbd class="flex-shrink-0 text-[10px] font-mono px-1.5 py-0.5 rounded border border-black/10 dark:border-white/15 text-[#86868b]" data-page-node-id="OShur3kBXeovNeUV3eileH">ESC</kbd>
+        <kbd class="flex-shrink-0 text-[10px] font-mono px-1.5 py-0.5 rounded border border-black/10 dark:border-white/15 text-[#86868b]">ESC</kbd>
       </div>
-      <div id="search-results" class="max-h-[50vh] overflow-y-auto p-2" role="listbox" aria-label="搜索结果" data-page-node-id="9JtimCpHnhuz4sz7049O8M"></div>
-      <div class="flex items-center justify-between px-4 py-2 border-t border-black/10 dark:border-white/10 text-[10px] text-[#86868b]" data-page-node-id="JjyIEv24NyZlEFXFHvL7sN">
-        <span data-page-node-id="BqRLoTyTIlxPuXf9IBVfAQ"><span class="search-kbd">↑</span><span class="search-kbd">↓</span> 选择 · <span class="search-kbd">Enter</span> 打开</span>
-        <button type="button" id="search-random" class="flex items-center gap-1 hover:text-black dark:hover:text-white transition cursor-pointer" title="随机打开一篇旧文" data-page-node-id="mWzKl54YJz7lFscCDfeFjA">随手翻翻</button>
+      <div id="search-results" class="max-h-[50vh] overflow-y-auto p-2" role="listbox" aria-label="搜索结果"></div>
+      <div class="flex items-center justify-between px-4 py-2 border-t border-black/10 dark:border-white/10 text-[10px] text-[#86868b]">
+        <span><span class="search-kbd">↑</span><span class="search-kbd">↓</span> 选择 · <span class="search-kbd">Enter</span> 打开</span>
+        <button type="button" id="search-random" class="flex items-center gap-1 hover:text-black dark:hover:text-white transition cursor-pointer" title="随机打开一篇旧文">随手翻翻</button>
       </div>
     </div>
   </div>
 
   <!-- 项目技术规格详情弹窗 -->
-  <div id="project-modal" role="dialog" aria-modal="true" aria-label="项目详情" class="modal-overlay hidden fixed inset-0 z-50 flex justify-center p-4 sm:p-6 bg-black/55 lg-dim overflow-y-auto" data-page-node-id="J7jlKWBIO4EBMtrDznKCbZ">
-    <div class="modal-panel glass-spec relative m-auto w-full max-w-2xl bg-white dark:bg-[#161617] rounded-2xl shadow-2xl overflow-hidden border border-black/10 dark:border-white/10 my-8 flex flex-col max-h-[85vh]" data-page-node-id="WpQ2MFpp0ADpuMivaJXoYV">
-      <!-- 常驻顶栏：关闭按钮独立常驻，杜绝与滚动正文重叠 -->
+  <div id="project-modal" role="dialog" aria-modal="true" aria-label="项目详情" class="modal-overlay hidden fixed inset-0 z-50 flex justify-center p-4 sm:p-6 bg-black/55 lg-dim overflow-y-auto">
+    <div class="modal-panel glass-spec relative m-auto w-full max-w-2xl bg-white dark:bg-[#161617] rounded-2xl shadow-2xl overflow-hidden border border-black/10 dark:border-white/10 my-8 flex flex-col max-h-[85vh]">
       <div class="modal-top-bar flex items-center justify-between px-5 sm:px-6 py-3 border-b border-black/8 dark:border-white/8 bg-white/95 dark:bg-[#161617]/95 backdrop-blur-md z-20 shrink-0 select-none">
         <div class="flex items-center gap-2 text-xs min-w-0 pr-2">
           <span id="project-bar-category" class="px-2.5 py-0.5 rounded-full bg-black/5 dark:bg-white/10 text-[11px] font-medium text-[#64748b] dark:text-[#94a3b8] shrink-0 whitespace-nowrap">项目详情</span>
@@ -967,20 +1064,18 @@
           data-close-modal="project"
           aria-label="关闭"
           class="modal-close-btn text-[#64748b] hover:text-[#0f172a] dark:text-[#94a3b8] dark:hover:text-white cursor-pointer flex-shrink-0"
-          data-page-node-id="BTbx9ChoUEFBwM5TlwfFV3"
         >
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
 
-      <div id="project-modal-content" class="flex-1 overflow-y-auto overscroll-contain" data-page-node-id="psPgliazvzWmIsFt2aG7rd"></div>
+      <div id="project-modal-content" class="flex-1 overflow-y-auto overscroll-contain"></div>
     </div>
   </div>
 
-  <!-- 博客文章弹窗 -->
-  <div id="article-modal" role="dialog" aria-modal="true" aria-label="文章阅读" class="modal-overlay hidden fixed inset-0 z-50 flex justify-center p-4 sm:p-6 bg-black/55 lg-dim overflow-y-auto" data-page-node-id="OOLn0h7Z91FL1FPa03zBG8">
-    <div class="modal-panel glass-spec relative m-auto w-full max-w-2xl bg-white dark:bg-[#161617] rounded-2xl shadow-2xl overflow-hidden border border-black/10 dark:border-white/10 my-8 flex flex-col max-h-[85vh]" data-page-node-id="segOYcOzBHoZAjAYEYxiPR">
-      <!-- 常驻顶栏：阅读进度 + 模块分类与标题 + 关闭按钮独立常驻，杜绝与滚动正文重叠 -->
+  <!-- 博客文章阅读弹窗 -->
+  <div id="article-modal" role="dialog" aria-modal="true" aria-label="文章阅读" class="modal-overlay hidden fixed inset-0 z-50 flex justify-center p-4 sm:p-6 bg-black/55 lg-dim overflow-y-auto">
+    <div class="modal-panel glass-spec relative m-auto w-full max-w-2xl bg-white dark:bg-[#161617] rounded-2xl shadow-2xl overflow-hidden border border-black/10 dark:border-white/10 my-8 flex flex-col max-h-[85vh]">
       <div class="modal-top-bar relative flex items-center justify-between px-5 sm:px-6 py-3 border-b border-black/8 dark:border-white/8 bg-white/95 dark:bg-[#161617]/95 backdrop-blur-md z-20 shrink-0 select-none">
         <div class="flex items-center gap-2 text-xs min-w-0 pr-2">
           <span id="article-bar-category" class="px-2.5 py-0.5 rounded-full bg-black/5 dark:bg-white/10 text-[11px] font-medium text-[#64748b] dark:text-[#94a3b8] shrink-0 whitespace-nowrap">技术手记</span>
@@ -990,29 +1085,30 @@
           data-close-modal="article"
           aria-label="关闭"
           class="modal-close-btn text-[#64748b] hover:text-[#0f172a] dark:text-[#94a3b8] dark:hover:text-white cursor-pointer flex-shrink-0"
-          data-page-node-id="ud7AYU9YFShErGRPueRFNR"
         >
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
-        <!-- 阅读进度条紧贴顶栏底边 -->
-        <div class="absolute bottom-0 left-0 right-0 h-[2.5px] pointer-events-none overflow-hidden bg-black/[0.04] dark:bg-white/[0.06]" data-page-node-id="qczz8h99IL6LcuTZvp8rjM">
-          <div id="article-progress" class="h-full w-0 transition-[width] duration-75" data-page-node-id="yEFmAmXfPH8BIA4EvYdlGH"></div>
+        <div class="absolute bottom-0 left-0 right-0 h-[2.5px] pointer-events-none overflow-hidden bg-black/[0.04] dark:bg-white/[0.06]">
+          <div id="article-progress" class="h-full w-0 transition-[width] duration-75"></div>
         </div>
       </div>
 
-      <div id="article-modal-content" class="flex-1 overflow-y-auto overscroll-contain" data-page-node-id="8h1WC6dGKTwxPfuy6tWZsO"></div>
+      <div id="article-modal-content" class="flex-1 overflow-y-auto overscroll-contain"></div>
     </div>
   </div>
 
-  <!-- 右下角悬浮音乐播放器（js/player.js 驱动：点击展开、手动播放、SW 运行时缓存） -->
+  <!-- 悬浮音乐播放器 -->
   <div id="music-player">
-    <button id="music-fab" class="music-fab glass-spec" type="button" aria-expanded="false" aria-controls="music-panel" aria-label="背景音乐" title="背景音乐">
+    <button id="music-fab" class="music-fab glass-spec" type="button" aria-expanded="false" aria-controls="music-panel" aria-label="背景音乐" title="背景音乐（可拖拽换位）">
       <svg class="music-icon icon-music" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
       <svg class="music-icon icon-pause" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></svg>
     </button>
     <div id="music-panel" class="music-panel glass-spec" role="group" aria-label="背景音乐控制">
       <div class="music-head">
-        <span id="music-title" class="music-title">背景音乐</span>
+        <div class="min-w-0">
+          <span class="music-kicker">RESONANCE PLAYER</span>
+          <span id="music-title" class="music-title">背景音乐</span>
+        </div>
         <button id="music-close" type="button" aria-label="收起播放器">
           <svg class="music-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
@@ -1043,39 +1139,13 @@
     <audio id="music-audio" preload="metadata"></audio>
   </div>
 
-  <!-- 背景视觉方案实时切换台（仅在实验室 cosmos-demo.html 展现，主站保持纯粹） -->
-  <aside id="cosmos-dock" class="cosmos-dock" aria-label="背景视觉方案切换" hidden>
-    <div class="cosmos-dock-inner">
-      <span class="cosmos-dock-label">背景方案</span>
-      <div class="cosmos-dock-tabs" role="radiogroup">
-        <button type="button" class="dock-tab" data-mode="neural" title="端侧推理场 · 神经脉冲流">端侧推理</button>
-        <button type="button" class="dock-tab" data-mode="aurora" title="极光微流体 · 液态深空">极光流体</button>
-        <button type="button" class="dock-tab" data-mode="chladni" title="声学克拉尼微粒谐振场">克拉尼</button>
-        <button type="button" class="dock-tab" data-mode="monolith" title="极简黑曜石天光虚空">黑曜天光</button>
-        <button type="button" class="dock-tab" data-mode="isolines" title="原等高线 (对比)">原等高线</button>
-      </div>
-      <a href="cosmos-demo.html" class="dock-lab-link" title="前往全屏背景视觉实验室">实验室 ↗</a>
-    </div>
-  </aside>
-
-  <!-- 推理场音频链路（js/cosmos 驱动）：悬浮控制面板已删，只保留隐藏音轨与文件选择。
-       hero「放首歌」走站点歌单；#cosmos-file 供本地曲目接入与真实音频链路验证。 -->
   <input id="cosmos-file" type="file" accept="audio/*" hidden>
   <audio id="cosmos-audio" preload="none"></audio>
 
-  <!-- 引入项目数据与交互脚本（全部 defer：按文档顺序在 DOM 解析完成后执行，不阻塞首屏渲染）
-       ❗2026-10-17 加载优化：首屏 13 个本地脚本已合并成两个 bundle（首页请求 30 → 20 以内）。
-         源文件仍在 js/ 下；改完源文件要跑 node scripts/build-bundles.mjs 重建，
-         过期时 --check 会报错（dev-server 启动也会提示）。 -->
-  <script src="js/projects.js?v=20261118a" defer></script>
-  <script src="js/articles.js" defer></script>
-  <!-- core：站点配置 → Markdown 按需加载器 → 壁纸 → 粒子 → 设置面板 → 按住 Tab -->
-  <script src="js/bundles/core.js?v=20261107_v245" defer></script>
-  <!-- home：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器（必须在 core 之后） -->
-  <script src="js/bundles/home.js?v=20261116e" defer></script>
-  <!-- importmap：把 three 的裸导入指到自托管副本（必须在任何 module script 之前）。
-       本地推理场场景（js/cosmos/main.js：分层节点网 + 沿边前传的脉冲）；
-       无 WebGL 或初始化失败时它内部自动回退加载 2D 版 js/cosmos.js -->
+  <script src="js/projects.js?v=20261118j" defer></script>
+  <script src="js/articles.js?v=20261118c" defer></script>
+  <script src="js/bundles/core.js?v=20261118mwg2" defer></script>
+  <script src="js/bundles/home.js?v=20261118mwg4" defer></script>
   <script type="importmap">
   {
     "imports": {
@@ -1083,16 +1153,11 @@
     }
   }
   </script>
-  <!-- 3D 推理场：等首屏真正画出来之后再拉（three 676KB）。引擎内部首帧前把画布压到 opacity 0、
-       首帧就绪后 1.1s 淡入，所以延后加载不会有突现感，只是显影晚一点 -->
   <script type="module">
     const bootCosmos = () => import('./js/cosmos/main.js').catch(() => {});
     requestAnimationFrame(() => setTimeout(bootCosmos, 0));
   </script>
-  <!-- Live2D 看板娘：桌面端、首屏稳定后才拉自托管运行时（首次交互 / 3.5s 内触发，1.9MB 不进预缓存）
-       其余（site-config / wallpaper / tab-nav / settings-panel / nav-indicator / player）已在上面两个 bundle 里
-       ❗2026-10-31 暂时下线：模型还没做完，先不放到线上（详见 js/site-config.js 的 live2d 开关）。
-       恢复：取消下面那行的注释，并把 site-config.js 的 live2d 改回 true。 -->
-  <!-- <script src="js/live2d.js" defer></script> -->
+  <script src="js/companion-avatar.js?v=20261118m1" defer></script>
+  <script src="js/companion.js?v=20261118m1" defer></script>
 </body>
 </html>

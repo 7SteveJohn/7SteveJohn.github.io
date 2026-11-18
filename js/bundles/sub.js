@@ -1,9 +1,9 @@
-// build-bundles: {"name":"sub","version":"ad3001e2ace9","sources":[{"path":"js/subpage.js","sha256":"eafc9be28f4bb02073e82de13ef1b36d09b33d943ff52d3fda3de8174724de2b"}]}
+// build-bundles: {"name":"sub","version":"76934767cc47","sources":[{"path":"js/subpage.js","sha256":"c6a9e08995cc9a3bf0325eeb20aa684c0a4b6f01e34e94fe1010d6f53095e16f"}]}
 /* 次级页共用：外壳（SW 注册 / 滚动态 / 浮现）
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/subpage.js */
 
-// ---- js/subpage.js (eafc9be28f4b) ----
+// ---- js/subpage.js (c6a9e08995cc) ----
 /**
  * 次级页面（archive.html / gallery.html）共用的小脚本
  * ----------------------------------------------------
@@ -76,14 +76,29 @@
 
   window.pageReveal();
 
-  // 5. 主题切换（与首页保持完全一致：持久化、View Transitions 平滑圆形扩散）
+  // 5. 主题切换（与首页保持完全一致：持久化、color-scheme 同步、跨标签页同步、View Transitions 平滑圆形扩散）
+  function syncColorScheme(isDark) {
+    const meta = document.querySelector('meta[name="color-scheme"]');
+    if (meta) meta.content = isDark ? 'dark' : 'light';
+  }
+
   function initTheme() {
+    syncColorScheme(document.documentElement.classList.contains('dark'));
+    window.addEventListener('storage', (ev) => {
+      if (ev.key === 'sj.theme') {
+        const isDark = ev.newValue === 'dark';
+        document.documentElement.classList.toggle('dark', isDark);
+        syncColorScheme(isDark);
+      }
+    });
+
     const btn = document.getElementById('theme-toggle');
     if (!btn) return;
 
     btn.addEventListener('click', (e) => {
       const applyNow = () => {
         const isDark = document.documentElement.classList.toggle('dark');
+        syncColorScheme(isDark);
         try {
           localStorage.setItem('sj.theme', isDark ? 'dark' : 'light');
         } catch (_) {}

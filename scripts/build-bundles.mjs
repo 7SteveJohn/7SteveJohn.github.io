@@ -32,21 +32,18 @@ const OUT_DIR = path.join(ROOT, 'js/bundles');
 const BUNDLES = [
   {
     name: 'core',
-    desc: '6 页共用：配置 → Markdown 按需加载器 → 壁纸 → 粒子 → 设置面板 → 按住 Tab',
+    desc: '6 页共用：配置 → Markdown 按需加载器 → 壁纸 → 粒子',
     sources: [
       'js/site-config.js',
       'js/markdown-loader.js',
       'js/wallpaper.js',
-      'js/particles.js',
-      'js/settings-panel.js',
-      'js/tab-nav.js'
+      'js/particles.js'
     ]
   },
   {
     name: 'home',
-    desc: '仅首页：状态 → 搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器',
+    desc: '仅首页：搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器',
     sources: [
-      'js/status.js',
       'js/search.js',
       'js/video-gate.js',
       'js/app.js',

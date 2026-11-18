@@ -1,68 +1,71 @@
+/* ============================================================
+   札签卷宗 · Collectible Booster Pack & Two-Sided 3D Card Showcase
+   作用域：严格限定在 .cards-scope 内（除独立页壳与 #cards-root 遗留防呆外）
+   ============================================================ */
+
 .cards-scope{
   --bg:#f8fafc;
   --paper:#ffffff;
-  --paper-2:#f4f6f9;
+  --paper-2:#f3f6fa;
   --ink:#1d1d1f;
-  --ink-soft:#86868b;
+  --ink-soft:#6e737d;
   --line:rgba(18,30,60,.10);
   --accent:#2563eb;
-  --spring:linear(0, 0.006, 0.028 2.3%, 0.104 4.9%, 0.228 7.6%, 0.552 14.2%, 0.812 19.7%, 0.944 24.2%, 1.034 28.9%, 1.092 34.2%, 1.11 38.6%, 1.108 42.4%, 1.088 47.2%, 1.032 56.8%, 0.99 66.2%, 0.968 75.8%, 0.968 87.7%, 0.984 97.4%, 1);
-  --card-w:300px;
-  --card-h:432px;
-  --wash:#eef1f5;
-  --hair:rgba(0,0,0,.08);
-  --hair-strong:rgba(0,0,0,.16);
+  /* 厚卡纸单次微过冲阻尼弹簧（~0.80 阻尼，5.6% 过冲，沉稳不晃） */
+  --spring:linear(0, 0.009, 0.035 2.1%, 0.141 4.8%, 0.723 15.6%, 0.938 21.6%, 1.017 25.8%, 1.053 29.8%, 1.056 34.4%, 1.036 41.2%, 1.006 51.8%, 0.996 64.2%, 1);
+  --wash:#eef2f6;
+  --hair:rgba(15,23,42,.09);
+  --hair-strong:rgba(15,23,42,.16);
   --panel:rgba(255,255,255,.96);
   --panel-soft:rgba(255,255,255,.92);
   --side:#dcdfe5;
   --btn-bg:#ffffff;
-  --ring:rgba(30,41,59,.5);
-  --burst:rgba(30,41,59,.38);
   --dot:rgba(30,58,138,.07);
   --ink-body:#27272a;
-  --hov:rgba(37,99,235,.35);
-  --hov-shadow:0 16px 36px -10px rgba(37,99,235,.14), 0 4px 12px -2px rgba(15,23,42,.04);
+  --hov:rgba(37,99,235,.38);
+  --hov-shadow:0 18px 38px -10px rgba(37,99,235,.16), 0 4px 12px -2px rgba(15,23,42,.06);
   --foot-bg:#f8fafc;
   --glass:none;
 }
 html.dark .cards-scope{
-  --bg:#060911;                       /* 对齐博客 body dark 底 */
-  --paper:rgba(16,22,34,.75);         /* 液态玻璃：博客 bento 同配方 */
-  --paper-2:rgba(16,22,34,.6);
+  --bg:#060911;
+  --paper:#141b29;
+  --paper-2:#0f1522;
   --ink:#f1f5f9;
-  --ink-soft:#8b93a1;
+  --ink-soft:#94a3b8;
   --line:rgba(255,255,255,.10);
-  --accent:#38bdf8;                   /* 博客暗色 accent sky */
-  --wash:#1e242f;
-  --hair:rgba(255,255,255,.10);
-  --hair-strong:rgba(255,255,255,.18);
-  --panel:rgba(22,26,34,.96);
-  --panel-soft:rgba(22,26,34,.9);
+  --accent:#38bdf8;
+  --wash:#1c2433;
+  --hair:rgba(255,255,255,.11);
+  --hair-strong:rgba(255,255,255,.20);
+  --panel:rgba(20,26,38,.96);
+  --panel-soft:rgba(20,26,38,.90);
   --side:#12161e;
-  --btn-bg:#1c212b;
-  --ring:rgba(226,232,240,.55);
-  --burst:rgba(226,232,240,.4);
+  --btn-bg:#18202f;
   --dot:rgba(148,191,255,.10);
-  --ink-body:#c3cad4;
-  --hov:rgba(56,189,248,.45);         /* dark hover：sky 边框 */
-  --hov-shadow:0 20px 48px -10px rgba(0,0,0,.85), 0 0 24px rgba(56,189,248,.16);
+  --ink-body:#cbd5e1;
+  --hov:rgba(56,189,248,.48);
+  --hov-shadow:0 22px 48px -10px rgba(0,0,0,.82), 0 0 24px -4px rgba(56,189,248,.20);
   --foot-bg:#0a0a0c;
   --glass:blur(14px) saturate(1.25);
 }
+
 .cards-scope, .cards-scope *{box-sizing:border-box;margin:0;padding:0}
-.cards-scope [hidden]{display:none!important}
+.cards-scope [hidden]:not([hidden="until-found"]){display:none!important}
+
 body.cards-page, #cards-root{
   background:
-    radial-gradient(1100px 620px at 50% -8%, rgba(191,219,254,.30), transparent 62%),
-    radial-gradient(900px 620px at 88% 110%, rgba(165,180,252,.14), transparent 58%),
+    radial-gradient(1100px 620px at 50% -8%, rgba(191,219,254,.26), transparent 62%),
+    radial-gradient(900px 620px at 88% 110%, rgba(165,180,252,.12), transparent 58%),
     var(--bg);
   color:var(--ink);
   font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
 }
 body.cards-page{overflow-x:hidden}
-/* 推理场点阵 + 纸感噪点：博客 cosmos 节点网的便宜替身 */
+
+/* 推理场点阵 + 纸感微噪点 */
 body.cards-page::before, #cards-root::before{
-  content:"";position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.5;
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.48;
   background-image:
     radial-gradient(var(--dot) 1px, transparent 1.4px),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
@@ -70,358 +73,1133 @@ body.cards-page::before, #cards-root::before{
 }
 .cards-scope .serif{font-family:"Noto Serif SC","Source Han Serif SC","Songti SC","SimSun",serif}
 
-/* ---------- 环境光斑：晨曦冷蓝，跟博客一个色温 ---------- */
-.cards-scope .aurora{position:fixed;inset:0;z-index:0;pointer-events:none;filter:blur(90px);opacity:.5}
+/* ---------- 独立页环境光（仅 cards.html SK_FULL 存在） ---------- */
+.cards-scope .aurora{position:fixed;inset:0;z-index:0;pointer-events:none;filter:blur(90px);opacity:.45}
 .cards-scope .aurora i{position:absolute;border-radius:50%}
-.cards-scope .aurora i:nth-child(1){width:44vw;height:44vw;left:-10vw;top:-16vw;background:#93c5fd;opacity:.16;animation:au1 34s ease-in-out infinite alternate}
-.cards-scope .aurora i:nth-child(2){width:52vw;height:52vw;right:-16vw;top:22vh;background:#a5b4fc;opacity:.13;animation:au2 42s ease-in-out infinite alternate}
-.cards-scope .aurora i:nth-child(3){width:40vw;height:40vw;left:18vw;bottom:-20vw;background:#7dd3fc;opacity:.11;animation:au3 50s ease-in-out infinite alternate}
+.cards-scope .aurora i:nth-child(1){width:44vw;height:44vw;left:-10vw;top:-16vw;background:#93c5fd;opacity:.15;animation:au1 34s ease-in-out infinite alternate}
+.cards-scope .aurora i:nth-child(2){width:52vw;height:52vw;right:-16vw;top:22vh;background:#a5b4fc;opacity:.12;animation:au2 42s ease-in-out infinite alternate}
+.cards-scope .aurora i:nth-child(3){width:40vw;height:40vw;left:18vw;bottom:-20vw;background:#7dd3fc;opacity:.10;animation:au3 50s ease-in-out infinite alternate}
 @keyframes au1{to{transform:translate(9vw,7vh) scale(1.18)}}
 @keyframes au2{to{transform:translate(-8vw,-6vh) scale(1.12)}}
 @keyframes au3{to{transform:translate(7vw,-8vh) scale(1.15)}}
 
-/* ---------- HUD ---------- */
+/* ---------- HUD 顶栏与「✦ 全部翻开」强调钮 ---------- */
 .cards-scope .hud{
-  position:relative;z-index:5;display:flex;align-items:baseline;justify-content:space-between;
-  width:min(1160px,94vw);margin:0 auto;padding:26px 0 6px;gap:12px;flex-wrap:wrap;
+  position:relative;z-index:5;display:flex;align-items:center;justify-content:space-between;
+  width:min(1160px,94vw);margin:0 auto;padding:24px 0 8px;gap:12px;flex-wrap:wrap;
 }
 .cards-scope .hud h1{
-  font-weight:700;font-size:20px;letter-spacing:-.02em;color:var(--ink);
+  font-weight:700;font-size:20px;letter-spacing:-.02em;color:var(--ink);line-height:1.3;
 }
 .cards-scope .hud h1 em{font-style:normal;color:var(--ink-soft)}
-.cards-scope .hud h1 .sub{font-size:15px;color:var(--ink-soft);margin-left:10px;letter-spacing:.04em;font-weight:600}
-.cards-scope .brand{display:flex;flex-direction:column;gap:5px}
+.cards-scope .hud h1 .btn{vertical-align:middle}
+.cards-scope .hud h1 .sub{
+  font-size:15.5px;color:var(--ink);margin-left:10px;letter-spacing:.06em;font-weight:700;vertical-align:middle;
+}
+.cards-scope .brand{display:flex;flex-direction:column;gap:4px}
 .cards-scope .hud-sub{
   font-size:11.5px;color:var(--ink-soft);letter-spacing:.05em;
   font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
-.cards-scope .hud-actions{display:flex;align-items:center;gap:10px}
+.cards-scope .hud-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
 .cards-scope #counter{
   font-size:12px;color:var(--ink-soft);letter-spacing:.03em;font-variant-numeric:tabular-nums;
   font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
 .cards-scope .btn{
-  appearance:none;border:1px solid var(--hair);background:var(--btn-bg);color:var(--ink-soft);
-  font-size:13px;padding:7px 14px;border-radius:10px;cursor:pointer;letter-spacing:.02em;
+  appearance:none;border:1px solid var(--hair-strong);background:var(--btn-bg);color:var(--ink);
+  font-size:12.5px;font-weight:500;padding:7px 13px;border-radius:9px;cursor:pointer;letter-spacing:.02em;
   box-shadow:0 1px 2px rgba(15,23,42,.04);
-  transition:border-color .2s,color .2s,transform .2s,box-shadow .2s;
+  transition:border-color .16s ease,color .16s ease,background .16s ease,transform .16s ease,box-shadow .16s ease;
+  -webkit-tap-highlight-color:transparent;
+  white-space:nowrap;
 }
-.cards-scope .btn:hover{border-color:rgba(37,99,235,.45);color:var(--ink);transform:translateY(-1px)}
+.cards-scope .btn:hover{border-color:var(--hov);color:var(--ink);transform:translateY(-1px)}
 .cards-scope .btn:active{transform:translateY(0) scale(.98)}
 .cards-scope .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-/* ---------- 舞台 ---------- */
-.cards-scope .stage{position:relative;z-index:2;min-height:calc(100vh - 130px);padding:26px 0 90px}
-.cards-scope .hint{position:absolute;bottom:26px;left:0;right:0;text-align:center;font-size:12.5px;color:var(--ink-soft);letter-spacing:.14em}
+/* 「✦ 全部翻开」主操作强调按钮：克制馆藏质感，拒绝彩虹霓虹 */
+.cards-scope .btn.btn-reveal-all{
+  background:linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  color:#f8fafc;
+  border-color:rgba(30,41,59,.9);
+  font-weight:600;
+  letter-spacing:.04em;
+  box-shadow:0 4px 12px -3px rgba(15,23,42,.24), inset 0 1px 0 rgba(255,255,255,.15);
+}
+.cards-scope .btn.btn-reveal-all:hover{
+  background:linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+  border-color:#1d4ed8;
+  color:#ffffff;
+  box-shadow:0 8px 18px -4px rgba(37,99,235,.36), inset 0 1px 0 rgba(255,255,255,.22);
+}
+html.dark .cards-scope .btn.btn-reveal-all{
+  background:linear-gradient(180deg, rgba(56,189,248,.22) 0%, rgba(37,99,235,.26) 100%);
+  color:#e0f2fe;
+  border-color:rgba(56,189,248,.48);
+  box-shadow:0 4px 14px -3px rgba(2,6,23,.65), inset 0 1px 0 rgba(255,255,255,.14);
+}
+html.dark .cards-scope .btn.btn-reveal-all:hover{
+  background:linear-gradient(180deg, rgba(56,189,248,.34) 0%, rgba(37,99,235,.38) 100%);
+  border-color:rgba(125,211,252,.78);
+  color:#ffffff;
+  box-shadow:0 6px 18px -3px rgba(56,189,248,.28), inset 0 1px 0 rgba(255,255,255,.2);
+}
 
-/* ---------- 卷宗架 ---------- */
+/* ---------- 舞台容器 ---------- */
+.cards-scope .stage{
+  position:relative;z-index:2;min-height:calc(100vh - 210px);padding:20px 0 80px;
+}
+.cards-scope .hint{
+  position:absolute;bottom:24px;left:0;right:0;text-align:center;
+  font-size:12px;color:var(--ink-soft);letter-spacing:.12em;
+}
+
+/* ============================================================
+   STAGE 1: 补充包陈列架与热压锯齿撕封仪式 (.packs / .pack)
+   ============================================================ */
 .cards-scope .packs{
   position:relative;
-  display:flex;flex-wrap:wrap;justify-content:center;gap:26px;
-  width:min(1080px,93vw);margin:0 auto;padding-top:12px;
+  display:flex;flex-wrap:wrap;justify-content:center;gap:24px;
+  width:min(1080px,93vw);margin:0 auto;padding-top:10px;
   perspective:900px;
 }
 .cards-scope .packs::before{
-  content:"";position:absolute;left:0;right:0;bottom:-46px;height:90px;
-  background:radial-gradient(58% 100% at 50% 0%, rgba(15,23,42,.06), transparent 76%);
+  content:"";position:absolute;left:0;right:0;bottom:-42px;height:84px;
+  background:radial-gradient(58% 100% at 50% 0%, rgba(15,23,42,.055), transparent 76%);
   pointer-events:none;
 }
-/* ---------- 卷宗封筒：白纸 + 发丝边框 + 分类色封条（bento 同语言） ---------- */
+
 .cards-scope .pack{
-  position:relative;width:184px;height:254px;border:1px solid var(--hair);padding:0;cursor:pointer;
-  backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);
-  border-radius:14px;overflow:visible;outline:none;-webkit-tap-highlight-color:transparent;
+  position:relative;width:192px;height:270px;border:0;padding:0;cursor:pointer;
+  border-radius:14px;overflow:visible;outline:none;
+  -webkit-tap-highlight-color:transparent;
   user-select:none;-webkit-user-select:none;
-  background:linear-gradient(180deg,var(--paper),var(--paper-2));
-  box-shadow:0 10px 30px -8px rgba(15,23,42,.08), 0 1px 2px 0 rgba(0,0,0,.03);
-  transition:transform .3s var(--spring),box-shadow .3s,border-color .3s;
+  touch-action:pan-y;
+  background:transparent;
+  transform-style:preserve-3d;
+  transition:transform .24s cubic-bezier(.16,1,.3,1), opacity .2s ease;
   text-align:left;
 }
-.cards-scope .pack:hover{
-  transform:translateY(-6px) rotateX(5deg) rotate(-.3deg);
-  border-color:var(--hov);
-  box-shadow:0 18px 40px -10px rgba(15,23,42,.14), 0 4px 12px -2px rgba(15,23,42,.05);
+
+/* 内袋深曜石馆藏牌背剪影（替代旧版白纸条，撕封瞬间露出深色牌背叠层） */
+.cards-scope .pk-pocket{
+  position:absolute;inset:14px 15px 24px 15px;z-index:1;pointer-events:none;
 }
-.cards-scope .pack:focus-visible{box-shadow:0 0 0 3px rgba(37,99,235,.55),0 18px 40px -10px rgba(15,23,42,.14)}
-/* 左缘竖色签：档案夹侧签 */
-.cards-scope .pack .frame{
-  position:absolute;top:34px;bottom:56px;left:-1px;width:5px;
-  border-radius:0 3px 3px 0;pointer-events:none;
-  background:var(--pc);opacity:.85;
+.cards-scope .pk-sheet{
+  position:absolute;inset:0;border-radius:10px;
+  background:radial-gradient(85% 75% at 50% 42%, color-mix(in oklab, var(--pc) 34%, #1e293b) 0%, #0d1320 75%, #080c15 100%);
+  border:1.5px solid color-mix(in oklab, var(--pc) 52%, #64748b);
+  box-shadow:
+    0 12px 26px -6px rgba(15,23,42,.38),
+    inset 0 0 0 3px rgba(8,12,21,.68),
+    inset 0 0 0 4px rgba(226,232,240,.15);
+  transform:translate3d(0, 12px, 0) scale(.94);
+  opacity:0;
+  transition:transform .32s cubic-bezier(.16,1,.3,1), opacity .2s ease;
 }
-/* 顶部袋口：白纸折边 + 分类色封签，拆这里 */
-.cards-scope .pack .seal{
-  position:absolute;top:-6px;left:-1px;right:-1px;height:26px;
-  border-radius:13px 13px 2px 2px;
-  background:linear-gradient(180deg,var(--paper-2),var(--wash));
-  box-shadow:0 2px 4px rgba(15,23,42,.08), inset 0 -1px 0 rgba(15,23,42,.07), inset 0 1px 0 rgba(255,255,255,.9);
-  transform-origin:12% 50%;
-  transition:transform .5s var(--spring);
+.cards-scope .pk-sheet::before{
+  content:"";position:absolute;left:50%;top:36%;width:38px;height:38px;
+  transform:translate(-50%,-50%) rotate(45deg);
+  border:1px solid color-mix(in oklab, var(--pc) 55%, rgba(226,232,240,.35));
+  border-radius:3px;
+  box-shadow:inset 0 0 0 5px rgba(8,12,21,.55), inset 0 0 0 6px rgba(226,232,240,.14);
 }
-.cards-scope .pack .seal::before{                /* 分类色封签压在折边上 */
-  content:"";position:absolute;top:7px;left:50%;transform:translateX(-50%);
-  width:58px;height:12px;border-radius:2px;
-  background:linear-gradient(180deg, color-mix(in oklab, var(--pc), white 22%), color-mix(in oklab, var(--pc), black 4%));
-  box-shadow:0 1px 3px rgba(15,23,42,.2), inset 0 1px 0 rgba(255,255,255,.45);
+/* 已拆过的卷宗悬停微露顶边牌背，暗示内藏札签 */
+@media (hover:hover){
+  .cards-scope .pack.opened:hover:not(.is-opening) .pk-sheet.s3{
+    opacity:.94;
+    transform:translate3d(0, -19px, 0) rotate(.8deg) scale(.955);
+  }
 }
-.cards-scope .pack.opened .seal{transform:rotate(-7deg) translateY(-9px)}
-.cards-scope .pack.opened .seal::after{opacity:.45}
-.cards-scope .pack:hover .seal{transform:rotate(-2deg) translateY(-1px)}
-.cards-scope .pack.tearing .seal{animation:seal-off .3s ease-in both}
-@keyframes seal-off{
-  to{transform:rotate(-18deg) translate(44px,-50px);opacity:0}
-}
-.cards-scope .pack .seal::after{                 /* 封签锯齿撕边 */
-  content:"";position:absolute;top:19px;left:50%;transform:translateX(-50%);
-  width:58px;height:4px;
+
+/* 顶部热压锯齿封边条 (.pk-crimp-top: 纵向热压棱纹 + 底部微锯齿 + 左右易撕 V 口 + SEAL 封签) */
+.cards-scope .pk-crimp-top{
+  position:absolute;top:0;left:0;right:0;height:28px;z-index:6;
+  border-radius:14px 14px 0 0;pointer-events:none;
   background:
-    linear-gradient(45deg, color-mix(in oklab, var(--pc), black 22%) 2px, transparent 2.5px) 0 0/5px 5px repeat-x,
-    linear-gradient(-45deg, color-mix(in oklab, var(--pc), black 22%) 2px, transparent 2.5px) 0 0/5px 5px repeat-x;
+    repeating-linear-gradient(90deg, rgba(15,23,42,.06) 0 1.5px, rgba(255,255,255,.78) 1.5px 3px, transparent 3px 5px),
+    linear-gradient(180deg, #fafbfd 0%, #edf1f7 80%, color-mix(in oklab, var(--pc) 14%, #dfe6f0) 100%);
+  border:1px solid var(--hair-strong);border-bottom:none;
+  clip-path:polygon(
+    0% 0%, 100% 0%, 100% 68%,
+    96.4% 81%, 100% 91%,
+    94% 99%, 88% 84%, 81% 100%, 74% 84%, 67% 98%, 59% 83%, 52% 100%,
+    44% 83%, 37% 98%, 29% 83%, 21% 98%, 13% 84%, 6% 99%,
+    0% 91%, 3.6% 81%, 0% 68%
+  );
+  transform-origin:90% 88%;
+  transition:transform .22s cubic-bezier(.16,1,.3,1), filter .2s ease;
 }
-/* 分类首字水印：纸上的淡印 */
-.cards-scope .pack .pk-mark{
-  position:absolute;top:47%;left:50%;transform:translate(-50%,-50%);
-  font-family:"Noto Serif SC","Source Han Serif SC","Songti SC","SimSun",serif;
-  font-size:104px;font-weight:700;line-height:1;
-  color:color-mix(in oklab, var(--pc), transparent 84%);
-  pointer-events:none;user-select:none;
+html.dark .cards-scope .pk-crimp-top{
+  background:
+    repeating-linear-gradient(90deg, rgba(0,0,0,.42) 0 1.5px, rgba(255,255,255,.07) 1.5px 3px, transparent 3px 5px),
+    linear-gradient(180deg, #232c3f 0%, #171e2d 80%, color-mix(in oklab, var(--pc) 24%, #121826) 100%);
+  border-color:rgba(255,255,255,.15);
 }
-.cards-scope .pack .pk-rule{
-  display:block;width:46%;height:1px;margin:0 auto;
-  background:linear-gradient(90deg, rgba(0,0,0,0) 0%, var(--hair-strong) 26%, var(--hair-strong) 74%, rgba(0,0,0,0) 100%);
+
+/* 左右两侧 V 型易撕导引缺口刻线 */
+.cards-scope .pk-notch{
+  position:absolute;top:18px;width:8px;height:7px;pointer-events:none;
+  background:color-mix(in oklab, var(--pc) 72%, var(--ink-soft));
+  opacity:.72;transition:opacity .18s ease, background .18s ease;
 }
-.cards-scope .pack .pk-rule.t{position:absolute;top:56px;left:0;right:0}
-.cards-scope .pack .pk-rule.b{position:absolute;top:126px;left:0;right:0}
+.cards-scope .pk-notch-l{
+  left:0;
+  clip-path:polygon(0 0, 100% 50%, 0 100%);
+}
+.cards-scope .pk-notch-r{
+  right:0;
+  clip-path:polygon(100% 0, 0 50%, 100% 100%);
+}
+.cards-scope .pack:hover:not(.is-opening) .pk-notch{
+  opacity:1;background:var(--pc);
+}
+
+/* 顶封条正中压印封签 (.seal: SEAL · 拆封) */
+.cards-scope .pack .seal{
+  position:absolute;top:5px;left:50%;transform:translateX(-50%);
+  padding:2px 9px;border-radius:4px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:8.5px;font-weight:700;letter-spacing:.10em;line-height:1.25;white-space:nowrap;
+  color:#ffffff;
+  background:linear-gradient(180deg, color-mix(in oklab, var(--pc) 86%, #334155), color-mix(in oklab, var(--pc) 92%, #0f172a));
+  box-shadow:0 1px 3px rgba(15,23,42,.20), inset 0 1px 0 rgba(255,255,255,.32);
+}
+.cards-scope .pack.opened .seal{
+  background:color-mix(in oklab, var(--pc) 14%, var(--wash));
+  color:var(--ink-soft);
+  border:1px solid var(--hair-strong);
+  box-shadow:none;
+}
+
+/* 激光裂隙光束 (.pk-seam-glow：沿 top: 26px 撕口线高锐度划穿，严禁大光球) */
+.cards-scope .pk-seam-glow{
+  position:absolute;top:26px;left:3px;right:3px;height:2.5px;z-index:8;
+  pointer-events:none;opacity:0;transform:scaleX(0);transform-origin:left center;
+  border-radius:999px;
+  background:linear-gradient(90deg, transparent 0%, var(--pc) 15%, #ffffff 50%, color-mix(in oklab, var(--pc) 70%, #ffffff) 85%, transparent 100%);
+  box-shadow:
+    0 0 10px 1.5px color-mix(in oklab, var(--pc) 70%, transparent),
+    0 0 3px .5px rgba(255,255,255,.92);
+}
+
+/* 卡包袋主体 (.pk-sleeve) */
+.cards-scope .pk-sleeve{
+  position:relative;z-index:2;width:100%;height:100%;box-sizing:border-box;
+  border:1px solid var(--hair-strong);border-radius:inherit;
+  background:
+    radial-gradient(120% 85% at 50% 10%, #ffffff 0%, #f3f6fb 100%);
+  box-shadow:
+    0 1px 2px rgba(15,23,42,.04),
+    0 10px 26px -8px rgba(15,23,42,.10),
+    0 20px 38px -14px rgba(15,23,42,.06),
+    inset 0 1px 0 rgba(255,255,255,.95),
+    inset 0 0 0 1px rgba(15,23,42,.03);
+  transition:transform .24s cubic-bezier(.16,1,.3,1), box-shadow .24s ease, border-color .22s ease, opacity .22s ease;
+}
+html.dark .cards-scope .pk-sleeve{
+  background:
+    radial-gradient(120% 85% at 50% 10%, #1c2436 0%, #101522 100%);
+  border-color:rgba(255,255,255,.13);
+  box-shadow:
+    0 2px 4px rgba(0,0,0,.35),
+    0 14px 34px -8px rgba(0,0,0,.55),
+    inset 0 1px 0 rgba(255,255,255,.09),
+    inset 0 0 0 1px rgba(255,255,255,.04);
+}
+/* 顶部易撕压痕虚线（静置时提示撕封线位置） */
+.cards-scope .pk-sleeve::before{
+  content:"";position:absolute;top:27px;left:9px;right:9px;height:1px;z-index:3;pointer-events:none;
+  border-top:1px dashed color-mix(in oklab, var(--pc) 34%, var(--hair-strong));
+  opacity:.85;
+}
+/* 纸面斜向微扫光 */
+.cards-scope .pk-sleeve::after{
+  content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.45) 50%,transparent 60%);
+  background-size:250% 100%;background-position:130% 0;
+  transition:background-position .55s cubic-bezier(.16,1,.3,1);
+}
+html.dark .cards-scope .pk-sleeve::after{
+  background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.07) 50%,transparent 60%);
+  background-size:250% 100%;background-position:130% 0;
+}
+
+/* 撕裂瞬间互补锯齿顶边（一次性切换，无逐帧 clip-path CPU 光栅开销） */
+.cards-scope .pack.is-ripped .pk-sleeve{
+  clip-path:polygon(
+    0% 9.6%, 6% 11.2%, 13% 9.4%, 21% 11.1%, 29% 9.4%, 37% 11.1%, 44% 9.4%,
+    52% 11.3%, 59% 9.4%, 67% 11.1%, 74% 9.5%, 81% 11.3%, 88% 9.4%, 94% 11.2%, 100% 9.6%,
+    100% 100%, 0% 100%
+  );
+}
+.cards-scope .pack.is-ripped .pk-sleeve::before{display:none}
+
+/* 底部收口热压纹 (.pk-crimp-bottom) */
+.cards-scope .pk-crimp-bottom{
+  position:absolute;bottom:0;left:0;right:0;height:10px;z-index:3;
+  border-radius:0 0 13px 13px;pointer-events:none;
+  border-top:1px solid var(--line);
+  background:
+    repeating-linear-gradient(90deg, rgba(15,23,42,.055) 0 1.5px, rgba(255,255,255,.65) 1.5px 3px, transparent 3px 5px),
+    linear-gradient(180deg, rgba(15,23,42,.02), rgba(15,23,42,.05));
+}
+html.dark .cards-scope .pk-crimp-bottom{
+  background:
+    repeating-linear-gradient(90deg, rgba(0,0,0,.38) 0 1.5px, rgba(255,255,255,.06) 1.5px 3px, transparent 3px 5px),
+    linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.32));
+}
+
+@media (hover:hover){
+  .cards-scope .pack:hover:not(.is-opening){
+    transform:translateY(-5px);
+  }
+  .cards-scope .pack:hover:not(.is-opening) .pk-crimp-top{
+    transform:translateY(-1px) rotate(-.6deg);
+  }
+}
+.cards-scope .pack:hover:not(.is-opening) .pk-sleeve{
+  border-color:color-mix(in oklab, var(--pc) 55%, var(--hov));
+  box-shadow:
+    0 2px 6px rgba(15,23,42,.06),
+    0 18px 38px -10px color-mix(in oklab, var(--pc) 22%, rgba(15,23,42,.18)),
+    inset 0 1px 0 rgba(255,255,255,1);
+}
+html.dark .cards-scope .pack:hover:not(.is-opening) .pk-sleeve{
+  border-color:color-mix(in oklab, var(--pc) 62%, var(--hov));
+  box-shadow:
+    0 2px 6px rgba(0,0,0,.45),
+    0 20px 44px -8px rgba(0,0,0,.7),
+    0 0 22px -4px color-mix(in oklab, var(--pc) 38%, transparent),
+    inset 0 1px 0 rgba(255,255,255,.14);
+}
+.cards-scope .pack:hover:not(.is-opening) .pk-sleeve::after{background-position:-60% 0}
+.cards-scope .pack:active:not(.is-opening){
+  transform:translateY(-1px) scale(.98);
+  transition-duration:.09s;
+}
+.cards-scope .pack:focus-visible .pk-sleeve{
+  outline:2px solid var(--accent);outline-offset:2px;
+}
+
+/* 卡包内胆版面（避让顶部 28px 压封条与底部 10px 压封边） */
+.cards-scope .pack .pk-body{
+  position:relative;z-index:2;height:100%;
+  display:flex;flex-direction:column;justify-content:space-between;
+  padding:36px 15px 16px 15px;box-sizing:border-box;
+}
+
+/* 顶栏：VOL. 卷号 + 英文微标 + 朱砂印戳 */
+.cards-scope .pack .pk-topbar{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  gap:6px;min-height:28px;
+}
+.cards-scope .pack .pk-meta-group{
+  display:flex;flex-direction:column;gap:3px;align-items:flex-start;
+  min-width:0;flex:1;
+}
+.cards-scope .pack .pk-vol{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:10px;font-weight:700;letter-spacing:.14em;
+  color:var(--pc);line-height:1;
+}
+html.dark .cards-scope .pack .pk-vol{
+  color:color-mix(in oklab, var(--pc) 58%, #e2e8f0);
+}
+.cards-scope .pack .pk-tag{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:7.5px;font-weight:600;letter-spacing:.10em;
+  color:var(--ink-soft);opacity:.82;text-transform:uppercase;
+  line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;
+}
+
+/* 中枢：几何星盘暗纹徽记 (.pk-emblem) + 宋体卷名 + 胶囊计数 */
+.cards-scope .pack .pk-center{
+  position:relative;text-align:center;margin:auto 0;padding:8px 0;
+}
+.cards-scope .pack .pk-emblem{
+  position:absolute;left:50%;top:50%;width:92px;height:92px;
+  transform:translate(-50%,-52%);pointer-events:none;z-index:0;
+  background-color:var(--pc);opacity:.11;
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Ccircle cx='60' cy='60' r='50' fill='none' stroke='%23000' stroke-width='1.1' stroke-dasharray='3 3'/%3E%3Ccircle cx='60' cy='60' r='36' fill='none' stroke='%23000' stroke-width='1.2'/%3E%3Cpolygon points='60,12 70,50 108,60 70,70 60,108 50,70 12,60 50,50' fill='none' stroke='%23000' stroke-width='1.2'/%3E%3Ccircle cx='60' cy='60' r='5' fill='%23000'/%3E%3C/svg%3E");
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Ccircle cx='60' cy='60' r='50' fill='none' stroke='%23000' stroke-width='1.1' stroke-dasharray='3 3'/%3E%3Ccircle cx='60' cy='60' r='36' fill='none' stroke='%23000' stroke-width='1.2'/%3E%3Cpolygon points='60,12 70,50 108,60 70,70 60,108 50,70 12,60 50,50' fill='none' stroke='%23000' stroke-width='1.2'/%3E%3Ccircle cx='60' cy='60' r='5' fill='%23000'/%3E%3C/svg%3E");
+  -webkit-mask-size:contain;mask-size:contain;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  transition:transform .42s cubic-bezier(.16,1,.3,1), opacity .24s ease;
+}
+html.dark .cards-scope .pack .pk-emblem{
+  background-color:color-mix(in oklab, var(--pc) 62%, #e2e8f0);
+  opacity:.14;
+}
+.cards-scope .pack:hover:not(.is-opening) .pk-emblem{
+  opacity:.19;
+  transform:translate(-50%,-52%) rotate(14deg) scale(1.05);
+}
 .cards-scope .pack .pk-name{
-  position:absolute;top:82px;left:0;right:0;text-align:center;
-  font-size:23px;font-weight:700;letter-spacing:.1em;text-indent:.1em;
-  color:var(--ink);
+  position:relative;z-index:1;
+  font-family:"Noto Serif SC","Source Han Serif SC","Songti SC","SimSun",serif;
+  font-size:23px;font-weight:700;letter-spacing:.14em;text-indent:.14em;
+  color:var(--ink);margin:0 0 9px;line-height:1.25;
+  transition:color .18s ease;
+}
+.cards-scope .pack:hover .pk-name{
+  color:color-mix(in oklab, var(--pc) 78%, var(--ink));
+}
+html.dark .cards-scope .pack:hover .pk-name{
+  color:color-mix(in oklab, var(--pc) 48%, #ffffff);
+}
+.cards-scope .pack .pk-divider{
+  position:relative;z-index:1;
+  display:block;width:32px;height:2px;margin:0 auto 9px;
+  background:color-mix(in oklab, var(--pc) 65%, transparent);
+  border-radius:999px;
 }
 .cards-scope .pack .pk-count{
-  position:absolute;top:140px;left:0;right:0;text-align:center;
-  font-size:10.5px;letter-spacing:.18em;text-indent:.18em;color:var(--ink-soft);
+  position:relative;z-index:1;display:inline-block;
+  padding:2px 9px;border-radius:999px;
+  background:color-mix(in oklab, var(--pc) 7%, var(--wash));
+  border:1px solid color-mix(in oklab, var(--pc) 20%, var(--line));
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:10px;font-weight:600;letter-spacing:.10em;
+  color:var(--ink-soft);margin:0;
+}
+
+/* 底部「撕封 →」引导（零阅读统计负担） */
+.cards-scope .pack .pk-foot{
+  display:flex;justify-content:flex-end;align-items:center;
+  gap:6px;padding-top:9px;border-top:1px solid var(--line);
+}
+.cards-scope .pack .pk-foot-left{
+  display:flex;align-items:center;gap:6px;min-width:0;
+}
+.cards-scope .pack .pk-read{
+  font-size:10px;color:var(--ink-soft);letter-spacing:.04em;
+  font-variant-numeric:tabular-nums;white-space:nowrap;
   font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
-/* 卷宗签孔：foot 右缘的分类色小圆 */
-.cards-scope .pack .pk-holo{
-  position:absolute;right:9px;bottom:15px;width:11px;height:11px;border-radius:50%;
-  background:radial-gradient(circle at 35% 35%, color-mix(in oklab, var(--pc), white 30%), var(--pc));
-  box-shadow:0 0 0 1.5px var(--hair);
-  opacity:.9;
+.cards-scope .pack .pk-dots{display:flex;gap:2.5px;align-items:center;flex-wrap:wrap}
+.cards-scope .pack .pk-dots i{
+  width:4px;height:4px;border-radius:50%;
+  background:var(--hair-strong);transition:background .2s;
 }
-/* 底部进度带 */
-.cards-scope .pack .pk-foot{
-  position:absolute;left:0;right:0;bottom:0;height:46px;
-  background:none;
-  border-top:1px solid var(--line);
-  border-radius:0 0 12px 12px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
-}
-.cards-scope .pack .pk-read{font-size:11px;color:var(--ink-soft);letter-spacing:.08em;font-variant-numeric:tabular-nums}
-.cards-scope .pack .pk-dots{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;max-width:130px}
-.cards-scope .pack .pk-dots i{width:5px;height:5px;border-radius:50%;background:var(--hair-strong)}
 .cards-scope .pack .pk-dots i.on{background:var(--pc)}
-/* 欲望系统：未拆的卷宗呼吸色晕 + 纸面暗扫光 + 未启印章 */
+.cards-scope .pack .pk-pull-hint{
+  flex:none;font-size:10.5px;font-weight:600;letter-spacing:.05em;
+  color:var(--ink-soft);white-space:nowrap;
+  transition:color .18s ease, transform .18s ease;
+}
+.cards-scope .pack:hover:not(.is-opening) .pk-pull-hint{
+  color:color-mix(in oklab, var(--pc) 80%, var(--ink));
+  transform:translateX(2px);
+}
+html.dark .cards-scope .pack:hover:not(.is-opening) .pk-pull-hint{
+  color:color-mix(in oklab, var(--pc) 52%, #f8fafc);
+}
+
+/* 朱砂闲章印戳 */
+.cards-scope .pack .pk-stamp{
+  position:relative;z-index:5;flex:none;
+  pointer-events:none;transform:rotate(-5deg) translateY(-1px);
+  display:none;
+}
+.cards-scope .pack.has-new .pk-stamp,
+.cards-scope .pack.all-read .pk-stamp{display:block}
+.cards-scope .pack .pk-stamp-inner{
+  display:inline-block;padding:2px 6px;
+  border:1.5px solid rgba(192,57,43,.82);border-radius:3px;
+  background:color-mix(in oklab, #c0392b 7%, transparent);
+  color:#c0392b;
+  font-family:"Noto Serif SC","Source Han Serif SC","Songti SC",serif;
+  font-size:9px;font-weight:700;letter-spacing:.10em;
+  box-shadow:inset 0 0 0 1px rgba(192,57,43,.18);
+  white-space:nowrap;
+}
+html.dark .cards-scope .pack .pk-stamp-inner{
+  color:#f87171;border-color:rgba(248,113,113,.65);
+  background:rgba(239,68,68,.09);
+}
+.cards-scope .pack.all-read .pk-stamp-inner{
+  border-color:rgba(100,116,139,.55);
+  color:var(--ink-soft);
+  background:color-mix(in oklab, var(--wash) 50%, transparent);
+  box-shadow:none;
+}
+
+/* 未拆卷宗微呼吸晕与暗扫光 */
 .cards-scope .pack .pk-halo{
   position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;
   opacity:0;transition:opacity .4s;
 }
 .cards-scope .pack.has-new .pk-halo{
   opacity:1;
-  animation:pk-halo 3s ease-in-out infinite alternate;
+  animation:pk-halo 3.2s ease-in-out infinite alternate;
 }
 @keyframes pk-halo{
   from{box-shadow:0 0 0 rgba(37,99,235,0)}
-  to{box-shadow:0 0 22px color-mix(in oklab, var(--pc), transparent 62%)}
+  to{box-shadow:0 0 20px color-mix(in oklab, var(--pc), transparent 66%)}
 }
 .cards-scope .pack .pk-sheen{
   position:absolute;inset:0;pointer-events:none;border-radius:inherit;
-  background:linear-gradient(112deg,transparent 30%,rgba(15,23,42,.035) 46%,rgba(15,23,42,.055) 50%,rgba(15,23,42,.035) 54%,transparent 70%);
+  background:linear-gradient(112deg,transparent 30%,rgba(15,23,42,.03) 46%,rgba(15,23,42,.05) 50%,rgba(15,23,42,.03) 54%,transparent 70%);
   background-size:240% 100%;background-position:-70% 0;
   opacity:0;
 }
 .cards-scope .pack.has-new .pk-sheen{opacity:1;animation:pk-sheen 6.5s ease-in-out infinite}
-.cards-scope .pack.has-new:hover .pk-sheen{animation-duration:1.4s}
 @keyframes pk-sheen{0%{background-position:-70% 0}55%,100%{background-position:170% 0}}
-.cards-scope .pack .pk-new{
-  position:absolute;top:36px;right:10px;z-index:2;display:none;
-  font-size:10.5px;font-weight:650;letter-spacing:.14em;text-indent:.14em;color:#c0392b;
-  padding:2px 4px;
-  transform:rotate(-6deg);
-  opacity:.9;
-  text-shadow:0 0 1px rgba(192,57,43,.25);
-}
-.cards-scope .pack.has-new .pk-new{display:block}
-/* 厚度面：白纸侧面 + 分类色签头 */
-.cards-scope .pack::before{
-  content:"";position:absolute;top:7px;bottom:-4px;left:100%;width:9px;
-  border-radius:0 5px 5px 0;
-  background:linear-gradient(180deg, var(--paper-2) 0 20px, var(--wash) 20px, var(--side) 100%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.6), 3px 6px 10px rgba(15,23,42,.08);
-}
-/* 接触阴影 */
+
+/* 地面接触阴影 */
 .cards-scope .pack-shadow{
-  position:absolute;left:4%;right:-6%;bottom:-17px;height:18px;
-  border-radius:50%;pointer-events:none;
-  background:radial-gradient(50% 100% at 50% 50%, rgba(15,23,42,.16), transparent 72%);
+  position:absolute;left:6%;right:6%;bottom:-15px;height:16px;
+  border-radius:50%;pointer-events:none;z-index:0;
+  background:radial-gradient(50% 100% at 50% 50%, rgba(15,23,42,.15), transparent 72%);
   filter:blur(4px);
-  transition:transform .3s var(--spring),opacity .3s;
+  transition:transform .26s cubic-bezier(.16,1,.3,1), opacity .22s ease;
 }
-.cards-scope .pack:hover .pack-shadow{transform:translateY(7px) scaleX(.9);opacity:.55}
-/* 陈列的歪斜 */
-.cards-scope .pack:nth-child(odd){rotate:-.5deg}
-.cards-scope .pack:nth-child(even){rotate:.4deg}
-.cards-scope .pack::after{ /* 纸面微光 */
-  content:"";position:absolute;inset:0;pointer-events:none;border-radius:14px;
-  background:linear-gradient(115deg,transparent 42%,rgba(15,23,42,.03) 50%,transparent 58%);
-  background-size:260% 100%;background-position:120% 0;
-  transition:background-position .6s ease;
+.cards-scope .pack:hover:not(.is-opening) .pack-shadow{transform:translateY(5px) scaleX(.92);opacity:.55}
+
+/* ---------- 4-Beat 物理撕封编排 (pack-focus / pk-seam-cut / pk-strip-rip / pk-body-drop) ---------- */
+.cards-scope .packs.is-unboxing .pack:not(.is-opening){
+  opacity:0;
+  transform:translateY(10px) scale(.95);
+  pointer-events:none;
+  transition:opacity .2s cubic-bezier(.4,0,1,1), transform .24s cubic-bezier(.4,0,1,1);
 }
-.cards-scope .pack:hover::after{background-position:-60% 0}
-/* ---------- 拆封仪式：摇包 → 封条飞 → 纸屑 → 卷签升起 ---------- */
-.cards-scope .pack.opening{animation:pack-shake .5s ease-in-out both;z-index:5}
-@keyframes pack-shake{
-  0%,100%{transform:translateY(0) rotate(0)}
-  20%{transform:rotate(-2.4deg)}
-  40%{transform:rotate(2.2deg) scale(1.02)}
-  60%{transform:rotate(-1.8deg)}
-  80%{transform:rotate(1.4deg) scale(1.03)}
+.cards-scope .pack.is-opening{
+  z-index:30;
+  pointer-events:none;
+  animation:pack-focus .52s cubic-bezier(.22,1,.36,1) forwards;
 }
-@keyframes pack-in{from{opacity:0;transform:translateY(14px) scale(.96)}}
+@keyframes pack-focus{
+  0%  {transform:translate3d(0,0,0) scale(1)}
+  18% {transform:translate3d(calc(var(--focus-x, 0px) * .28), 3px, 0) scale(.975)}
+  100%{transform:translate3d(var(--focus-x, 0px), -6px, 0) scale(1.04)}
+}
+/* Beat 1: 激光细缝沿 y=26px 左→右极速划开 */
+.cards-scope .pack.is-opening .pk-seam-glow{
+  animation:pk-seam-cut .19s cubic-bezier(.22,1,.36,1) .02s forwards;
+}
+@keyframes pk-seam-cut{
+  0%  {transform:scaleX(0);opacity:0}
+  20% {opacity:1}
+  78% {transform:scaleX(1.02);opacity:1}
+  100%{transform:scaleX(1.04);opacity:0}
+}
+/* Beat 2: 顶部压纹封边条沿锯齿口向右上撕脱抛飞 */
+.cards-scope .pack.is-opening .pk-crimp-top{
+  animation:pk-strip-rip .26s cubic-bezier(.22,1,.36,1) .115s forwards;
+}
+@keyframes pk-strip-rip{
+  0%  {transform:translate3d(0,0,0) rotate(0deg) scale(1);opacity:1}
+  28% {transform:translate3d(6px,-6px,12px) rotate(-3.5deg) scale(1.01);opacity:1}
+  100%{transform:translate3d(54px,-46px,26px) rotate(15deg) scale(.92);opacity:0}
+}
+/* Beat 3: 内袋深曜石馆藏牌背从撕口破封升起 */
+.cards-scope .pack.is-opening .pk-sheet{opacity:1}
+.cards-scope .pack.is-opening .pk-sheet.s1{
+  transition-delay:.145s;
+  transform:translate3d(-18px, -64px, 0) rotate(-6deg) scale(.97);
+}
+.cards-scope .pack.is-opening .pk-sheet.s2{
+  transition-delay:.17s;
+  transform:translate3d(18px, -60px, 0) rotate(5.5deg) scale(.97);
+}
+.cards-scope .pack.is-opening .pk-sheet.s3{
+  transition-delay:.195s;
+  transform:translate3d(0, -76px, 0) rotate(-.5deg) scale(1.01);
+}
+/* Beat 4: 包袋主体下滑消散 */
+.cards-scope .pack.is-opening .pk-sleeve{
+  animation:pk-body-drop .29s cubic-bezier(.4,0,1,1) .245s forwards;
+}
+@keyframes pk-body-drop{
+  0%  {transform:translate3d(0,0,0) scale(1);opacity:1}
+  100%{transform:translate3d(0,78px,0) scale(.95);opacity:0}
+}
+.cards-scope .pack.is-opening .pack-shadow{
+  opacity:0;transform:translateY(22px) scaleX(.76);
+  transition:opacity .24s ease .18s, transform .26s ease .18s;
+}
+@keyframes pack-in{from{opacity:0;transform:translateY(12px) scale(.965)}}
 
 
-/* ---------- 牌堆 ---------- */
-.cards-scope .deck-wrap{display:grid;place-items:center;min-height:calc(100vh - 190px)}
-.cards-scope .deck-tilt{perspective:1400px;transition:transform .3s ease-out}
-.cards-scope .deck{position:relative;width:var(--card-w);height:var(--card-h);transform-style:preserve-3d}
-.cards-scope .deck::after{
-  content:"";position:absolute;left:8%;right:8%;bottom:-38px;height:46px;border-radius:50%;
-  background:radial-gradient(closest-side,rgba(15,23,42,.16),transparent 70%);filter:blur(6px);
+/* ============================================================
+   STAGE 2: 典藏陈列舞台阵型 (.deck + data-count="1..N")
+   彻底淘汰单摞叠牌、7.2° 扑克手牌扇形与拖拽切牌
+   ============================================================ */
+.cards-scope #deckView{position:relative}
+.cards-scope .deck-wrap{
+  position:relative;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:calc(100vh - 220px);
+  width:min(1120px,94vw);margin:0 auto;padding:12px 0 28px;
 }
-.cards-scope .idle-wobble{animation:wobble 7s ease-in-out infinite alternate}
-@keyframes wobble{
-  from{transform:rotateX(2.2deg) rotateY(-2.4deg)}
-  to{transform:rotateX(-2deg) rotateY(2.6deg)}
+.cards-scope .deck-wrap::before{
+  content:"";position:absolute;left:50%;bottom:20px;width:min(640px,90%);height:120px;
+  transform:translateX(-50%);pointer-events:none;
+  background:radial-gradient(50% 100% at 50% 50%, rgba(148,163,184,.08), transparent 72%);
+}
+.cards-scope .deck-tilt{
+  width:100%;display:flex;justify-content:center;perspective:none;
+}
+.cards-scope .deck{
+  position:relative;z-index:2;
+  display:flex;flex-wrap:wrap;justify-content:center;align-items:stretch;
+  gap:16px;
+  width:100%;max-width:916px;height:auto;margin:0 auto;
+}
+.cards-scope .deck-pos{
+  position:relative;margin-top:16px;text-align:center;
+  font-size:11px;letter-spacing:.22em;color:var(--ink-soft);font-variant-numeric:tabular-nums;
 }
 
-/* ---------- 卡片：博客白卡语言 ---------- */
+/* 桌面端（>=960px）专属列阵尺寸：严格隔离在桌面断点内，杜绝向中屏/移动端泄漏高优先级选择器 */
+@media (min-width:960px){
+  /* N = 1：单核英雄聚光位 */
+  .cards-scope .deck[data-count="1"]{max-width:300px}
+  .cards-scope .deck[data-count="1"] .card{width:258px;aspect-ratio:5 / 7.1}
+
+  /* N = 2：双子对称位 */
+  .cards-scope .deck[data-count="2"]{max-width:540px;gap:20px}
+  .cards-scope .deck[data-count="2"] .card{width:236px;aspect-ratio:5 / 7.2}
+
+  /* N = 3：三连陈列 */
+  .cards-scope .deck[data-count="3"]{max-width:720px;gap:18px}
+  .cards-scope .deck[data-count="3"] .card{width:220px;aspect-ratio:5 / 7.3}
+
+  /* N = 4：经典四连横排（4 * 214 + 3 * 16 = 904px，完美塞入首页 #blog 976px 单行！） */
+  .cards-scope .deck[data-count="4"]{max-width:916px;gap:16px}
+  .cards-scope .deck[data-count="4"] .card{width:214px;aspect-ratio:5 / 7.38}
+
+  /* N = 5 / 6：3+2 / 3+3 居中双排阵 */
+  .cards-scope .deck[data-count="5"],
+  .cards-scope .deck[data-count="6"]{max-width:684px;gap:16px}
+  .cards-scope .deck[data-count="5"] .card,
+  .cards-scope .deck[data-count="6"] .card{width:214px;aspect-ratio:5 / 7.38}
+
+  /* N >= 7（如 AI 学习 7 札）：PTCGP 式「上 4 下 3」居中双排阵（896px <= 910px） */
+  .cards-scope .deck:where(:not([data-count="1"]):not([data-count="2"]):not([data-count="3"]):not([data-count="4"]):not([data-count="5"]):not([data-count="6"])){
+    max-width:910px;gap:16px;
+  }
+  .cards-scope .deck:where(:not([data-count="1"]):not([data-count="2"]):not([data-count="3"]):not([data-count="4"]):not([data-count="5"]):not([data-count="6"])) .card{
+    width:212px;aspect-ratio:5 / 7.42;
+  }
+}
+
+
+/* ============================================================
+   STAGE 3: 双面 3D 典藏卡牌 (.card / .card-back / .card-front)
+   严格遵守 preserve-3d：.card-clip 之上零 overflow:hidden、零 backdrop-filter
+   ============================================================ */
 .cards-scope .card{
-  position:absolute;inset:0;width:100%;height:100%;
-  cursor:grab;touch-action:none;outline:none;
+  position:relative;flex:none;
+  width:214px;aspect-ratio:5 / 7.38;
+  cursor:pointer;outline:none;
+  touch-action:pan-y;
   -webkit-tap-highlight-color:transparent;
   user-select:none;-webkit-user-select:none;
+  perspective:1100px;
+  transform-origin:50% 50%;
+  --rx:0deg;--ry:0deg;
+  --px:0.5;--py:0.5;--hyp:0;
+  transition:transform .24s cubic-bezier(.16,1,.3,1);
 }
 .cards-scope .card img{-webkit-user-drag:none;user-select:none}
-.cards-scope .card:focus-visible .card-inner{box-shadow:0 0 0 3px rgba(37,99,235,.55),0 16px 40px -10px rgba(15,23,42,.16)}
-.cards-scope .card-inner{
-  position:relative;width:100%;height:100%;border-radius:18px;overflow:hidden;
-  backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);
-  background:var(--paper);
-  border:1px solid var(--hair);
-  box-shadow:0 10px 30px -8px rgba(15,23,42,.10), 0 1px 2px 0 rgba(0,0,0,.03);
-  transition:transform .25s var(--spring),box-shadow .25s,border-color .25s;
+.cards-scope .card:focus-visible .card-clip{
+  outline:2px solid var(--accent);outline-offset:2px;
+}
+
+/* 3D 倾斜层 + 3D 翻转层 */
+.cards-scope .card-rotator{
+  position:relative;width:100%;height:100%;
+  transform-style:preserve-3d;
+  transform:rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition:transform 420ms cubic-bezier(.16,1,.3,1);
+  will-change:transform;
+}
+.cards-scope .card.is-tilting .card-rotator{
+  transition:transform 65ms linear;
+}
+.cards-scope .card-flipper{
+  position:relative;width:100%;height:100%;
+  transform-style:preserve-3d;
+  transform:rotateY(0deg);
+  will-change:transform;
+}
+/* 未揭晓态：翻转器定格 180deg，正立展示馆藏牌背；翻开后回到 0deg 保障中文亚像素锐度 */
+.cards-scope .card.is-facedown .card-flipper{
+  transform:rotateY(180deg);
+}
+
+.cards-scope .card-face{
+  position:absolute;inset:0;width:100%;height:100%;
+  backface-visibility:hidden;-webkit-backface-visibility:hidden;
+}
+.cards-scope .card-front{transform:rotateY(0deg);z-index:2}
+.cards-scope .card-back{transform:rotateY(180deg);z-index:1}
+
+/* 裁切隔离层（严格置于扁平 .card-face 内部，杜绝 Blink/WebKit 3D 拍平） */
+.cards-scope .card-clip{
+  position:relative;width:100%;height:100%;
+  border-radius:15px;overflow:hidden;
   display:flex;flex-direction:column;
 }
-.cards-scope .card.is-top{cursor:grab}
-.cards-scope .card.is-top:hover .card-inner{transform:translateY(-6px) rotate(-.4deg);border-color:var(--hov);box-shadow:var(--hov-shadow)}
-.cards-scope .card.dragging{cursor:grabbing}
-.cards-scope .card.dragging .card-inner{transform:scale(1.02);border-color:var(--hov);box-shadow:var(--hov-shadow)}
-.cards-scope .card .cover{position:relative;height:184px;flex:none;overflow:hidden;background:var(--paper);border-bottom:1px solid var(--line);padding:10px 10px 0}
-.cards-scope .card .cover img{width:100%;height:100%;object-fit:cover;display:block;border-radius:8px 8px 0 0}
-.cards-scope .card .chip{
-  position:absolute;top:12px;left:12px;z-index:3;
-  font-size:11px;letter-spacing:.06em;color:var(--ink-soft);background:var(--panel-soft);
-  border:1px solid var(--hair);
-  padding:3px 10px;border-radius:999px;backdrop-filter:blur(6px);
+
+/* ---------- 牌背设计 (.card-back)：亮暗双模式统一深曜石矿物精装牌背 ---------- */
+.cards-scope .card-back .card-clip{
+  padding:8px;
+  background:
+    radial-gradient(90% 74% at 50% 44%, color-mix(in oklab, var(--pc) 34%, #1b2538) 0%, #0d1320 68%, #070b13 100%);
+  border:1.5px solid color-mix(in oklab, var(--pc) 42%, rgba(148,163,184,.36));
+  color:color-mix(in oklab, var(--pc) 32%, #dce5f2);
+  box-shadow:
+    0 14px 32px -8px rgba(15,23,42,.32),
+    0 3px 8px -2px rgba(15,23,42,.16),
+    inset 0 1px 0 rgba(255,255,255,.14);
+  transition:box-shadow .26s cubic-bezier(.16,1,.3,1), border-color .22s ease;
 }
-.cards-scope .card h2{
-  font-size:17px;line-height:1.45;color:var(--ink);padding:16px 18px 8px;
-  font-weight:650;letter-spacing:-.01em;
+.cards-scope .card[data-rarity="foil"] .card-back .card-clip{
+  border-color:color-mix(in oklab, #e6cb94 46%, var(--pc));
+}
+
+/* 双发丝内框与四角折角饰纹 */
+.cards-scope .cb-frame{
+  position:relative;flex:1;width:100%;
+  border-radius:10px;
+  border:1px solid color-mix(in oklab, var(--pc) 38%, rgba(226,232,240,.24));
+  box-shadow:
+    inset 0 0 0 3px rgba(8,12,21,.72),
+    inset 0 0 0 4px rgba(226,232,240,.11);
+  background:
+    repeating-linear-gradient(45deg, rgba(255,255,255,.014) 0 1px, transparent 1px 6px),
+    radial-gradient(62% 52% at 50% 45%, color-mix(in oklab, var(--pc) 18%, transparent), transparent 76%);
+  display:flex;flex-direction:column;align-items:center;justify-content:space-between;
+  padding:14px 10px 11px;
+}
+.cards-scope .cb-corner{
+  position:absolute;width:11px;height:11px;pointer-events:none;
+  border-color:color-mix(in oklab, var(--pc) 48%, rgba(226,232,240,.55));
+  border-style:solid;
+}
+.cards-scope .card[data-rarity="foil"] .cb-corner{
+  border-color:rgba(245,221,170,.68);
+}
+.cards-scope .cb-corner.tl{top:6px;left:6px;border-width:1.5px 0 0 1.5px;border-top-left-radius:3px}
+.cards-scope .cb-corner.tr{top:6px;right:6px;border-width:1.5px 1.5px 0 0;border-top-right-radius:3px}
+.cards-scope .cb-corner.bl{bottom:6px;left:6px;border-width:0 0 1.5px 1.5px;border-bottom-left-radius:3px}
+.cards-scope .cb-corner.br{bottom:6px;right:6px;border-width:0 1.5px 1.5px 0;border-bottom-right-radius:3px}
+
+/* 牌背中枢星盘与篆刻铭文 */
+.cards-scope .cb-emblem{
+  margin:auto 0;display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;
+}
+.cards-scope .cb-svg{
+  width:68px;height:68px;margin-bottom:4px;
+  color:color-mix(in oklab, var(--pc) 52%, #e2e8f0);
+  opacity:.9;
+  filter:drop-shadow(0 0 10px color-mix(in oklab, var(--pc) 35%, transparent));
+  transition:transform .45s cubic-bezier(.16,1,.3,1), opacity .24s ease;
+}
+.cards-scope .card[data-rarity="foil"] .cb-svg{
+  color:#f3dc9c;
+  filter:drop-shadow(0 0 12px rgba(243,220,156,.34));
+}
+.cards-scope .cb-cat{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:9.5px;font-weight:600;letter-spacing:.14em;
+  color:color-mix(in oklab, var(--pc) 58%, #cbd5e1);
+}
+.cards-scope .cb-brand{
+  font-size:15.5px;font-weight:700;letter-spacing:.20em;text-indent:.20em;
+  color:#f1f5f9;line-height:1.3;
+}
+.cards-scope .cb-rarity{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:7.5px;font-weight:600;letter-spacing:.14em;
+  color:rgba(203,213,225,.66);
+  padding:2px 7px;border-radius:999px;
+  border:1px solid rgba(226,232,240,.15);
+  margin-top:2px;white-space:nowrap;
+}
+.cards-scope .card[data-rarity="foil"] .cb-rarity{
+  color:#f6dfa4;
+  border-color:rgba(246,223,164,.38);
+  background:rgba(246,223,164,.08);
+}
+.cards-scope .cb-tap{
+  font-size:10px;font-weight:500;letter-spacing:.12em;text-indent:.12em;
+  color:rgba(226,232,240,.74);
+  padding:3px 11px;border-radius:999px;
+  background:rgba(15,23,42,.58);
+  border:1px solid rgba(226,232,240,.16);
+  transition:color .18s ease, border-color .18s ease, background .18s ease, transform .18s ease;
+}
+
+/* 炉石式悬停品质预兆辉光 (Hearthstone Hover Anticipation Glow) */
+@media (hover:hover){
+  .cards-scope .card.is-facedown:hover{
+    transform:translateY(-7px) scale(1.02);
+    z-index:8;
+  }
+}
+.cards-scope .card.is-facedown:hover .cb-svg{
+  transform:rotate(15deg) scale(1.06);opacity:1;
+}
+.cards-scope .card.is-facedown:hover .cb-tap{
+  color:#ffffff;
+  border-color:color-mix(in oklab, var(--pc) 68%, #e2e8f0);
+  background:color-mix(in oklab, var(--pc) 34%, rgba(15,23,42,.82));
+  transform:translateY(-1px);
+}
+/* Standard 精装签：清透分类专色边缘辉光 */
+.cards-scope .card.is-facedown:hover .card-back .card-clip{
+  border-color:color-mix(in oklab, var(--pc) 78%, #ffffff);
+  box-shadow:
+    0 20px 42px -10px rgba(15,23,42,.48),
+    0 0 0 1px color-mix(in oklab, var(--pc) 55%, transparent),
+    0 0 24px -2px color-mix(in oklab, var(--pc) 62%, transparent),
+    inset 0 1px 0 rgba(255,255,255,.26);
+}
+/* Foil 深研闪签：饱满暖铂琥珀 + 分类专色双色金属流光预兆 */
+.cards-scope .card[data-rarity="foil"].is-facedown:hover .card-back .card-clip{
+  border-color:#f6dfa4;
+  box-shadow:
+    0 22px 46px -10px rgba(15,23,42,.54),
+    0 0 0 1.5px rgba(246,223,164,.70),
+    0 0 26px -1px rgba(245,194,107,.50),
+    0 0 42px -4px color-mix(in oklab, var(--pc) 65%, transparent),
+    inset 0 1px 0 rgba(255,248,220,.44);
+}
+.cards-scope .card[data-rarity="foil"].is-facedown:hover .cb-tap{
+  color:#fef3c7;
+  border-color:rgba(246,223,164,.62);
+  background:rgba(120,83,24,.45);
+}
+
+
+/* ---------- 卡面正面设计 (.card-front)：5 区段 TCG / 馆藏双线画框 ---------- */
+.cards-scope .card-front .card-clip{
+  padding:6px;
+  /* 外衬 6px 特种卡纸边衬 */
+  background:linear-gradient(155deg, color-mix(in oklab, var(--pc) 6%, #f8fafd) 0%, #eef2f8 100%);
+  border:1px solid var(--hair-strong);
+  box-shadow:
+    0 12px 30px -8px rgba(15,23,42,.12),
+    0 2px 6px rgba(15,23,42,.05),
+    inset 0 1px 0 rgba(255,255,255,.95);
+  transition:box-shadow .24s cubic-bezier(.16,1,.3,1), border-color .22s ease;
+}
+html.dark .cards-scope .card-front .card-clip{
+  background:linear-gradient(155deg, color-mix(in oklab, var(--pc) 14%, #182132) 0%, #0f1522 100%);
+  border-color:rgba(255,255,255,.15);
+  box-shadow:
+    0 16px 38px -8px rgba(0,0,0,.68),
+    0 2px 8px rgba(0,0,0,.42),
+    inset 0 1px 0 rgba(255,255,255,.09);
+}
+/* Foil 正面金属珠光外衬卡纸框 */
+.cards-scope .card[data-rarity="foil"] .card-front .card-clip{
+  background:linear-gradient(145deg, color-mix(in oklab, var(--pc) 13%, #f8fafc) 0%, #ffffff 48%, color-mix(in oklab, #e2c792 18%, #edf2f7) 100%);
+  border-color:color-mix(in oklab, #caa45d 42%, var(--hair-strong));
+}
+html.dark .cards-scope .card[data-rarity="foil"] .card-front .card-clip{
+  background:linear-gradient(145deg, color-mix(in oklab, var(--pc) 22%, #1d273b) 0%, #131b2b 50%, color-mix(in oklab, #d4b475 20%, #172032) 100%);
+  border-color:color-mix(in oklab, #e2c792 40%, rgba(255,255,255,.2));
+}
+
+/* 内嵌双线馆藏画框底纸（6px 边衬之内） */
+.cards-scope .card-front .card-clip::before{
+  content:"";position:absolute;inset:6px;z-index:0;pointer-events:none;
+  border-radius:10px;
+  background:#ffffff;
+  border:1px solid color-mix(in oklab, var(--pc) 26%, var(--line));
+}
+html.dark .cards-scope .card-front .card-clip::before{
+  background:#121826;
+  border-color:color-mix(in oklab, var(--pc) 34%, rgba(255,255,255,.10));
+}
+
+/* Zone 1: 顶栏铭牌 (.cf-head：分类菱形色标 + 收藏编号 / ✦ FOIL) */
+.cards-scope .cf-head{
+  position:relative;z-index:2;flex:none;
+  display:flex;align-items:center;justify-content:space-between;gap:6px;
+  padding:6px 8px 5px;
+}
+.cards-scope .cf-cat{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:10.5px;font-weight:600;letter-spacing:.03em;color:var(--ink);
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.cards-scope .cf-dot{
+  width:6px;height:6px;flex:none;border-radius:1px;
+  background:var(--pc);transform:rotate(45deg);
+  box-shadow:0 0 0 2px color-mix(in oklab, var(--pc) 18%, transparent);
+}
+.cards-scope .cf-no{
+  flex:none;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:9.5px;font-weight:600;letter-spacing:.05em;font-variant-numeric:tabular-nums;
+  color:var(--ink-soft);white-space:nowrap;
+}
+.cards-scope .card[data-rarity="foil"] .cf-no{
+  color:color-mix(in oklab, var(--pc) 55%, #9a6715);
+}
+html.dark .cards-scope .card[data-rarity="foil"] .cf-no{
+  color:#f3dc9c;
+}
+
+/* Zone 2: 画框式插画视窗 (.cf-art + 拉丝微棱镜闪膜 .cf-art-foil) */
+.cards-scope .cf-art{
+  position:relative;z-index:2;flex:none;
+  margin:0 7px;border-radius:7px;overflow:hidden;
+  aspect-ratio:16 / 9.4;
+  background:#0f172a;
+  border:1px solid var(--hair-strong);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08), 0 2px 6px rgba(15,23,42,.06);
+}
+.cards-scope .cf-art img{
+  width:100%;height:100%;object-fit:cover;display:block;
+  transition:transform .36s cubic-bezier(.16,1,.3,1);
+}
+@media (hover:hover){
+  .cards-scope .card:not(.is-facedown):hover .cf-art img{
+    transform:scale(1.035);
+  }
+}
+/* 仅限插画窗内的阳极氧化铂银 + 分类色微棱镜闪膜，绝不污染正文字体 */
+.cards-scope .cf-art-foil{
+  position:absolute;inset:0;pointer-events:none;
+  background-image:
+    repeating-linear-gradient(125deg, rgba(255,255,255,.08) 0 1px, transparent 1px 3px),
+    linear-gradient(
+      118deg,
+      transparent 18%,
+      color-mix(in oklab, var(--pc) 44%, #cbd5e1) 38%,
+      rgba(255,255,255,.84) 50%,
+      color-mix(in oklab, var(--accent) 36%, #e2e8f0) 62%,
+      transparent 82%
+    );
+  background-size:100% 100%, 240% 240%;
+  background-position:0 0, calc(15% + var(--px, 0.5) * 70%) calc(15% + var(--py, 0.5) * 70%);
+  mix-blend-mode:soft-light;
+  opacity:calc(var(--hyp, 0) * 0.74);
+}
+html.dark .cards-scope .cf-art-foil{
+  mix-blend-mode:overlay;
+  opacity:calc(var(--hyp, 0) * 0.54);
+}
+.cards-scope .card[data-rarity="foil"] .cf-art-foil{
+  opacity:calc(0.16 + var(--hyp, 0) * 0.68);
+}
+html.dark .cards-scope .card[data-rarity="foil"] .cf-art-foil{
+  opacity:calc(0.14 + var(--hyp, 0) * 0.50);
+}
+
+/* Zone 3: 技术词条与阅读时效栏 (.cf-typebar) */
+.cards-scope .cf-typebar{
+  position:relative;z-index:2;flex:none;
+  display:flex;align-items:center;justify-content:space-between;gap:6px;
+  padding:5px 8px 3px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:9.5px;line-height:1.25;
+}
+.cards-scope .cf-tags{
+  flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  padding:2px 6px;border-radius:4px;
+  background:color-mix(in oklab, var(--pc) 8%, var(--wash));
+  color:color-mix(in oklab, var(--pc) 72%, var(--ink));
+  font-weight:500;letter-spacing:.02em;
+}
+html.dark .cards-scope .cf-tags{
+  background:color-mix(in oklab, var(--pc) 18%, rgba(30,41,59,.78));
+  color:color-mix(in oklab, var(--pc) 48%, #e2e8f0);
+}
+.cards-scope .cf-time{
+  flex:none;color:var(--ink-soft);font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+
+/* Zone 4: 双行标题 + 铭文摘要框 (.cf-body + .cf-lore，填满原空白区) */
+.cards-scope .cf-body{
+  position:relative;z-index:2;flex:1;min-height:0;
+  display:flex;flex-direction:column;gap:5px;
+  padding:3px 8px 5px;
+}
+.cards-scope .cf-body h2{
+  font-size:13.5px;font-weight:650;line-height:1.38;letter-spacing:-.015em;
+  color:var(--ink);margin:0;text-wrap:balance;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
 }
-.cards-scope .card .meta{
-  margin-top:auto;padding:0 18px 14px;display:flex;justify-content:space-between;align-items:center;
-  font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums;
-}
-.cards-scope .card .meta .no{color:var(--ink-soft);opacity:.75;letter-spacing:.05em}
-.cards-scope .card .tear{
-  position:absolute;right:12px;bottom:46px;z-index:3;display:none;
-  font-size:10.5px;letter-spacing:.06em;color:var(--ink-soft);
-  background:var(--panel-soft);border:1px solid var(--hair);
-  padding:3px 11px;border-radius:999px;
-  backdrop-filter:blur(6px);pointer-events:none;
-}
-.cards-scope .card.is-top .tear{display:block}
-/* 抽选过渡：后面的卡提到最前时滑上来 */
-.cards-scope .card{transition:transform .45s var(--spring)}
-.cards-scope .card.is-top,.cards-scope .card.dragging{transition:none}
-.cards-scope .deck.no-t .card{transition:none}
-.cards-scope .shine{
-  position:absolute;inset:0;z-index:4;pointer-events:none;border-radius:18px;
-  mix-blend-mode:screen;opacity:0;transition:opacity .3s;
-  background:radial-gradient(260px circle at var(--mx,50%) var(--my,50%),rgba(59,130,246,.10),transparent 62%);
-}
-.cards-scope .card.is-top:hover .shine,.cards-scope .card.dragging .shine{opacity:1}
-/* 已启状态（总目录里） */
-.cards-scope .card.is-read .card-inner{opacity:.85}
-.cards-scope .card.is-read .cover img{filter:grayscale(.5) brightness(.97)}
-.cards-scope .card .done{
-  position:absolute;top:12px;right:12px;z-index:3;display:none;
-  font-size:11px;letter-spacing:.08em;color:var(--ink-soft);background:var(--panel-soft);
-  border:1px solid var(--hair);
-  padding:3px 10px;border-radius:999px;
-}
-.cards-scope .card.is-read .done{display:block}
+.cards-scope .deck[data-count="1"] .cf-body h2{font-size:15.5px}
+.cards-scope .deck[data-count="2"] .cf-body h2{font-size:14.5px}
 
-/* ---------- 抽卡舞台氛围 ---------- */
-.cards-scope #deckView{position:relative}
-.cards-scope #deckView::before{
-  content:"";position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(46% 54% at 50% 26%, rgba(191,219,254,.12), transparent 70%);
+.cards-scope .cf-lore{
+  margin-top:auto;
+  padding:0 7px 0 9px;
+  border-top:4.5px solid transparent;
+  border-bottom:4.5px solid transparent;
+  border-left:0;
+  border-right:0;
+  border-radius:0 5px 5px 0;
+  background-image:
+    linear-gradient(90deg, var(--pc) 0 2px, transparent 2px),
+    linear-gradient(0deg, color-mix(in oklab, var(--pc) 4.5%, var(--paper-2)), color-mix(in oklab, var(--pc) 4.5%, var(--paper-2)));
+  background-origin:border-box;
+  background-clip:border-box;
+  font-size:10.75px;line-height:1.44;color:var(--ink-soft);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
 }
-.cards-scope .deck-wrap{position:relative;display:grid;place-items:center;min-height:calc(100vh - 190px)}
-.cards-scope .deck-wrap::before{
-  content:"";position:absolute;left:50%;bottom:34px;width:600px;height:130px;
-  transform:translateX(-50%);pointer-events:none;
-  background:radial-gradient(50% 100% at 50% 50%, rgba(148,163,184,.10), transparent 72%);
+html.dark .cards-scope .cf-lore{
+  background-image:
+    linear-gradient(90deg, var(--pc) 0 2px, transparent 2px),
+    linear-gradient(0deg, rgba(255,255,255,.042), rgba(255,255,255,.042));
+  color:#94a3b8;
 }
-.cards-scope .motes{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.cards-scope .deck-pos{
-  position:relative;margin-top:20px;text-align:center;
-  font-size:11px;letter-spacing:.26em;color:var(--ink-soft);font-variant-numeric:tabular-nums;
+.cards-scope .cf-lore:empty{display:none}
+.cards-scope .deck[data-count="1"] .cf-lore{
+  font-size:11.5px;
+  padding:0 8px 0 10px;
+  border-top-width:6px;
+  border-bottom-width:6px;
 }
-.cards-scope .motes i{
-  position:absolute;width:3px;height:3px;border-radius:50%;
-  background:rgba(148,163,184,.4);filter:blur(1px);
-  opacity:0;animation:drift var(--d,14s) ease-in-out infinite alternate;
-}
-@keyframes drift{
-  0%{transform:translate(0,0);opacity:0}
-  14%{opacity:var(--o,.4)}
-  86%{opacity:var(--o,.4)}
-  100%{transform:translate(var(--dx,40px),var(--dy,-90px));opacity:0}
-}
-@keyframes topfloat{from{translate:0 0}to{translate:0 -7px}}
-.cards-scope .card.is-top{animation:topfloat 4.5s ease-in-out infinite alternate}
 
-/* ---------- 摊开（本卷网格 / 总目录） ---------- */
-.cards-scope .deck.fan{
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(236px,1fr));gap:22px;
-  width:min(1120px,93vw);height:auto;perspective:none;
+/* Zone 5: 底栏召唤条 (.cf-foot：日期 + 拆阅引导) */
+.cards-scope .cf-foot{
+  position:relative;z-index:2;flex:none;
+  display:flex;align-items:center;justify-content:space-between;gap:6px;
+  margin:0 7px;padding:5px 2px 3px;
+  border-top:1px solid var(--line);
+  font-size:10px;line-height:1.25;
 }
-.cards-scope .deck.fan::after{display:none}
-.cards-scope .deck.fan .card{position:static;width:auto;height:auto;opacity:1!important;cursor:pointer}
-.cards-scope .deck.fan .card .card-inner{height:100%}
-.cards-scope .deck.fan .card h2{-webkit-line-clamp:3}
-.cards-scope .deck-tilt.wide{width:min(1120px,93vw)}
+.cards-scope .cf-date{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:9.5px;color:var(--ink-soft);font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.cards-scope .cf-cta{
+  font-size:10.5px;font-weight:600;letter-spacing:.02em;white-space:nowrap;
+  color:color-mix(in oklab, var(--pc) 76%, var(--ink));
+  transition:color .16s ease, transform .16s ease;
+}
+html.dark .cards-scope .cf-cta{
+  color:color-mix(in oklab, var(--pc) 48%, #e2e8f0);
+}
 
-/* ---------- 总目浮层：叠在卷宗架/牌堆之上 ---------- */
+/* 已翻开卡牌悬停与点按打开正文反馈 */
+@media (hover:hover){
+  .cards-scope .card:not(.is-facedown):hover{
+    transform:translateY(-5px);
+    z-index:6;
+  }
+}
+.cards-scope .card:not(.is-facedown):hover .card-front .card-clip{
+  border-color:color-mix(in oklab, var(--pc) 55%, var(--accent));
+  box-shadow:var(--hov-shadow);
+}
+.cards-scope .card:not(.is-facedown):hover .cf-cta{
+  color:var(--accent);
+  transform:translateX(2px);
+}
+.cards-scope .card.is-opening-read{
+  z-index:20;
+}
+.cards-scope .card.is-opening-read .card-rotator{
+  transform:translate3d(0, -8px, 16px) scale(1.028);
+  transition:transform 160ms cubic-bezier(.22,1,.36,1);
+}
+.cards-scope .card.is-opening-read .card-front .card-clip{
+  border-color:var(--accent);
+  box-shadow:var(--hov-shadow);
+}
+
+/* 已入册状态 (.card.is-read)：严禁封面置灰！保持鲜亮藏品色泽，仅以精致馆藏章标示 */
+.cards-scope .card.is-read .cf-art img{
+  filter:none;
+}
+.cards-scope .card.is-read:not(.is-facedown) .card-front .card-clip::before{
+  border-color:color-mix(in oklab, var(--pc) 44%, var(--line));
+}
+.cards-scope .card.is-read .cf-cta{
+  padding:1.5px 6px;border-radius:999px;
+  background:color-mix(in oklab, var(--pc) 10%, var(--wash));
+  border:1px solid color-mix(in oklab, var(--pc) 25%, var(--line));
+  color:var(--ink-soft);
+  font-size:9.5px;
+}
+.cards-scope .card.is-read:not(.is-facedown):hover .cf-cta{
+  color:var(--accent);
+  border-color:color-mix(in oklab, var(--accent) 45%, var(--line));
+}
+
+/* ---------- 光学闪膜层：金属包边 (.card-foil-rim) + 覆膜折光带 (.card-glare) + 翻牌掠光 (.card-reveal-sheen) ---------- */
+.cards-scope .card-foil-rim{
+  position:absolute;inset:0;z-index:6;pointer-events:none;
+  border-radius:inherit;padding:1.5px;
+  background:radial-gradient(
+    230px circle at calc(var(--px, 0.5) * 100%) calc(var(--py, 0.5) * 100%),
+    #ffffff 0%,
+    color-mix(in oklab, var(--pc) 62%, #e2e8f0) 35%,
+    rgba(148,163,184,.18) 72%,
+    transparent 100%
+  );
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite:exclude;
+  opacity:calc(0.32 + var(--hyp, 0) * 0.68);
+}
+.cards-scope .card[data-rarity="foil"] .card-foil-rim{
+  background:radial-gradient(
+    250px circle at calc(var(--px, 0.5) * 100%) calc(var(--py, 0.5) * 100%),
+    #fffdf5 0%,
+    #f3dc9c 26%,
+    color-mix(in oklab, var(--pc) 58%, #e2e8f0) 56%,
+    rgba(226,200,140,.22) 82%,
+    transparent 100%
+  );
+  opacity:calc(0.52 + var(--hyp, 0) * 0.48);
+}
+
+/* 随 3D 倾角联动的纸面斜向覆膜反光带（非廉价圆形鼠标手电筒） */
+.cards-scope .card-glare{
+  position:absolute;inset:0;z-index:5;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(
+    115deg,
+    transparent 25%,
+    rgba(255,255,255,.32) 47%,
+    rgba(255,255,255,.08) 53%,
+    transparent 74%
+  );
+  background-size:220% 220%;
+  background-position:calc(var(--px, 0.5) * 100%) calc(var(--py, 0.5) * 100%);
+  mix-blend-mode:overlay;
+  opacity:calc(var(--hyp, 0) * 0.52);
+}
+html.dark .cards-scope .card-glare{
+  opacity:calc(var(--hyp, 0) * 0.24);
+}
+
+/* 3D 翻牌越过 90deg 瞬间掠过正面的斜向高光流苏 */
+.cards-scope .card-reveal-sheen{
+  position:absolute;inset:-15% 0;width:100%;z-index:7;pointer-events:none;
+  opacity:0;transform:translateX(-120%) skewX(-18deg);
+  background:linear-gradient(
+    90deg,
+    transparent 24%,
+    rgba(255,255,255,.12) 38%,
+    color-mix(in oklab, var(--pc) 25%, rgba(255,255,255,.82)) 50%,
+    rgba(255,255,255,.12) 62%,
+    transparent 76%
+  );
+}
+
+
+/* ============================================================
+   总目浮层与横条索引重置 (.cat-ov / .cat-grid .card)
+   ============================================================ */
 .cards-scope .cat-ov{
-  position:fixed;inset:0;z-index:30;display:flex;justify-content:flex-end;
+  position:fixed;inset:0;z-index:60;display:flex;justify-content:flex-end;
   padding:18px 0 18px 18px;
 }
 .cards-scope .cat-backdrop{
-  /* 毛玻璃层只做显隐切换：对 blur 层做透明度过渡 = 每帧全屏重采样，必卡 */
   position:absolute;inset:0;
   backdrop-filter:blur(10px) saturate(1.2);
   -webkit-backdrop-filter:blur(10px) saturate(1.2);
@@ -429,16 +1207,17 @@ body.cards-page::before, #cards-root::before{
 }
 .cards-scope .cat-ov.open .cat-backdrop{visibility:visible}
 .cards-scope .cat-shade{
-  /* 白纱层承担渐入的 alpha：纯色淡入走合成器，便宜 */
   position:absolute;inset:0;
   background:color-mix(in oklab, var(--bg) 45%, transparent);
   opacity:0;transition:opacity .25s ease;
 }
 .cards-scope .cat-ov.open .cat-shade{opacity:1}
-/* 浮层开着时冻结底下的一切装饰动画：blur 的输入静止，模糊结果可缓存 */
-.cards-scope.cat-open .pack,.cards-scope.cat-open .card,.cards-scope.cat-open .motes i,.cards-scope.cat-open .aurora i{animation-play-state:paused!important}
+.cards-scope.cat-open .pack,
+.cards-scope.cat-open .card,
+.cards-scope.cat-open .aurora i{animation-play-state:paused!important}
+
 .cards-scope .cat-panel{
-  position:relative;width:min(408px,94vw);
+  position:relative;width:min(416px,94vw);
   display:flex;flex-direction:column;
   background:var(--panel);
   backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);
@@ -457,19 +1236,18 @@ body.cards-page::before, #cards-root::before{
   margin-left:10px;font-size:11.5px;color:var(--ink-soft);letter-spacing:.04em;font-weight:400;
   font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
-/* ---------- 总目：编辑风索引（栏头 + 窄条卡，对齐博客文章条卡语言） ---------- */
 .cards-scope .catalog{
   flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;
-  padding:2px 16px 16px;
+  padding:6px 16px 18px;
 }
-.cards-scope .cat-group{margin-bottom:26px}
+.cards-scope .cat-group{margin-bottom:24px}
 .cards-scope .cat-group h3{
-  font-size:17px;letter-spacing:.02em;color:var(--ink);font-weight:700;
-  padding-bottom:10px;margin-bottom:14px;border-bottom:1px solid var(--line);
-  display:flex;align-items:baseline;gap:10px;
+  font-size:16px;letter-spacing:.02em;color:var(--ink);font-weight:700;
+  padding-bottom:9px;margin-bottom:12px;border-bottom:1px solid var(--line);
+  display:flex;align-items:baseline;gap:9px;
 }
 .cards-scope .cat-group h3 .dot{
-  width:4px;height:16px;border-radius:2px;background:var(--pc);
+  width:4px;height:15px;border-radius:2px;background:var(--pc);
   flex:none;align-self:center;
 }
 .cards-scope .cat-group h3 small{
@@ -478,96 +1256,80 @@ body.cards-page::before, #cards-root::before{
   font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
 .cards-scope .cat-grid{
-  display:grid;grid-template-columns:1fr;gap:9px;
+  display:grid;grid-template-columns:1fr;gap:8px;
 }
-/* 窄条卡：横排缩略 + 单行标题 + meta */
+
+/* 总目复用 .card 节点：彻底拍平双面 3D，重塑为 52x52 横排索引条卡 */
 .cards-scope .cat-grid .card{
-  position:static;width:auto;height:auto;opacity:1!important;cursor:pointer;
+  position:relative;width:100%!important;height:auto!important;aspect-ratio:auto!important;
+  perspective:none;transform:none!important;opacity:1!important;
+  cursor:pointer;touch-action:manipulation;
 }
-.cards-scope .cat-grid .card .card-inner{
-  height:100%;flex-direction:row;align-items:center;gap:12px;padding:8px 12px 8px 8px;
+.cards-scope .cat-grid .card .card-rotator,
+.cards-scope .cat-grid .card .card-flipper,
+.cards-scope .cat-grid .card .card-front{
+  position:static;width:100%;height:auto;
+  transform:none!important;transform-style:flat;
+  backface-visibility:visible;-webkit-backface-visibility:visible;
+  transition:none;
 }
-.cards-scope .cat-grid .card .cover{
-  width:54px;height:54px;flex:none;padding:0;border:0;border-radius:7px;
-  overflow:hidden;background:var(--wash);
+.cards-scope .cat-grid .card .card-back,
+.cards-scope .cat-grid .card .card-foil-rim,
+.cards-scope .cat-grid .card .card-glare,
+.cards-scope .cat-grid .card .card-reveal-sheen,
+.cards-scope .cat-grid .card .cf-art-foil,
+.cards-scope .cat-grid .card .cf-head,
+.cards-scope .cat-grid .card .cf-no,
+.cards-scope .cat-grid .card .cf-typebar,
+.cards-scope .cat-grid .card .cf-lore,
+.cards-scope .cat-grid .card .cf-cta,
+.cards-scope .cat-grid .card .card-front .card-clip::before{
+  display:none!important;
 }
-.cards-scope .cat-grid .card .cover img{width:100%;height:100%;border-radius:0}
-.cards-scope .cat-grid .card .chip{display:none}
-.cards-scope .cat-grid .card .tear{display:none!important}
-.cards-scope .cat-grid .card h2{
-  -webkit-line-clamp:1;font-size:15px;line-height:1.5;padding:0;flex:1;min-width:0;font-weight:600;
+.cards-scope .cat-grid .card .card-front .card-clip,
+html.dark .cards-scope .cat-grid .card .card-front .card-clip{
+  flex-direction:row;align-items:center;gap:12px;
+  padding:7px 12px 7px 8px;border-radius:11px;
+  background:var(--btn-bg);
+  border:1px solid var(--hair);
+  box-shadow:0 1px 2px rgba(15,23,42,.03);
+  transition:border-color .16s ease, transform .16s ease, box-shadow .16s ease;
 }
-.cards-scope .cat-grid .card .meta{
-  margin-top:0;padding:0;flex:none;align-self:center;
-  font-size:11px;gap:8px;white-space:nowrap;
+.cards-scope .cat-grid .card:hover .card-front .card-clip,
+html.dark .cards-scope .cat-grid .card:hover .card-front .card-clip{
+  border-color:var(--hov);
+  transform:translateX(2px);
+  box-shadow:0 6px 16px -6px rgba(15,23,42,.12);
 }
-.cards-scope .cat-grid .card .meta .no{display:none}
-.cards-scope .cat-grid .card .done{top:8px;right:12px}
-
-/* ---------- 拆封特效：墨线光轮 / 白纸反光 / 发丝环 / 纸屑 / 卷签 ---------- */
-.cards-scope .gacha-burst{
-  position:fixed;z-index:70;width:420px;height:420px;margin:-210px 0 0 -210px;
-  pointer-events:none;border-radius:50%;
-  background:repeating-conic-gradient(var(--burst) 0 1.5deg, transparent 1.5deg 9deg);
-  -webkit-mask:radial-gradient(circle, transparent 12%, #000 34%, transparent 72%);
-  mask:radial-gradient(circle, transparent 12%, #000 34%, transparent 72%);
-  animation:burst .7s cubic-bezier(.2,.7,.3,1) both;
+.cards-scope .cat-grid .card.is-read .card-front .card-clip,
+html.dark .cards-scope .cat-grid .card.is-read .card-front .card-clip{
+  border-left:2.5px solid var(--pc);
 }
-.cards-scope .gacha-burst.r2{
-  background:repeating-conic-gradient(color-mix(in oklab, var(--ring), transparent 45%) 0 1deg, transparent 1deg 14deg);
-  -webkit-mask:radial-gradient(circle, transparent 6%, #000 26%, transparent 66%);
-  mask:radial-gradient(circle, transparent 6%, #000 26%, transparent 66%);
-  animation-duration:.88s;animation-timing-function:ease-out;
+.cards-scope .cat-grid .card .cf-art{
+  width:52px;height:52px;aspect-ratio:1 / 1;
+  margin:0;border-radius:7px;flex:none;
 }
-@keyframes burst{from{transform:scale(.14) rotate(12deg);opacity:0}22%{opacity:1}to{transform:scale(1.55) rotate(38deg);opacity:0}}
-.cards-scope .gacha-flash{
-  position:fixed;z-index:72;width:240px;height:240px;margin:-120px 0 0 -120px;
-  pointer-events:none;border-radius:50%;
-  background:radial-gradient(circle, rgba(255,255,255,.98), rgba(219,234,254,.5) 42%, transparent 70%);
-  animation:gflash .34s ease-out both;
+.cards-scope .cat-grid .card .cf-art img{transform:none!important}
+.cards-scope .cat-grid .card .cf-body{
+  flex:1;min-width:0;padding:0;gap:0;
 }
-@keyframes gflash{from{transform:scale(.2);opacity:1}to{transform:scale(1.7);opacity:0}}
-.cards-scope .gacha-ring{
-  position:fixed;z-index:71;width:90px;height:90px;margin:-45px 0 0 -45px;
-  pointer-events:none;border-radius:50%;
-  border:1.5px solid var(--ring);
-  animation:gring .62s var(--spring) both;
+.cards-scope .cat-grid .card .cf-body h2{
+  -webkit-line-clamp:1;font-size:14px;font-weight:600;line-height:1.45;margin:0;
 }
-@keyframes gring{from{transform:scale(.35);opacity:1}to{transform:scale(3.4);opacity:0}}
-.cards-scope .gacha-sp{
-  position:fixed;z-index:71;width:4px;height:9px;margin:-4.5px 0 0 -2px;border-radius:1px;
-  pointer-events:none;
-  background:#64748b;
-  animation:gspark .72s ease-out both;
+.cards-scope .cat-grid .card .cf-foot{
+  flex:none;margin:0;padding:0;border:0;
 }
-@keyframes gspark{
-  from{transform:translate(0,0) scale(1) rotate(0);opacity:1}
-  to{transform:translate(var(--sx),var(--sy)) scale(.6) rotate(160deg);opacity:0}
-}
-.cards-scope .gacha-card{
-  position:fixed;z-index:71;width:64px;height:90px;margin:-45px 0 0 -32px;
-  pointer-events:none;border-radius:6px;
-  background:linear-gradient(160deg,var(--paper),var(--wash));
-  box-shadow:0 14px 30px rgba(15,23,42,.18), inset 0 0 0 1px var(--hair);
-  animation:gfan .65s var(--spring) both;
-}
-.cards-scope .gacha-card::after{
-  content:"";position:absolute;left:50%;top:30%;width:10px;height:10px;margin:-5px;
-  border-radius:50%;
-  background:radial-gradient(circle at 35% 35%, #60a5fa, #2563eb 75%);
-  box-shadow:0 0 0 1.5px rgba(0,0,0,.05);
-}
-@keyframes gfan{
-  from{transform:translate(0,36px) scale(.35) rotate(0);opacity:0}
-  45%{opacity:1}
-  to{transform:translate(var(--fx),var(--fy)) rotate(var(--fr)) scale(1)}
+.cards-scope .cat-grid .card .cf-date{
+  font-size:11px;color:var(--ink-soft);
 }
 
-/* ---------- 已入册托盘 ---------- */
+
+/* ---------- 已入册书脊托盘（独立页 full 模式） ---------- */
 .cards-scope .pile{
   position:fixed;left:18px;bottom:14px;z-index:20;max-width:72vw;
   display:flex;align-items:flex-end;gap:10px;pointer-events:none;
 }
+.cards-scope .pile:has(#pileRow:empty){display:none}
 .cards-scope .pile-head{
   font-size:11px;color:var(--ink-soft);letter-spacing:.14em;
   writing-mode:vertical-rl;padding-bottom:2px;flex:none;
@@ -593,13 +1355,14 @@ body.cards-page::before, #cards-root::before{
   mask-image:linear-gradient(180deg,#000 76%,transparent);
 }
 
-/* ---------- 阅读页：博客白纸 ---------- */
+
+/* ---------- 阅读页（独立页 full 模式） ---------- */
 .cards-scope .reader{
-  position:fixed;inset:0;z-index:40;overflow-y:auto;overscroll-behavior:contain;
+  position:fixed;inset:0;z-index:65;overflow-y:auto;overscroll-behavior:contain;
   background:linear-gradient(180deg,var(--paper),var(--bg));
   color:var(--ink);
 }
-html.dark .cards-scope .reader{background:#0d1220}     /* 阅读页实色：正文底不能透 */
+html.dark .cards-scope .reader{background:#0d1220}
 .cards-scope .reader-more{
   display:inline-flex;align-items:center;gap:6px;margin:2px 0 26px;
   font-size:13px;color:var(--accent);text-decoration:none;
@@ -620,43 +1383,209 @@ html.dark .cards-scope .reader{background:#0d1220}     /* 阅读页实色：正�
 }
 .cards-scope .reader-main .meta{color:var(--ink-soft);font-size:13.5px;margin-bottom:8px;font-variant-numeric:tabular-nums}
 .cards-scope .reader-main .tags{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 26px}
-.cards-scope .reader-main .tags span{font-size:11.5px;color:var(--ink-soft);border:1px solid var(--line);padding:3px 10px;border-radius:999px;background:#fff}
+.cards-scope .reader-main .tags span{font-size:11.5px;color:var(--ink-soft);border:1px solid var(--line);padding:3px 10px;border-radius:999px;background:var(--btn-bg)}
 .cards-scope .reader-body{font-size:16px;line-height:1.95;color:var(--ink-body)}
+.cards-scope .reader-body h2{font-size:21px;margin:34px 0 14px;font-weight:650;color:var(--ink);border-bottom:1px solid var(--line);padding-bottom:8px}
 .cards-scope .reader-body h3{font-size:19px;margin:30px 0 12px;font-weight:650;color:var(--ink)}
+.cards-scope .reader-body h4{font-size:15.5px;margin:22px 0 8px;font-weight:600;color:var(--ink)}
 .cards-scope .reader-body p{margin:0 0 16px}
 .cards-scope .reader-body strong{color:var(--ink)}
+.cards-scope .reader-body hr{margin:32px 0;border:none;height:1px;background:var(--line)}
 .cards-scope .reader-body ul,.cards-scope .reader-body ol{margin:0 0 16px 1.4em}
 .cards-scope .reader-body li{margin-bottom:6px}
 .cards-scope .reader-body code{background:var(--wash);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:13.5px}
+.cards-scope .reader-body blockquote{margin:20px 0;padding:10px 18px;border-left:3px solid var(--accent);background:color-mix(in oklab, var(--wash) 60%, transparent);border-radius:0 8px 8px 0;color:var(--ink-soft);font-size:14.5px;line-height:1.75}
+.cards-scope .reader-body blockquote p:last-child{margin-bottom:0}
+.cards-scope .reader-body table{width:100%;border-collapse:collapse;margin:22px 0;font-size:13.5px;line-height:1.6;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.cards-scope .reader-body th{background:var(--wash);color:var(--ink);font-weight:650;text-align:left;padding:10px 14px;border-bottom:1.5px solid var(--line);font-size:13px}
+.cards-scope .reader-body td{padding:9px 14px;border-bottom:1px solid var(--line);color:var(--ink-body);font-size:13px}
+.cards-scope .reader-body tr:nth-child(even) td{background:color-mix(in oklab, var(--wash) 40%, transparent)}
+.cards-scope .reader-body pre{margin:20px 0;padding:16px 18px;border-radius:10px;background:#0d1117!important;color:#e6edf3;border:1px solid rgba(255,255,255,.08);overflow-x:auto;-webkit-overflow-scrolling:touch;font-size:13px;line-height:1.65;box-shadow:0 4px 14px rgba(15,23,42,.06)}
+.cards-scope .reader-body pre code{background:none!important;border:none!important;padding:0!important;border-radius:0;font-size:inherit;color:inherit;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
+
+/* 阅读页卷内顺序导航 */
+.cards-scope .reader-nav{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:48px;padding-top:24px;border-top:1px solid var(--line)}
+.cards-scope .rnav-btn{display:flex;flex-direction:column;gap:4px;padding:12px 16px;border-radius:12px;border:1px solid var(--hair);background:var(--btn-bg);color:var(--ink);cursor:pointer;text-align:left;transition:border-color .2s,transform .2s,box-shadow .2s;-webkit-tap-highlight-color:transparent}
+.cards-scope .rnav-btn.next{text-align:right}
+.cards-scope .rnav-btn:hover:not(:disabled){border-color:var(--hov);transform:translateY(-2px);box-shadow:0 4px 12px rgba(15,23,42,.06)}
+.cards-scope .rnav-btn:disabled{opacity:.35;cursor:not-allowed;border-color:var(--line);pointer-events:none}
+.cards-scope .rnav-sub{font-size:11.5px;color:var(--ink-soft);letter-spacing:.06em}
+.cards-scope .rnav-title{font-size:13.5px;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 .cards-scope .empty-msg{text-align:center;color:var(--ink-soft);font-size:15px;letter-spacing:.05em;line-height:2}
 .cards-scope .empty-msg .btn{margin-top:14px}
 
-/* ---------- View Transitions ---------- */
 
-@media (prefers-reduced-motion:reduce){
-  .cards-scope .idle-wobble{animation:none}
-  .cards-scope .card,.cards-scope .card-inner,.cards-scope .pile-book,.cards-scope .pack{transition:none}
-  .cards-scope .pack{animation:none!important}
-  .cards-scope .aurora i{animation:none}
-  .cards-scope .motes{display:none}
-  .cards-scope .card.is-top{animation:none}
-}
-@media (max-width:560px){
-  .cards-scope{--card-w:min(78vw,300px);--card-h:calc(min(78vw,300px)*1.44)}
-  .cards-scope .pile{max-width:44vw}
-}
-
-.cards-scope .stage{min-height:calc(100vh - 210px)}
-
-/* ---------- 全屏 portal 壳（首页挂载点） ---------- */
+/* ---------- 全屏 portal 遗留防呆壳 + 首页 #blog 内嵌模式 ---------- */
 #cards-root{
   position:fixed;inset:0;z-index:55;
   overflow:hidden;
 }
-.cards-scope #cards-root{position:absolute}  /* 防呆：root 不应嵌套，这里保证即使嵌套也不跑位 */
+.cards-scope #cards-root{position:absolute}
 
-/* ---------- 内嵌卷宗架（首页 #blog） ---------- */
-.cards-scope--inline .stage{min-height:auto;padding-bottom:10px}
+.cards-scope--inline .hud{width:100%;padding:2px 0 12px}
+.cards-scope--inline .stage{min-height:auto;padding:6px 0 24px}
 .cards-scope--inline .packs{width:100%;padding-top:6px}
-.cards-scope--inline .hint{position:static;margin-top:18px}
+.cards-scope--inline .deck-wrap{min-height:auto;width:100%;padding:14px 0 12px}
+.cards-scope--inline .deck-tilt{width:100%}
+.cards-scope--inline .hint{position:static;margin-top:16px}
+
+
+/* ============================================================
+   响应式断点：中屏对称方阵 (561–959px) & 移动端双列展台 (<=560px)
+   ============================================================ */
+@media (min-width:561px) and (max-width:959px){
+  .cards-scope .deck[data-count="1"] .card{width:252px}
+  .cards-scope .deck[data-count="2"] .card{width:228px}
+  /* 3/4/7 张包在中屏统一收敛为对称 2x2 / 双列方阵，避免 3+1 孤立换行 */
+  .cards-scope .deck:not([data-count="1"]):not([data-count="2"]){
+    max-width:480px;gap:16px;
+  }
+  .cards-scope .deck:not([data-count="1"]):not([data-count="2"]) .card{
+    width:216px;aspect-ratio:5 / 7.36;
+  }
+}
+
+@media (max-width:560px){
+  .cards-scope .pile{max-width:46vw;left:12px;bottom:max(10px,env(safe-area-inset-bottom))}
+
+  /* 移动端补充包货架：2 列自适应网格 */
+  .cards-scope .packs{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;
+    width:100%;max-width:384px;margin:0 auto;padding:6px 12px 22px;box-sizing:border-box;
+  }
+  .cards-scope--inline .packs{
+    padding:4px 0 18px;max-width:100%;
+  }
+  .cards-scope .pack{
+    width:100%;max-width:none;min-width:0;height:232px;border-radius:12px;
+  }
+  .cards-scope .pk-crimp-top{height:24px;border-radius:12px 12px 0 0}
+  .cards-scope .pk-notch{top:15px;width:7px;height:6px}
+  .cards-scope .pack .seal{top:4px;padding:1.5px 7px;font-size:8px}
+  .cards-scope .pk-seam-glow{top:22px}
+  .cards-scope .pk-sleeve::before{top:23px}
+  .cards-scope .pk-crimp-bottom{height:8px;border-radius:0 0 11px 11px}
+  .cards-scope .pack .pk-body{padding:30px 11px 12px 12px}
+  .cards-scope .pack .pk-topbar{min-height:24px}
+  .cards-scope .pack .pk-vol{font-size:9.5px}
+  .cards-scope .pack .pk-tag{font-size:7px}
+  .cards-scope .pack .pk-stamp-inner{font-size:8px;padding:1px 5px}
+  .cards-scope .pack .pk-emblem{width:76px;height:76px}
+  .cards-scope .pack .pk-name{font-size:19px;letter-spacing:.10em;text-indent:.10em;margin-bottom:6px}
+  .cards-scope .pack .pk-divider{width:26px;margin-bottom:6px}
+  .cards-scope .pack .pk-count{font-size:9px;padding:1.5px 7px}
+  .cards-scope .pack .pk-foot{padding-top:7px}
+  .cards-scope .pack .pk-read{font-size:9px}
+  .cards-scope .pack .pk-dots{gap:2px}
+  .cards-scope .pack .pk-dots i{width:3.5px;height:3.5px}
+  .cards-scope .pack .pk-pull-hint{font-size:9.5px}
+
+  /* 移动端 HUD 与顶栏 */
+  .cards-scope .hud{padding:14px 12px 6px;gap:8px}
+  .cards-scope--inline .hud{padding:2px 0 10px}
+  .cards-scope .hud h1{font-size:16.5px}
+  .cards-scope .hud h1 .sub{font-size:13.5px;margin-left:7px}
+  .cards-scope .hud-sub{font-size:10.5px}
+  .cards-scope .hud-actions{gap:6px}
+  .cards-scope .hud-actions .btn{padding:5px 10px;font-size:12px;border-radius:8px}
+  .cards-scope #counter{font-size:11px}
+
+  /* 移动端陈列舞台：N=1 居中英雄大卡，N>=2 双列对称阵列 */
+  .cards-scope .deck-wrap{min-height:auto;width:min(94vw,384px);padding:10px 0 18px}
+  .cards-scope--inline .deck-wrap{width:100%;padding:10px 0 10px}
+  .cards-scope .deck{gap:12px;max-width:100%!important}
+
+  .cards-scope .deck[data-count="1"] .card{
+    width:min(74vw, 256px);
+    aspect-ratio:5 / 7.12;
+  }
+  .cards-scope .deck:not([data-count="1"]) .card{
+    width:calc(50% - 6px);
+    aspect-ratio:5 / 6.45;
+  }
+
+  /* 移动端双列窄卡（~166-172px 宽）：隐藏 .cf-lore 摘要段，紧缩字号与边距，确保零裁切零溢出 */
+  .cards-scope .deck:not([data-count="1"]) .card-clip{border-radius:13px}
+  .cards-scope .deck:not([data-count="1"]) .card-front .card-clip{padding:4px}
+  .cards-scope .deck:not([data-count="1"]) .card-front .card-clip::before{inset:4px;border-radius:9px}
+  .cards-scope .deck:not([data-count="1"]) .cf-head{padding:5px 6px 3px;gap:4px}
+  .cards-scope .deck:not([data-count="1"]) .cf-cat{font-size:9.5px;gap:4px}
+  .cards-scope .deck:not([data-count="1"]) .cf-dot{width:5px;height:5px}
+  .cards-scope .deck:not([data-count="1"]) .cf-no{font-size:8.5px;letter-spacing:.02em}
+  .cards-scope .deck:not([data-count="1"]) .cf-art{margin:0 5px;border-radius:5px;aspect-ratio:16 / 9.5}
+  .cards-scope .deck:not([data-count="1"]) .cf-typebar{padding:4px 6px 2px;font-size:8.5px;gap:4px}
+  .cards-scope .deck:not([data-count="1"]) .cf-tags{padding:1.5px 5px}
+  .cards-scope .deck:not([data-count="1"]) .cf-body{padding:2px 6px 4px;gap:0;justify-content:center}
+  .cards-scope .deck:not([data-count="1"]) .cf-body h2{font-size:12.5px;line-height:1.36;-webkit-line-clamp:2}
+  .cards-scope .deck:not([data-count="1"]) .cf-lore{display:none}
+  .cards-scope .deck:not([data-count="1"]) .cf-foot{margin:0 5px;padding:4px 2px 3px}
+  .cards-scope .deck:not([data-count="1"]) .cf-date{font-size:8.5px}
+  .cards-scope .deck:not([data-count="1"]) .cf-cta{font-size:9.5px}
+  .cards-scope .deck:not([data-count="1"]) .card.is-read .cf-cta{font-size:8.5px;padding:1px 5px}
+
+  /* 移动端双列牌背同步精致缩放 */
+  .cards-scope .deck:not([data-count="1"]) .card-back .card-clip{padding:6px}
+  .cards-scope .deck:not([data-count="1"]) .cb-frame{padding:10px 6px 8px;border-radius:8px}
+  .cards-scope .deck:not([data-count="1"]) .cb-corner{width:8px;height:8px}
+  .cards-scope .deck:not([data-count="1"]) .cb-svg{width:46px;height:46px;margin-bottom:2px}
+  .cards-scope .deck:not([data-count="1"]) .cb-cat{font-size:8.5px;letter-spacing:.10em}
+  .cards-scope .deck:not([data-count="1"]) .cb-brand{font-size:13.5px;letter-spacing:.14em;text-indent:.14em}
+  .cards-scope .deck:not([data-count="1"]) .cb-rarity{font-size:7px;letter-spacing:.08em;padding:1.5px 5px}
+  .cards-scope .deck:not([data-count="1"]) .cb-tap{font-size:9px;padding:2px 9px;letter-spacing:.08em;text-indent:.08em}
+
+  .cards-scope .deck-pos{margin-top:12px;font-size:10px}
+  .cards-scope .hint{font-size:11px;bottom:10px;letter-spacing:.08em}
+  .cards-scope--inline .hint{margin-top:12px}
+
+  /* 移动端总目抽屉全宽铺满 */
+  .cards-scope .cat-ov{padding:0}
+  .cards-scope .cat-panel{width:100vw;border-radius:0;border-right:none}
+
+  /* 移动端阅读页 */
+  .cards-scope .reader-bar{padding:max(10px,env(safe-area-inset-top)) 14px 10px}
+  .cards-scope .reader-bar .btn{padding:5px 10px;font-size:12px}
+  .cards-scope .reader-main{width:92vw;padding:18px 0 max(60px,env(safe-area-inset-bottom))}
+  .cards-scope .reader-hero{border-radius:12px}
+  .cards-scope .reader-main h1{font-size:22px;margin:18px 0 8px}
+  .cards-scope .reader-main .meta{font-size:12px}
+  .cards-scope .reader-main .tags{gap:6px;margin:8px 0 20px}
+  .cards-scope .reader-main .tags span{font-size:10.5px;padding:2px 8px}
+  .cards-scope .reader-body{font-size:15px;line-height:1.85}
+  .cards-scope .reader-body h2{font-size:18px;margin:26px 0 10px}
+  .cards-scope .reader-body h3{font-size:17px;margin:22px 0 10px}
+  .cards-scope .reader-body h4{font-size:14.5px;margin:18px 0 6px}
+  .cards-scope .reader-body pre{padding:12px 14px;font-size:12px;border-radius:8px;margin:16px 0}
+  .cards-scope .reader-body table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap}
+  .cards-scope .reader-nav{grid-template-columns:1fr;gap:10px;margin-top:36px;padding-top:18px}
+  .cards-scope .rnav-btn.next{text-align:left}
+}
+
+
+/* ============================================================
+   prefers-reduced-motion 安全修正：
+   仅暂停无限环境循环（.aurora i / .pk-halo / .pk-sheen），
+   严禁杀死用户主动触发的撕封与 3D 翻牌/倾斜编排！
+   ============================================================ */
+@media (prefers-reduced-motion:reduce){
+  .cards-scope .aurora i,
+  .cards-scope .pack .pk-halo,
+  .cards-scope .pack .pk-sheen{
+    animation:none!important;
+  }
+}
+
+/* 独立札签页跨文档转场、color-scheme 同步与总目录渲染减负 */
+:root { color-scheme: light dark; }
+:root:has(> head > meta[name="color-scheme"][content="dark"]), html.dark { color-scheme: dark; }
+:root:has(> head > meta[name="color-scheme"][content="light"]):not(.dark) { color-scheme: light; }
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+.cards-scope .cat-group {
+  content-visibility: auto;
+  contain-intrinsic-size: auto none auto 220px;
+}

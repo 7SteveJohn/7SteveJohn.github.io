@@ -72,8 +72,8 @@
     if (!document.getElementById('archive-list')) out.push({ label: '归档 · 时间河', kind: 'link', href: 'archive.html' });
     if (!document.getElementById('gallery-grid')) out.push({ label: '照片墙', kind: 'link', href: 'gallery.html' });
     // 最近文章（次级页也有 articles.js，一样能用；深链回首页阅读弹窗）
-    const arts = (window.ARTICLES_DATA || []).slice()
-      .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+    const arts = (window.ARTICLES_DATA || [])
+      .toSorted((a, b) => (b.date || '').localeCompare(a.date || ''))
       .slice(0, 6);
     arts.forEach((a) => {
       out.push({ label: a.title || a.id, kind: 'link', href: 'index.html?post=' + encodeURIComponent(a.id) });

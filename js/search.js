@@ -31,7 +31,7 @@
         meta: [a.category || '技术手记', a.date].filter(Boolean).join(' · '),
         keywords: [a.category || '', ...(a.tags || []), a.summary || ''],
         body: a.content || '',
-        run: () => window.openArticleModal(a.id)
+        run: (q) => window.openArticleModal(a.id, false, { highlightQuery: q })
       });
     });
 
@@ -44,7 +44,7 @@
         meta: p.categoryName || p.category || '',
         keywords: [p.categoryName || '', ...(p.tags || []), p.description || ''],
         body: p.details || '',
-        run: () => window.openProjectModal(p.id)
+        run: (q) => window.openProjectModal(p.id, { highlightQuery: q })
       });
     });
 
@@ -58,6 +58,7 @@
       ['随笔', '#essays'],
       ['关于', '#about']
     ].forEach(([label, href]) => {
+      if (!document.querySelector(href)) return;
       items.push({
         type: '区块',
         typeColor: '#8e8e93',
@@ -177,9 +178,10 @@
   function runSelected() {
     const item = filtered[selected];
     if (!item) return;
+    const activeQuery = input.value.trim();
     close();
-    // 等面板关闭、滚动锁释放后再执行跳转
-    setTimeout(() => item.run(), 60);
+    // 等面板关闭、滚动锁释放后再执行跳转，并将检索词传入阅读器触发 CSS.highlights 原生高亮
+    setTimeout(() => item.run(activeQuery), 60);
   }
 
   /* ---------- 开关 ---------- */

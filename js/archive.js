@@ -33,8 +33,7 @@
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   const articles = (window.ARTICLES_DATA || [])
-    .slice()
-    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    .toSorted((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   const sectionName = (a) => {
     const s = SECTIONS.find((x) => x.key !== 'all' && x.match(a));
@@ -258,10 +257,11 @@
     PROG.style.strokeDashoffset = String(progressLen * (1 - p));
   }
 
-  // ---- 筛选 ----
+  // ---- 筛选（自动跳过当前无文章的空栏目，避免出现 0 篇死胶囊） ----
   function chips() {
     if (!FILTERS) return;
     SECTIONS.forEach((s) => {
+      if (s.key !== 'all' && !articles.some(s.match)) return;
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'arc-chip';

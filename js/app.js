@@ -57,12 +57,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // 7. 阅读进度条监听（弹窗内滚动）
   initArticleProgress();
 
-  // 8. 本地趣味件：时段问候 / 状态仪表盘 / 键盘彩蛋
+  // 8. 首屏交互：时段问候 / 作品索引 / 最近更新 / 液态玻璃光泽
   initHeroGreeting();
-  initHeroStatus();
   initHeroIndex();
   initHeroUpdated();
-  initKonami();
   initGlassSpec();
 
   // 7. 支持 ?post=文章id 深链（分享单篇内容链接）
@@ -98,18 +96,30 @@ function initTheme() {
     }
   } catch (_) {}
 
+  const syncColorScheme = (isDark) => {
+    const meta = document.querySelector('meta[name="color-scheme"]');
+    if (meta) meta.content = isDark ? 'dark' : 'light';
+  };
+
   let savedTheme = null;
   try { savedTheme = localStorage.getItem('sj.theme'); } catch (_) {}
-  if (savedTheme === 'dark') {
-    document.documentElement.classList.add('dark');
-  } else {
-    document.documentElement.classList.remove('dark');
-  }
+  const initDark = savedTheme === 'dark';
+  document.documentElement.classList.toggle('dark', initDark);
+  syncColorScheme(initDark);
+
+  window.addEventListener('storage', (ev) => {
+    if (ev.key === 'sj.theme') {
+      const nextDark = ev.newValue === 'dark';
+      document.documentElement.classList.toggle('dark', nextDark);
+      syncColorScheme(nextDark);
+    }
+  });
 
   function toggle(e) {
     const applyNow = () => {
       const isDark = document.documentElement.classList.toggle('dark');
-      localStorage.setItem('sj.theme', isDark ? 'dark' : 'light');   // 全站访客本地键统一 sj. 前缀
+      syncColorScheme(isDark);
+      try { localStorage.setItem('sj.theme', isDark ? 'dark' : 'light'); } catch (_) {}   // 全站访客本地键统一 sj. 前缀
     };
 
     // 明暗切换：从点击位置圆形扩散开新主题（View Transitions，减少动效时直接切换）
@@ -385,6 +395,8 @@ window.openProjectModal = function(id, opts = {}) {
 
   addCopyButtons(modalContent);
   ensureHighlight(modalContent);
+  const projHlQuery = opts && typeof opts.highlightQuery === 'string' ? opts.highlightQuery.trim() : '';
+  if (!needMd) applyModalSearchHighlight(modal, modalContent, projHlQuery);
 
   const focusChangelog = () => {
     if (modalContent.dataset.openChangelog !== '1') return;
@@ -412,6 +424,7 @@ window.openProjectModal = function(id, opts = {}) {
         : `<p>${escapeHtml(project.details)}</p>`;
       addCopyButtons(modalContent);
       ensureHighlight(modalContent);
+      if (projHlQuery) applyModalSearchHighlight(modal, modalContent, projHlQuery);
       if (window.lucide) window.lucide.createIcons();
       if (!wantChangelog) {
         modal.scrollTop = 0;
@@ -439,6 +452,7 @@ window.openProjectModal = function(id, opts = {}) {
 };
 
 window.closeProjectModal = function() {
+  clearModalSearchHighlight(document.getElementById('project-modal'));
   // 关闭时必须停掉弹窗内所有视频，否则声音会在背后继续
   document.querySelectorAll('#project-modal video').forEach(v => { try { v.pause(); } catch (e) {} });
   const modal = document.getElementById('project-modal');
@@ -455,7 +469,7 @@ window.closeProjectModal = function() {
 
 // 全部内容统一按日期倒序——新增条目无论插在数组哪个位置，最新的永远排最前
 function getSortedArticles() {
-  return [...(window.ARTICLES_DATA || [])].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  return (window.ARTICLES_DATA || []).toSorted((a, b) => (b.date || '').localeCompare(a.date || ''));
 }
 
 // 阅读时长兜底估算：中文按 400 字/分钟，英文按 200 词/分钟
@@ -588,151 +602,10 @@ function injectArticleJsonLd(article) {
   });
 }
 
-/* ============================================================
-   时光回溯：文章版本切换（数据结构见 README）
-   activeVersion = 0 表示最新稿，>0 指向 revisions[n-1]
-   ============================================================ */
 let activeArticle = null;
-let activeVersion = 0;
-
-function versionedContent(article) {
-  if (activeVersion > 0 && article.revisions && article.revisions[activeVersion - 1]) {
-    return article.revisions[activeVersion - 1].content;
-  }
-  return article.content;
-}
 
 /* ============================================================
-   本地文本批注：选中正文 → 写批注 → 高亮持久化（仅存本机 LocalStorage）
-   ============================================================ */
-const annStoreKey = (id) => `sj.ann.${id}`;
-
-function getAnnotations(id) {
-  try { return JSON.parse(localStorage.getItem(annStoreKey(id))) || []; } catch (_) { return []; }
-}
-
-function saveAnnotations(id, list) {
-  localStorage.setItem(annStoreKey(id), JSON.stringify(list));
-}
-
-function markAnnotationQuote(modalContent, quote, noteId) {
-  const body = modalContent.querySelector('.markdown-body');
-  if (!body) return false;
-  const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
-  let node;
-  while ((node = walker.nextNode())) {
-    const idx = node.textContent.indexOf(quote);
-    if (idx === -1) continue;
-    try {
-      const range = document.createRange();
-      range.setStart(node, idx);
-      range.setEnd(node, idx + quote.length);
-      const mark = document.createElement('mark');
-      mark.className = 'sj-note';
-      mark.dataset.noteId = noteId;
-      mark.title = '点击查看批注';
-      range.surroundContents(mark);
-      return true;
-    } catch (_) { return false; // 跨节点选区无法高亮，批注仍保留在存储中
-    }
-  }
-  return false;
-}
-
-function initAnnotations(modalContent, articleId) {
-  let popover = null;
-  const closePopover = () => { if (popover) { popover.remove(); popover = null; } };
-
-  const placePopover = (rect) => {
-    const base = modalContent.getBoundingClientRect();
-    popover.style.left = `${Math.max(8, rect.left - base.left)}px`;
-    popover.style.top = `${rect.bottom - base.top + modalContent.scrollTop + 8}px`;
-  };
-
-  function openAnnotatePopover(range) {
-    closePopover();
-    const articleId = activeArticle ? activeArticle.id : null;
-    if (!articleId) return;
-    const quote = range.toString().replace(/\s+/g, ' ').trim();
-    if (quote.length < 2 || quote.length > 300) return;
-    popover = document.createElement('div');
-    popover.className = 'sj-popover';
-    popover.innerHTML = `
-      <textarea rows="3" placeholder="写下你的批注（仅保存在本机）"></textarea>
-      <div class="sj-popover-actions">
-        <button type="button" data-act="cancel">取消</button>
-        <button type="button" data-act="save">保存批注</button>
-      </div>`;
-    modalContent.appendChild(popover);
-    placePopover(range.getBoundingClientRect());
-    const textarea = popover.querySelector('textarea');
-    textarea.focus();
-    popover.querySelector('[data-act="cancel"]').onclick = closePopover;
-    popover.querySelector('[data-act="save"]').onclick = () => {
-      const note = textarea.value.trim();
-      if (!note) { closePopover(); return; }
-      const ann = { id: 'a' + Date.now(), quote, note, ts: Date.now() };
-      const list = getAnnotations(articleId);
-      list.push(ann);
-      saveAnnotations(articleId, list);
-      markAnnotationQuote(modalContent, quote, ann.id);
-      closePopover();
-      showToast('已添加批注（仅本机可见）');
-    };
-  }
-
-  function openViewPopover(ann, markEl) {
-    closePopover();
-    popover = document.createElement('div');
-    popover.className = 'sj-popover';
-    popover.innerHTML = `
-      <div class="sj-note-view">“${escapeHtml(ann.note)}”</div>
-      <div class="sj-popover-actions">
-        <button type="button" data-act="del">删除批注</button>
-        <button type="button" data-act="cancel">关闭</button>
-      </div>`;
-    modalContent.appendChild(popover);
-    placePopover(markEl.getBoundingClientRect());
-    popover.querySelector('[data-act="cancel"]').onclick = closePopover;
-    popover.querySelector('[data-act="del"]').onclick = () => {
-      const articleId = activeArticle ? activeArticle.id : null;
-      saveAnnotations(articleId, getAnnotations(articleId).filter((a) => a.id !== ann.id));
-      const mark = modalContent.querySelector(`.sj-note[data-note-id="${ann.id}"]`);
-      if (mark) mark.replaceWith(...mark.childNodes);
-      closePopover();
-      showToast('批注已删除');
-    };
-  }
-
-  // 监听器只挂一次（modalContent 是常驻节点，重复挂会导致浮层叠加）
-  if (!modalContent.dataset.annInit) {
-    modalContent.dataset.annInit = '1';
-
-    // 选中正文弹出批注框
-    modalContent.addEventListener('mouseup', () => {
-      const sel = window.getSelection();
-      if (!sel || sel.isCollapsed || !modalContent.contains(sel.anchorNode)) return;
-      if (sel.toString().trim().length >= 2) openAnnotatePopover(sel.getRangeAt(0).cloneRange());
-    });
-
-    // 点击高亮查看/删除批注
-    modalContent.addEventListener('click', (e) => {
-      const mark = e.target.closest('.sj-note');
-      if (!mark) return;
-      const articleId = activeArticle ? activeArticle.id : null;
-      const ann = getAnnotations(articleId).find((a) => a.id === mark.dataset.noteId);
-      if (ann) openViewPopover(ann, mark);
-    });
-
-    modalContent.addEventListener('scroll', closePopover, { passive: true });
-  }
-
-  // 渲染本次打开内容的已存批注高亮
-  getAnnotations(articleId).forEach((a) => markAnnotationQuote(modalContent, a.quote, a.id));
-}
-
-/* ============================================================
-   全局趣味件：toast / 时段问候 / 状态仪表盘 / Konami 彩蛋 / 赞赏
+   全局辅助件：toast / 时段问候
    ============================================================ */
 let toastTimer = null;
 function showToast(msg, opt = {}) {
@@ -771,16 +644,6 @@ function initHeroGreeting() {
   const h = new Date().getHours();
   const g = h < 5 ? '夜深清寂，慢慢看' : h < 9 ? '清晨好' : h < 12 ? '上午好' : h < 14 ? '午间安适' : h < 18 ? '下午好' : h < 23 ? '晚风渐起，晚上好' : '夜深了，注意休息';
   el.textContent = g;
-}
-
-// 静态 JSON 驱动的状态仪表盘（数据见 js/status.js，留空不展示）
-function initHeroStatus() {
-  const el = document.getElementById('hero-status');
-  const s = window.SITE_STATUS || {};
-  const parts = [s.reading && `在读 ${s.reading}`, s.building && `在做 ${s.building}`, s.mood].filter(Boolean);
-  if (!el || !parts.length) return;
-  el.textContent = parts.join(' · ') + (s.updated ? `（更新于 ${s.updated}）` : '');
-  el.classList.remove('hidden');
 }
 
 // 首屏作品索引与卡片悬浮聚焦（2026-11-06）：
@@ -862,7 +725,7 @@ function initHeroIndex() {
   }
 }
 
-// 首屏「最近更新」证据：从项目数据里取最新一条，不写死日期
+// 首屏「最近更新」证据：从项目数据里取最新一条，不写死日期，点击直达对应卡片
 function initHeroUpdated() {
   const el = document.getElementById('hero-updated');
   const list = window.PROJECTS_DATA;
@@ -870,22 +733,14 @@ function initHeroUpdated() {
   const latest = list.filter(p => p.updated && !p.archived).sort((a, b) => b.updated.localeCompare(a.updated))[0];
   if (!latest) return;
   const short = String(latest.title).split(' · ')[0];
-  el.textContent = `最近更新 ${latest.updated} · ${short}${latest.version ? ' ' + latest.version : ''}`;
+  el.textContent = `最近更新 ${latest.updated} · ${short}${latest.version ? ' ' + latest.version : ''} →`;
+  el.title = `点击跳到 ${short} 卡片`;
   el.hidden = false;
-}
-
-// 键盘序列彩蛋：↑↑↓↓←→←→BA 触发粒子彩色庆典
-function initKonami() {
-  const seq = ['arrowup', 'arrowup', 'arrowdown', 'arrowdown', 'arrowleft', 'arrowright', 'arrowleft', 'arrowright', 'b', 'a'];
-  let buf = [];
-  document.addEventListener('keydown', (e) => {
-    if (/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) return;
-    buf.push(e.key.toLowerCase());
-    buf = buf.slice(-seq.length);
-    if (buf.join(',') === seq.join(',')) {
-      buf = [];
-      if (window.particlesParty) window.particlesParty(20);
-      showToast('🎉 彩蛋触发：粒子庆典 20 秒');
+  el.addEventListener('click', () => {
+    const card = document.querySelector(`#products article[data-project-id="${latest.id}"]`);
+    if (card) {
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      card.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
     }
   });
 }
@@ -987,7 +842,7 @@ function renderArticleSection({ match, sectionId, navHref, listId, useArrayOrder
 
   if (useArrayOrder) {
     // 系列文章：若包含标题序号（如 一、二、三...），按标题序号严格升序，确保展示与章节标题对齐
-    items = items.slice().sort((a, b) => {
+    items = items.toSorted((a, b) => {
       const oa = getTitleOrder(a.title);
       const ob = getTitleOrder(b.title);
       if (oa !== ob) return oa - ob;
@@ -1037,8 +892,7 @@ function getSiblingList(article) {
     // AI 学习系列：按标题序号顺序（一→七）翻页即阅读顺序，与列表渲染同序，日期只作展示
     return (window.ARTICLES_DATA || [])
       .filter(a => a.section === 'ai')
-      .slice()
-      .sort((a, b) => {
+      .toSorted((a, b) => {
         const oa = getTitleOrder(a.title);
         const ob = getTitleOrder(b.title);
         if (oa !== ob) return oa - ob;
@@ -1063,7 +917,6 @@ function resetArticleModalScroll() {
     if (typeof modalContent.scrollTo === 'function') {
       try { modalContent.scrollTo({ top: 0, left: 0, behavior: 'instant' }); } catch (_) { modalContent.scrollTop = 0; }
     }
-    delete modalContent.dataset.thanked;
   }
   const progress = document.getElementById('article-progress');
   if (progress) progress.style.width = '0%';
@@ -1109,7 +962,121 @@ function swapModalContent(el, mutate, dir = 'fade') {
   }, 450);
 }
 
-window.openArticleModal = function(id, skipUrlSync) {
+/* ⌘K 搜索词「零 DOM 侵入」正文高亮与词间巡航（CSS Custom Highlight API） */
+let modalHighlightState = null;
+
+function clearModalSearchHighlight(modalEl) {
+  modalHighlightState = null;
+  if (window.CSS && CSS.highlights) {
+    CSS.highlights.delete('sj-search-hit');
+    CSS.highlights.delete('sj-search-current');
+  }
+  const scope = modalEl || document;
+  scope.querySelectorAll('.modal-find-bar').forEach((el) => el.remove());
+}
+
+function applyModalSearchHighlight(modal, modalContent, rawQuery) {
+  clearModalSearchHighlight(modal);
+  if (!modal || !modalContent || !rawQuery) return;
+  const tokens = [...new Set(String(rawQuery).toLowerCase().split(/\s+/).filter((t) => t.length >= 1))];
+  if (!tokens.length) return;
+  if (!(window.CSS && CSS.highlights && typeof window.Highlight === 'function')) return;
+
+  const body = modalContent.querySelector('.markdown-body');
+  if (!body) return;
+
+  // MANDATORY: 用 TreeWalker 收集纯文本节点，不改动 innerHTML，零破坏代码复制按钮与目录锚点
+  const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
+  const textNodes = [];
+  let cur = walker.nextNode();
+  while (cur) {
+    if (cur.nodeValue && cur.nodeValue.trim()) textNodes.push(cur);
+    cur = walker.nextNode();
+  }
+
+  const ranges = [];
+  for (const textNode of textNodes) {
+    const lower = textNode.nodeValue.toLowerCase();
+    const spans = [];
+    for (const tk of tokens) {
+      let from = 0;
+      while (from < lower.length) {
+        const hit = lower.indexOf(tk, from);
+        if (hit === -1) break;
+        spans.push([hit, hit + tk.length]);
+        from = hit + tk.length;
+      }
+    }
+    if (!spans.length) continue;
+    spans.sort((a, b) => a[0] - b[0] || (b[1] - b[0]) - (a[1] - a[0]));
+    let lastEnd = -1;
+    for (const [st, ed] of spans) {
+      if (st < lastEnd) continue;
+      const range = new Range();
+      range.setStart(textNode, st);
+      range.setEnd(textNode, ed);
+      ranges.push(range);
+      lastEnd = ed;
+    }
+  }
+
+  if (!ranges.length) return;
+
+  const allHl = new Highlight(...ranges);
+  allHl.priority = 0;
+  CSS.highlights.set('sj-search-hit', allHl);
+
+  const topBar = modal.querySelector('.modal-top-bar');
+  const closeBtn = topBar ? topBar.querySelector('[data-close-modal]') : null;
+  let bar = null;
+  let countEl = null;
+  if (topBar && closeBtn) {
+    bar = document.createElement('div');
+    bar.className = 'modal-find-bar';
+    bar.setAttribute('role', 'region');
+    bar.setAttribute('aria-label', '正文检索定位');
+    bar.innerHTML =
+      '<span class="mfb-count font-mono"></span>' +
+      '<button type="button" class="mfb-btn" data-mfb="prev" aria-label="上一处匹配" title="上一处 (Shift+F3)">↑</button>' +
+      '<button type="button" class="mfb-btn" data-mfb="next" aria-label="下一处匹配" title="下一处 (F3)">↓</button>' +
+      '<button type="button" class="mfb-btn" data-mfb="clear" aria-label="清除搜索高亮" title="清除高亮">×</button>';
+    topBar.insertBefore(bar, closeBtn);
+    countEl = bar.querySelector('.mfb-count');
+  }
+
+  let activeIdx = 0;
+  const focusMatch = (idx, smooth = true) => {
+    activeIdx = ((idx % ranges.length) + ranges.length) % ranges.length;
+    const curHl = new Highlight(ranges[activeIdx]);
+    curHl.priority = 1;
+    CSS.highlights.set('sj-search-current', curHl);
+    if (countEl) countEl.textContent = `命中 ${activeIdx + 1}/${ranges.length}`;
+    const rect = ranges[activeIdx].getBoundingClientRect();
+    const boxRect = modalContent.getBoundingClientRect();
+    if (rect.height > 0 && boxRect.height > 0) {
+      const targetTop = Math.max(0, modalContent.scrollTop + (rect.top - boxRect.top) - boxRect.height * 0.28);
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      modalContent.scrollTo({ top: targetTop, behavior: (!smooth || reduce) ? 'auto' : 'smooth' });
+    }
+  };
+
+  if (bar) {
+    bar.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('[data-mfb]');
+      if (!btn) return;
+      ev.stopPropagation();
+      const act = btn.getAttribute('data-mfb');
+      if (act === 'prev') focusMatch(activeIdx - 1, true);
+      else if (act === 'next') focusMatch(activeIdx + 1, true);
+      else if (act === 'clear') clearModalSearchHighlight(modal);
+    });
+  }
+
+  modalHighlightState = { modal, step: (delta) => focusMatch(activeIdx + delta, true) };
+  requestAnimationFrame(() => focusMatch(0, false));
+}
+
+window.openArticleModal = function(id, skipUrlSync, opts) {
   const article = (window.ARTICLES_DATA || []).find(a => a.id === id);
   if (!article) return;
 
@@ -1124,18 +1091,20 @@ window.openArticleModal = function(id, skipUrlSync) {
   const wasOpen = !modal.classList.contains('hidden') && !modal.classList.contains('is-closing');
   const prevActiveArticle = activeArticle;
   activeArticle = article;
-  activeVersion = 0;
 
   const barTitle = document.getElementById('article-bar-title');
   if (barTitle) barTitle.textContent = article.title || '';
   const barCategory = document.getElementById('article-bar-category');
   if (barCategory) barCategory.textContent = article.category || '技术手记';
+  const hlQuery = (opts && typeof opts.highlightQuery === 'string' && opts.highlightQuery.trim())
+    || new URLSearchParams(location.search).get('hl')
+    || '';
 
   // Markdown 渲染器按需加载（2026-10-17）：先出骨架，正文等渲染器就绪后补写
   const needMd = !(window.marked && window.DOMPurify);
   const parsedMarkdown = needMd
     ? '<p class="md-pending">正在准备阅读器…</p>'
-    : sanitizeMarkdownHtml(window.marked.parse(versionedContent(article)));
+    : sanitizeMarkdownHtml(window.marked.parse(article.content || ''));
 
   // 同模块翻页：首篇无上一篇、末篇无下一篇，仅一篇时不显示翻页栏
   const siblings = getSiblingList(article);
@@ -1170,26 +1139,6 @@ window.openArticleModal = function(id, skipUrlSync) {
       </div>
   ` : '';
 
-  // 时光回溯：文章版本切换（数据结构见 README revisions 字段）
-  const revisions = article.revisions || [];
-  const versionChips = revisions.length ? `
-        <div class="flex flex-wrap items-center gap-1.5 pt-3" data-version-bar>
-          <span class="text-xs text-[#86868b] mr-1">版本回溯</span>
-          <button data-version="0" class="pref-btn is-active">最新</button>
-          ${revisions.map((r, i) => `<button data-version="${i + 1}" class="pref-btn">${escapeHtml(r.label || r.date || 'v' + (i + 1))}</button>`).join('')}
-        </div>` : '';
-
-  // 情绪反馈（本地版：仅保存在访客本机，不做跨访客统计）
-  const EMOTIONS = [['resonance', '💫', '共鸣'], ['insight', '💡', '启发'], ['doubt', '❓', '疑惑'], ['sigh', '🌧', '唏嘘']];
-  const myEmotion = localStorage.getItem('sj.emo.' + article.id);
-  const emotionsHtml = `
-      <div class="pt-5 border-t border-black/10 dark:border-white/10 flex flex-wrap items-center gap-2">
-        <span class="text-xs font-semibold text-[#86868b] mr-1">这一篇给你的感觉<span class="opacity-70">（仅存本机）</span></span>
-        ${EMOTIONS.map(([key, icon, label]) => `
-          <button data-emotion="${key}" class="emotion-btn px-2.5 py-1 rounded-full text-xs border transition cursor-pointer ${myEmotion === key ? 'is-active' : ''}">${icon} ${label}</button>
-        `).join('')}
-      </div>`;
-
   // 把「换内容 + 重建事件」包成函数：首开直接执行；已开时等旧内容滑出后再执行
   const renderNow = () => {
   modalContent.innerHTML = `
@@ -1201,7 +1150,6 @@ window.openArticleModal = function(id, skipUrlSync) {
           <span>${escapeHtml(getReadTime(article))}</span>
         </div>
         <h1 class="text-2xl sm:text-3xl font-extrabold text-[#1d1d1f] dark:text-white tracking-tight">${escapeHtml(article.title)}</h1>
-        ${versionChips}
       </div>
       ${article.cover ? `
       <div class="w-full rounded-xl overflow-hidden border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 aspect-[16/9] max-h-72">
@@ -1210,7 +1158,7 @@ window.openArticleModal = function(id, skipUrlSync) {
       <div class="markdown-body text-[#1d1d1f] dark:text-[#f5f5f7]">
         ${parsedMarkdown}
       </div>
-      ${pagerHtml}${relatedHtml}${emotionsHtml}
+      ${pagerHtml}${relatedHtml}
     </div>
   `;
 
@@ -1219,7 +1167,6 @@ window.openArticleModal = function(id, skipUrlSync) {
   buildArticleToc(modalContent);
   initTocSpy(modalContent);
   injectArticleJsonLd(article);
-  initAnnotations(modalContent, article.id);
 
   // 渲染器就绪后补写正文，并重建依赖正文的目录/复制按钮/高亮
   if (needMd) {
@@ -1228,63 +1175,24 @@ window.openArticleModal = function(id, skipUrlSync) {
       const body = modalContent.querySelector('.markdown-body');
       if (!body) return;
       body.innerHTML = ok
-        ? sanitizeMarkdownHtml(window.marked.parse(versionedContent(article)))
-        : `<p>${escapeHtml(versionedContent(article))}</p>`;
+        ? sanitizeMarkdownHtml(window.marked.parse(article.content || ''))
+        : `<p>${escapeHtml(article.content || '')}</p>`;
       ensureHighlight(modalContent);
       addCopyButtons(modalContent);
       buildArticleToc(modalContent);
       initTocSpy(modalContent);
       resetArticleModalScroll();
+      if (hlQuery) applyModalSearchHighlight(modal, modalContent, hlQuery);
     });
   }
 
-  // 情绪标记：单选可取消，仅写本机 LocalStorage
-  modalContent.querySelectorAll('[data-emotion]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const key = 'sj.emo.' + article.id;
-      const current = localStorage.getItem(key);
-      const next = current === btn.dataset.emotion ? null : btn.dataset.emotion;
-      if (next) localStorage.setItem(key, next); else localStorage.removeItem(key);
-      modalContent.querySelectorAll('[data-emotion]').forEach((b) => b.classList.toggle('is-active', b.dataset.emotion === next));
-      showToast(next ? `已标记「${{ resonance: '共鸣', insight: '启发', doubt: '疑惑', sigh: '唏嘘' }[next]}」（仅本机）` : '已取消标记');
-    });
-  });
-
-  // 版本切换：仅重渲染正文区，批注/目录/复制按钮重建
-  if (revisions.length) {
-    modalContent.querySelectorAll('[data-version]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        activeVersion = Number(btn.dataset.version);
-        modalContent.querySelectorAll('[data-version]').forEach((b) => b.classList.toggle('is-active', Number(b.dataset.version) === activeVersion));
-        // 正文区上下交替过渡：旧内容先淡出，再换内容淡入
-        swapModalContent(modalContent, () => {
-          const write = () => {
-            const body = modalContent.querySelector('.markdown-body');
-            if (body) {
-              body.innerHTML = window.marked
-                ? sanitizeMarkdownHtml(window.marked.parse(versionedContent(activeArticle)))
-                : `<p>${escapeHtml(versionedContent(activeArticle))}</p>`;
-            }
-            ensureHighlight(modalContent);
-            addCopyButtons(modalContent);
-            buildArticleToc(modalContent);
-            initTocSpy(modalContent);
-            initAnnotations(modalContent, article.id);
-            modalContent.scrollTop = 0;
-            const bar = document.getElementById('article-progress');
-            if (bar) bar.style.width = '0%';
-            delete modalContent.dataset.thanked;
-          };
-          // 同首次打开：渲染器没就绪就先等它（切换版本也可能发生在懒加载完成前）
-          if (window.marked && window.DOMPurify) write();
-          else ensureMarkdown().then(write);
-        }, 'fade');
-      });
-    });
-  }
-
-  // 切换篇目后回到正文顶部、复位进度条与致谢状态
+  // 切换篇目后回到正文顶部、复位进度条；若从 ⌘K 搜索进入则无损高亮命中词并定位首处
   resetArticleModalScroll();
+  if (!needMd && hlQuery) {
+    applyModalSearchHighlight(modal, modalContent, hlQuery);
+  } else if (!hlQuery) {
+    clearModalSearchHighlight(modal);
+  }
   if (window.lucide) window.lucide.createIcons();
   };
 
@@ -1319,6 +1227,7 @@ window.openArticleModal = function(id, skipUrlSync) {
 
 window.closeArticleModal = function(skipUrlSync) {
   const modal = document.getElementById('article-modal');
+  clearModalSearchHighlight(modal);
   const wasOpen = modal && !modal.classList.contains('hidden') && !modal.classList.contains('is-closing');
   resetArticleModalScroll();
   if (modal) animateModalClose(modal);
@@ -1352,10 +1261,11 @@ window.addEventListener('popstate', () => {
 });
 
 /* ============================================================
-   3.5 技术手记区视图切换：札签卷宗（cards.js shelf）⇄ 文章列表
+   3.5 技术手记区视图切换：札签卷宗（cards.js inline 原地抽卡）⇄ 文章列表
    - 视图记忆 sj.blogView（默认卷宗）；cards.css/js 在 #blog 接近视口时才注入，首屏零成本
-   - 点卷宗 → 全屏 portal（CardsCore mount mode:'full'），history 压 {cardsOv:'portal'}，
-     后退手势/Esc/✕ 三路一致关闭；列表 DOM 永远保留（只切显示），验收脚本不破
+   - 点卷宗 → 就在 #blog 原地拆封变成牌堆抽卡，绝不弹去另一个全屏页面；
+     点中卡片阅读 → 直接打开博客原生文章阅读弹窗（openArticleModal）；
+   - 列表 DOM 永远保留（只切显示），验收脚本不破
    ============================================================ */
 function initBlogCards() {
   const sec = document.getElementById('blog');
@@ -1367,19 +1277,51 @@ function initBlogCards() {
 
   let view = 'deck';
   try { if (localStorage.getItem('sj.blogView') === 'list') view = 'list'; } catch (_) {}
+  const supportsUntilFound = 'onbeforematch' in HTMLElement.prototype;
 
   function setView(v) {
     view = v;
     try { localStorage.setItem('sj.blogView', v); } catch (_) {}
     wrap.hidden = v !== 'deck';
-    list.hidden = v !== 'list';
+    if (v === 'list') {
+      list.removeAttribute('hidden');
+      // 确保切到列表视图时卡片立即可见，不被未触发的 reveal 遮蔽
+      list.querySelectorAll('.reveal:not(.is-visible)').forEach((el) => el.classList.add('is-visible'));
+    } else if (supportsUntilFound) {
+      // hidden="until-found"：默认收起不占布局，但浏览器原生 Ctrl+F 查找命中任意文章时自动唤醒展开
+      list.setAttribute('hidden', 'until-found');
+    } else {
+      list.hidden = true;
+    }
     const paint = (btn, active) => {
-      btn.style.color = active ? 'var(--accent)' : '';
-      btn.style.textDecoration = active ? 'underline' : '';
-      btn.style.textUnderlineOffset = active ? '3px' : '';
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-pressed', String(active));
     };
     paint(btnDeck, v === 'deck');
     paint(btnList, v === 'list');
+  }
+
+  function transitionBlogView(nextView, focusEl, afterFn) {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!document.startViewTransition || reduce || view === nextView) {
+      setView(nextView);
+      if (focusEl) focusEl.focus({ preventScroll: true });
+      if (afterFn) afterFn();
+      return;
+    }
+    const vt = document.startViewTransition(() => {
+      setView(nextView);
+    });
+    vt.finished.finally(() => {
+      if (focusEl) focusEl.focus({ preventScroll: true });
+      if (afterFn) afterFn();
+    });
+  }
+
+  if (supportsUntilFound) {
+    list.addEventListener('beforematch', () => {
+      if (view !== 'list') setView('list');
+    });
   }
 
   let loading = null;
@@ -1389,10 +1331,10 @@ function initBlogCards() {
     loading = new Promise((resolve) => {
       const css = document.createElement('link');
       css.rel = 'stylesheet';
-      css.href = 'css/cards.css';
+      css.href = 'css/cards.css?v=20261118q';
       document.head.appendChild(css);
       const s = document.createElement('script');
-      s.src = 'js/cards.js';
+      s.src = 'js/cards.js?v=20261118q';
       s.onload = () => resolve(!!window.CardsCore);
       s.onerror = () => resolve(false);
       document.head.appendChild(s);
@@ -1406,77 +1348,39 @@ function initBlogCards() {
     setView('list');
   }
 
+  let inlineInst = null;
   function mountShelf() {
-    ensureCards().then((ok) => {
-      if (!ok) { fallbackToList('cards.js 加载失败'); return; }
+    return ensureCards().then((ok) => {
+      if (!ok) { fallbackToList('cards.js 加载失败'); return null; }
       if (!wrap.dataset.cardsMounted) {
-        const inst = window.CardsCore.mount(wrap, {
-          mode: 'shelf',
-          requestOpen: (cat) => openPortal(cat),
+        inlineInst = window.CardsCore.mount(wrap, {
+          mode: 'inline',
+          onOpenArticle: (art) => {
+            if (art && art.id) openArticleModal(art.id);
+          },
         });
-        if (!inst) fallbackToList('文章数据为空');
+        if (!inlineInst) { fallbackToList('文章数据为空'); return null; }
       }
+      return inlineInst;
     });
   }
 
-  /* ----- 全屏 portal ----- */
-  let portal = null;
-  let portalSeq = 0;
-  function mountPortal(mountOpts) {
-    const root = document.createElement('div');
-    root.id = 'cards-root';
-    root.className = 'cards-scope';
-    document.body.appendChild(root);
-    const inst = window.CardsCore.mount(root, mountOpts);
-    if (!inst) { root.remove(); return; }
-    // ✕ 必须在 mount 之后追加——mount 的 innerHTML 会清空挂载根
-    const x = document.createElement('button');
-    x.type = 'button';
-    x.textContent = '✕ 退出卷宗';
-    x.setAttribute('aria-label', '退出札签卷宗');
-    x.style.cssText = 'position:fixed;top:14px;right:16px;z-index:22;padding:6px 12px;font-size:12px;'
-      + 'border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--ink);'
-      + 'cursor:pointer;letter-spacing:.04em;';
-    x.addEventListener('click', () => { if (portal) history.back(); });   // 出栈由 popstate 统一销毁
-    root.appendChild(x);
-    const token = ++portalSeq;
-    portal = { root, inst, x, token };
-    document.body.style.overflow = 'hidden';
-    history.pushState({ cardsOv: 'portal', portalToken: token }, '');
-  }
-  function openPortal(cat) {
-    if (portal) return;
-    // 目录条/未滚到 #blog 时可能还没加载 cards.js——先确保模块就位
-    ensureCards().then((ok) => {
-      if (!ok) { fallbackToList('cards.js 加载失败'); return; }
-      if (portal) return;
-      mountPortal({ mode: 'full', startPack: cat, onExit: () => { if (portal) history.back(); } });
+  function openPackInline(cat) {
+    setView('deck');
+    mountShelf().then((inst) => {
+      if (inst && inst.openPack) inst.openPack(cat, { direct: true });
     });
   }
-  function openArticleFromToc(id) {
-    if (portal) return;
-    ensureCards().then((ok) => {
-      if (!ok) { fallbackToList('cards.js 加载失败'); return; }
-      if (portal) return;
-      mountPortal({ mode: 'full', startArticle: id, onExit: () => { if (portal) history.back(); } });
+
+  btnDeck.addEventListener('click', () => {
+    const wasDeck = view === 'deck';
+    transitionBlogView('deck', btnDeck, () => {
+      mountShelf().then((inst) => {
+        if (wasDeck && inst && inst.showPacks) inst.showPacks();
+      });
     });
-  }
-  function closePortal() {
-    if (!portal) return;
-    portal.inst.destroy();
-    portal.root.remove();
-    portal = null;
-    document.body.style.overflow = '';
-  }
-  window.addEventListener('popstate', () => {
-    // 一次性 token 门控：模块自己的 reader/catalog 条目出栈后，落回的仍是本 portal
-    // 条目（token 相同）→ 不动；弹到低于本 portal 的任何条目（token 不匹配）→ 销毁。
-    // 这样即使历史里残留旧 portal 条目（刷新前的会话），一次 back 也能正确退出。
-    if (portal && (history.state && history.state.portalToken) !== portal.token) closePortal();
   });
-
-  btnDeck.addEventListener('click', () => { setView('deck'); mountShelf(); });
-  btnList.addEventListener('click', () => setView('list'));
+  btnList.addEventListener('click', () => transitionBlogView('list', btnList));
 
   // 分类目录（卡包架下方附录，默认收起）：summary 一行 mono；展开=两级索引
   const toc = document.getElementById('blog-toc');
@@ -1500,7 +1404,7 @@ function initBlogCards() {
       head.className = 'text-xs font-bold text-[#1d1d1f] dark:text-white transition cursor-pointer';
       head.innerHTML = cat + '&thinsp;<span class="font-mono" style="font-weight:400;color:var(--accent)">' + arts.length + '</span>';
       head.setAttribute('aria-label', `打开卷宗：${cat}（${arts.length} 篇）`);
-      head.addEventListener('click', () => openPortal(cat));
+      head.addEventListener('click', () => openPackInline(cat));
       group.appendChild(head);
       arts.forEach((a) => {
         const item = document.createElement('button');
@@ -1508,7 +1412,7 @@ function initBlogCards() {
         item.className = 'block text-left text-xs text-[#86868b] hover:text-black dark:hover:text-white transition cursor-pointer';
         item.textContent = a.title;
         item.setAttribute('aria-label', '阅读：' + a.title);
-        item.addEventListener('click', () => openArticleFromToc(a.id));
+        item.addEventListener('click', () => openArticleModal(a.id));
         group.appendChild(item);
       });
       grid.appendChild(group);
@@ -1637,6 +1541,13 @@ function initNavigation() {
     );
     if (!openModal) return;
 
+    // 正文搜索高亮巡航快捷键：F3 / Shift+F3
+    if (e.key === 'F3' && modalHighlightState && modalHighlightState.modal === openModal) {
+      e.preventDefault();
+      modalHighlightState.step(e.shiftKey ? -1 : 1);
+      return;
+    }
+
     // 文章弹窗内 ← → 方向键翻章
     if (openModal === articleModal && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
       const btn = articleModal.querySelector(`[data-pager="${e.key === 'ArrowRight' ? 'next' : 'prev'}"]`);
@@ -1685,35 +1596,44 @@ function observeReveals() {
   });
 }
 
-// 导航：顶部无边框，下滑后浮现边框与模糊；同时驱动回到顶部按钮的显隐
+// 导航：顶部无边框，下滑后浮现边框与模糊；同时经 rAF 合成驱动滚动进度光丝与回到顶部按钮
 function initNavScrollState() {
   const header = document.querySelector('header.site-header');
   const backTop = document.getElementById('back-to-top');
-  const update = () => {
+  const progressBar = document.getElementById('page-scroll-bar');
+  let rafPending = false;
+  const paintScroll = () => {
+    rafPending = false;
     const y = window.scrollY;
     if (header) {
       header.classList.toggle('is-scrolled', y > 12);
-      // 深色粒子封面上：强制 dark 配色，滚过封面即还原（见 style.css .on-cover）
-      // 深色叙事区的终点：随首屏高度走（3D 舞台已移除，背景由推理场 canvas 全程接管）
       const coverEnd = window.__COVER_END || window.innerHeight * 0.72;
       header.classList.toggle('on-cover', y < coverEnd - window.innerHeight * 0.5);
+    }
+    if (progressBar) {
+      const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      const ratio = Math.min(1, Math.max(0, y / maxScroll));
+      progressBar.style.transform = `scaleX(${ratio.toFixed(4)})`;
     }
     if (backTop) {
       const show = y > 600;
       backTop.classList.toggle('opacity-0', !show);
       backTop.classList.toggle('pointer-events-none', !show);
     }
-    // 内容区背景退场（样式见 style.css 的 html.wp-fade）：滚过首屏 62% 就把壁纸
-    // 淡到几乎不见。项目卡片才是这一站的主体，背景只负责首屏那一段氛围
     document.documentElement.classList.toggle('wp-fade', y > window.innerHeight * 0.62);
-    // 阅读中让底部浮层退场：手机上音乐 FAB 会压住正文（实测 390×844 命中卡片末行），
-    // 滚动期间降到 .28，停手 700ms 复原。不改位置、不影响拖拽与点击
-    document.body.classList.add('is-scrolling');
-    clearTimeout(update._t);
-    update._t = setTimeout(() => document.body.classList.remove('is-scrolling'), 700);
   };
-  window.addEventListener('scroll', update, { passive: true });
-  update();
+  const onScroll = () => {
+    if (!rafPending) {
+      rafPending = true;
+      requestAnimationFrame(paintScroll);
+    }
+    document.body.classList.add('is-scrolling');
+    clearTimeout(onScroll._t);
+    onScroll._t = setTimeout(() => document.body.classList.remove('is-scrolling'), 700);
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', () => { if (!rafPending) { rafPending = true; requestAnimationFrame(paintScroll); } }, { passive: true });
+  paintScroll();
   if (backTop) {
     backTop.addEventListener('click', () => {
       smoothScrollTo(0);
@@ -1746,15 +1666,20 @@ function initScrollSpy() {
   // ❗一个区块对应多个链接（桌面导航 + 移动抽屉是两套 nav，href 相同）：
   // 以前按 href 去重只留最后一个，于是 .nav-active 永远落在抽屉里那条上，
   // 桌面导航其实从不高亮（2026-10-17 做导航胶囊时发现）。这里改成「同一 href 全部标记」。
-  const byId = {};
-  navLinks.forEach((a) => {
-    const id = a.getAttribute('href').slice(1);
-    (byId[id] = byId[id] || []).push(a);
-  });
+  const byId = Object.groupBy(navLinks, (a) => a.getAttribute('href').slice(1));
 
+  const hudSecEl = document.getElementById('hud-sec-code');
+  const hudSecLabels = {
+    home: '01 · OVERVIEW',
+    products: '02 · TOOLS',
+    philosophy: '03 · PRINCIPLES',
+    about: '04 · PROFILE',
+    blog: '05 · NOTES'
+  };
   const setActive = (id) => {
-    const hit = byId[id] || [];
+    const hit = byId[id] ?? [];
     navLinks.forEach((a) => a.classList.toggle('nav-active', hit.includes(a)));
+    if (hudSecEl && hudSecLabels[id]) hudSecEl.textContent = hudSecLabels[id];
   };
   let ticking = false;
   const update = () => {
@@ -1867,83 +1792,8 @@ let smoothScrollTo = function (targetY) {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   window.scrollTo({ top: targetY, behavior: reduce ? 'auto' : 'smooth' });
 };
-// 暴露给 search.js / tab-nav.js 等模块复用
+// 暴露给 search.js 等模块复用
 window.smoothScrollTo = function (y) { smoothScrollTo(y); };
-
-// 阻尼滚动：滚轮驱动目标位，页面每帧向目标指数趋近（Lenis 手法，自写精简版）
-// 仅精确指针（桌面）+ 未开减少动效时启用；触摸/键盘/滚动条/弹窗内滚动保持原生
-function initDampedScroll() {
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  if (!window.matchMedia('(pointer: fine)').matches) return;
-
-  const html = document.documentElement;
-  html.style.scrollBehavior = 'auto';   // 每帧 scrollTo 不能再被 CSS smooth 拖慢
-
-  let TIME_CONST = 150;                 // 阻尼时间常数 ms：60fps 下每帧系数 ≈0.105（Lenis 默认观感）
-  let target = window.scrollY;
-  let current = target;
-  let rafId = null;
-  let lastTs = 0;
-
-  const maxScroll = () => document.documentElement.scrollHeight - window.innerHeight;
-
-  const tick = (ts) => {
-    const dt = Math.min(100, ts - lastTs || 16.7);   // 帧率无关：指数趋近按真实耗时算
-    lastTs = ts;
-    current += (target - current) * (1 - Math.exp(-dt / TIME_CONST));
-    if (Math.abs(target - current) < 0.5) {
-      current = target;
-      window.scrollTo(0, current);
-      rafId = null;
-      return;
-    }
-    window.scrollTo(0, current);
-    rafId = requestAnimationFrame(tick);
-  };
-  const wake = () => {
-    if (rafId != null) return;
-    current = window.scrollY;
-    lastTs = performance.now();
-    rafId = requestAnimationFrame(tick);
-  };
-
-  window.__dampedScroll = {
-    setTarget(y) {
-      target = Math.max(0, Math.min(y, maxScroll()));
-      wake();
-    },
-    // 可调口子（对齐 lenis 的 lerp 选项）：数值越大越"绵"，越小越跟手；30~500ms 限幅
-    setDamping(ms) { TIME_CONST = Math.max(30, Math.min(500, ms)); },
-    get damping() { return TIME_CONST; },
-  };
-
-  // 滚轮 → 累加目标位；弹窗（overlay 与其内部滚动区）保持原生滚动
-  window.addEventListener('wheel', (e) => {
-    if (e.defaultPrevented || !e.deltaY) return;
-    if (e.target.closest('.modal-overlay')) return;
-    e.preventDefault();
-    let dy = e.deltaY;
-    if (e.deltaMode === 1) dy *= 40;                       // 行
-    else if (e.deltaMode === 2) dy *= window.innerHeight;  // 页
-    target = Math.max(0, Math.min(target + dy, maxScroll()));
-    wake();
-  }, { passive: false });
-
-  // 外部滚动（滚动条/键盘/hash 直达/位置恢复）与本系统对齐，避免下次滚轮跳位
-  window.addEventListener('scroll', () => {
-    if (rafId == null || Math.abs(window.scrollY - current) > 1.5) {
-      current = target = window.scrollY;
-    }
-  }, { passive: true });
-}
-
-// 兜底入口：默认关闭（原生滚动），想找回"阻尼手感"可在控制台执行 window.enableDampedScroll()
-// —— 只影响滚动条以外的滚轮，弹窗内滚动始终原生；刷新即恢复默认。
-window.enableDampedScroll = function () {
-  if (window.__dampedScroll) return '阻尼滚动已启用';
-  initDampedScroll();
-  return window.__dampedScroll ? '阻尼滚动已启用（本次会话生效）' : '当前环境不适用（触摸设备或已开减少动效）';
-};
 
 function initSmoothAnchors() {
   document.addEventListener('click', (e) => {
@@ -1974,11 +1824,6 @@ function initArticleProgress() {
     const max = scroller.scrollHeight - scroller.clientHeight;
     const ratio = max > 20 ? Math.min(Math.max(scroller.scrollTop / max, 0), 1) : 0;
     bar.style.width = `${(ratio * 100).toFixed(1)}%`;
-    // 读完致谢：滚动到底一次性提示
-    if (max > 20 && ratio >= 0.985 && content && !content.dataset.thanked) {
-      content.dataset.thanked = '1';
-      showToast('读完了，谢谢你 ❤');
-    }
   };
 
   if (content) content.addEventListener('scroll', onScroll, { passive: true });
@@ -2125,63 +1970,36 @@ function sanitizeMarkdownHtml(html) {
   return html;
 }
 
-/* ============================================================
-   底部背景视觉方案切换台（4 种去等高线方案实时交互）
-   ============================================================ */
-(function initCosmosDock() {
-  const dock = document.getElementById('cosmos-dock');
-  if (!dock) return;
-  const sync = (mode) => {
-    dock.querySelectorAll('.dock-tab').forEach(b => {
-      b.classList.toggle('active', b.dataset.mode === mode);
-    });
-  };
-  let currentMode = 'cymatics';
-  try {
-    const saved = localStorage.getItem('sj.cosmos-mode');
-    if (saved === 'cymatics' || saved === 'neural' || saved === 'aurora' || saved === 'monolith' || saved === 'chladni' || saved === 'isolines') {
-      currentMode = saved;
-    } else {
-      currentMode = 'cymatics';
-      localStorage.setItem('sj.cosmos-mode', 'cymatics');
-    }
-  } catch (e) {
-    currentMode = 'cymatics';
-  }
-  sync(currentMode);
-
-  dock.addEventListener('click', (e) => {
-    const tab = e.target.closest('.dock-tab');
-    if (!tab) return;
-    const mode = tab.dataset.mode;
-    try { localStorage.setItem('sj.cosmos-mode', mode); } catch (e) {}
-    sync(mode);
-    if (typeof window.switchCosmosMode === 'function') {
-      window.switchCosmosMode(mode);
-    }
-  });
-
-  window.addEventListener('cosmos-mode-changed', (e) => {
-    if (e.detail && e.detail.mode) sync(e.detail.mode);
-  });
-})();
+/* 清理早期多背景切换遗留的 localStorage 键（现统一锁定 3D 声学谐振场） */
+try { localStorage.removeItem('sj.cosmos-mode'); } catch (e) {}
 
 /* ============================================================
-   首屏伴读音乐胶囊联动
+   首屏伴读音乐胶囊与 HUD 声学谐振指示联动
    ============================================================ */
 (function initHeroMusic() {
   const heroMusicCapsule = document.getElementById('cosmos-enter');
   const heroMusicStatus = document.getElementById('hero-music-status');
+  const hudRight = document.querySelector('.cosmos-hud.tr');
   const audio = document.getElementById('music-audio') || document.querySelector('audio');
 
-  const updateAudioUI = (isPlaying) => {
+  const updateAudioUI = (isPlaying, trackTitle) => {
     if (heroMusicCapsule) {
       heroMusicCapsule.classList.toggle('is-playing', isPlaying);
     }
+    if (hudRight) {
+      hudRight.classList.toggle('is-resonating', isPlaying);
+    }
     if (heroMusicStatus) {
-      heroMusicStatus.textContent = isPlaying ? '♫ 伴读中' : '♫ 点击伴读';
+      const name = trackTitle || document.getElementById('music-title')?.textContent || '';
+      heroMusicStatus.textContent = isPlaying
+        ? (name && name !== '背景音乐' ? `律动 · ${name}` : '正在律动')
+        : '播放音乐';
     }
   };
+
+  window.addEventListener('sj-music-state', (e) => {
+    if (e.detail) updateAudioUI(!!e.detail.playing, e.detail.title);
+  });
 
   if (audio) {
     audio.addEventListener('play', () => updateAudioUI(true));

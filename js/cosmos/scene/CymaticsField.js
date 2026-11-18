@@ -50,6 +50,12 @@ export class CymaticsField {
     this.pos = new Float32Array(this.ptCount * 3);
     this.basePos = new Float32Array(this.ptCount * 3);
     this.colors = new Float32Array(this.ptCount * 3);
+    // 预计算三角函数常量表：将每帧 8,400 次超越函数调用降为 4 次标量 sin/cos + 乘加运算（数学恒等零误差）
+    this.sinBx = new Float32Array(this.ptCount);
+    this.cosBx = new Float32Array(this.ptCount);
+    this.sinBy = new Float32Array(this.ptCount);
+    this.cosBy = new Float32Array(this.ptCount);
+    this.sinBz = new Float32Array(this.ptCount);
 
     const radius = 2.05;
     for (let i = 0; i < this.ptCount; i++) {
@@ -68,6 +74,12 @@ export class CymaticsField {
       this.basePos[i * 3 + 1] = y;
       this.basePos[i * 3 + 2] = z;
 
+      this.sinBx[i] = Math.sin(x * 3.8);
+      this.cosBx[i] = Math.cos(x * 3.8);
+      this.sinBy[i] = Math.sin(y * 3.8);
+      this.cosBy[i] = Math.cos(y * 3.8);
+      this.sinBz[i] = Math.sin(z * 3.8);
+
       // 纬度渐变混色
       const mixRatio = (y / radius + 1) * 0.5;
       const c = this.cBlue.clone().lerp(this.cCyan, mixRatio);
@@ -78,7 +90,9 @@ export class CymaticsField {
       this.colors[i * 3 + 2] = c.b;
     }
 
-    this.geo.setAttribute('position', new THREE.BufferAttribute(this.pos, 3));
+    const posAttr = new THREE.BufferAttribute(this.pos, 3);
+    posAttr.setUsage(THREE.DynamicDrawUsage);
+    this.geo.setAttribute('position', posAttr);
     this.geo.setAttribute('color', new THREE.BufferAttribute(this.colors, 3));
 
     this.ptMat = new THREE.PointsMaterial({
@@ -201,6 +215,10 @@ export class CymaticsField {
     this.flankPos = new Float32Array(FLANK_COUNT * 3);
     this.flankBasePos = new Float32Array(FLANK_COUNT * 3);
     this.flankCols = new Float32Array(FLANK_COUNT * 3);
+    this.sinFx = new Float32Array(FLANK_COUNT);
+    this.cosFx = new Float32Array(FLANK_COUNT);
+    this.sinFy = new Float32Array(FLANK_COUNT);
+    this.cosFy = new Float32Array(FLANK_COUNT);
     for (let i = 0; i < FLANK_COUNT; i++) {
       // 左右平衡分布：左翼 (x: -8.0 ~ -2.5)，右翼 (x: 2.5 ~ 8.0)
       const isLeft = i % 2 === 0;
@@ -213,6 +231,10 @@ export class CymaticsField {
       this.flankBasePos[i * 3] = x;
       this.flankBasePos[i * 3 + 1] = y;
       this.flankBasePos[i * 3 + 2] = z;
+      this.sinFx[i] = Math.sin(x * 0.5);
+      this.cosFx[i] = Math.cos(x * 0.5);
+      this.sinFy[i] = Math.sin(y * 0.4);
+      this.cosFy[i] = Math.cos(y * 0.4);
 
       const c = isLeft
         ? this.cSky.clone().lerp(this.cBlue, Math.random() * 0.6)
@@ -221,7 +243,9 @@ export class CymaticsField {
       this.flankCols[i * 3 + 1] = c.g;
       this.flankCols[i * 3 + 2] = c.b;
     }
-    this.flankGeo.setAttribute('position', new THREE.BufferAttribute(this.flankPos, 3));
+    const flankAttr = new THREE.BufferAttribute(this.flankPos, 3);
+    flankAttr.setUsage(THREE.DynamicDrawUsage);
+    this.flankGeo.setAttribute('position', flankAttr);
     this.flankGeo.setAttribute('color', new THREE.BufferAttribute(this.flankCols, 3));
     this.flankMat = new THREE.PointsMaterial({
       size: 0.06,
@@ -244,6 +268,7 @@ export class CymaticsField {
     this.targetRotY = -0.2;
     this.shockProgress = 0;
     this.kickEnergy = 0;
+    this._lastDark = isDark;
   }
 
   setRes(w, h) {
@@ -278,22 +303,26 @@ export class CymaticsField {
     const bass = (audio && audio.bass != null ? audio.bass : (B && B.lv ? B.lv : 0)) + this.kickEnergy * 0.4;
     this.kickEnergy *= 0.90;
 
-    // 自适应明暗材质与节拍瞬态辉光
+    // 自适应明暗材质与节拍瞬态辉光（仅在明暗主题切换时更新混合模式，杜绝每帧触发着色器状态脏标记）
+    if (isDark !== this._lastDark) {
+      this._lastDark = isDark;
+      const blend = isDark ? THREE.AdditiveBlending : THREE.NormalBlending;
+      this.ptMat.blending = blend;
+      this.cageMat.blending = blend;
+      this.cageMat.color.setHex(isDark ? 0x38bdf8 : 0x0284c7);
+      this.ring1Mat.blending = blend;
+      this.ring2Mat.blending = blend;
+      this.flankMat.blending = blend;
+      this.ringMat.blending = blend;
+      this.ringMat.color.setHex(isDark ? 0x38bdf8 : 0x0284c7);
+      this.ptMat.needsUpdate = this.cageMat.needsUpdate = this.ring1Mat.needsUpdate =
+        this.ring2Mat.needsUpdate = this.flankMat.needsUpdate = this.ringMat.needsUpdate = true;
+    }
     this.ptMat.opacity = (isDark ? 0.85 : 0.65) + beatPulse * 0.15;
-    this.ptMat.blending = isDark ? THREE.AdditiveBlending : THREE.NormalBlending;
-    this.cageMat.color.setHex(isDark ? 0x38bdf8 : 0x0284c7);
     this.cageMat.opacity = (isDark ? 0.30 : 0.18) + beatPulse * 0.16;
-    this.cageMat.blending = isDark ? THREE.AdditiveBlending : THREE.NormalBlending;
     this.ring1Mat.opacity = (isDark ? 0.75 : 0.52) + beatPulse * 0.14;
-    this.ring1Mat.blending = isDark ? THREE.AdditiveBlending : THREE.NormalBlending;
     this.ring2Mat.opacity = (isDark ? 0.65 : 0.42) + beatPulse * 0.12;
-    this.ring2Mat.blending = isDark ? THREE.AdditiveBlending : THREE.NormalBlending;
     this.flankMat.opacity = (isDark ? 0.70 : 0.45) + beatPulse * 0.15;
-    this.flankMat.blending = isDark ? THREE.AdditiveBlending : THREE.NormalBlending;
-
-    // 冲击波环材质自适应（浅色模式采用深天蓝 + 正常混合，杜绝白底隐形）
-    this.ringMat.blending = isDark ? THREE.AdditiveBlending : THREE.NormalBlending;
-    this.ringMat.color.setHex(isDark ? 0x38bdf8 : 0x0284c7);
 
     // 1. 鼠标视差微倾斜 + 平滑自转
     if (interaction && interaction.mouse) {
@@ -321,34 +350,37 @@ export class CymaticsField {
     const cageScale = 1.0 + beatPulse * 0.25 + bass * 0.10 + Math.sin(sceneT * 1.5) * 0.02;
     this.cageMesh.scale.set(cageScale, cageScale, cageScale);
 
-    // 斐波那契点阵偏微分驻波调制 (Spherical Harmonics 声学谐振)
+    // 斐波那契点阵偏微分驻波调制 (Spherical Harmonics 声学谐振 · 和差角恒等加速)
     const pArr = this.geo.attributes.position.array;
+    const baseArr = this.basePos;
+    const sinBx = this.sinBx, cosBx = this.cosBx, sinBy = this.sinBy, cosBy = this.cosBy, sinBz = this.sinBz;
+    const sT1 = Math.sin(sceneT * 1.6), cT1 = Math.cos(sceneT * 1.6);
+    const sT2 = Math.sin(sceneT * 1.2), cT2 = Math.cos(sceneT * 1.2);
     const waveGain = 0.12 + beatPulse * 0.36 + bass * 0.16;
-    const sphereExpand = beatPulse * 0.12 + bass * 0.06;
-    for (let i = 0; i < this.ptCount; i++) {
-      const bx = this.basePos[i * 3];
-      const by = this.basePos[i * 3 + 1];
-      const bz = this.basePos[i * 3 + 2];
-
-      const wave = Math.sin(bx * 3.8 + sceneT * 1.6) *
-                   Math.cos(by * 3.8 + sceneT * 1.2) *
-                   Math.sin(bz * 3.8);
-
-      const rGain = 1.0 + wave * waveGain + sphereExpand;
-      pArr[i * 3] = bx * rGain;
-      pArr[i * 3 + 1] = by * rGain;
-      pArr[i * 3 + 2] = bz * rGain;
+    const baseExpand = 1.0 + beatPulse * 0.12 + bass * 0.06;
+    for (let i = 0, j = 0; i < this.ptCount; i++, j += 3) {
+      const wave = (sinBx[i] * cT1 + cosBx[i] * sT1) *
+                   (cosBy[i] * cT2 - sinBy[i] * sT2) *
+                   sinBz[i];
+      const rGain = baseExpand + wave * waveGain;
+      pArr[j] = baseArr[j] * rGain;
+      pArr[j + 1] = baseArr[j + 1] * rGain;
+      pArr[j + 2] = baseArr[j + 2] * rGain;
     }
     this.geo.attributes.position.needsUpdate = true;
 
     // 3. 伴生两翼流动星尘沿偏微分微波轻柔呼吸起伏 + 强拍向两侧爆发
     const fArr = this.flankGeo.attributes.position.array;
-    for (let i = 0; i < FLANK_COUNT; i++) {
-      const bx = this.flankBasePos[i * 3];
-      const by = this.flankBasePos[i * 3 + 1];
-      const bz = this.flankBasePos[i * 3 + 2];
-      fArr[i * 3 + 1] = by + Math.sin(bx * 0.5 + sceneT * 0.8) * 0.22 + beatPulse * 0.35 + bass * 0.12;
-      fArr[i * 3] = bx + Math.cos(by * 0.4 + sceneT * 0.5) * 0.08 + Math.sign(bx) * beatPulse * 0.15;
+    const fBase = this.flankBasePos;
+    const sinFx = this.sinFx, cosFx = this.cosFx, sinFy = this.sinFy, cosFy = this.cosFy;
+    const sF1 = Math.sin(sceneT * 0.8), cF1 = Math.cos(sceneT * 0.8);
+    const sF2 = Math.sin(sceneT * 0.5), cF2 = Math.cos(sceneT * 0.5);
+    const yLift = beatPulse * 0.35 + bass * 0.12;
+    const xBurst = beatPulse * 0.15;
+    for (let i = 0, j = 0; i < FLANK_COUNT; i++, j += 3) {
+      const bx = fBase[j];
+      fArr[j + 1] = fBase[j + 1] + (sinFx[i] * cF1 + cosFx[i] * sF1) * 0.22 + yLift;
+      fArr[j] = bx + (cosFy[i] * cF2 - sinFy[i] * sF2) * 0.08 + (bx < 0 ? -xBurst : xBurst);
     }
     this.flankGeo.attributes.position.needsUpdate = true;
 

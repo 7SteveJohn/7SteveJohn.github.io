@@ -7,12 +7,15 @@
   <meta name="robots" content="noindex" />
   <meta name="description" content="你要找的页面不存在，可能改过名字，或者从来就没有过。" />
 
-  <!-- 与主站一致：任何样式生效前先应用保存的主题，避免亮色用户进站闪黑 -->
+  <meta name="color-scheme" content="light dark" />
+  <!-- 与主站一致：读取 sj.theme 并同步 color-scheme -->
   <script>
     (function () {
-      // 站点恒深色：无条件挂 dark（旧写法读的是无前缀键 theme，且会跟随访客系统浅色，
-      // 与主站 2026-09-29 定下的「恒深色」口径冲突，2026-09-30 修正）
-      document.documentElement.classList.add('dark');
+      var isDark = false;
+      try { isDark = localStorage.getItem('sj.theme') === 'dark'; } catch (e) {}
+      document.documentElement.classList.toggle('dark', isDark);
+      var m = document.querySelector('meta[name="color-scheme"]');
+      if (m) m.content = isDark ? 'dark' : 'light';
     })();
   </script>
 
@@ -78,7 +81,7 @@
       </a>
       <a href="/#products" class="bento-card p-4 block border border-[#d2d2d7]/60 dark:border-white/10 hover:border-[#0071e3]/50 dark:hover:border-[#2997ff]/50">
         <p class="text-sm font-semibold text-[#1d1d1f] dark:text-white">几个小工具</p>
-        <p class="mt-1 text-xs text-[#86868b]">FileButler / 拍案 / NetOps / Fluxion</p>
+        <p class="mt-1 text-xs text-[#86868b]">FileButler / 拍案 / 脉络 / Fluxion / Stacky</p>
       </a>
       <a href="https://github.com/7SteveJohn" target="_blank" rel="noopener noreferrer" class="bento-card p-4 block border border-[#d2d2d7]/60 dark:border-white/10 hover:border-[#0071e3]/50 dark:hover:border-[#2997ff]/50">
         <p class="text-sm font-semibold text-[#1d1d1f] dark:text-white">GitHub</p>
@@ -99,7 +102,9 @@
       if (btn) {
         btn.addEventListener('click', function () {
           var dark = root.classList.toggle('dark');
-          try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
+          var m = document.querySelector('meta[name="color-scheme"]');
+          if (m) m.content = dark ? 'dark' : 'light';
+          try { localStorage.setItem('sj.theme', dark ? 'dark' : 'light'); } catch (e) {}
         });
       }
       var year = document.getElementById('footer-year');

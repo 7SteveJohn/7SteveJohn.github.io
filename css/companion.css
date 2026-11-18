@@ -1,0 +1,584 @@
+/* ============================================================
+   看板娘 7steve · Live2D Cubism 5 WebGL2 交互伴侣与快捷操作丸栏 (companion.css)
+   ------------------------------------------------------------
+   定位与层级契约：
+   1. #sj-companion 固定于右下角（z-index: 38），严格低于吸顶导航 (40)、
+      音乐面板 (42)、项目/文章弹窗 (50) 与搜索面板 (60)，打开弹窗时自然退居幕后。
+   2. 零硬框与零遮挡真立绘：舞台背景全透明，外围四角透明区 pointer-events 穿透；
+      悬停快捷丸栏 (.sjc-dock) 浮现于舞台顶部外侧（0px 重叠），100% 不遮挡猫耳、脸部
+      与手持 Hello World! 全息板；丸栏浮现时台词气泡 (.sjc-bubble) 自动上移至丸栏上方。
+   3. 角落零碰撞共存：当 html.has-companion 激活时，原右下角的 #music-fab、
+      #music-panel 与 #back-to-top 自动平顺归位至左下角安全槽，桌面端 (1440×900)
+      与移动端 (390×844) 零重叠。
+   ============================================================ */
+
+/* ---------- 角落共存编排：左下音乐/回顶 · 右下 7steve 专属舞台 ---------- */
+html.has-companion #music-fab:not([style*="left"]) {
+  left: 0.75rem;
+  right: auto;
+  bottom: 1rem;
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+html.has-companion #music-panel:not([style*="left"]) {
+  left: 0.75rem;
+  right: auto;
+  bottom: 4.5rem;
+  z-index: 42;
+}
+
+html.has-companion #back-to-top {
+  left: 0.875rem;
+  right: auto;
+  bottom: 4.375rem;
+}
+
+/* ---------- 令牌：明暗双主题自适应（遵循冷钢青蓝极客美学） ---------- */
+#sj-companion {
+  --sjc-surface: rgba(255, 255, 255, 0.94);
+  --sjc-dock-bg: rgba(255, 255, 255, 0.93);
+  --sjc-border: rgba(15, 23, 42, 0.11);
+  --sjc-border-strong: rgba(2, 132, 199, 0.32);
+  --sjc-ink: #0f172a;
+  --sjc-ink-soft: #475569;
+  --sjc-accent: #0284c7;
+  --sjc-accent-soft: rgba(2, 132, 199, 0.11);
+  --sjc-pill-hover: rgba(15, 23, 42, 0.06);
+  --sjc-shadow:
+    0 10px 28px -6px rgba(15, 23, 42, 0.12),
+    0 1px 2px rgba(15, 23, 42, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  --sjc-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  position: fixed;
+  right: 4px;
+  bottom: 0;
+  width: 224px;
+  height: 298px;
+  z-index: 38;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.2s ease, transform 0.22s var(--sjc-ease);
+}
+
+html.dark #sj-companion {
+  --sjc-surface: rgba(15, 23, 42, 0.92);
+  --sjc-dock-bg: rgba(13, 19, 33, 0.91);
+  --sjc-border: rgba(148, 163, 184, 0.18);
+  --sjc-border-strong: rgba(56, 189, 248, 0.40);
+  --sjc-ink: #f1f5f9;
+  --sjc-ink-soft: #94a3b8;
+  --sjc-accent: #38bdf8;
+  --sjc-accent-soft: rgba(56, 189, 248, 0.16);
+  --sjc-pill-hover: rgba(255, 255, 255, 0.08);
+  --sjc-shadow:
+    0 14px 34px -6px rgba(0, 0, 0, 0.68),
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* 柔和落地微影：仅在角色底部边缘做自然接触暗影 */
+#sj-companion:not(.is-mini)::before {
+  content: "";
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: 0;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(15, 23, 42, 0.14) 0%, transparent 72%);
+  pointer-events: none;
+  z-index: 0;
+}
+html.dark #sj-companion:not(.is-mini)::before {
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.46) 0%, transparent 72%);
+}
+
+/* ---------- Live2D Cubism 5 WebGL2 真立绘舞台 ---------- */
+.sjc-stage {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.sjc-live2d-host {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+.sjc-static-fallback,
+.sjc-webgl-canvas,
+html body #sj-companion #sjc-stage canvas {
+  position: absolute !important;
+  inset: 0 !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  transform: none !important;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+
+.sjc-static-fallback {
+  z-index: 1;
+  object-fit: contain;
+  object-position: center calc(100% + 2px);
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+
+.sjc-static-fallback.is-loaded {
+  opacity: 1;
+}
+
+/* WebGL 纹理上传并完成首帧绘制后平滑淡入，同时隐藏静态底图杜绝半透全息板/双马尾摆动重影 */
+.sjc-live2d-host.is-webgl-ready .sjc-static-fallback {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.26s ease, visibility 0s linear 0.26s;
+}
+
+.sjc-webgl-canvas {
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.26s ease, filter 0.3s ease;
+}
+
+html.dark .sjc-webgl-canvas {
+  filter: drop-shadow(0 6px 18px rgba(14, 165, 233, 0.08));
+}
+
+.sjc-live2d-host.is-webgl-ready .sjc-webgl-canvas {
+  opacity: 1;
+}
+
+/* 角色轮廓命中区：四角透明空白区自动穿透点击至底层页面 */
+.sjc-hit-svg {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+.sjc-hit-svg [data-zone] {
+  fill: transparent;
+  pointer-events: all;
+  cursor: pointer;
+}
+
+/* ---------- 台词气泡 (.sjc-bubble)：最多 2 行，绝不拦截点击 ---------- */
+.sjc-bubble {
+  position: absolute;
+  right: 2px;
+  bottom: calc(100% + 6px);
+  z-index: 3;
+  width: max-content;
+  max-width: 234px;
+  padding: 7px 11px;
+  border-radius: 11.5px;
+  background: var(--sjc-surface);
+  border: 1px solid var(--sjc-border);
+  box-shadow: var(--sjc-shadow);
+  backdrop-filter: blur(12px) saturate(1.25);
+  -webkit-backdrop-filter: blur(12px) saturate(1.25);
+  color: var(--sjc-ink);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate3d(0, 6px, 0) scale(0.97);
+  transform-origin: 72% 100%;
+  transition:
+    bottom 0.18s var(--sjc-ease),
+    opacity 0.18s var(--sjc-ease),
+    transform 0.2s var(--sjc-ease),
+    visibility 0.2s;
+}
+
+.sjc-bubble.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+/* 丸栏可见时气泡优雅上移，双层零重叠 */
+#sj-companion:hover .sjc-bubble,
+#sj-companion:focus-within .sjc-bubble,
+#sj-companion.is-dock-open .sjc-bubble {
+  bottom: calc(100% + 40px);
+}
+
+.sjc-bubble::after {
+  content: "";
+  position: absolute;
+  right: 76px;
+  bottom: -4.5px;
+  width: 8px;
+  height: 8px;
+  background: var(--sjc-surface);
+  border-right: 1px solid var(--sjc-border);
+  border-bottom: 1px solid var(--sjc-border);
+  transform: rotate(45deg);
+}
+
+.sjc-bubble-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 12.5px;
+  line-height: 1.48;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  word-break: break-word;
+  text-wrap: pretty;
+}
+
+/* ---------- 快捷操作丸栏 (.sjc-dock)：舞台正上方悬停浮现（0px 重叠） ---------- */
+.sjc-dock {
+  position: absolute;
+  right: 2px;
+  bottom: calc(100% + 6px);
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  padding: 2.5px;
+  border-radius: 9999px;
+  background: var(--sjc-dock-bg);
+  border: 1px solid var(--sjc-border);
+  box-shadow: var(--sjc-shadow);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translate3d(0, 5px, 0) scale(0.975);
+  transform-origin: 85% 100%;
+  transition:
+    opacity 0.16s var(--sjc-ease),
+    transform 0.18s var(--sjc-ease),
+    visibility 0.18s;
+}
+
+/* 向下衔接头部热区的透明悬停过渡桥 */
+.sjc-dock::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 16px;
+}
+
+#sj-companion:hover .sjc-dock,
+#sj-companion:focus-within .sjc-dock,
+#sj-companion.is-dock-open .sjc-dock {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.sjc-pill {
+  position: relative;
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 4.5px 6px;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--sjc-ink-soft);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.14s ease, color 0.14s ease, transform 0.1s ease;
+}
+
+.sjc-pill:hover {
+  background: var(--sjc-pill-hover);
+  color: var(--sjc-ink);
+}
+
+.sjc-pill:active {
+  transform: scale(0.95);
+}
+
+.sjc-pill:focus-visible {
+  outline: 2px solid var(--sjc-accent);
+  outline-offset: 1px;
+}
+
+.sjc-pill-ico {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* 音乐播放中激活态：青蓝高亮 + 微呼吸指示点 */
+.sjc-pill.is-active {
+  color: var(--sjc-accent);
+  background: var(--sjc-accent-soft);
+  font-weight: 600;
+}
+
+.sjc-pill.is-active::before {
+  content: "";
+  width: 4.5px;
+  height: 4.5px;
+  border-radius: 9999px;
+  background: var(--sjc-accent);
+  box-shadow: 0 0 6px var(--sjc-accent);
+  margin-right: 0.5px;
+  animation: sjc-music-dot 1.8s ease-in-out infinite;
+}
+
+@keyframes sjc-music-dot {
+  0%, 100% { opacity: 0.45; transform: scale(0.88); }
+  50%      { opacity: 1;    transform: scale(1.12); }
+}
+
+/* ---------- 收起态猫耳胶囊徽标 (.sjc-mini)：42px 精致青光纹章 ---------- */
+.sjc-mini {
+  display: none;
+  position: relative;
+  appearance: none;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 9999px;
+  background: var(--sjc-surface);
+  border: 1px solid var(--sjc-border);
+  box-shadow: var(--sjc-shadow);
+  backdrop-filter: blur(12px) saturate(1.25);
+  -webkit-backdrop-filter: blur(12px) saturate(1.25);
+  color: var(--sjc-ink);
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  cursor: pointer;
+  transition:
+    transform 0.18s var(--sjc-ease),
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.sjc-mini:hover {
+  transform: translateY(-2px);
+  border-color: var(--sjc-border-strong);
+}
+
+.sjc-mini:active {
+  transform: scale(0.95);
+}
+
+.sjc-mini:focus-visible {
+  outline: 2px solid var(--sjc-accent);
+  outline-offset: 2px;
+}
+
+.sjc-mini-ears {
+  position: absolute;
+  inset: 2px;
+  width: calc(100% - 4px);
+  height: calc(100% - 4px);
+  pointer-events: none;
+}
+
+.sjc-mini-neon {
+  fill: var(--sjc-accent);
+  opacity: 0.85;
+}
+
+.sjc-mini-code {
+  position: relative;
+  z-index: 1;
+  margin-top: 7px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--sjc-accent);
+}
+
+/* 桌面端悬停轻提示签 */
+.sjc-mini-tip {
+  position: absolute;
+  right: calc(100% + 8px);
+  top: 50%;
+  transform: translate3d(4px, -50%, 0);
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: var(--sjc-surface);
+  border: 1px solid var(--sjc-border);
+  box-shadow: var(--sjc-shadow);
+  color: var(--sjc-ink);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, transform 0.16s var(--sjc-ease), visibility 0.16s;
+}
+
+.sjc-mini:hover .sjc-mini-tip,
+.sjc-mini:focus-visible .sjc-mini-tip {
+  opacity: 1;
+  visibility: visible;
+  transform: translate3d(0, -50%, 0);
+}
+
+/* 收起状态机切换 */
+#sj-companion.is-mini {
+  width: 42px;
+  height: 42px;
+  right: 16px;
+  bottom: 16px;
+  pointer-events: auto;
+}
+
+#sj-companion.is-mini .sjc-stage,
+#sj-companion.is-mini .sjc-dock,
+#sj-companion.is-mini .sjc-bubble {
+  display: none !important;
+}
+
+#sj-companion.is-mini .sjc-mini {
+  display: inline-flex;
+}
+
+/* 移动端右上角轻巧一键收起微标（桌面端隐藏，移动端丸栏自动收起后保留单手收起入口） */
+.sjc-mob-fold {
+  display: none;
+}
+
+/* ---------- 移动端响应式 (< 768px)：默认收起徽标，点开呈 138×184 轻巧舞台 + 丸栏自动隐退 ---------- */
+@media (max-width: 767px) {
+  #sj-companion:not(.is-mini) {
+    width: 138px;
+    height: 184px;
+    right: 6px;
+    bottom: 0;
+  }
+
+  #sj-companion.is-mini {
+    right: 14px;
+    bottom: 14px;
+  }
+
+  /* 移动端唤醒或点触角色时浮现丸栏 (.is-dock-open)，滑动或无操作 4.8s 后自动隐退不挡正文按钮 */
+  #sj-companion:not(.is-mini) .sjc-dock {
+    bottom: calc(100% + 5px);
+    right: 0;
+  }
+
+  #sj-companion:not(.is-mini) .sjc-bubble {
+    max-width: 212px;
+    right: 0;
+    bottom: calc(100% + 6px);
+  }
+
+  #sj-companion:not(.is-mini).is-dock-open .sjc-bubble {
+    bottom: calc(100% + 40px);
+  }
+
+  /* 丸栏隐退后，舞台右上角保留 22px 半透收起微标，1 点即收 */
+  #sj-companion:not(.is-mini):not(.is-dock-open) .sjc-mob-fold {
+    position: absolute;
+    top: 4px;
+    right: 2px;
+    z-index: 6;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border-radius: 9999px;
+    border: 1px solid var(--sjc-border);
+    background: var(--sjc-dock-bg);
+    color: var(--sjc-ink-soft);
+    font-size: 13px;
+    line-height: 1;
+    box-shadow: var(--sjc-shadow);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    pointer-events: auto;
+    cursor: pointer;
+    opacity: 0.78;
+  }
+  .sjc-mob-fold::after {
+    content: "";
+    position: absolute;
+    inset: -7px;
+    border-radius: 9999px;
+  }
+
+  /* 展开态丸栏已含「↑顶部」，移动端自动隐藏左下角重复的 #back-to-top 避免双层圆钮遮挡左列卡片 */
+  html.has-companion:not(.sjc-is-mini) #back-to-top {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  .sjc-mini-tip {
+    display: none;
+  }
+
+  /* 扩大触屏热区至 >= 40px 高度，视觉保持精巧 */
+  .sjc-pill {
+    gap: 2px;
+    padding: 4px 5px;
+  }
+  .sjc-pill::after {
+    content: "";
+    position: absolute;
+    inset: -8px -2px;
+    border-radius: 9999px;
+  }
+
+  @media (max-width: 349px) {
+    .sjc-pill {
+      padding: 4px 5px;
+    }
+    .sjc-pill-lbl {
+      display: none;
+    }
+  }
+
+  /* 手机滑动阅读正文时看板娘与徽标同步半透下沉退让，不抢视线 */
+  body.is-scrolling #sj-companion.is-mini {
+    opacity: 0.42;
+  }
+  body.is-scrolling #sj-companion:not(.is-mini) {
+    opacity: 0.48;
+    transform: translate3d(0, 10px, 0);
+  }
+}

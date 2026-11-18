@@ -34,23 +34,29 @@ window.PROJECTS_DATA = [
     image: "assets/images/cover-filebutler.webp",
     demoUrl: "https://github.com/7SteveJohn/FileButler/releases",
     githubUrl: "https://github.com/7SteveJohn/FileButler",
-    downloadUrl: "https://wwblz.lanzouu.com/ioNFp4gc8jlg",
-    downloadPwd: "8tp0",
+    downloadUrl: "https://wwblz.lanzouu.com/iVHCO4gf7tvi",
+    downloadPwd: "5z6z",
     featured: true,
     role: "开发",
     challenge: "主要难在既要搜得快，又不能在文件移动时出差错。文件名和长文本走 SQLite FTS5 即时索引，语义向量则交给后台在空闲时慢慢跑；批量整理前必须弹出清单由人工确认，底层记好事务日志，随时能按批次撤销。",
     // ↓ 版本/运行环境/校验码：填上即显示在弹窗里，留空自动隐藏
-    version: "v1.4.4",
-    updated: "2026-11-17",
+    version: "v1.4.5",
+    updated: "2026-11-18",
     // 更新公告：桌面贴在卡片右上侧（窄屏收成一行）；items 建议 3–4 条，summary 用于窄屏
     announcement: {
-      version: "v1.4.4",
-      date: "2026-11-17",
-      items: ["重复文件组内对比", "命中内容直接定位", "知识库限定范围检索", "HEIC 与设置页修复"],
-      summary: "组内对比 / 命中定位 / 范围检索"
+      version: "v1.4.5",
+      date: "2026-11-18",
+      items: ["音频流播与压缩包免解压预览", "待清理区空间管理与回收", "模板化批量重命名与预检", "问答引用高亮与窗口内翻页"],
+      summary: "压缩包/音频预览 / 待清理区 / 模板重命名"
     },
     // 更新记录：来自 GitHub Releases（7SteveJohn/FileButler），最新在前
     changelog: [
+      { v: "v1.4.5", date: "2026-11-18", items: [
+        "内置音频播放与压缩包免解压预览：支持 mp3/wav/flac/ogg/m4a/aac 窗口内播放与 HTTP 206 Range 秒拖，支持 zip/tar/gz/tgz/bz2/xz 零落盘查看内部目录与体积，补齐 TIFF 预览",
+        "新增「待清理区」空间管理面板：展示去重与相似图各批次文件数与磁盘占用，支持按批或一键送入系统回收站释放空间",
+        "模板化批量重命名与整理前微调：支持 {date}（优先取 EXIF 拍摄日期）、{parent}、{name}、{seq:03} 占位符及冲突预检；整理扫描表支持逐行下拉微调分类",
+        "问答引用高亮与窗口内翻页：引用卡片显示精确页码或 Excel 工作表名并高亮实际引用项，点击直接在窗口内打开并翻到对应 PDF 页；原生 Win32 全局热键与 11 段 dHash 相似图零漏检分桶"
+      ]},
       { v: "v1.4.4", date: "2026-11-17", items: [
         "重复文件 / 相似图片组内对比：并排看缩略图，自己点选保留哪一份，其余移入待清理",
         "内容搜索命中直接定位：PDF 落在命中页，纯文本与代码高亮命中词",
@@ -113,92 +119,94 @@ window.PROJECTS_DATA = [
     requires: "",
     sha256: "",
     details: `
-<img src="assets/images/cover-filebutler.webp" alt="FileButler 实机界面" style="width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:block;">
-<p style="font-size:12px;color:#86868b;margin-top:6px;">FileButler 实机主界面；60 秒全景介绍视频在项目卡片上。</p>
+<img src="assets/images/cover-filebutler.webp?v=20261118v1" alt="FileButler 实机界面" style="width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:block;">
+<p style="font-size:12px;color:#86868b;margin-top:6px;">FileButler v1.4.5 实机主界面；1 分 36 秒全景介绍视频在项目卡片上。</p>
 
 ### 💡 这是什么
 一款兼顾文件秒搜、智能归档与知识库问答的桌面工具。默认在本机跑：检索、预览、批量整理与重复清理都不依赖模型；问答与语义检索需要模型，可用本机 Ollama / LM Studio，也可以自己在设置里填云端 API。
 
 ### ✨ 能干什么
 - **发票/扫描件/截屏 OCR 穿透秒搜**：图内文字直接搜！配置 Xiaomi-OCR-0 视觉模型，扫描版 PDF 与票据直接提取结构化文本（表格保行列、公式转 LaTeX、按阅读顺序输出），未加载视觉模型自动回退系统 OCR（默认关闭，设置里开启），再也不用手动翻找纸质或图片凭证
-- **免开文档端侧知识库问答**：数百篇 PDF/Word/Markdown 不用逐个打开，向知识库直接提问，向量稠密检索与关键词倒排的 RRF 双路融合毫秒级答复，精准标注文档出处与具体页码，支持多轮追问语义重写与历史对话持久化；问答可限定到某个库文件夹或该文件夹里的单个文件，向量、关键词与无模型降级三路都遵守范围
-- **先出方案才动的无损一键撤销**：规则与端侧模型混合整理，先生成方案预览清单供人工勾选确认，执行全程落盘事务日志，随时一键批量原路撤销，绝不乱动关键文件；方案可存成模板复用
-- **默认本机、云端可选**：检索、预览、批量整理与重复清理不依赖模型；问答与语义检索默认走本机 Ollama（模型常驻 30 分钟）/ LM Studio，也可以自己在设置里填云端 API Key（对话走云端、向量仍可留本地），密钥本地加密存储
-- **只读检索与多维匹配**：启动自动增量扫描，后台实时监听文件变更，毫秒级响应；支持「ext:pdf」「size:>100mb」「dm:本周」「path:桌面」等高级检索语法，长文本走 SQLite FTS5 全文索引，中文名支持全拼与首字母模糊匹配；内容搜索命中可直接定位（PDF 跳到命中页、文本与代码高亮命中词），筛选条件可保存复用
-- **EXIF 时间轴解析**：时间筛选深度解析照片 EXIF 元数据，规避系统拷贝或整理时修改文件创建时间的失真问题；iPhone HEIC 照片的缩略图、大图预览与拍摄时间同样可用；旧版 .doc 不解析也不预览，需另存为 .docx
-- **可选精排**：设置里能装本地 rerank 模型（bge-reranker-v2-m3，CPU 跑）对检索结果重排；默认关着，装不上或内存不够就自动回退
-- **文件去重与健康诊断**：三级哈希渐进比对去重，自动隔离至临时清理目录（不直接物理删除，随时可恢复）；集成大文件占用与冲突副本诊断；每组可打开并排对比视图看清缩略图与完整路径，自己点选保留哪一份
-- **交互与桌面集成**：中英双语界面、收藏与标签系统、内置 PDF 与 Markdown 即时预览、批量安全重命名（删除移至回收站）、SHA-256 校验、Alt+Space 全局热键（默认关闭，可改）、托盘常驻与系统深色模式自适应；自动知识库索引、图片语义搜索与全局热键默认关闭，需要时在设置里开启
-- **数据目录与自动备份**：数据目录支持跨盘完整迁移、每天自动备份（保留 5 份快照）、配置一键导入导出
-- **仪表盘与每周报告**：首页汇总库容量、本周活动、按类别的磁盘占用与占用最高的目录；每周报告列出新增文件、分类分布与最大文件，可导出
-- **模型管理**：设置页按内存与显存推荐模型，可查看已装模型占用、一键下载或删除
+- **免开文档端侧知识库问答**：数百篇 PDF/Word/Markdown 不用逐个打开，向知识库直接提问，向量稠密检索与关键词倒排的 RRF 双路融合毫秒级答复，精准标注文档出处与具体页码或 Excel 工作表并高亮引用条目，点击引用直接在窗口内预览并自动翻到对应 PDF 页；支持多轮追问语义重写、历史对话持久化，问答可限定到某个库文件夹或单个文件
+- **先出方案才动的无损一键撤销**：规则与端侧模型混合整理（支持扫描表逐行下拉微调分类），先生成方案预览清单供人工勾选确认，执行全程落盘事务日志，随时一键批量原路撤销，绝不乱动关键文件；方案可存成模板复用
+- **默认本机、云端可选**：检索、预览、批量整理与重复清理不依赖模型；问答与语义检索默认走本机 Ollama（模型常驻 30 分钟）/ LM Studio，也可以自己在设置里填云端 API Key（对话走云端、向量仍可留本地），密钥本地存储
+- **只读检索与全格式窗口内预览**：启动自动增量扫描，后台实时监听文件变更；支持「ext:pdf」「size:>100mb」「dm:本周」「path:"D:\\项目 资料"」等语法、SQLite FTS5 全文索引与全拼/首字母匹配；内置代码/Markdown、Office（docx/xlsx/pptx）、压缩包（zip/tar/gz/tgz/bz2/xz 免解压只读目录预览）、图片（含 HEIC/TIFF）与音视频（mp3/wav/flac/ogg/m4a/aac HTTP 206 Range 秒拖）预览；旧版 .doc 需另存为 .docx
+- **EXIF 时间轴解析与可选精排**：时间筛选优先解析照片 EXIF 拍摄时间（含 iPhone HEIC）；设置里可选装本地 CPU rerank 模型（bge-reranker-v2-m3）精排结果
+- **文件去重与「待清理区」空间管理**：三级哈希精确去重 + 64 位感知哈希（dHash 11 段位切片零漏检）相似图检测，支持组内并排对比点选保留项，其余移入隔离区（不直接误删）；「待清理区」面板展示各批次占用并可一键送入系统回收站；集成大文件、冲突副本与空文件夹体检
+- **交互与桌面集成**：模板化批量重命名（支持 {date}、{parent}、{name}、{seq:03} 与冲突预检）、中英双语界面（700+ 词条）、收藏与标签系统、SHA-256 校验、原生 Win32 Alt+Space 全局热键（默认关闭，可改）、托盘常驻与四套深浅主题
+- **数据目录、备份与周报**：数据目录支持跨盘迁移、每日自动备份（保留 5 份快照）、配置导入导出；概览页汇总库规模与磁盘排行，每周报告支持导出；设置页按内存与显存自动推荐模型
 
 ### 🛠️ 怎么做的
-- 后端：Python 3.10+，SQLite 里放三套索引（FTS5 全文、文档块向量、图片描述），检索用 RRF 融合；watchdog 实时监控带防抖；预览服务只绑 127.0.0.1 并做白名单校验
-- 前端：Vue 3 + Naive UI，Vite 打成单文件塞进 pywebview（Chromium 内核）
+- 后端：Python 3.10+，SQLite 里放三套索引（FTS5 全文、文档块向量、图片描述），检索用 RRF 融合；watchdog 实时监控带防抖；预览服务只绑 127.0.0.1、白名单校验并支持 HTTP 206 Range
+- 前端：Vue 3 + Naive UI，Vite 打成单文件塞进 pywebview（Chromium 内核）；全局唤起采用原生 Win32 RegisterHotKey 零键盘钩子开销
 - 安全策略：文件移动严格遵循「方案预览 → 勾选确认 → 事务日志落盘」流程，重名自动递增序号防止覆盖；本地大模型不可用时自动降级至确定性规则整理与全文检索
 - 打包：PyInstaller（onedir）+ Inno Setup，装到当前用户目录，不需要管理员权限
   `
   },
   {
     id: "netops-handbook",
-    title: "NetOps Handbook · 网络工程与排障手册",
+    title: "脉络 · 离线网络工程与运维手册",
     category: "android",
     categoryName: "Android 应用",
-    description: "随身携带的实战网络工程排障与面试重器。华为、Cisco、中兴与 Linux 四大主流厂商高频命令同屏并排对照；「现象 ➔ 根因 ➔ 命令 ➔ 验证」四步排障闭环，生产现场秒出处置指令；内置离线 CLI 命令行沙盒模拟器与 53 道大厂高频网络/SRE 结构化面试题库。零权限纯离线，机房地堡随时秒开。",
-    tags: ["Android 移动端", "四厂商命令同屏对照", "四步闭环排障字典", "离线CLI交互沙盒", "大厂面试STAR题库"],
+    description: "装进口袋的离线网络工程与 Linux / 云原生系统运维随身手册。全新接入 120 万字「运维教材全书」（12 大领域 · 50 章 · 1,003 小节，全局倒排索引秒搜 < 0.3ms）；华为、Cisco、中兴、Linux 与 Windows 五平台 76 条高频命令同屏对照，覆盖 89 个知识模块与 41 个四步闭环排障案例；内置 738 条离线 CLI 沙盒模拟器、53 道 STAR 面试真题与 199 道自测题。全站 Jetpack Compose + 液态玻璃原生重构，零权限纯离线，机房随时秒开。",
+    tags: ["Jetpack Compose", "120万字运维教材", "五平台命令对照", "738条离线CLI沙盒", "Liquid Glass液态玻璃"],
     image: "assets/images/cover-netops.webp",
     demoUrl: "https://github.com/7SteveJohn/netops-handbook/releases",
     githubUrl: "https://github.com/7SteveJohn/netops-handbook",
-    downloadUrl: "https://wwblz.lanzouu.com/iSxU64ah31kb",
-    downloadPwd: "5d7u",
+    downloadUrl: "https://wwblz.lanzouu.com/b00q1vy4ra",
+    downloadPwd: "991e",
     featured: true,
     role: "开发",
-    challenge: "难点在于把几十万字的手册内容、矢量图表与交互组件全部内联进单个自包含页面中，并在本地 WebView 下保持流畅的页面切换与手势返回。工程上构建了专门用于 file:// 环境的内存导航栈，避免了传统浏览器路由在无服务环境下的跳转异常。",
+    challenge: "难点在于把 120 万字教材、89 个知识模块与 738 条交互命令完整内置于零权限纯离线应用中，同时兼顾毫秒级全文检索与高帧率实时折光渲染。工程上构建了轻量全局倒排索引将章节检索压至 0.3ms 内，并用 Jetpack Compose 配合 AGSL 着色器分级实现液态玻璃凸透镜折射与低功耗模式平滑切换。",
     // ↓ 版本/运行环境/校验码：填上即显示在弹窗里，留空自动隐藏
-    version: "v2.0.5",
-    updated: "2026-09-30",
+    version: "v2.1.0",
+    updated: "2026-11-18",
     // 更新公告：精炼胶囊指示条，嵌入产品卡左栏（完整版在详情弹窗）
     announcement: {
-      version: "v2.0.5",
-      date: "2026-09-30",
-      items: ["四厂商命令同屏对照", "四步闭环排障字典", "离线CLI交互沙盒", "53道大厂STAR面试题库"],
-      summary: "四厂商命令对照 / 离线CLI沙盒"
+      version: "v2.1.0",
+      date: "2026-11-18",
+      items: ["全新接入 120 万字运维教材全书（50 章）", "全站 Jetpack Compose + 液态玻璃三档光学", "扩至 89 模块 / 41 排障案例 / 738 条 CLI 命令", "76 条五平台命令矩阵（新增 Windows 列）"],
+      summary: "120万字运维教材 / Compose液态玻璃重构"
     },
     // 更新记录：来自 GitHub Releases（7SteveJohn/netops-handbook），最新在前
     changelog: [
+      { v: "v2.1.0", date: "2026-11-18", items: [
+        "全新接入 120 万字「运维教材全书」（12 大领域 · 50 章 · 1,003 小节），支持章节 H2 快跳、断点续读与 < 0.3ms 全局倒排索引秒搜",
+        "全站 Jetpack Compose 重构与 Liquid Glass 液态玻璃三档光学（极致冕牌水晶 1.37x 凸透镜色散水滴 Dock / 标准云母磨砂 / 纯平省电 + 原生贴底模式），配 22 张横竖屏成对壁纸",
+        "知识库全面扩容与全量勘误：89 个知识模块、41 个真实排障案例、76 条五平台命令对照（新增 Windows 列）、738 条离线 CLI 命令、53 道 STAR 面试真题与 199 道自测错题闭环",
+        "手机与平板横竖屏全场景优化：紧凑横屏自动切换 48dp 渐进模糊顶栏 + 左侧液态水晶导轨 + 双列网格，老版 NetOps 直接覆盖安装无损保留进度"
+      ]},
       { v: "v2.0.5", date: "2026-09-30", items: [
-        "四厂商命令同屏对照：华为 VRP、思科 IOS、中兴 ROS、Linux ip/route 同屏并排展示",
-        "35 类高频故障「现象 ➔ 根因 ➔ 命令 ➔ 验证」四步排障闭环字典，现场秒出处置指令",
-        "离线 CLI 命令行沙盒模拟器：收录 431 条实机命令，支持前缀补全与回溯",
-        "53 道大厂网络与 SRE 面试真题：全套配备 STAR 结构化实战答题话术与错题攻坚"
+        "修复 Android 13+ 系统返回键派发、冷启动连按误退与后台 I/O 线程分流",
+        "搜索交互三路自动收拢，新增装机构建水印与 95 条自动化回归门禁"
+      ]},
+      { v: "v2.0.4", date: "2026-09-29", items: [
+        "底栏选中态纯弹簧滑动重构，知识模块扩充至 68 个，53 道面试真题补齐 STAR 拆解"
       ]},
       { v: "v2.0.0", date: "2026-09-15", items: [
-        "全新 2.0 极客视效：液态玻璃与高斯模糊毛玻璃，单文件离线加载",
-        "纯离线无权限架构：零 INTERNET 网络权限申请，保密机房随时秒开"
+        "纯离线零 INTERNET 权限架构上线：多厂商命令对照、排障闭环字典与离线 CLI 沙盒"
       ]}
     ],
-    requires: "",
-    sha256: "",
+    requires: "Android 7.0+（API 24+；Android 13+ 自动开启完整 AGSL 实时凸透镜色散着色器）",
+    sha256: "61d68e964943cc15b3afbb0dc3d99ba82213c05710d18e972bff511bba4eb32c",
     details: `
-<img src="assets/images/cover-netops.webp" alt="NetOps 2.0 实机界面" style="width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:block;">
-<p style="font-size:12px;color:#86868b;margin-top:6px;">NetOps 2.0 实机界面；38 秒介绍视频在项目卡片上。</p>
+<img src="assets/images/cover-netops.webp?v=20261118v1" alt="脉络 实机界面" style="width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:block;">
+<p style="font-size:12px;color:#86868b;margin-top:6px;">脉络 v2.1.0 实机总览；1 分 38 秒全景介绍视频在项目卡片上。</p>
 
 ### 💡 这是什么
-NetOps Handbook 是专为网络工程师、系统运维与 SRE 量身打造的随身实战与面试武器库。收录华为、Cisco、中兴与 Linux 四大平台命令同屏并排对照、生产排障闭环路径、离线 CLI 沙盒模拟器与大厂面试高频真题；零权限纯离线运行，在无信号机房或严苛安全保密环境中随时秒开查阅。
+脉络（NetCraft，原 NetOps Handbook）是专为网络工程师、Linux / 云原生系统运维与 SRE 打造的随身离线手册与实战题库。完全离线、零系统权限、打开即用；老版本用户直接覆盖安装 \`NetCraft-v2.1.0.apk\` 即可平滑升级，学习进度、收藏夹与错题记录 100% 保留。
 
-### ✨ 独家杀手级卖点
-- **四大主流厂商命令同屏对照（告别记忆混淆）**：同一网络配置意图，将华为 VRP、思科 IOS、中兴 ROS 与 Linux ip/route/iptables 四大平台命令并排对齐展示，跨平台运维无缝切换，语法差异一览无余
-- **「现象 ➔ 根因 ➔ 命令 ➔ 验证」四步排障字典**：覆盖 35 类高频真实生产故障（路由震荡、ARP 欺骗、BGP 邻居卡死等），直出标准化处置命令，现场排障秒级闭环
-- **离线 CLI 命令行沙盒模拟器**：收录 431 条实机命令，支持前缀联想补全与历史指令回溯，离线沙盒即敲即练，随时随地手机练就扎实手感
-- **53 道大厂网络与 SRE 面试真题**：全套配备 STAR 结构化实战答题话术，支持随机真题抽测、自动判分与错题本攻坚，直击高频考点
-- **零权限纯离线保障**：零 INTERNET 网络权限申请，保密机房与地下室无网环境随时秒开，企业拓扑结构与设备账号绝对不泄露
-- **极客质感视觉体系**：内置 14 款极客壁纸与液态玻璃/高斯模糊毛玻璃视效，低配设备自适应降级，保证丝滑流畅
+### ✨ 核心亮点
+- **120 万字「运维教材全书」（12 大领域 · 50 章 · 1,003 小节）**：体系化覆盖网络基础、园区与无线、OSPF / IS-IS / BGP / VXLAN / EVPN、广域网与 VPN、安全与 QoS、虚拟化与 K8s 容器网络、Linux 服务器与数据库运维（8 章）、监控与自动化、备份容灾、综合布线与排障方法论；支持首屏直达、章节 H2 胶囊快跳、断点续读与 \`< 0.3ms\` 全局倒排索引秒搜
+- **五平台 76 条高频命令同屏对照**：同一运维意图并排展示华为 VRP、思科 IOS、中兴 ROS、Linux 与 Windows 五平台命令矩阵，跨厂商切环境不再混淆语法
+- **89 个知识模块与 41 个真实排障闭环案例**：遵循「现象 ➔ 根因 ➔ 命令 ➔ 验证」四步排障路径，现场快速定位路由震荡、ARP 异常、BGP 邻居卡死与容器网络故障
+- **738 条离线 CLI 模拟器 + 面试与自测闭环**：离线 CLI 命令行沙盒支持前缀联想补全与历史回溯；配套 53 道 STAR 结构化拆解面试真题与 199 道绑定知识卡锚点的自测题、错题本
+- **Jetpack Compose + Liquid Glass 液态玻璃三档光学**：悬浮水晶 Dock 与顶栏灵动水珠胶囊（点按/拖拽呈 1.37x 凸透镜色散折光，亦支持切换「原生贴底」模式），在「极致 / 标准 / 无」三档光学与 22 张横竖屏成对壁纸间自由切换
+- **零权限纯离线与横竖屏全适配**：零 INTERNET 网络权限申请，保密机房与地下室无网环境随时秒开；横屏自动切换左侧竖排液态水晶导轨 + 双列宽屏网格
 
 ### 🛠️ 怎么做的
-- **Android 壳层**：WebView 全屏 + 安全区适配 + 返回手势桥接，纯离线（不申请 INTERNET 权限）
-- **内容端**：单文件结构，实现专用于 file:// 协议的轻量页面栈，矢量图与样式静态内联，不依赖任何外部资源
-- **打包**：gen-data.js → build.js → 一个 index.html 文件，附冒烟测试和 APK 校验脚本
+- **原生界面与渲染**：全站基于 Jetpack Compose 原生构建，Android 13+ 接入 AGSL 实时折射色散着色器，低版本与省电档平滑回退
+- **离线检索与存储**：内置中文 2-gram 与英文词元全局倒排索引及结构化知识库，支持本地 JSON 全量备份与无损恢复
   `
   },
   {
@@ -374,22 +382,28 @@ GameBoost-DLSSG 是专为 **RTX 20/30 系** 显卡定制的 DLSS 帧生成管理
     image: "assets/images/cover-fluxion.webp",
     githubUrl: "https://github.com/7SteveJohn/Fluxion",
     demoUrl: "https://github.com/7SteveJohn/Fluxion/releases",
-    downloadUrl: "https://wwblz.lanzouu.com/b00q1uwpcd",
-    downloadPwd: "gepp",
+    downloadUrl: "https://wwblz.lanzouu.com/b00q1vy56f",
+    downloadPwd: "7j06",
     featured: true,
     role: "开发",
     challenge: "主要是 51 项系统改动的真实状态回读，以及老显卡帧生成的可靠接入。每项改动前备份环境快照，状态分四档真实回读，对可能影响硬件稳定性的高危项只做检测不给调整；帧生成端根据模块加载和日志做双重校验，未生效时自动尝试其他入口。",
-    version: "v1.3.1",
-    updated: "2026-11-08",
+    version: "v1.3.2",
+    updated: "2026-11-18",
     // 更新公告：精炼胶囊指示条，嵌入产品卡左栏（完整版在详情弹窗）
     announcement: {
-      version: "v1.3.1",
-      date: "2026-11-08",
-      items: ["3A单机全量支持0.4.1进阶内核", "启动器与真实渲染目录自动穿透", "专用入口智能纠偏", "安装包系统语言自适配"],
-      summary: "3A全面支持0.4.1 / 启动器穿透探测"
+      version: "v1.3.2",
+      date: "2026-11-18",
+      items: ["浅深双主题三层表面与零闪烁换肤", "体检表动态计数胶囊筛选与摘要导出", "内置 DLSS 运行库巡检与热替换", "游戏内存工作集豁免与进退局串行保护"],
+      summary: "双主题无闪换肤 / DLSS库巡检热替换"
     },
     // 更新记录：来自 GitHub Releases（7SteveJohn/Fluxion），最新在前
     changelog: [
+      { v: "v1.3.2", date: "2026-11-18", items: [
+        "界面与交互重塑：构建「宣纸石白 / 曜石石墨」浅深双主题三层表面体系，接入 Win11 DWM 原生圆角菜单与 13 类自绘模态弹窗，支持零闪烁即时换肤与跨屏动态 DPI 缩放",
+        "体检动态筛选与快捷排障：优化项明细顶部新增实时计数筛选胶囊（全部 / 未生效 / 可调项 / 已生效 / 待确认）与右键快捷调档，支持一键导出未生效项排障摘要",
+        "DLSS 运行库巡检与热替换：自动检索游戏目录与二级渲染目录中的 nvngx_dlss.dll / nvngx_dlssg.dll，数字签名白名单核验并支持原厂备份与一键无损升级还原",
+        "核心稳定性加固：EmptyWorkingSet 内存修剪自动豁免游戏进程防止进局缺页卡顿；进退局联动单线程串行化；OptiScaler 原生文件无损备份复原与进程内微秒级遥测"
+      ]},
       { v: "v1.3.1", date: "2026-11-08", items: [
         "3A 单机与通用游戏全面支持 DLSS MFG 0.4.1 进阶内核，支持 2X~4X 灵活倍率调节",
         "启动器与真实渲染目录自动穿透：精准映射 Cyberpunk 2077（bin\\x64）与巫师 3 渲染核心，彻底解决启动器层误放代理不生效问题",
@@ -412,6 +426,7 @@ GameBoost-DLSSG 是专为 **RTX 20/30 系** 显卡定制的 DLSS 帧生成管理
       ]}
     ],
     requires: "Windows 10/11 · NVIDIA RTX 20 系及以上（帧生成功能）",
+    sha256: "a62c46052de87fba1a7252f9afbd32b7d1172d1abd0c7d8ddd45bba08c56ca64",
     details: `
 <img src="assets/images/cover-fluxion.webp" alt="Fluxion 实机界面" style="width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:block;">
 <p style="font-size:12px;color:#86868b;margin-top:6px;">Fluxion 实机主界面；60 秒全景介绍视频在项目卡片上。</p>
@@ -474,21 +489,27 @@ Fluxion 是集 Windows 底层系统调优、全平台游戏库管理与跨代 DL
     image: "assets/images/cover-stacky.webp",
     demoUrl: "https://github.com/7SteveJohn/Stacky/releases",
     githubUrl: "https://github.com/7SteveJohn/Stacky",
-    downloadUrl: "https://wwblz.lanzouu.com/b00q1vo3eb",
-    downloadPwd: "56p0",
+    downloadUrl: "https://wwblz.lanzouu.com/b00q1vx53g",
+    downloadPwd: "475v",
     featured: true,
     role: "开发",
-    challenge: "难在卡片要贴在桌面壁纸层，又不能挡住桌面原本的框选和双击。窗口通过 Win32 消息把桌面视图设为所有者，资源管理器重启或前台切换后重新贴回；卡片四周的透明留白用 WM_NCHITTEST 返回穿透，只让内容区响应鼠标。另一侧是目录同步，外部增删改靠文件监听加 80ms 防抖回写卡片，避免连续改动时反复重排。",
-    version: "v1.0.2",
-    updated: "2026-11-15",
+    challenge: "难在卡片要贴在桌面壁纸层，又不能挡住桌面原本的框选和双击。窗口通过 Win32 消息把桌面视图设为所有者，资源管理器重启或前台切换后重新贴回；卡片四周的透明留白用 WM_NCHITTEST 返回穿透，只让内容区响应鼠标。另一侧是目录同步，外部增删改靠文件监听加 80ms 防抖增量回写卡片，完整保留书签、子分组与自定义排序。",
+    version: "v1.0.3",
+    updated: "2026-11-18",
     announcement: {
-      version: "v1.0.2",
-      date: "2026-11-15",
-      items: ["布局画布等比缩放", "切回原分辨率逐像素还原", "临时避让不写回配置", "屏幕几何与 DPI 变化监听"],
-      summary: "分辨率 / 远程桌面适配"
+      version: "v1.0.3",
+      date: "2026-11-18",
+      items: ["设置中心重构与三套主题可视切换", "胶囊分页指示器与 120Hz 图标缩放", "消除 Qt 原生子窗口双层错位重影", "配置原子落盘自愈与多屏独立钳位"],
+      summary: "设置中心重构 / 防重影与配置原子落盘"
     },
     // 更新记录：来自 GitHub Releases（7SteveJohn/Stacky），最新在前
     changelog: [
+      { v: "v1.0.3", date: "2026-11-18", items: [
+        "视觉与设置中心重塑：采用分组卡片布局、侧边导航与搜索过滤，适配 Win11 同色沉浸圆角标题栏；提供「深色磨砂 / 浅色云母 / 纯黑 OLED」三套可视主题预览卡",
+        "卡片动效打磨：新增底部胶囊分页指示器、滚轮平滑滑动翻页、多色阶矢量天气图标与 120Hz 亚像素浮点图标悬停缩放",
+        "稳定性与多屏加固：移除 WA_NativeWindow 提升逻辑彻底消除卡片与抽屉双层重影；config.json 原子替换落盘与 .bak 断电自愈；多显示器独立边界钳位与物理目录增量无损同步",
+        "平滑覆盖安装与开箱便携版：新增 --quit 优雅退出与底层运行时 DLL 占用自动原位避让，便携版内置 portable.flag 完全自包含"
+      ]},
       { v: "v1.0.2", date: "2026-11-15", items: [
         "分辨率 / 远程桌面适配：切换分辨率后卡片与小组件不再重叠，整个桌面按「布局画布」等比缩放，位置 / 卡片尺寸 / 图标槽 / 标题 / 微件一起缩放",
         "从别的分辨率切回原生分辨率时从保存布局重新换算，逐像素还原；首次在远程小分辨率启动也能识别布局原本所属画布",
@@ -506,6 +527,7 @@ Fluxion 是集 Windows 底层系统调优、全平台游戏库管理与跨代 DL
       ]},
     ],
     requires: "Windows 10 / 11 x64（安装版与便携版无需 Python）",
+    sha256: "eae41f957a9a2ea6afdd12027eecd8bffe15d0edf2ab8cdb23827c5d1655c619",
     details: `
 <img src="assets/images/cover-stacky.webp?v=20261113c" alt="Stacky 卡片矩阵示意" style="width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.08);display:block;">
 <p style="font-size:12px;color:#86868b;margin-top:6px;">卡片矩阵示意：分类卡、网格吸附与小组件；60 秒介绍视频在项目卡片上。</p>
@@ -520,7 +542,7 @@ Windows 10 / 11 上的桌面卡片矩阵与启动台。把常用应用、文件�
 - **六类桌面小组件**：时钟日历（含农历节气）、系统监控（CPU / 内存 / 各分区占用）、便签待办、天气（逐时与多日预报、区县定位）、媒体播放（封面 / 曲目 / 歌词 / 进度与控制）、文件中转站（拖入收集、拖出使用，移除记录不删原文件）；与卡片共用同一套网格、吸附、缩放与右键菜单
 - **外观**：深色 / 浅色 / OLED 纯黑三套主题；透明度、模糊强度、圆角半径、网格行列数可调；从可执行文件或快捷方式提取 256×256 图标并统一为连续曲率超椭圆；卡片外的透明留白不拦截鼠标。v1.0.1 修了浅色主题下原生弹窗与自绘组件的文字可读性，配色随系统明暗自动切换，深色主题外观未改动
 - **多分辨率适配**：切换分辨率（含远程桌面）时，整个桌面按「布局画布」等比缩放，位置、卡片尺寸、图标槽、标题与微件一起缩放；切回原生分辨率从保存的布局重新换算，逐像素还原；临时避让不写回配置，避免远程小屏坐标覆盖用户原布局
-- **安装与配置**：按用户安装，无需管理员权限、不触发 UAC；覆盖安装保留 config.json 与所有物理分类；设置 → 备份可导出配置，导入前自动保存当前配置。当前分发 \`Stacky-1.0.2-Setup-x64.exe\` 安装版与 \`Stacky-1.0.2-Portable-x64.zip\` 便携版
+- **安装与配置**：按用户安装，无需管理员权限、不触发 UAC；覆盖安装保留 config.json（原子替换落盘 + .bak 断电自愈）与所有物理分类；设置 → 备份可导出配置，导入前自动保存当前配置。当前分发 \`Stacky-1.0.3-Setup-x64.exe\` 安装版与 \`Stacky-1.0.3-Portable-x64.zip\` 便携版
 - **全局热键**：默认 \`Alt+Space\` 呼出 / 收起大视界，被占用时回退 \`Alt+F\`，可在设置中修改
 
 ### 🛠️ 怎么做的

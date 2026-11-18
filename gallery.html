@@ -5,24 +5,50 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>照片墙 | 楠屿札记</title>
 
+  <meta name="color-scheme" content="light dark" />
   <!-- 默认晨曦明亮科技风（与首页统一规范，支持自由切换与持久化） -->
   <script>
     (function () {
-      document.documentElement.classList.add('js');
+      var root = document.documentElement;
+      root.classList.add('js');
+      var isDark = false;
       try {
         if (localStorage.getItem('sj.theme-v6') !== 'daylight-v1') {
           localStorage.removeItem('sj.theme');
           localStorage.setItem('sj.theme-v6', 'daylight-v1');
         }
-        if (localStorage.getItem('sj.theme') === 'dark') {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-      } catch (e) {
-        document.documentElement.classList.remove('dark');
-      }
+        isDark = localStorage.getItem('sj.theme') === 'dark';
+      } catch (e) {}
+      root.classList.toggle('dark', isDark);
+      var m = document.querySelector('meta[name="color-scheme"]');
+      if (m) m.content = isDark ? 'dark' : 'light';
     })();
+  </script>
+
+  <script type="speculationrules">
+  {
+    "prefetch": [{
+      "tag": "nanyu-nav-prefetch",
+      "where": {
+        "and": [
+          { "href_matches": "/*" },
+          { "not": { "href_matches": ["/assets/*", "/music/*", "/rss.xml"] } },
+          { "not": { "selector_matches": "[target=_blank], [download], [data-link], [href^='#']" } }
+        ]
+      },
+      "eagerness": "moderate"
+    }],
+    "prerender": [{
+      "tag": "nanyu-nav-prerender",
+      "where": {
+        "and": [
+          { "selector_matches": "header a[href$='.html'], header a[href='./'], header a[href='/'], footer a[href$='.html']" },
+          { "not": { "selector_matches": "[target=_blank], [download]" } }
+        ]
+      },
+      "eagerness": "moderate"
+    }]
+  }
   </script>
 
   <meta name="description" content="楠屿札记的照片墙：心仪的二次元角色立绘、插画收藏与自留图，点开可以看大图。" />
@@ -45,10 +71,9 @@
   <link rel="preload" href="assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="assets/fonts/inter.css" />
   <link rel="stylesheet" href="assets/vendor/tailwind.css" />
-  <link rel="stylesheet" href="css/style.css?v=20261107_v245" />
+  <link rel="stylesheet" href="css/style.css?v=20261118e" />
   <link rel="stylesheet" href="css/cosmos.css" />
   <link rel="stylesheet" href="css/gallery.css?v=20261107_v245" />
-  <link rel="stylesheet" href="css/settings-panel.css" />
 </head>
 <body class="bg-[#f8fafc] text-slate-800 dark:bg-[#060911] dark:text-slate-100 min-h-screen transition-colors duration-200 antialiased">
 
@@ -156,7 +181,7 @@
   </div>
 
   <!-- 全部 defer：subpage.js 管 SW/导航态/主题切换/浮现，gallery.js 负责照片墙渲染与灯箱 -->
-  <script src="js/bundles/core.js?v=20261107_v245" defer></script>
+  <script src="js/bundles/core.js?v=20261118e" defer></script>
   <script src="js/bundles/sub.js?v=20261107_v245" defer></script>
   <script src="js/gallery.js?v=20261107_v245" defer></script>
 </body>

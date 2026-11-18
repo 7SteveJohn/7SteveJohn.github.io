@@ -70,14 +70,29 @@
 
   window.pageReveal();
 
-  // 5. 主题切换（与首页保持完全一致：持久化、View Transitions 平滑圆形扩散）
+  // 5. 主题切换（与首页保持完全一致：持久化、color-scheme 同步、跨标签页同步、View Transitions 平滑圆形扩散）
+  function syncColorScheme(isDark) {
+    const meta = document.querySelector('meta[name="color-scheme"]');
+    if (meta) meta.content = isDark ? 'dark' : 'light';
+  }
+
   function initTheme() {
+    syncColorScheme(document.documentElement.classList.contains('dark'));
+    window.addEventListener('storage', (ev) => {
+      if (ev.key === 'sj.theme') {
+        const isDark = ev.newValue === 'dark';
+        document.documentElement.classList.toggle('dark', isDark);
+        syncColorScheme(isDark);
+      }
+    });
+
     const btn = document.getElementById('theme-toggle');
     if (!btn) return;
 
     btn.addEventListener('click', (e) => {
       const applyNow = () => {
         const isDark = document.documentElement.classList.toggle('dark');
+        syncColorScheme(isDark);
         try {
           localStorage.setItem('sj.theme', isDark ? 'dark' : 'light');
         } catch (_) {}

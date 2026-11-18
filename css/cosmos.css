@@ -1,8 +1,5 @@
 /* ============================================================
    背景层底座样式（js/cosmos.js 2D 回退 / js/cosmos/ 3D 推理场共用）
-   ① 画布 position:fixed + inset:0 → 页面上下滚动时背景完全不动；
-   ② z-index 为负 → 压在正文之下、盖住 body 的纯色底色。
-   （原右下角音频控制面板已删，相关样式一并移除）
    ============================================================ */
 #cosmos-canvas {
   position: fixed;
@@ -12,22 +9,20 @@
   pointer-events: none;
 }
 
-/* 暗角 + 冷蓝环境辉光：CSS 静态层（js/cosmos.js 建层，渐变强度取 CFG.vignette）。
-   零每帧开销；挂在 body 末尾、z-index:-1 → 盖住画布(-2)与 3D 舞台(-1 但 DOM 更早)，
-   仍压在全部正文之下；pointer-events:none 不挡任何交互。 */
+/* 暗角 + 冷蓝环境天光遮罩（纯静态合成层，零每帧开销） */
 .cosmos-veil {
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(circle 900px at 50% -80px, rgba(56, 189, 248, 0.14), transparent 70%),
-    radial-gradient(ellipse 140% 90% at 50% 100%, rgba(6, 9, 17, 0.82), transparent 75%);
+    radial-gradient(circle 920px at 50% -90px, rgba(56, 189, 248, 0.14), transparent 70%),
+    radial-gradient(ellipse 140% 90% at 50% 100%, rgba(6, 9, 17, 0.84), transparent 75%);
 }
 html:not(.dark) .cosmos-veil {
   background:
-    radial-gradient(circle 900px at 50% -80px, rgba(59, 130, 246, 0.08), transparent 75%),
-    radial-gradient(ellipse 130% 90% at 50% 100%, rgba(224, 231, 255, 0.35), transparent 70%);
+    radial-gradient(circle 920px at 50% -90px, rgba(37, 99, 235, 0.07), transparent 75%),
+    radial-gradient(ellipse 130% 90% at 50% 100%, rgba(226, 232, 240, 0.36), transparent 70%);
 }
 @media (max-width: 639px) {
   .cosmos-veil {
@@ -37,8 +32,8 @@ html:not(.dark) .cosmos-veil {
   }
   html:not(.dark) .cosmos-veil {
     background:
-      radial-gradient(circle 600px at 50% 0px, rgba(59, 130, 246, 0.06), transparent 75%),
-      radial-gradient(ellipse 150% 74% at 50% 100%, rgba(224, 231, 255, 0.3), transparent 70%);
+      radial-gradient(circle 600px at 50% 0px, rgba(37, 99, 235, 0.06), transparent 75%),
+      radial-gradient(ellipse 150% 74% at 50% 100%, rgba(226, 232, 240, 0.30), transparent 70%);
   }
 }
 
@@ -46,139 +41,77 @@ html:not(.dark) .cosmos-veil {
 body { background: #060911; }
 html:not(.dark) body { background: #f8fafc; }
 
-/* ===== IGLOO 式 HUD 角标：等宽小字，纯装饰，不拦截任何交互 ===== */
+/* ===== 精密微距 HUD 遥测角标（左：章节坐标；右：3D 物理场快切 + 实时节拍指示） ===== */
 .cosmos-hud {
   position: fixed;
-  z-index: 1;
-  pointer-events: none;
-  font-family: ui-monospace, Consolas, "Courier New", monospace;
-  font-size: 10px;
-  letter-spacing: 0.18em;
+  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(100, 116, 139, 0.45);
+  color: rgba(71, 85, 105, 0.72);
   user-select: none;
+  transition: opacity 0.25s ease;
 }
-.cosmos-hud.tl { left: 18px; top: 64px; }
-.cosmos-hud.tr { right: 18px; top: 64px; text-align: right; }
-@media (max-width: 640px) {
-  .cosmos-hud { display: none; }   /* 手机上别抢地方 */
+.dark .cosmos-hud {
+  color: rgba(148, 163, 184, 0.65);
 }
-
-/* ===== 底部悬浮模式切换 Dock（支持实时切换 4 种去等高线方案） ===== */
-.cosmos-dock {
-  position: fixed;
-  bottom: 5.25rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 45;
-  border-radius: 9999px;
-  background: rgba(10, 16, 30, 0.78);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  padding: 0.3rem 0.5rem;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  user-select: none;
-}
-.cosmos-dock-inner {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-.cosmos-dock-label {
-  font-size: 0.6875rem;
-  font-family: ui-monospace, monospace;
-  color: #64748b;
-  padding: 0 0.4rem 0 0.3rem;
-  letter-spacing: 0.04em;
-}
-.cosmos-dock-tabs {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-.dock-tab {
-  padding: 0.35rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #94a3b8;
-  border-radius: 9999px;
-  border: 1px solid transparent;
-  background: transparent;
-  cursor: pointer;
-  transition: all 0.18s ease;
-  white-space: nowrap;
-}
-.dock-tab:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.08);
-}
-.dock-tab.active {
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.16);
-  border-color: rgba(56, 189, 248, 0.35);
-  box-shadow: 0 0 12px -2px rgba(56, 189, 248, 0.25);
-}
-.dock-lab-link {
-  font-size: 0.6875rem;
-  font-family: ui-monospace, monospace;
-  padding: 0.3rem 0.6rem;
-  border-radius: 9999px;
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.08);
-  border: 1px solid rgba(56, 189, 248, 0.2);
-  text-decoration: none;
-  transition: all 0.18s ease;
-  white-space: nowrap;
-}
-.dock-lab-link:hover {
-  background: rgba(56, 189, 248, 0.2);
-  color: #7dd3fc;
-}
-
-/* 浅色模式适配 */
-html:not(.dark) .cosmos-dock {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: rgba(0, 0, 0, 0.08);
-  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.08);
-}
-html:not(.dark) .cosmos-dock-label {
-  color: #94a3b8;
-}
-html:not(.dark) .dock-tab {
-  color: #64748b;
-}
-html:not(.dark) .dock-tab:hover {
-  color: #0f172a;
-  background: rgba(0, 0, 0, 0.04);
-}
-html:not(.dark) .dock-tab.active {
-  color: #0284c7;
-  background: rgba(2, 132, 199, 0.1);
-  border-color: rgba(2, 132, 199, 0.25);
-  box-shadow: 0 0 12px -2px rgba(2, 132, 199, 0.15);
-}
-html:not(.dark) .dock-lab-link {
-  color: #0284c7;
-  background: rgba(2, 132, 199, 0.08);
-  border-color: rgba(2, 132, 199, 0.2);
-}
-
-/* 页面滚动时自动淡化半透，避免遮挡内容阅读 */
-body.is-scrolling .cosmos-dock {
-  opacity: 0.25;
+.cosmos-hud.tl {
+  left: 18px;
+  top: 62px;
   pointer-events: none;
+  padding: 0.28rem 0.62rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(15, 23, 42, 0.07);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.dark .cosmos-hud.tl {
+  background: rgba(10, 15, 28, 0.52);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.cosmos-hud .hud-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: #0284c7;
+  opacity: 0.8;
+}
+.dark .cosmos-hud .hud-dot {
+  background: #38bdf8;
+}
+.cosmos-hud .hud-sep {
+  opacity: 0.4;
 }
 
-/* 小屏移动端适配 */
-@media (max-width: 768px) {
-  .cosmos-dock {
-    bottom: 0.75rem;
-    padding: 0.25rem 0.4rem;
-    max-width: calc(100vw - 1.5rem);
-    overflow-x: auto;
-  }
-  .cosmos-dock-label { display: none; }
-  .dock-tab { padding: 0.3rem 0.55rem; font-size: 0.6875rem; }
+.cosmos-hud.tr {
+  right: 18px;
+  top: 64px;
+  --hud-beat: 0;
+}
+.hud-beat-led {
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: rgba(148, 163, 184, 0.45);
+  transition: background-color 0.15s ease, transform 0.08s ease, box-shadow 0.08s ease;
+}
+.cosmos-hud.tr.is-resonating .hud-beat-led {
+  background: #0284c7;
+  transform: scale(calc(1 + var(--hud-beat, 0) * 0.65));
+  box-shadow: 0 0 calc(6px + var(--hud-beat, 0) * 10px) rgba(56, 189, 248, 0.85);
+}
+.dark .cosmos-hud.tr.is-resonating .hud-beat-led {
+  background: #38bdf8;
+}
+
+body.is-scrolling .cosmos-hud {
+  opacity: 0.38;
+}
+@media (max-width: 1023px) {
+  .cosmos-hud { display: none; }
 }

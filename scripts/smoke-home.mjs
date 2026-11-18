@@ -56,7 +56,7 @@ ok('浏览器标题 = 楠屿札记…', /^楠屿札记/.test(info.title), info.t
 ok('首屏只有一个「关于我」入口（左下角标，CTA 里的重复按钮已删）', info.homeAboutLinks === 1, String(info.homeAboutLinks));
 ok('关于我内容存在', Boolean(info.about && info.about.length > 0), info.about.slice(0, 34));
 ok(
-  '卡片顺序 FileButler → 拍案 → NetOps → Fluxion → Stacky（GameBoost 两张卡已收进历史项目）',
+  '卡片顺序 FileButler → 拍案 → 脉络 → Fluxion → Stacky（GameBoost 两张卡已收进历史项目）',
   info.ids.join(',') === 'filebutler,paian,netops-handbook,fluxion,stacky',
   info.ids.join(',')
 );

@@ -24,13 +24,7 @@
   let W = 0;
   let H = 0;
   let particles = [];
-  let partyUntil = 0; // Konami 彩蛋：彩色庆典模式截止时间
   const mouse = { x: -9999, y: -9999 };
-
-  // 键盘彩蛋钩子：app.js 的 Konami 序列会调用，粒子变彩色庆祝 20 秒
-  window.particlesParty = function (seconds) {
-    partyUntil = performance.now() + (seconds || 20) * 1000;
-  };
 
   function spawn(x, y) {
     const depth = Math.random(); // 0 = 远景（小/暗/慢），1 = 近景（大/亮/快）
@@ -86,15 +80,9 @@
       const alpha = (dark ? 0.35 : 0.16) * (0.55 + 0.45 * Math.sin(p.tw)) * (0.4 + p.depth * 0.6);
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      if (performance.now() < partyUntil) {
-        // 彩蛋模式：每颗粒子按相位在色轮上流转
-        const hue = (p.tw * 40) % 360;
-        ctx.fillStyle = `hsla(${hue.toFixed(0)}, 90%, 65%, ${Math.min(alpha * 2.2, 0.9).toFixed(3)})`;
-      } else {
-        ctx.fillStyle = dark
-          ? `rgba(235, 242, 255, ${alpha.toFixed(3)})`
-          : `rgba(0, 113, 227, ${alpha.toFixed(3)})`;
-      }
+      ctx.fillStyle = dark
+        ? `rgba(235, 242, 255, ${alpha.toFixed(3)})`
+        : `rgba(0, 113, 227, ${alpha.toFixed(3)})`;
       ctx.fill();
     }
 
