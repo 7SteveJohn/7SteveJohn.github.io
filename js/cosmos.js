@@ -1689,6 +1689,10 @@
         ctx.fillRect(0, 0, W, H);
         return;
       }
+      // 移动端手指滑动页面期间暂停星河重绘，把全部帧时间留给页面滚动
+      if ((window.innerWidth < 1024 || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)) && document.body && document.body.classList.contains('is-scrolling')) {
+        return;
+      }
       ctx.fillStyle = 'rgba(0,2,7,' + trail.toFixed(3) + ')';
       ctx.fillRect(0, 0, W, H);
 

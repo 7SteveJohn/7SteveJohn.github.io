@@ -351,8 +351,34 @@
 
   let greetedOnce = false;
 
+  // 暂时雪藏重型 Live2D WebGL2 运行时（待迁至独立域名/服务器后再开启），当前使用高清静态立绘 + 完整交互气泡
+  const ENABLE_LIVE2D = false;
+
+  function mountStaticFallbackAvatar() {
+    if (!stageEl || avatar) return;
+    const img = document.createElement('img');
+    img.className = 'sjc-static-fallback';
+    img.src = 'assets/vendor/live2d/7steve-v2-static.webp?v=20261118r2';
+    img.alt = 'SevenJohn 看板娘';
+    img.decoding = 'async';
+    img.style.objectFit = 'contain';
+    img.style.objectPosition = 'bottom center';
+    stageEl.appendChild(img);
+    avatar = {
+      setExpression: () => {},
+      impulse: () => {},
+      playAction: () => {},
+      setMusicPlaying: () => {},
+      setPaused: () => {}
+    };
+  }
+
   function mountAvatarIfReady(retriesLeft) {
     if (avatar) return;
+    if (!ENABLE_LIVE2D) {
+      mountStaticFallbackAvatar();
+      return;
+    }
     if (window.CompanionAvatar && typeof window.CompanionAvatar.mount === 'function') {
       try {
         avatar = window.CompanionAvatar.mount(stageEl, {
@@ -649,30 +675,34 @@
     }
   });
 
-  // 启动挂载：首屏先用轻量静态立绘秒出，待页面 load 空闲后或用户与看板娘交互时再按需升级为 Live2D
+  // 启动挂载：静态模式瞬间挂上高清静态立绘；若开启 Live2D 则待空闲或交互再按需升级
   if (currentState === 'open') {
-    let live2dScheduled = false;
-    const triggerLive2D = () => {
-      if (live2dScheduled || avatar || currentState !== 'open') return;
-      live2dScheduled = true;
-      mountAvatarIfReady(25);
-    };
-    if (stageEl) {
-      stageEl.addEventListener('pointerenter', triggerLive2D, { once: true, passive: true });
-      stageEl.addEventListener('click', triggerLive2D, { once: true, passive: true });
-    }
-    const scheduleIdle = () => {
-      const start = () => {
-        if (typeof requestIdleCallback === 'function') {
-          requestIdleCallback(() => setTimeout(triggerLive2D, 1500), { timeout: 3000 });
-        } else {
-          setTimeout(triggerLive2D, 2200);
-        }
+    if (!ENABLE_LIVE2D) {
+      mountAvatarIfReady(1);
+    } else {
+      let live2dScheduled = false;
+      const triggerLive2D = () => {
+        if (live2dScheduled || avatar || currentState !== 'open') return;
+        live2dScheduled = true;
+        mountAvatarIfReady(25);
       };
-      if (document.readyState === 'complete') start();
-      else window.addEventListener('load', start, { once: true });
-    };
-    scheduleIdle();
+      if (stageEl) {
+        stageEl.addEventListener('pointerenter', triggerLive2D, { once: true, passive: true });
+        stageEl.addEventListener('click', triggerLive2D, { once: true, passive: true });
+      }
+      const scheduleIdle = () => {
+        const start = () => {
+          if (typeof requestIdleCallback === 'function') {
+            requestIdleCallback(() => setTimeout(triggerLive2D, 1500), { timeout: 3000 });
+          } else {
+            setTimeout(triggerLive2D, 2200);
+          }
+        };
+        if (document.readyState === 'complete') start();
+        else window.addEventListener('load', start, { once: true });
+      };
+      scheduleIdle();
+    }
   }
   updateMusicUI(false);
 

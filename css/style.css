@@ -4262,6 +4262,12 @@ html.dark #philosophy .phil-card:hover {
 }
 
 @media (max-width: 1023px), (pointer: coarse) {
+  /* 移动端彻底关闭全站 backdrop-filter（0 个离屏高斯模糊），改用干净高透底色 */
+  .site-header,
+  #mobile-menu,
+  .modal-top-bar,
+  #music-panel,
+  .glass-spec,
   .hero-index,
   .hero-who,
   .hero-eyebrow,
@@ -4275,16 +4281,51 @@ html.dark #philosophy .phil-card:hover {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
   }
+  .site-header,
+  #mobile-menu,
+  .modal-top-bar,
+  #music-panel {
+    background-color: rgba(248, 250, 252, 0.94) !important;
+  }
+  .dark .site-header,
+  .dark #mobile-menu,
+  .dark .modal-top-bar,
+  .dark #music-panel {
+    background-color: rgba(10, 14, 24, 0.94) !important;
+  }
   .hero-index,
   .hero-who,
   .phil-card,
   .start-here-item {
-    background-color: rgba(255, 255, 255, 0.92);
+    background-color: rgba(255, 255, 255, 0.95);
   }
   .dark .hero-index,
   .dark .hero-who,
   .dark .phil-card,
   .dark .start-here-item {
-    background-color: rgba(18, 22, 33, 0.90);
+    background-color: rgba(18, 22, 33, 0.92);
+  }
+  /* 移动端简化大面积卡片的多层扩散阴影，降低 GPU 光栅化与合成压力 */
+  .bento-card,
+  .product-featurette,
+  .app-window-card,
+  .phil-card,
+  .start-here-item,
+  .cover-box,
+  .hero-index {
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05) !important;
+  }
+  .dark .bento-card,
+  .dark .product-featurette,
+  .dark .app-window-card,
+  .dark .phil-card,
+  .dark .start-here-item,
+  .dark .cover-box,
+  .dark .hero-index {
+    box-shadow: none !important;
+  }
+  /* 移动端白色主题直接隐藏 #cosmos-canvas，零画布合成开销 */
+  html:not(.dark) #cosmos-canvas {
+    display: none !important;
   }
 }
