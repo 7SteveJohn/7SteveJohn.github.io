@@ -1683,7 +1683,13 @@
       ctx.globalCompositeOperation = 'source-over';
       ctx.globalAlpha = 1;
       var isDark = document.documentElement.classList.contains('dark');
-      ctx.fillStyle = isDark ? ('rgba(0,2,7,' + trail.toFixed(3) + ')') : ('rgba(248,250,252,' + trail.toFixed(3) + ')');
+      if (!isDark) {
+        // 白色主题保持纯静态浅色底，禁止 lighter 叠画与脉冲闪光引起的抽搐闪烁
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(0, 0, W, H);
+        return;
+      }
+      ctx.fillStyle = 'rgba(0,2,7,' + trail.toFixed(3) + ')';
       ctx.fillRect(0, 0, W, H);
 
       // ② 冷蓝环境辉光 + 暗角：已上移到 CSS 静态层 .cosmos-veil（零每帧开销），画布内不再画
@@ -1725,6 +1731,11 @@
   function onResize() {
     clearTimeout(resizeTimer);
       resizeTimer = setTimeout(function () {
+        var nextW = window.innerWidth || document.documentElement.clientWidth || 1024;
+        var nextH = window.innerHeight || document.documentElement.clientHeight || 720;
+        var isTouch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+        // 移动端上下滑动时地址栏收起/展开会微调 innerHeight，避免频繁重置画布引发清屏闪烁
+        if ((isTouch || nextW < 768) && nextW === W && Math.abs(nextH - H) < 180) return;
         var wasStopped = stopped;                       // reduce-motion 下重建完继续停笔
         if (wasStopped) { stopped = false; lastDraw = 0; }
         resizeCanvas();
@@ -1917,6 +1928,16 @@
     window.addEventListener('blur', function () { focused = false; });
     window.addEventListener('focus', function () { focused = true; });
     document.addEventListener('visibilitychange', onVisibility);
+    if (typeof MutationObserver !== 'undefined') {
+      new MutationObserver(function () {
+        buildVeil();
+        var isDark = document.documentElement.classList.contains('dark');
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = isDark ? '#000007' : '#f8fafc';
+        ctx.fillRect(0, 0, W, H);
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    }
 
     uiTimer = setInterval(function () {
       reduceMotionGate();      // 减少动效下：放歌才恢复低帧率律动，停播回到停笔

@@ -2781,6 +2781,10 @@ html.wallpaper-gradient #site-wallpaper {
 html.has-wallpaper #site-wallpaper {
   opacity: 0.34;
 }
+html:not(.dark) #site-wallpaper {
+  display: none;
+  opacity: 0 !important;
+}
 /* 桌面细指针：screen 混合只提亮不压暗 —— 壁纸亮部从推理场的不透明深底里透出来，
    连线与脉冲照常压在壁纸之上；触摸设备不做全屏混合（省一次每帧合成），
    改为低不透明度的静态层 */
