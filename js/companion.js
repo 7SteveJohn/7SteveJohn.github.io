@@ -28,7 +28,9 @@
 
   const STORAGE_KEY = 'sj.companionState';
   const root = document.documentElement;
-  const mobileMQ = window.matchMedia ? window.matchMedia('(max-width: 767px)') : { matches: false };
+  const mobileMQ = window.matchMedia
+    ? window.matchMedia('(max-width: 767px), (hover: none) and (pointer: coarse)')
+    : { matches: false };
 
   function readSavedState() {
     try {
