@@ -4249,3 +4249,42 @@ html.dark #philosophy .phil-card:hover {
 .dark .modal-find-bar .mfb-btn:hover {
   background: rgba(56, 189, 248, 0.22);
 }
+
+/* ============================================================
+   渲染大头治理：砍除静态块级卡片与移动端多余的高斯模糊合成层
+   ============================================================ */
+.cover-box,
+.phil-card,
+.start-here-item,
+.btn-secondary {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+@media (max-width: 1023px), (pointer: coarse) {
+  .hero-index,
+  .hero-who,
+  .hero-eyebrow,
+  .hero-telemetry-pill,
+  .hero-ghost,
+  .video-play-btn,
+  #page-next,
+  #sjc-mini,
+  #sjc-bubble,
+  #sjc-dock {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  .hero-index,
+  .hero-who,
+  .phil-card,
+  .start-here-item {
+    background-color: rgba(255, 255, 255, 0.92);
+  }
+  .dark .hero-index,
+  .dark .hero-who,
+  .dark .phil-card,
+  .dark .start-here-item {
+    background-color: rgba(18, 22, 33, 0.90);
+  }
+}
