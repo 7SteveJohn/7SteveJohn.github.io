@@ -374,12 +374,12 @@ GameBoost-DLSSG 是专为 **RTX 20/30 系** 显卡定制的 DLSS 帧生成管理
   },
   {
     id: "fluxion",
-    title: "Fluxion · 全平台游戏启动器与性能套件",
+    title: "Fluxion · 完整版性能套件",
     category: "desktop",
     categoryName: "桌面应用",
-    description: "Windows 开源游戏性能套件。自动聚合 Steam、WeGame、HoYoPlay、鸣潮与 Epic 游戏库并支持免平台直启；内置 50 余项底层体检、Standby 内存净化、Win11 EcoQoS 压制与单机帧生成管理，进局自动调优、退局毫秒无损还原。",
-    tags: ["C# 原生编译", "全平台统一启动器", "50+项底层体检", "Win11 EcoQoS", "单机帧生成管理"],
-    image: "assets/images/cover-fluxion.webp?v=20261118v3",
+    description: "Windows 竞技级游戏性能套件。提供 50 余项底层体检与 LowLatencyKit 低延迟调优，搭配 Standby 内存净化与 Win11 EcoQoS 压制，专治对战交火 1% Low 掉帧与输入延迟；支持单机帧生成管理，进局自动调优、退局毫秒无损还原，并内置游戏启动器一站直达。",
+    tags: ["C# 原生编译", "50+项底层体检", "治1% Low掉帧", "单机帧生成管理", "内置游戏启动器"],
+    image: "assets/images/cover-fluxion.webp?v=20261118v4",
     githubUrl: "https://github.com/7SteveJohn/Fluxion",
     demoUrl: "https://github.com/7SteveJohn/Fluxion/releases",
     downloadUrl: "https://wwblz.lanzouu.com/b00q1w00ne",
@@ -393,8 +393,8 @@ GameBoost-DLSSG 是专为 **RTX 20/30 系** 显卡定制的 DLSS 帧生成管理
     announcement: {
       version: "v1.3.3",
       date: "2026-11-18",
-      items: ["画廊石白 / 黑曜靛蓝双主题与零闪烁换肤", "全平台统一游戏启动器（免平台直启 / 静默唤起）", "Standby 内存净化与 Win11 EcoQoS 能效核压制", "DLSS 0.4.1 / OptiScaler 多架构适配与目录穿透"],
-      summary: "双主题视觉重塑 / 全平台游戏启动器"
+      items: ["画廊石白 / 黑曜靛蓝双主题与零闪烁换肤", "50+ 项底层体检筛选与 LowLatencyKit 低延迟调优", "Standby 内存净化与 Win11 EcoQoS 能效核压制", "DLSS 0.4.1 / OptiScaler 帧生成与内置游戏启动器"],
+      summary: "双主题视觉重塑 / 50+项底层调优与帧生成"
     },
     // 更新记录：来自 GitHub Releases（7SteveJohn/Fluxion），最新在前
     changelog: [
@@ -437,13 +437,7 @@ GameBoost-DLSSG 是专为 **RTX 20/30 系** 显卡定制的 DLSS 帧生成管理
 <p style="font-size:12px;color:#86868b;margin-top:6px;">Fluxion v1.3.3；90 秒 Apple 风格全景介绍视频在项目卡片上。</p>
 
 ### 💡 这是什么
-Fluxion 是一套面向 Windows 10/11 的轻量级开源游戏性能套件（MIT 开源），整合了**全平台统一游戏启动器**、**50 余项系统底层体检调优**与**单机帧生成管理**三大核心能力：进游戏前自动净化备用内存并切换竞技态配置，退出游戏后毫秒级无损还原日常办公环境。
-
-### 🎯 全平台统一游戏启动器与 2:3 海报墙
-- **跨平台自动发现**：自动扫描 **Steam**（智能剔除 Steamworks 运行库 / Proton / Soundtrack 污染）、**WeGame**、**米哈游 HoYoPlay**（原神 / 星穹铁道 / 绝区零）、**库洛官方**（鸣潮）、**Epic Games**、战网、Ubisoft Connect 与 EA App。
-- **快捷方式拖放即入库**：支持直接拖入 \`.lnk\` / \`.url\` / \`.exe\`，自动穿透容器启动器定位真实游戏主程序与工作目录。
-- **智能双模启动路由**：单机与独立游戏优先「免平台直启 EXE」秒开，强绑定平台鉴权的游戏通过 \`steam.exe -silent -applaunch\` 静默唤起；首页 \`DashSpotlight\` 聚光灯常驻最近游玩一键开局入口（0 游戏时自动无痕收起）。
-- **256×256 超清图标合成**：优先拉取官方高清竖版封面，无封面游戏自动提取 \`SHIL_JUMBO\` 256×256 图标合成 2:3 暗夜黑曜渐变海报卡。
+Fluxion 是一套面向 Windows 10/11 的轻量级开源游戏性能套件（MIT 开源）：以 **50 余项系统底层体检与 LowLatencyKit 低延迟调优**为核心，搭配 **Standby 备用内存净化**、**Win11 EcoQoS 压制**与**单机帧生成管理**，进游戏前自动切换竞技态配置，退出游戏后毫秒级无损还原日常办公环境；同时内置全平台游戏启动器，方便一站直达桌面与各平台游戏。
 
 ### ⚡ 系统底层调优与低延迟工作台（50+ 项真实回读）
 - **状态胶囊筛选与安全边界**：体检表支持按「全部 / 未生效 / 可调项 / 已生效 / 待确认」动态胶囊筛选；**HPET 强制、GPU 中断绑核、PCIe MSI 转换、Resizable BAR 全局强开等高危硬件项只做只读检测、不开放危险修改**；改动前导出快照支持一键无损还原。
@@ -455,7 +449,8 @@ Fluxion 是一套面向 Windows 10/11 的轻量级开源游戏性能套件（MIT
 - **多架构方案适配**：集成 **DLSS 0.4.1 / 0.3.5**（RTX 20/30/40 系，支持 2X–6X 多帧生成）、**MFG Bridge** 与 **OptiScaler**（兼容 FSR 3.1 / XeSS-FG 跨架构转译）；严格限定**单机游戏**，切勿在含内核级反作弊的联机竞技游戏中使用。
 - **二级启动器目录穿透与原厂备份**：自动穿透如 \`REDprelauncher.exe\` 等启动器直达真实渲染目录（如 \`bin\\x64\`）；内置 \`nvngx_dlss.dll / nvngx_dlssg.dll\` 签名白名单巡检与热替换，覆盖同名组件前自动留存 \`.fluxion-orig.bak\` 原厂备份以便一键复原。
 
-### 🎛️ 视觉重塑、数据迁移与显示适配
+### 🎯 内置游戏启动器与视觉适配
+- **内置全平台游戏启动器**：顺带聚合 Steam、WeGame、HoYoPlay、鸣潮、Epic 与桌面快捷方式，支持免平台直启 EXE 与 \`-silent\` 静默唤起。
 - **画廊石白 / 黑曜靛蓝双主题**：三阶材质层级、1px 顶部内镜面高光、Win11 DWM 原生圆角菜单、内嵌 MiSans 三字重与 \`WM_DPICHANGED\` 跨屏动态 DPI 缩放。
 - **安全迁移与电竞分辨率切换**：支持数据目录跨盘符安全迁移（复制前校验 + 哈希比对）；支持 CS2 / 无畏契约 4:3 与 16:11 快捷切换（附带单屏防黑屏保护）；安装包与绿色便携版同源，支持免 UAC 提权计划任务开机自启。
   `
