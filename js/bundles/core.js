@@ -1,4 +1,4 @@
-// build-bundles: {"name":"core","version":"6422c21a1aed","sources":[{"path":"js/site-config.js","sha256":"59d9bb59a0d345ea5484bb5ec74944b1a903de398bcec5ae473a1b4f63b3961c"},{"path":"js/markdown-loader.js","sha256":"9149bca09b58fc21ff58cd7071d9f9470acdb9f4067856265a14260f99cca272"},{"path":"js/wallpaper.js","sha256":"7a99fdc106195d43bb2e518a6ffb32c5d2d61886db933ac145b4321940e4b067"},{"path":"js/particles.js","sha256":"b59b788650a6c595efc98033d3285ca9194e2937a3d24cacf7e9ce394178fa7c"}]}
+// build-bundles: {"name":"core","version":"a5960c076be0","sources":[{"path":"js/site-config.js","sha256":"59d9bb59a0d345ea5484bb5ec74944b1a903de398bcec5ae473a1b4f63b3961c"},{"path":"js/markdown-loader.js","sha256":"d261463a15a120ce15d2741db0cc5d32709af51871cea4c552ec9b95c55de260"},{"path":"js/wallpaper.js","sha256":"7a99fdc106195d43bb2e518a6ffb32c5d2d61886db933ac145b4321940e4b067"},{"path":"js/particles.js","sha256":"b59b788650a6c595efc98033d3285ca9194e2937a3d24cacf7e9ce394178fa7c"}]}
 /* 6 页共用：配置 → Markdown 按需加载器 → 壁纸 → 粒子
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/site-config.js → js/markdown-loader.js → js/wallpaper.js → js/particles.js */
@@ -116,7 +116,7 @@
 
 ;
 
-// ---- js/markdown-loader.js (9149bca09b58) ----
+// ---- js/markdown-loader.js (d261463a15a1) ----
 /**
  * Markdown 渲染器按需加载（marked 39KB + purify 22KB）
  * ----------------------------------------------------
@@ -141,10 +141,17 @@
 
   function load(src) {
     return new Promise((resolve) => {
+      let settled = false;
+      const done = (ok) => {
+        if (settled) return;
+        settled = true;
+        resolve(ok);
+      };
+      const timer = setTimeout(() => done(false), 4000);
       const s = document.createElement('script');
       s.src = src;
-      s.onload = () => resolve(true);
-      s.onerror = () => resolve(false);
+      s.onload = () => { clearTimeout(timer); done(true); };
+      s.onerror = () => { clearTimeout(timer); done(false); };
       document.head.appendChild(s);
     });
   }

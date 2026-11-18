@@ -11,7 +11,7 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v298';   // 2026-11-18 精简 CORE 预缓存，消除首屏并发拥堵
+const CACHE = 'sevenjohn-v299';   // 2026-11-18 预置阅读器与抽卡核心脚本，消除等待
 const CORE = [
   './',
   'index.html',
@@ -19,9 +19,13 @@ const CORE = [
   'css/style.css',
   'css/cosmos.css',
   'css/companion.css',
+  'css/cards.css',
   'assets/vendor/tailwind.css',
+  'assets/vendor/marked.min.js',
+  'assets/vendor/purify.min.js',
   'js/bundles/core.js',
   'js/bundles/home.js',
+  'js/cards.js',
   'assets/fonts/inter.css',
   'assets/fonts/inter-var-latin.woff2',
   'assets/images/avatar.webp',

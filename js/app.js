@@ -1421,13 +1421,21 @@ function initBlogCards() {
     toc.appendChild(details);
   }
 
-  // 懒加载：#blog 接近视口才拉资源；默认卷宗视图时先挂 shelf
+  // 懒加载 + 首屏后静默预热：#blog 接近视口立即挂载；若用户未滑到，load 后空闲时也提前挂载好抽卡架
+  const startShelfOnce = () => {
+    io.disconnect();
+    if (view === 'deck') mountShelf();
+  };
   const io = new IntersectionObserver((entries) => {
     if (entries.some((e) => e.isIntersecting)) {
-      io.disconnect();
-      if (view === 'deck') mountShelf();
+      startShelfOnce();
     }
-  }, { rootMargin: '600px 0px' });
+  }, { rootMargin: '1200px 0px' });
+  if (document.readyState === 'complete') {
+    setTimeout(startShelfOnce, 120);
+  } else {
+    window.addEventListener('load', () => setTimeout(startShelfOnce, 120), { once: true });
+  }
   io.observe(sec);
 
   setView(view);

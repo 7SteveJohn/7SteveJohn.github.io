@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"db2364d6aed8","sources":[{"path":"js/search.js","sha256":"09d12f167d1105d1616278784f2305cf193616627aaa1ceeebe8fcdfac3633b7"},{"path":"js/video-gate.js","sha256":"77b852ecf52b71222129ce6a045ec18170e902964dc7871562df632d77c33137"},{"path":"js/app.js","sha256":"550fdf927248ba9b1104c0e0a998ff76fb6954a18e484745c2e50b1896f6ecb9"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"abac1dd86a726f4ab33392d80aabbdfe1cd429937429330de8924998f16dec6c"}]}
+// build-bundles: {"name":"home","version":"a2d02a7afce5","sources":[{"path":"js/search.js","sha256":"09d12f167d1105d1616278784f2305cf193616627aaa1ceeebe8fcdfac3633b7"},{"path":"js/video-gate.js","sha256":"77b852ecf52b71222129ce6a045ec18170e902964dc7871562df632d77c33137"},{"path":"js/app.js","sha256":"295d8e91410ffbde3e94cd4bfaa815066874d6e6ebd7137233e487fb75069eb4"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"abac1dd86a726f4ab33392d80aabbdfe1cd429937429330de8924998f16dec6c"}]}
 /* 仅首页：搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -372,7 +372,7 @@
 
 ;
 
-// ---- js/app.js (550fdf927248) ----
+// ---- js/app.js (295d8e91410f) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -1796,13 +1796,21 @@ function initBlogCards() {
     toc.appendChild(details);
   }
 
-  // 懒加载：#blog 接近视口才拉资源；默认卷宗视图时先挂 shelf
+  // 懒加载 + 首屏后静默预热：#blog 接近视口立即挂载；若用户未滑到，load 后空闲时也提前挂载好抽卡架
+  const startShelfOnce = () => {
+    io.disconnect();
+    if (view === 'deck') mountShelf();
+  };
   const io = new IntersectionObserver((entries) => {
     if (entries.some((e) => e.isIntersecting)) {
-      io.disconnect();
-      if (view === 'deck') mountShelf();
+      startShelfOnce();
     }
-  }, { rootMargin: '600px 0px' });
+  }, { rootMargin: '1200px 0px' });
+  if (document.readyState === 'complete') {
+    setTimeout(startShelfOnce, 120);
+  } else {
+    window.addEventListener('load', () => setTimeout(startShelfOnce, 120), { once: true });
+  }
   io.observe(sec);
 
   setView(view);

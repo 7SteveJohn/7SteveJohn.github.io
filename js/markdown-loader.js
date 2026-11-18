@@ -22,10 +22,17 @@
 
   function load(src) {
     return new Promise((resolve) => {
+      let settled = false;
+      const done = (ok) => {
+        if (settled) return;
+        settled = true;
+        resolve(ok);
+      };
+      const timer = setTimeout(() => done(false), 4000);
       const s = document.createElement('script');
       s.src = src;
-      s.onload = () => resolve(true);
-      s.onerror = () => resolve(false);
+      s.onload = () => { clearTimeout(timer); done(true); };
+      s.onerror = () => { clearTimeout(timer); done(false); };
       document.head.appendChild(s);
     });
   }
