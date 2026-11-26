@@ -27,10 +27,17 @@ const CORE = [
   'js/bundles/home.js',
   'js/cards.js',
   // 归档首跳：这几个文件不在首页加载，装 SW 时一起备好，避免第一次点「归档」现拉
+  'archive.html',
   'css/archive.css?v=20261107_v245',
   'js/archive.js?v=20261118c',
   'js/articles-meta.js?v=20261126a',
   'js/bundles/sub.js?v=20261118mwg2',
+  // 照片墙同样在「更多」里，一并备好
+  'gallery.html',
+  'css/gallery.css?v=20261107_v245',
+  'js/gallery.js?v=20261107_v245',
+  'js/bundles/core.js?v=20261118e',
+  'js/bundles/sub.js?v=20261107_v245',
   'assets/fonts/inter.css',
   'assets/fonts/inter-var-latin.woff2',
   'assets/images/avatar.webp',
