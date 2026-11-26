@@ -93,7 +93,6 @@
       { href: 'gallery.html', label: '照片墙', title: '照片墙', sitemap: true, priority: '0.7', changefreq: 'monthly' },
       { href: 'cards.html', label: '札签', sitemap: false, chrome: false },
       { href: '404.html', label: '404', sitemap: false, chrome: false },
-      { href: 'live2d-preview.html', label: '看板娘调试台', sitemap: false, chrome: false },
       { href: 'cosmos-home.html', label: '星河随乐而舞（演示页）', sitemap: false, chrome: false }
     ]
   };

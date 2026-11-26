@@ -1,9 +1,9 @@
-// build-bundles: {"name":"core","version":"7a71cc8fa883","sources":[{"path":"js/site-config.js","sha256":"4e4b3fdeeaf90cd64efaf391cc21a1a0ed5f56617f739424c8455fd168761542"},{"path":"js/markdown-loader.js","sha256":"d261463a15a120ce15d2741db0cc5d32709af51871cea4c552ec9b95c55de260"},{"path":"js/wallpaper.js","sha256":"7a99fdc106195d43bb2e518a6ffb32c5d2d61886db933ac145b4321940e4b067"},{"path":"js/particles.js","sha256":"b59b788650a6c595efc98033d3285ca9194e2937a3d24cacf7e9ce394178fa7c"}]}
+// build-bundles: {"name":"core","version":"f32064f22039","sources":[{"path":"js/site-config.js","sha256":"40e657882beba191aa950ff7521b3c776e8f5585fd3c5d57f22ce358e03d30ac"},{"path":"js/markdown-loader.js","sha256":"d261463a15a120ce15d2741db0cc5d32709af51871cea4c552ec9b95c55de260"},{"path":"js/wallpaper.js","sha256":"7a99fdc106195d43bb2e518a6ffb32c5d2d61886db933ac145b4321940e4b067"},{"path":"js/particles.js","sha256":"b59b788650a6c595efc98033d3285ca9194e2937a3d24cacf7e9ce394178fa7c"}]}
 /* 6 页共用：配置 → Markdown 按需加载器 → 壁纸 → 粒子
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/site-config.js → js/markdown-loader.js → js/wallpaper.js → js/particles.js */
 
-// ---- js/site-config.js (4e4b3fdeeaf9) ----
+// ---- js/site-config.js (40e657882beb) ----
 /**
  * 站点配置唯一来源（浏览器与 Node 共用，零依赖）
  * ----------------------------------------------------
@@ -99,7 +99,6 @@
       { href: 'gallery.html', label: '照片墙', title: '照片墙', sitemap: true, priority: '0.7', changefreq: 'monthly' },
       { href: 'cards.html', label: '札签', sitemap: false, chrome: false },
       { href: '404.html', label: '404', sitemap: false, chrome: false },
-      { href: 'live2d-preview.html', label: '看板娘调试台', sitemap: false, chrome: false },
       { href: 'cosmos-home.html', label: '星河随乐而舞（演示页）', sitemap: false, chrome: false }
     ]
   };

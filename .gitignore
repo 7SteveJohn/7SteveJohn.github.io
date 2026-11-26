@@ -14,9 +14,7 @@ holo-preview.png
 # 本地测试脚手架（Playwright 冒烟脚本与截图产物，不入库）
 Temp/
 
-# 看板娘调试台：Live2D 还没做完，不能出现在线上（2026-10-31）。
-# 文件留在本地照常调试：http://localhost:8327/live2d-preview.html
-# 恢复上线：删掉这行 + git add live2d-preview.html
+# 看板娘调试台已删除；若重建预览页，默认不入库。
 live2d-preview.html
 
 .codebuddy/
@@ -27,7 +25,7 @@ live2d-preview.html
 cosmos-home.html
 
 # 看板娘 / Live2D 素材：本地保留，打磨好再上传（2026-11-26）。
-# 预览页 live2d-preview.html 上面已忽略；这些文件仍在本地原路径，调试不受影响。
+# 素材仍在本地原路径；预览页已删除（2026-11-26）。
 assets/vendor/live2d/
 js/companion.js
 js/companion-avatar.js
