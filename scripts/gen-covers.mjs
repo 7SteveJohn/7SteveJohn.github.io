@@ -449,23 +449,6 @@ const COVERS = [
         <path d="M 445 145 A 35 35 0 0 1 515 145" stroke="#6366f1" stroke-dasharray="4 3"/>
       </g>`
   },
-  {
-    file: 'cover-sample-night.svg',
-    num: 'NOVEL',
-    tag: 'SAMPLE STORY',
-    titleEn: 'The Blackout Night',
-    titleCn: '停电的夜 · 读者验证篇',
-    accent1: '#818cf8',
-    accent2: '#c084fc',
-    motif: `
-      <g stroke="rgba(129, 140, 248, 0.25)" fill="none" stroke-width="1.5">
-        <circle cx="490" cy="115" r="30"/>
-        <path d="M 470 115 A 25 25 0 0 0 515 135" fill="rgba(192, 132, 252, 0.15)"/>
-        <line x1="430" y1="170" x2="540" y2="170"/>
-        <rect x="450" y="145" width="20" height="25" fill="rgba(129, 140, 248, 0.1)"/>
-        <rect x="495" y="135" width="25" height="35" fill="rgba(129, 140, 248, 0.1)"/>
-      </g>`
-  }
 ];
 
 let count = 0;

@@ -52,17 +52,6 @@ const BUNDLES = [
     ]
   },
   { name: 'sub', desc: '次级页共用：外壳（SW 注册 / 滚动态 / 浮现）', sources: ['js/subpage.js'] },
-  {
-    name: 'garden',
-    desc: '仅花园：三个玩具 → 框架（顺序敏感）',
-    sources: ['js/garden/life.js', 'js/garden/sorting.js', 'js/garden/stars.js', 'js/garden.js']
-  },
-  {
-    name: 'links',
-    desc: '仅链接页：友链数据 → 收藏数据 → 渲染',
-    sources: ['js/friends.js', 'js/bookmarks.js', 'js/links.js']
-  },
-  { name: 'novel', desc: '仅连载页：阅读器（数据文件 novel-data.js 保持独立）', sources: ['js/novel.js'] }
 ];
 
 const readSource = (rel) => {

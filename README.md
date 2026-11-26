@@ -17,7 +17,7 @@
  - 🌌 背景光粒子、滚动浮现编排、导航整页换页等编辑风动效（全量尊重 `prefers-reduced-motion`）；
    - 🎬 **参考视频移植的四项效果**（沿用站点原有深色语言，不改成浅色动漫风）：深空壁纸层 + 桌面磨砂玻璃、右下角 Live2D 看板娘（鼠标跟随即时摆动、可一键关闭）、波浪曲线「归档」页、照片墙灯箱，外加**按住 Tab** 唤出的快速导航。每一项都可单独关闭，加载失败一律静默退回原观感；维护方式见下文「[🎬 视频里的效果怎么维护](#-视频里的效果怎么维护)」一节。
    - ⚙️ **显示设置面板**（左下角齿轮）：效果档位、壁纸模糊/亮度滑块、粒子/推理场/看板娘开关、一键还原；站名/社交/壁纸清单/页面清单收口在 `js/site-config.js`，`scripts/sync-chrome.mjs` 负责校验各页导航与页脚不漂移；文章卡支持封面图（没封面自动用品牌渐变 + 栏目首字）。见下文「[🧩 配置、观感与发布流程](#-配置观感与发布流程)」。
-   - 🗂️ **已下线（2026-10-17 收回）**：花园（`garden.html`）、链接页（`links.html`，友链 + 收藏）、连载（`novel.html`）。它们属于"社交与娱乐"，不服务本站「技术 + 产品分享」的定位，已从导航、页脚与 sitemap 摘除；**文件与样式仍在仓库、URL 仍可直达**，需要时按下方说明一键恢复。
+   - 🗂️ **已删除（2026-11-26）**：花园、链接页（友链 + 收藏）、连载。它们已于 2026-10-17 从导航/页脚/sitemap 摘除；2026-11-26 连同页面、样式、脚本与示例章节一起从仓库删除。
    - ✍️ **Markdown 写作管线 + 本地写作台**：文章与章节写在 `posts/*.md`，一条命令（或写作台的「保存/发布」）生成数据、RSS 与 sitemap；写作台只监听本机、界面里直接预览与上传图片，见下文「[✍️ 写作与发布](#️-写作与发布第-4-轮markdown-源文件--本地写作台)」。
   - 🖱️ **滚动保持原生**：不劫持滚轮、不做逐帧 `scrollTo` 的阻尼滚动（2026-10-17 撤掉 Lenis 式实现：实测滚轮停下后页面还会继续滑约 **989ms**、最长单帧 55ms，桌面指针手感发黏）。现在滚轮/触控板完全交给浏览器；只有锚点、回到顶部、Tab 快速导航这类**程序化跳转**才用原生 `scrollTo({ behavior: 'smooth' })`。想找回阻尼手感：控制台执行 `window.enableDampedScroll()`（仅当次会话）。
    - **唯一例外：产品区整屏翻页**（2026-10-17）：桌面且视口 ≥760px 高时，6 张产品卡各占一屏，用**标准 CSS Scroll Snap** 吸附 —— `html { scroll-snap-type: y proximity }` + 卡片 `scroll-snap-align: start / scroll-snap-stop: always / scroll-margin-top: 64px`（见 `css/style.css` 那条媒体查询）。`js/app.js` 的 `initProjectSnap()` 只补两个 CSS 自己做不到的点：① **滚轮一格 = 翻一屏**（proximity 在整屏卡片上会留死区：单次滚 500px 会停在半张卡上）；② **到头逃生口**（滚到最后一张还想往下 / 第一张往上时，先给 `html` 挂 `.no-snap` 摘掉吸附再滚出阈值，否则会被吸回原卡 —— 实测滚 240px 位移为 0）。为什么是 proximity 不是 mandatory：mandatory 会把**程序化滚动**也钉在最近的卡上（在产品区点导航「技术手记」，落到 `#blog` 后被吸回最后一张卡）。手机 / 矮视口 / 减少动效不参与。
@@ -153,11 +153,8 @@ node scripts/gen-rss.js
 | `scripts/video-fx-smoke.mjs` | 全站验收：壁纸轮换/看板娘/归档/照片墙/按住 Tab/手机档/离线/降级/配置与设置面板/胶囊/目录/封面/灯箱/原生滚动/花园/链接页/连载阅读器/内容管线与写作台/首屏 bundle 与按需加载/弱机降档/下线校验 | `node scripts/dev-server.js` + `node scripts/video-fx-smoke.mjs` |
 | `scripts/build-bundles.mjs` + `js/bundles/*.js` | 首屏脚本拼接器与六个生成物（core/home/sub/garden/links/novel） | 改 `js/` 源文件后 `node scripts/build-bundles.mjs` 重建；`--check` 验过期 |
 | `js/markdown-loader.js` | marked + purify 的按需加载器（`window.ensureMarkdown()`，Promise 去重、失败可重试） | 打开文章/项目/章节时自动触发，无需手调 |
-| `garden.html` + `js/garden.js` + `js/garden/{life,sorting,stars}.js` + `css/garden.css` | 花园页：三个 canvas 玩具，单循环、切页停帧、减少动效只画一帧 | 加玩具：新文件推进 `window.GardenToys` + 页面加一个 script 标签 |
-| `links.html` + `js/friends.js` + `js/bookmarks.js` + `js/links.js` + `css/links.css` | 链接页：友情链接（空态 + 申请说明）与收藏夹（分组筛选 + 关键词搜索） | 友链加 `js/friends.js`，收藏加 `js/bookmarks.js` |
-| `novel.html` + `js/novel.js` + `js/novel-data.js` + `css/novel.css` | 连载阅读器：书架、章节抽屉、键盘翻页、进度记忆、字号行高、沉浸模式、章节深链 | 章节写进 `posts/novel/<书>/*.md`（生成到 `js/novel-data.js`） |
 | `posts/`（+ `posts/novel/`） | **写作入口**：文章与章节的 Markdown 源文件（front matter + 正文） | 手写或用本地写作台；改完跑 `node scripts/build-articles.mjs` |
-| `scripts/build-articles.mjs` + `scripts/lib/front-matter.mjs` | 内容生成：md → `js/articles.js` / `js/novel-data.js` / RSS / sitemap，含校验与等价性比对 | `--check` 只校验；`--compare <旧文件>` 逐字段比对 |
+| `scripts/build-articles.mjs` + `scripts/lib/front-matter.mjs` | 内容生成：md → `js/articles.js` / `js/articles-meta.js` / RSS / sitemap，含校验与等价性比对 | `--check` 只校验；`--compare <旧文件>` 逐字段比对 |
 | `scripts/migrate-to-markdown.mjs` | 一次性迁移（已执行）：`js/articles.js` → `posts/*.md`，备份到 `.local/` | 只在需要重做迁移时用（`--force` 覆盖） |
 | `scripts/studio/` | 本地写作台（界面 + 服务，127.0.0.1:8329）：列表、编辑器、实时预览、图片上传、保存与发布 | `node scripts/studio/server.mjs` |
 
@@ -337,51 +334,6 @@ node scripts/video-fx-smoke.mjs     # 终端 B：全量断言（J/K/L/M 段覆�
 
 维护仍然只改 `js/projects.js`：改文案、链接、截图只改这一个文件；新增产品 = 数组里加一条，首页自动渲染。`changelog` 字段保留在数据结构里（当前没有产品写它），页面不再单独渲染版本时间线；要恢复时间线，直接拿这条数据渲染即可，旧页面的完整实现可从 `git log -- products.html` 取回。`sitemap.xml` 也不再为单个产品生成 URL。
 
-### 恢复已下线的三页（花园 / 链接页 / 连载）
-
-`js/site-config.js` 里把对应条目加回 `entries`（导航入口）与 `pages`（`sitemap: true`），再跑：
-
-```bash
-node scripts/sync-chrome.mjs --write   # 注入导航与页脚
-node scripts/build-articles.mjs        # 重新生成数据与 sitemap
-```
-
-## 🌱 花园与链接页（第 2 轮，已下线）
-
-> ⚠️ 本节描述的三页自 2026-10-17 起已从站点入口下线（不在导航/页脚/sitemap 中），文件仍在仓库、URL 仍可直达。保留此节仅作为恢复时的参考。
-
-### 花园 `garden.html`（`js/garden.js` + `js/garden/*.js`）
-
-一个页面装三个 canvas 玩具，**任何时刻只跑一个 rAF 循环**（站点背景已经在跑推理场/粒子，花园再加循环必须互相让路），标签页切走自动停帧，`prefers-reduced-motion` 下只画一帧、交互时补画。
-
-| 玩具 | 看点 | 操作 |
-| --- | --- | --- |
-| 康威生命游戏 | 三条规则长出滑翔机与振荡子 | 拖动画活细胞 · 空格播放/暂停 · R 随机 · C 清空 · 速度滑杆 |
-| 排序可视化 | 同一组随机数用三种算法排出来 | 冒泡/插入/快速切换 · 播放暂停 · 速度与规模滑杆 · 打乱重来 |
-| 星空粒子 | 三层视差 + 闪烁 + 拖尾 | 密度滑杆 · 视差/拖尾开关 · 鼠标移动给整场偏移 |
-
-- 玩具只需实现 `setup/draw/teardown`（可选 `controls()`／`pointer()`／`key()`），框架负责 DPR、尺寸、循环、控制条 DOM；加第四个玩具 = 新建一个文件推进 `window.GardenToys` + 在 `garden.html` 里加一个 `<script>`。
-- 切换器写 `location.hash`（`#life` / `#sorting` / `#stars`），可直接分享某个玩具的直链。
-
-### 链接页 `links.html`（`js/friends.js` + `js/bookmarks.js` + `js/links.js`）
-
-- **友情链接**：数据在 `js/friends.js`（`name/url/desc/avatar`）；为空时显示空态与申请方式（邮箱 + GitHub），倾向收录原创、可稳定访问的站点。
-- **收藏夹**：数据在 `js/bookmarks.js`（分组 → 条目：`name/url/desc/tags`）；分组胶囊筛选 + 本地关键词搜索（纯前端过滤，命中数实时显示）。
-- 全是外链入口，页面本身不加载任何第三方资源（零外链红线不受影响）；站内相对链接（如 `archive.html`）直接跳转，外链统一 `rel="noopener noreferrer"`。
-
-## 📖 连载阅读器（第 3 轮，已下线）
-
-> ⚠️ 本节描述的 `novel.html` 自 2026-10-17 起已从站点入口下线（站内暂无连载内容），文件仍在仓库、URL 仍可直达。保留此节仅作为恢复时的参考。
-
-`novel.html` + `js/novel-data.js`（数据）+ `js/novel.js`（渲染）+ `css/novel.css`。
-
-- **数据与界面解耦**：章节写在 `js/novel-data.js` 的 `window.NOVEL_BOOKS`（书 → 卷 → 章，正文是 Markdown），加一章就是加一条记录，刷新即可见。
-- **阅读体验**：窄版心（34em）中文长文排版；章节抽屉（含当前章高亮）；上一章/下一章；键盘 **←/→** 翻章；**沉浸模式**（藏导航与工具，只留正文 + 一枚「退出沉浸」，Esc 也能退出）。
-- **进度记忆**：每个书一本记录 —— `sj.novel.last.<bookId> = { chapter, scroll }`，从书架再进去会接着上次那一章；排版偏好存在 `sj.novel.type = { size, lh }`（字号 16–22、行高 1.6–2.1）。
-- **可分享深链**：`novel.html#<bookId>/<chapterId>`，翻章时用 `replaceState` 同步地址栏，深链可直接落到某一章。
-- **代码块**：正文里出现 ```` ``` ```` 时才按需加载 highlight（与首页手记同一套按需策略）。
-- **现状**：站内还没有真正的连载内容，所以书架里放了一本标注「示例」的两章短书用于验证阅读器（页面顶部有提示，可一键「知道了」）；第 4 轮的本地写作台会直接往 `js/novel-data.js` 生成章节，届时删掉示例书即可。
-
 ## ✍️ 写作与发布（第 4 轮）：Markdown 源文件 + 本地写作台
 
 ### 数据流（运行时零改动）
@@ -389,7 +341,7 @@ node scripts/build-articles.mjs        # 重新生成数据与 sitemap
 ```
 posts/*.md            ─┐
 posts/novel/<书>/*.md ─┼→ node scripts/build-articles.mjs ─→ js/articles.js（生成物）
-                       │                                     js/novel-data.js（生成物）
+                       │                                     js/articles-meta.js（生成物）
                        └───────────────────────────────────→ rss.xml / sitemap.xml（顺带刷新）
 ```
 
@@ -400,7 +352,7 @@ posts/novel/<书>/*.md ─┼→ node scripts/build-articles.mjs ─→ js/artic
 
 | 命令 | 作用 |
 | --- | --- |
-| `node scripts/build-articles.mjs` | 从 `posts/` 生成 `js/articles.js` + `js/novel-data.js` + RSS/sitemap |
+| `node scripts/build-articles.mjs` | 从 `posts/` 生成 `js/articles.js` + `js/articles-meta.js` + RSS/sitemap |
 | `node scripts/build-articles.mjs --check` | 只校验不写文件（id 唯一、日期格式、section 合法、摘要必填、tags 非空） |
 | `node scripts/migrate-to-markdown.mjs [--force]` | 一次性迁移（已跑过）：把 `js/articles.js` 导出为 `posts/*.md`，并备份到 `.local/` |
 | `node scripts/studio/server.mjs` | 启动本地写作台（见下） |

@@ -181,9 +181,6 @@ self.addEventListener('fetch', (event) => {
       '/archive.html': './archive.html',
       '/gallery.html': './gallery.html',
       '/cards.html': './cards.html',
-      '/garden.html': './garden.html',
-      '/links.html': './links.html',
-      '/novel.html': './novel.html'
     };
     const key = SWR_KEYS[path];
     if (key) {

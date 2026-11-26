@@ -50,7 +50,7 @@
     ]
   };
 
-  const state = { data: null, file: '', type: 'article', list: { articles: [], books: [] } };
+  const state = { data: null, file: '', type: 'article', list: { articles: [] } };
 
   const api = async (p, opt) => {
     const r = await fetch(p, opt);
@@ -76,7 +76,7 @@
     }
   }
   function listFiles() {
-    return [...state.list.articles.map((a) => a.file), ...state.list.books.flatMap((b) => b.chapters.map((c) => c.file))];
+    return state.list.articles.map((a) => a.file);
   }
 
   function renderList() {
@@ -90,14 +90,6 @@
         file: a.file, title: a.title, meta: `${a.section || 'tech'} · ${a.date} · ${a.words} 字`
       })));
     }
-    state.list.books.forEach((b) => {
-      const chs = b.chapters.filter((c) => !q || hit({ id: c.chapter, title: c.title, summary: '' }));
-      if (!chs.length) return;
-      listEl.insertAdjacentHTML('beforeend', `<p class="group-title">连载 · ${esc(b.title)}</p>`);
-      chs.forEach((c) => listEl.appendChild(itemBtn({
-        file: c.file, title: c.title, meta: `${c.volume} · 第 ${c.order} 章 · ${c.words} 字`
-      })));
-    });
     if (!listEl.children.length) listEl.innerHTML = '<p class="group-title">没有匹配的文件</p>';
   }
 
@@ -301,39 +293,10 @@
     log('已建立草稿，填好摘要后按 Ctrl+S 保存（会在 posts/ 下生成 ' + clean + '.md 并重新生成数据）');
   }
 
-  function newChapter() {
-    const book = prompt('书 id（英文/数字/短横线）', '');
-    if (!book) return;
-    const cleanBook = book.trim().replace(/[^\w-]/g, '-');
-    const existing = state.list.books.find((b) => b.id === cleanBook);
-    const chapter = prompt('章 id（如 ch-3）', 'ch-1');
-    if (!chapter) return;
-    const cleanCh = chapter.trim().replace(/[^\w-]/g, '-');
-    const order = existing ? existing.chapters.length + 1 : 1;
-    state.type = 'chapter';
-    state.file = `posts/novel/${cleanBook}/${String(order).padStart(3, '0')}-${cleanCh}.md`;
-    state.data = {
-      book: cleanBook,
-      bookTitle: existing ? existing.title : cleanBook,
-      author: 'SevenJohn',
-      volume: existing && existing.chapters[0] ? existing.chapters[0].volume : '第一卷 · 起',
-      chapter: cleanCh,
-      chapterTitle: '第 ' + order + ' 章 ',
-      order,
-      intro: existing ? '' : '一句话简介'
-    };
-    fileEl.textContent = state.file + '（未保存）';
-    renderMeta();
-    mdEl.value = '（正文 Markdown，章节标题写在 front matter 里）\n';
-    renderPreview();
-    log('已建立章节草稿，Ctrl+S 保存到 ' + state.file);
-  }
-
   // ---------------- 事件 ----------------
   $('#btn-save').addEventListener('click', save);
   $('#btn-publish').addEventListener('click', publish);
   $('#btn-new-article').addEventListener('click', newArticle);
-  $('#btn-new-chapter').addEventListener('click', newChapter);
   $('#btn-build').addEventListener('click', async () => {
     const r = await api('/api/build', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
     log(r.log || r.error, !r.ok);

@@ -14,7 +14,7 @@
  *   GET  /                 写作台界面
  *   GET  /ui.css /ui.js    界面资源
  *   GET  /vendor/*         站点的自托管库（marked / purify）——预览用真渲染器
- *   GET  /api/list         文章与连载章节清单
+ *   GET  /api/list         文章清单
  *   GET  /api/get?...      取单篇（article / chapter）
  *   POST /api/save         写 md → 校验 → 生成（失败会把错误原样回给界面）
  *   POST /api/delete       移入 .local/trash-<时间戳>/（不做真删除）
@@ -31,7 +31,6 @@ import { parseFrontMatter, stringifyFrontMatter } from '../lib/front-matter.mjs'
 const ROOT = path.resolve(fileURLToPath(new URL('../../', import.meta.url)));
 const HERE = fileURLToPath(new URL('.', import.meta.url));
 const POSTS = path.join(ROOT, 'posts');
-const NOVEL = path.join(POSTS, 'novel');
 const IMAGES = path.join(ROOT, 'assets/images');
 const TRASH = path.join(ROOT, '.local');
 const PORT = Number((process.argv.includes('--port') ? process.argv[process.argv.indexOf('--port') + 1] : 0) || 8329);
@@ -105,24 +104,6 @@ function articleList() {
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 }
 
-function novelList() {
-  const books = new Map();
-  listMd(NOVEL).forEach((p) => {
-    const { data, body } = parseFrontMatter(read(p));
-    if (!data.book) return;
-    if (!books.has(data.book)) books.set(data.book, { id: String(data.book), title: String(data.bookTitle || data.book), chapters: [] });
-    books.get(data.book).chapters.push({
-      file: rel(p),
-      chapter: String(data.chapter || ''),
-      title: String(data.chapterTitle || data.chapter || ''),
-      volume: String(data.volume || '正文'),
-      order: Number(data.order || 0),
-      words: body.replace(/\s/g, '').length
-    });
-  });
-  return [...books.values()].map((b) => ({ ...b, chapters: b.chapters.sort((a, b2) => a.order - b2.order) }));
-}
-
 // ---------------- 接口 ----------------
 async function body(req) {
   const chunks = [];
@@ -161,7 +142,7 @@ const server = http.createServer(async (req, res) => {
 
     // ---- 数据接口 ----
     if (req.method === 'GET' && p === '/api/list') {
-      return json(res, 200, { ok: true, articles: articleList(), books: novelList(), root: ROOT, ffmpeg: hasFfmpeg() });
+      return json(res, 200, { ok: true, articles: articleList(), root: ROOT, ffmpeg: hasFfmpeg() });
     }
 
     if (req.method === 'GET' && p === '/api/get') {
@@ -235,8 +216,8 @@ const server = http.createServer(async (req, res) => {
       steps.push('$ node scripts/build-articles.mjs\n' + build.out.trim());
       if (!build.ok) return json(res, 200, { ok: false, error: '生成失败，未提交', log: steps.join('\n\n') });
 
-      git(['add', 'posts', 'js/articles.js', 'js/novel-data.js', 'rss.xml', 'sitemap.xml']);
-      steps.push('$ git add posts js/articles.js js/novel-data.js rss.xml sitemap.xml\n' + git(['status', '--short']).out.trim());
+      git(['add', 'posts', 'js/articles.js', 'js/articles-meta.js', 'rss.xml', 'sitemap.xml']);
+      steps.push('$ git add posts js/articles.js js/articles-meta.js rss.xml sitemap.xml\n' + git(['status', '--short']).out.trim());
 
       if (dryRun) return json(res, 200, { ok: true, dryRun: true, log: steps.join('\n\n') + '\n\n（dry-run：未提交、未推送）' });
 

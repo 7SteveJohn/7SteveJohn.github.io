@@ -60,17 +60,13 @@
     nav: [
       { href: '#home', label: '概览' },
       { href: '#products', label: '工具' },
-      { href: '#ai', label: 'AI 学习' },
-      { href: '#blog', label: '技术手记' },
+      { href: '#blog', label: '文章' },
       { href: '#philosophy', label: '理念' },
       { href: '#about', label: '关于' }
     ],
 
     // ---- 首页「更多」下拉：内容栏目 + 站内入口 ----
-    more: [
-      { href: '#creation', label: '创作' },
-      { href: '#essays', label: '随笔' }
-    ],
+    more: [],
 
     // ---- 站内正经入口：必须出现在「首页更多 + 次级页导航 + 所有页页脚」----
     entries: [
@@ -78,9 +74,7 @@
       // 六款工具的介绍只在 js/projects.js 维护一份，入口收回首页「工具」区。
       { href: 'archive.html', label: '归档' },
       { href: 'gallery.html', label: '照片墙' },
-      // 2026-10-17 收回：花园 / 友链 / 连载 属于"社交与娱乐"，不服务本站「技术 + 产品分享」的定位，
-      // 已从所有入口下线（文件与样式仍留在仓库，需要时可一键恢复；也仍可直达 URL 访问）。
-      // 恢复方法：把这三条加回 entries + pages，再跑 node scripts/sync-chrome.mjs --write。
+      // 2026-10-17 下线、2026-11-26 彻底删除：花园 / 友链 / 连载（页面、样式、脚本、示例章节均已移除）。
     ],
 
     // ---- 外链：必须出现在所有页页脚 ----
@@ -96,11 +90,9 @@
       { href: 'index.html', label: '首页', title: '楠屿札记 · 本地 AI 应用与桌面工具', sitemap: true, priority: '1.0', changefreq: 'weekly' },
       { href: 'archive.html', label: '归档', title: '归档 · 时间河', sitemap: true, priority: '0.8', changefreq: 'weekly' },
       { href: 'gallery.html', label: '照片墙', title: '照片墙', sitemap: true, priority: '0.7', changefreq: 'monthly' },
-      // 已下线的三页不写进 sitemap（避免搜索引擎继续收录），页面本身仍在仓库里
-      { href: 'garden.html', label: '花园', title: '花园', sitemap: false, chrome: false },
-      { href: 'links.html', label: '友链', title: '友链与收藏', sitemap: false, chrome: false },
-      { href: 'novel.html', label: '连载', title: '连载', sitemap: false, chrome: false },
+      { href: 'cards.html', label: '札签', sitemap: false, chrome: false },
       { href: '404.html', label: '404', sitemap: false, chrome: false },
+      { href: 'live2d-preview.html', label: '看板娘调试台', sitemap: false, chrome: false },
       { href: 'cosmos-home.html', label: '星河随乐而舞（演示页）', sitemap: false, chrome: false }
     ]
   };

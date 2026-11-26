@@ -1,8 +1,8 @@
 /**
- * 内容生成：posts/*.md → js/articles.js（以及 posts/novel/** → js/novel-data.js）
+ * 内容生成：posts/*.md → js/articles.js（正文数据）+ js/articles-meta.js（列表元数据）
  * ----------------------------------------------------
  * 用法：
- *   node scripts/build-articles.mjs                  # 生成 articles.js + novel-data.js + rss/sitemap
+ *   node scripts/build-articles.mjs                  # 生成 articles.js + articles-meta.js + rss/sitemap
  *   node scripts/build-articles.mjs --check          # 只校验，不写文件（写作台保存前用）
  *   node scripts/build-articles.mjs --compare a.js   # 生成后把结果与 a.js 逐字段比对（迁移验收用）
  *
@@ -23,7 +23,6 @@ import { parseFrontMatter } from './lib/front-matter.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const POSTS = path.join(ROOT, 'posts');
-const NOVEL_DIR = path.join(POSTS, 'novel');
 const require = createRequire(import.meta.url);
 
 const argv = process.argv.slice(2);
@@ -177,70 +176,8 @@ ${items.join(',\n')}
 `;
 }
 
-// ---------------- 连载章节 ----------------
-// 章节是 posts/novel/<书>/<章节>.md（比文章多一层目录），这里递归一层取全
-function listNovelMd(dir) {
-  if (!fs.existsSync(dir)) return [];
-  const out = [];
-  fs.readdirSync(dir, { withFileTypes: true }).forEach((e) => {
-    const p = path.join(dir, e.name);
-    if (e.isDirectory()) listNovelMd(p).forEach((f) => out.push(f));
-    else if (e.name.endsWith('.md')) out.push(p);
-  });
-  return out;
-}
-
-function loadNovel() {
-  const files = listNovelMd(NOVEL_DIR).sort();
-  const books = new Map();
-  files.forEach((file) => {
-    const rel = path.relative(ROOT, file).replace(/\\/g, '/');
-    const { data, body, hasFrontMatter } = parseFrontMatter(fs.readFileSync(file, 'utf8'));
-    if (!hasFrontMatter) return warn(`${rel}：缺少 front matter，已跳过`);
-    if (!data.book || !data.chapter) return warn(`${rel}：缺 book / chapter`);
-    if (!books.has(data.book)) {
-      books.set(data.book, {
-        id: String(data.book),
-        title: String(data.bookTitle || data.book),
-        author: String(data.author || ''),
-        intro: String(data.intro || ''),
-        cover: data.bookCover ? String(data.bookCover) : '',
-        ...(data.bookSample === true ? { sample: true } : {}),
-        volumes: []
-      });
-    }
-    const book = books.get(data.book);
-    const volTitle = String(data.volume || '正文');
-    let vol = book.volumes.find((v) => v.title === volTitle);
-    if (!vol) { vol = { title: volTitle, chapters: [] }; book.volumes.push(vol); }
-    vol.chapters.push({
-      id: String(data.chapter),
-      title: String(data.chapterTitle || data.chapter),
-      order: Number(data.order || 0),
-      content: body.replace(/^\n+/, '').replace(/\s+$/, '')
-    });
-  });
-  return [...books.values()].map((b) => ({
-    ...b,
-    volumes: b.volumes.map((v) => ({ ...v, chapters: v.chapters.sort((x, y) => x.order - y.order).map(({ order, ...c }) => c) }))
-  }));
-}
-
-function renderNovel(books) {
-  return `/**
- * 连载数据（❗生成物，不要手改）
- * ----------------------------------------------------
- * 写作入口是 posts/novel/<book>/<章节>.md（front matter 里写书与卷），
- * 由 \`node scripts/build-articles.mjs\`（或本地写作台）生成这个文件。
- * 没有章节文件时这里就是空数组，novel.html 会显示书架空态。
- */
-window.NOVEL_BOOKS = ${JSON.stringify(books, null, 2)};
-`;
-}
-
 // ---------------- 主流程 ----------------
 const arts = loadArticles();
-const books = loadNovel();
 
 if (problems.length) {
   console.error('内容校验未通过：');
@@ -253,18 +190,17 @@ if (!arts.length) {
 }
 
 if (CHECK_ONLY) {
-  console.log(`✓ 校验通过：${arts.length} 篇文章${books.length ? `、${books.length} 本书` : ''}`);
+  console.log(`✓ 校验通过：${arts.length} 篇文章`);
   process.exit(0);
 }
 
 fs.writeFileSync(path.join(ROOT, 'js/articles.js'), renderArticles(arts));
 fs.writeFileSync(path.join(ROOT, 'js/articles-meta.js'), renderArticlesMeta(arts));
-fs.writeFileSync(path.join(ROOT, 'js/novel-data.js'), renderNovel(books));
 
 // RSS / sitemap 跟着一起刷新（gen-rss 读 js/articles.js 与 site-config.js）
 const rss = spawnSync(process.execPath, [path.join(ROOT, 'scripts/gen-rss.js')], { cwd: ROOT, stdio: 'inherit' });
 
-console.log(`✓ js/articles.js 已生成（${arts.length} 篇）· js/novel-data.js 已生成（${books.length} 本书）`);
+console.log(`✓ js/articles.js + js/articles-meta.js 已生成（${arts.length} 篇）`);
 
 // ---------------- 等价性比对（迁移验收）----------------
 if (COMPARE_WITH) {
