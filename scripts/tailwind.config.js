@@ -8,7 +8,9 @@
  */
 module.exports = {
   darkMode: 'class',
-  content: ['./index.html', './404.html', './js/**/*.js'],
+  content: ['./*.html', './js/**/*.js'],
+  // 过渡期兜底：旧缓存 HTML 里可能还带着 #0a0a0c 的深色类
+  safelist: ['dark:bg-[#0a0a0c]', 'dark:bg-[#0a0a0c]/80', 'dark:bg-[#0a0a0c]/95'],
   theme: {
     extend: {}
   },

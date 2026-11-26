@@ -383,3 +383,64 @@ html.novel-immersive .novel-float-exit {
     transform: none;
   }
 }
+
+/* ---------- 浅色模式（2026-11-26）：书架/工具栏/正文/抽屉 ---------- */
+html:not(.dark) .novel-book { background: rgba(255, 255, 255, 0.72); }
+html:not(.dark) .novel-meta b { color: #1d1d1f; }
+html:not(.dark) .novel-author,
+html:not(.dark) .novel-intro { color: #5b6472; }
+html:not(.dark) .novel-badge {
+  color: #0369a1;
+  border-color: rgba(3, 105, 161, 0.35);
+}
+html:not(.dark) .novel-cover {
+  background: linear-gradient(150deg, #e0f2fe, #bae6fd 70%);
+  color: #075985;
+}
+html:not(.dark) .novel-bar { background: rgba(255, 255, 255, 0.82); }
+html:not(.dark) .novel-bar .novel-headline b { color: #1d1d1f; }
+html:not(.dark) .novel-bar .novel-headline span { color: #5b6472; }
+html:not(.dark) .novel-btn {
+  border-color: rgba(18, 30, 60, 0.14);
+  background: rgba(255, 255, 255, 0.7);
+  color: #1d1d1f;
+}
+html:not(.dark) .novel-btn:hover:not(:disabled) {
+  border-color: rgba(3, 105, 161, 0.4);
+  background: rgba(56, 189, 248, 0.12);
+}
+html:not(.dark) .novel-ctl { color: #5b6472; }
+html:not(.dark) .novel-ctl output { color: #0369a1; }
+html:not(.dark) .novel-body { color: #2b3240; }
+html:not(.dark) .novel-body h3 { color: #1d1d1f; }
+html:not(.dark) .novel-body blockquote {
+  border-left-color: rgba(3, 105, 161, 0.35);
+  color: #0b4f6c;
+}
+html:not(.dark) .novel-body code { background: rgba(18, 30, 60, 0.06); }
+html:not(.dark) .novel-body pre { background: #f1f5f9; }
+html:not(.dark) .novel-pager {
+  border-top-color: rgba(18, 30, 60, 0.1);
+  color: #5b6472;
+}
+html:not(.dark) .novel-drawer {
+  border-left-color: rgba(18, 30, 60, 0.12);
+  background: rgba(255, 255, 255, 0.96);
+}
+html:not(.dark) .novel-drawer h2 { color: #1d1d1f; }
+html:not(.dark) .novel-vol { color: #6b7488; }
+html:not(.dark) .novel-toc-item { color: #5b6472; }
+html:not(.dark) .novel-toc-item:hover {
+  color: #1d1d1f;
+  background: rgba(18, 30, 60, 0.06);
+}
+html:not(.dark) .novel-toc-item.is-current {
+  color: #0369a1;
+  background: rgba(56, 189, 248, 0.12);
+  box-shadow: inset 2px 0 0 #0369a1;
+}
+html:not(.dark) .novel-tip {
+  border-color: rgba(3, 105, 161, 0.25);
+  background: rgba(56, 189, 248, 0.1);
+  color: #0b4f6c;
+}

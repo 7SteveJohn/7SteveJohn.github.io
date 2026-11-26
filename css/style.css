@@ -21,6 +21,8 @@ body {
 }
 .dark body {
   color: #f1f5f9;
+  /* 兜底：旧缓存 HTML 若还带着 dark:bg-[#0a0a0c]，新 Tailwind 产物里已没有这个类 */
+  background-color: #060911;
 }
 
 /* 展示标题：高精细度无衬线标题栈（紧致字距、极简现代科技感） */

@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>札签 · 楠屿札记</title>
 <meta name="description" content="楠屿札记的札签卷宗：把文章装进分类卷宗，拆签即读。">
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0a0a0c" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#060911" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d1d1f'/%3E%3Ctext x='32' y='43' font-family='Inter,-apple-system,sans-serif' font-size='34' font-weight='700' fill='white' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E">
 <link rel="preload" href="assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/fonts/inter.css">
@@ -15,7 +15,13 @@
   /* 主题与博客同键（sj.theme）：从博客跳进来、跳回去，明暗连续 */
   (function () {
     var isDark = false;
-    try { isDark = localStorage.getItem('sj.theme') === 'dark'; } catch (e) {}
+    try {
+      if (localStorage.getItem('sj.theme-v6') !== 'daylight-v1') {
+        localStorage.removeItem('sj.theme');
+        localStorage.setItem('sj.theme-v6', 'daylight-v1');
+      }
+      isDark = localStorage.getItem('sj.theme') === 'dark';
+    } catch (e) {}
     document.documentElement.classList.toggle('dark', isDark);
     var m = document.querySelector('meta[name="color-scheme"]');
     if (m) m.content = isDark ? 'dark' : 'light';

@@ -209,3 +209,29 @@
     transform: none;
   }
 }
+
+/* ---------- 浅色模式（2026-11-26）：卡片/搜索框原来只写了深色底 ---------- */
+html:not(.dark) .links-section > h2 { color: #1d1d1f; }
+html:not(.dark) .links-note,
+html:not(.dark) .link-card,
+html:not(.dark) .bm-card {
+  background: rgba(255, 255, 255, 0.72);
+}
+html:not(.dark) .link-body b,
+html:not(.dark) .bm-head b { color: #1d1d1f; }
+html:not(.dark) .links-note,
+html:not(.dark) .link-desc,
+html:not(.dark) .bm-desc { color: #5b6472; }
+html:not(.dark) .links-note a { color: #0369a1; }
+html:not(.dark) .bm-tags { color: #0369a1; }
+html:not(.dark) .bm-group { color: #6b7488; }
+html:not(.dark) .bm-search {
+  border-color: rgba(18, 30, 60, 0.14);
+  background: rgba(255, 255, 255, 0.72);
+}
+html:not(.dark) .bm-search input { color: #1d1d1f; }
+html:not(.dark) .bm-search input::placeholder { color: #6b7488; }
+html:not(.dark) .link-avatar {
+  background: linear-gradient(140deg, #e0f2fe, #bae6fd);
+  color: #075985;
+}
