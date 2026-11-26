@@ -175,17 +175,25 @@ self.addEventListener('fetch', (event) => {
     };
     const key = SWR_KEYS[path];
     if (key) {
-      // 页面导航采用网络优先策略：保证在线时永远即时拉取最新代码与版本，离线时秒级回退离线缓存
+      // 页面导航：缓存优先 + 后台校验（2026-11-26）。
+      // 之前是网络优先，每次站内跳转都要等一次跨海 TTFB（实测线上 0.9–1.0s）。
+      // 现在缓存里有就直接出，同时后台拉新版写回同一个键，下一次导航生效。
+      // 首次访问/换设备仍走网络，不会绕开部署。
+      // 用普通同源请求而不是导航请求去取：导航请求在 respondWith 返回缓存后
+      // 可能被浏览器中止，导致"后台校验"永远写不回来（实测）。
+      const refresh = new Request(req.url, { cache: 'no-cache', credentials: 'same-origin' });
+      const network = fetch(refresh).then((res) => {
+        if (res && res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then((cache) => cache.put(key, copy)).catch(() => {});
+        }
+        return res;
+      });
+      event.waitUntil(network.catch(() => {}));   // 同步注册，别等 await 之后再调
       event.respondWith(
-        fetch(req)
-          .then((res) => {
-            if (res && res.ok) {
-              const copy = res.clone();
-              caches.open(CACHE).then((cache) => cache.put(key, copy));
-            }
-            return res;
-          })
-          .catch(() => caches.match(key).then((cached) => cached || offlineFallback('离线：页面未缓存')))
+        caches.match(key)
+          .then((cached) => cached || network)
+          .catch(() => offlineFallback('离线：页面未缓存'))
       );
     } else {
       // 非首页 HTML：网络优先、离线回退缓存首页（低频页面，不值得各存一份）

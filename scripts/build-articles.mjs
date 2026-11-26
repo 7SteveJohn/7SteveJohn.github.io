@@ -152,6 +152,31 @@ ${items.join(',\n')}
 `;
 }
 
+// 归档页 / 任何只需要列表信息的页面用这份：省掉 90%+ 的正文体积
+function renderArticlesMeta(arts) {
+  const items = arts.map((a) => '  ' + JSON.stringify({
+    id: a.id,
+    title: a.title,
+    date: a.date,
+    readTime: a.readTime,
+    category: a.category,
+    ...(a.section ? { section: a.section } : {}),
+    summary: a.summary,
+    ...(a.cover ? { cover: a.cover } : {}),
+    tags: a.tags
+  }));
+  return `/**
+ * 文章元数据（❗生成物，不要手改）
+ * ----------------------------------------------------
+ * 与 js/articles.js 同源，只去掉 content 正文；
+ * 归档页这类「只列标题/日期/摘要」的页面加载这一份即可。
+ */
+window.ARTICLES_DATA = [
+${items.join(',\n')}
+];
+`;
+}
+
 // ---------------- 连载章节 ----------------
 // 章节是 posts/novel/<书>/<章节>.md（比文章多一层目录），这里递归一层取全
 function listNovelMd(dir) {
@@ -233,6 +258,7 @@ if (CHECK_ONLY) {
 }
 
 fs.writeFileSync(path.join(ROOT, 'js/articles.js'), renderArticles(arts));
+fs.writeFileSync(path.join(ROOT, 'js/articles-meta.js'), renderArticlesMeta(arts));
 fs.writeFileSync(path.join(ROOT, 'js/novel-data.js'), renderNovel(books));
 
 // RSS / sitemap 跟着一起刷新（gen-rss 读 js/articles.js 与 site-config.js）
