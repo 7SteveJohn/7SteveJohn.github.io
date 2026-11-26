@@ -150,7 +150,7 @@ node scripts/gen-rss.js
 | `js/wallpaper.js` + `assets/images/wallpaper*.webp` | 深空壁纸层门控、轮换、渐变兜底与档位判定（换壁纸=替换图片并在配置里登记） | 关闭开关：控制台 `localStorage['sj.wallpaper']='off'`，或左下角齿轮 |
 | `assets/vendor/live2d/`（运行时 + 模型，约 1.9MB） | 右下角 Live2D 看板娘资源（`waifu-tips.js` / `waifu.css` / `live2d.min.js` / `chunk/index.js` / `model/7steve/**` 自制模型 + `model/shizuku/**` 官方示例备用） | 重建或换模型：`node scripts/vendor-live2d.js`；来源与授权见目录内 `SOURCE.txt` |
 | `scripts/vendor-live2d.js` | 从隔离 node 工作区把看板娘运行时与模型搬进 `assets/vendor/live2d/`（跳过 800KB 交互音效并摘掉 `sound` 引用） | 依赖 `npm i live2d-widgets@1.0.1 live2d-widget-model-shizuku@1.0.5` |
-| `scripts/video-fx-smoke.mjs` | 全站验收：壁纸轮换/看板娘/归档/照片墙/按住 Tab/手机档/离线/降级/配置与设置面板/胶囊/目录/封面/灯箱/原生滚动/花园/链接页/连载阅读器/内容管线与写作台/首屏 bundle 与按需加载/弱机降档/下线校验 | `node scripts/dev-server.js` + `node scripts/video-fx-smoke.mjs` |
+| `scripts/video-fx-smoke.mjs` | 全站验收：壁纸轮换/看板娘/归档/照片墙/按住 Tab/手机档/离线/降级/配置与设置面板/胶囊/目录/封面/灯箱/原生滚动/内容管线与写作台/首屏 bundle 与按需加载/弱机降档/下线校验 | `node scripts/dev-server.js` + `node scripts/video-fx-smoke.mjs` |
 | `scripts/build-bundles.mjs` + `js/bundles/*.js` | 首屏脚本拼接器与六个生成物（core/home/sub/garden/links/novel） | 改 `js/` 源文件后 `node scripts/build-bundles.mjs` 重建；`--check` 验过期 |
 | `js/markdown-loader.js` | marked + purify 的按需加载器（`window.ensureMarkdown()`，Promise 去重、失败可重试） | 打开文章/项目/章节时自动触发，无需手调 |
 | `posts/`（+ `posts/novel/`） | **写作入口**：文章与章节的 Markdown 源文件（front matter + 正文） | 手写或用本地写作台；改完跑 `node scripts/build-articles.mjs` |
@@ -364,7 +364,7 @@ node scripts/studio/server.mjs      # http://127.0.0.1:8329
 node scripts/dev-server.js          # 另一个终端：预览线上效果 http://127.0.0.1:8328
 ```
 
-- 三栏界面：左侧清单（文章 + 连载，可搜索）· 中间元信息表单 + Markdown 编辑器 · 右侧实时预览（用站点自托管的 marked + purify，渲染与线上一致）。
+- 三栏界面：左侧清单（文章，可搜索）· 中间元信息表单 + Markdown 编辑器 · 右侧实时预览（用站点自托管的 marked + purify，渲染与线上一致）。
 - 按钮：**新建文章** / **新建章节** / **保存（Ctrl+S，写 md → 校验 → 生成）** / **仅生成** / **演练**（走一遍发布流程但不提交）/ **发布**（生成 + `git add` + commit + push）。
 - 图片：编辑封面时点「上传」，图片落 `assets/images/`；本机有 ffmpeg 会自动转 webp 并删掉原图。
 - 删除：不真删，移入 `.local/trash-<时间戳>/`（`.local/` 不入库），随后重新生成。
