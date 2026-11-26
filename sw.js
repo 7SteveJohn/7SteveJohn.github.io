@@ -18,7 +18,6 @@ const CORE = [
   '404.html',
   'css/style.css',
   'css/cosmos.css',
-  'css/companion.css',
   'css/cards.css',
   'assets/vendor/tailwind.css',
   'assets/vendor/marked.min.js',

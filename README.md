@@ -16,7 +16,7 @@
    - 📴 PWA 离线缓存（Service Worker）：断网也能读，可"添加到主屏幕"当 App 用；
  - 🌌 背景光粒子、滚动浮现编排、导航整页换页等编辑风动效（全量尊重 `prefers-reduced-motion`）；
    - 🎬 **参考视频移植的四项效果**（沿用站点原有深色语言，不改成浅色动漫风）：深空壁纸层 + 桌面磨砂玻璃、右下角 Live2D 看板娘（鼠标跟随即时摆动、可一键关闭）、波浪曲线「归档」页、照片墙灯箱，外加**按住 Tab** 唤出的快速导航。每一项都可单独关闭，加载失败一律静默退回原观感；维护方式见下文「[🎬 视频里的效果怎么维护](#-视频里的效果怎么维护)」一节。
-   - ⚙️ **显示设置面板**（左下角齿轮）：效果档位、壁纸模糊/亮度滑块、粒子/推理场/看板娘开关、一键还原；站名/社交/壁纸清单/页面清单收口在 `js/site-config.js`，`scripts/sync-chrome.mjs` 负责校验各页导航与页脚不漂移；文章卡支持封面图（没封面自动用品牌渐变 + 栏目首字）。见下文「[🧩 配置、观感与发布流程](#-配置观感与发布流程)」。
+   - 🧩 站名/社交/壁纸清单/页面清单收口在 `js/site-config.js`，`scripts/sync-chrome.mjs` 负责校验各页导航与页脚不漂移；文章卡支持封面图（没封面自动用品牌渐变 + 栏目首字）。见下文「[🧩 配置、观感与发布流程](#-配置观感与发布流程)」。
    - 🗂️ **已删除（2026-11-26）**：花园、链接页（友链 + 收藏）、连载。它们已于 2026-10-17 从导航/页脚/sitemap 摘除；2026-11-26 连同页面、样式、脚本与示例章节一起从仓库删除。
    - ✍️ **Markdown 写作管线 + 本地写作台**：文章与章节写在 `posts/*.md`，一条命令（或写作台的「保存/发布」）生成数据、RSS 与 sitemap；写作台只监听本机、界面里直接预览与上传图片，见下文「[✍️ 写作与发布](#️-写作与发布第-4-轮markdown-源文件--本地写作台)」。
   - 🖱️ **滚动保持原生**：不劫持滚轮、不做逐帧 `scrollTo` 的阻尼滚动（2026-10-17 撤掉 Lenis 式实现：实测滚轮停下后页面还会继续滑约 **989ms**、最长单帧 55ms，桌面指针手感发黏）。现在滚轮/触控板完全交给浏览器；只有锚点、回到顶部、Tab 快速导航这类**程序化跳转**才用原生 `scrollTo({ behavior: 'smooth' })`。想找回阻尼手感：控制台执行 `window.enableDampedScroll()`（仅当次会话）。
@@ -142,15 +142,13 @@ node scripts/gen-rss.js
 | `archive.html` + `css/archive.css` + `js/archive.js` | 波浪曲线「归档」页：全部文章按时间排在一条曲线上，点卡片回首页阅读弹窗 | 数据来自 `js/articles.js`，加文章无需改这里 |
 | `gallery.html` + `css/gallery.css` + `js/gallery.js` | 照片墙：混排网格 + 灯箱（←/→/Esc） | 加图只在 `js/gallery.js` 顶部 `GALLERY_DATA` 里加一条 |
 | `js/subpage.js` | 次级页共用外壳（SW 注册、导航滚动态、页脚年份、滚动浮现 `window.pageReveal`） | 一般无需改动 |
-| `js/tab-nav.js` + `css/style.css` 的 `#tabnav` 段 | 按住 Tab 唤出目录 / 快速导航（弹窗内列该文目录，页面上列章节与最近文章） | 阈值与节流在文件头 `HOLD` / `CYCLE_GAP` |
 | `js/site-config.js` + `scripts/sync-chrome.mjs` | 站点配置唯一来源（站名/社交/壁纸/页面/导航）+ 各页导航页脚一致性校验与注入 | 加页面改配置后跑 `node scripts/sync-chrome.mjs`；新页面用 chrome 标记块 + `--write` |
-| `js/settings-panel.js` + `css/settings-panel.css` | 左下角齿轮：档位、壁纸模糊/亮度滑杆、粒子/推理场/看板娘开关、一键还原 | 键名与语义见「[🧩 配置、观感与发布流程](#-配置观感与发布流程)」 |
 | `js/nav-indicator.js` | 导航当前项胶囊（跟 ScrollSpy 的 `.nav-active`，只动 transform/width） | 桌面细指针才启用；样式在 `css/style.css` 的 `.nav-pill` |
 | `scripts/make-wallpapers.mjs` + `assets/images/wallpaper-2/3.webp` | 程序化生成深空壁纸（ffmpeg 逐像素合成，零版权风险） | `node scripts/make-wallpapers.mjs [--force]`；轮换清单在 `SITE_CONFIG.wallpapers` |
-| `js/wallpaper.js` + `assets/images/wallpaper*.webp` | 深空壁纸层门控、轮换、渐变兜底与档位判定（换壁纸=替换图片并在配置里登记） | 关闭开关：控制台 `localStorage['sj.wallpaper']='off'`，或左下角齿轮 |
+| `js/wallpaper.js` + `assets/images/wallpaper*.webp` | 深空壁纸层门控、轮换、渐变兜底与档位判定（换壁纸=替换图片并在配置里登记） | 关闭开关：控制台 `localStorage['sj.wallpaper']='off'` |
 | `assets/vendor/live2d/`（运行时 + 模型，约 1.9MB） | 右下角 Live2D 看板娘资源（`waifu-tips.js` / `waifu.css` / `live2d.min.js` / `chunk/index.js` / `model/7steve/**` 自制模型 + `model/shizuku/**` 官方示例备用） | 重建或换模型：`node scripts/vendor-live2d.js`；来源与授权见目录内 `SOURCE.txt` |
 | `scripts/vendor-live2d.js` | 从隔离 node 工作区把看板娘运行时与模型搬进 `assets/vendor/live2d/`（跳过 800KB 交互音效并摘掉 `sound` 引用） | 依赖 `npm i live2d-widgets@1.0.1 live2d-widget-model-shizuku@1.0.5` |
-| `scripts/video-fx-smoke.mjs` | 全站验收：壁纸轮换/看板娘/归档/照片墙/按住 Tab/手机档/离线/降级/配置与设置面板/胶囊/目录/封面/灯箱/原生滚动/内容管线与写作台/首屏 bundle 与按需加载/弱机降档/下线校验 | `node scripts/dev-server.js` + `node scripts/video-fx-smoke.mjs` |
+| `scripts/video-fx-smoke.mjs` | 全站验收：壁纸轮换/看板娘/归档/照片墙/手机档/离线/降级/配置/胶囊/目录/封面/灯箱/原生滚动/内容管线与写作台/首屏 bundle 与按需加载/弱机降档/下线校验 | `node scripts/dev-server.js` + `node scripts/video-fx-smoke.mjs` |
 | `scripts/build-bundles.mjs` + `js/bundles/*.js` | 首屏脚本拼接器与六个生成物（core/home/sub/garden/links/novel） | 改 `js/` 源文件后 `node scripts/build-bundles.mjs` 重建；`--check` 验过期 |
 | `js/markdown-loader.js` | marked + purify 的按需加载器（`window.ensureMarkdown()`，Promise 去重、失败可重试） | 打开文章/项目/章节时自动触发，无需手调 |
 | `posts/`（+ `posts/novel/`） | **写作入口**：文章与章节的 Markdown 源文件（front matter + 正文） | 手写或用本地写作台；改完跑 `node scripts/build-articles.mjs` |
@@ -193,7 +191,6 @@ node scripts/gen-rss.js
 </details>
 ```
 
-**状态仪表盘**——编辑 [`js/status.js`](js/status.js) 的 `SITE_STATUS`（在读/在做/心情/更新日期），首页头像区自动展示；留空则整行隐藏。
 
 ## 💬 读者共创类功能接入指引（可选，需注册第三方服务）
 
@@ -247,12 +244,6 @@ node scripts/gen-rss.js
   ```
 - 灯箱：←/→ 切换、Esc 关闭、点遮罩关闭；打开时锁页面滚动，关闭后焦点回到那张图；大图 `loading="lazy"`，只预加载相邻两张。
 
-### 5. 按住 Tab 唤出目录 / 快速导航
-- 轻点 Tab：完全走浏览器原生焦点导航（这个功能不接管）。
-- **按住 Tab 约 180ms**：弹出玻璃浮层 —— 在文章阅读弹窗里列出该文目录；在页面上列出站点章节 + 最近文章。按住期间 Tab / Shift+Tab 循环高亮（200ms 节流，不容易选飞），**松开跳转**，Esc 取消。
-- 目标是弹窗内标题就在弹窗里滚；否则走站点既有的平滑滚动数学（顶部留 64px，`prefers-reduced-motion` 下瞬时跳）。
-- 取舍：为了「轻点仍是原生 Tab」，首次 keydown 不 preventDefault —— 代价是按住时可能闪一下焦点环，换来的是键盘可达性不因这个功能倒退。
-
 ### 6. 怎么验收
 ```bash
 node scripts/dev-server.js          # 终端 A：8328 静态服务（带 Range）
@@ -286,19 +277,6 @@ python -m http.server 8327  →  node scripts/cosmos-scan.mjs      # 背景引�
   ```
   （既有三页是手写块且带 `data-page-node-id`，脚本只校验不覆盖。）
 - **sitemap 不再被覆盖**：`scripts/gen-rss.js` 已改为从 `SITE_CONFIG.pages` 输出页面清单，顺手给首页写根路径、给各页带上 priority/changefreq。
-
-### 显示设置面板（左下角齿轮）
-
-| 项 | 作用 | 存储键 |
-| --- | --- | --- |
-| 效果档位 完整/轻档/关闭 | 等于 `?fx=full` / `?fx=lite` / `?fx=off` | `sj.wallpaper` |
-| 壁纸模糊 0–26px | 实时改 `--wp-blur` | `sj.wp-blur` |
-| 壁纸亮度 30–100% | 实时改 `--wp-dim` | `sj.wp-dim` |
-| 粒子层 / 推理场 / 看板娘 | 关掉对应引擎（刷新后彻底停） | `sj.particles` / `sj.cosmos` / `sj.live2d` |
-| 一键还原 | 清掉以上全部键并刷新 | — |
-
-- 滑杆与档位立即生效；粒子/推理场/看板娘是各自脚本启动阶段的早退开关，面板会先隐藏再提示刷新。
-- 档位那一行会告诉你「这台机器被自动判成轻档了」（= 之前那次掉帧的自动降档），想强制完整效果点「完整」即可。
 
 ### 壁纸轮换与生成
 

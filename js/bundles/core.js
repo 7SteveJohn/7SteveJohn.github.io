@@ -1,9 +1,9 @@
-// build-bundles: {"name":"core","version":"eecf378cd1e2","sources":[{"path":"js/site-config.js","sha256":"8436bfd99362f75a67f43ff5bbb3402c9d7c008d415bde63405a17a086debbe1"},{"path":"js/markdown-loader.js","sha256":"d261463a15a120ce15d2741db0cc5d32709af51871cea4c552ec9b95c55de260"},{"path":"js/wallpaper.js","sha256":"7a99fdc106195d43bb2e518a6ffb32c5d2d61886db933ac145b4321940e4b067"},{"path":"js/particles.js","sha256":"b59b788650a6c595efc98033d3285ca9194e2937a3d24cacf7e9ce394178fa7c"}]}
+// build-bundles: {"name":"core","version":"7a71cc8fa883","sources":[{"path":"js/site-config.js","sha256":"4e4b3fdeeaf90cd64efaf391cc21a1a0ed5f56617f739424c8455fd168761542"},{"path":"js/markdown-loader.js","sha256":"d261463a15a120ce15d2741db0cc5d32709af51871cea4c552ec9b95c55de260"},{"path":"js/wallpaper.js","sha256":"7a99fdc106195d43bb2e518a6ffb32c5d2d61886db933ac145b4321940e4b067"},{"path":"js/particles.js","sha256":"b59b788650a6c595efc98033d3285ca9194e2937a3d24cacf7e9ce394178fa7c"}]}
 /* 6 页共用：配置 → Markdown 按需加载器 → 壁纸 → 粒子
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/site-config.js → js/markdown-loader.js → js/wallpaper.js → js/particles.js */
 
-// ---- js/site-config.js (8436bfd99362) ----
+// ---- js/site-config.js (4e4b3fdeeaf9) ----
 /**
  * 站点配置唯一来源（浏览器与 Node 共用，零依赖）
  * ----------------------------------------------------
@@ -55,8 +55,9 @@
     // ---- 功能开关 ----
     // 看板娘「7steve」（2.5D 分层弹簧骨骼立绘 + 场景感知联动 + 快捷丸栏，2026-11-18 上线）：
     // 无损矢量分层 + 胡克定律弹簧物理（~25KB、零 WebGL、明暗自适应），取代早期 1.9MB Live2D .moc3 方案。
-    // companion 控制新版 2.5D 看板娘挂载；live2d 保持 false 以继续屏蔽旧版 waifu 运行时与旧设置开关。
-    companion: true,
+    // 2026-11-18 临时下线 2.5D 看板娘：index 里的 CSS/JS 标签已摘，脚本与素材保留；恢复时把这里改回 true 并加回两处标签。
+    // live2d 保持 false 以继续屏蔽旧版 waifu 运行时与旧设置开关。
+    companion: false,
     live2d: false,
 
     // ---- 文章封面：没写 cover 的文章用「品牌渐变 + 栏目首字」自动封面 ----

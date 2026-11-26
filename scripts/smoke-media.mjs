@@ -10,7 +10,7 @@ import fs from 'node:fs';
 import { devRequire as require } from './_dev-require.mjs';
 const { chromium } = require('playwright-core');
 const BASE = 'http://localhost:8328/';   // localhost（app.js 仅 localhost/HTTPS 注册 SW）+ Range 服务器（贴近生产行为）
-const CACHE_NAME = 'sevenjohn-v157';     // 与 sw.js 顶部 CACHE 同步改
+const CACHE_NAME = (fs.readFileSync('sw.js', 'utf8').match(/const CACHE = '([^']+)'/) || [])[1];
 
 let pass = 0, fail = 0;
 const ok = (n, extra) => { pass++; console.log('PASS  ' + n + (extra ? '  ' + extra : '')); };
@@ -23,10 +23,10 @@ const b = await chromium.launch({
 });
 
 async function cacheKeys(pg, filter) {
-  return pg.evaluate(async (f) => {
-    const cache = await caches.open('sevenjohn-v157');
+  return pg.evaluate(async ({ f, name }) => {
+    const cache = await caches.open(name);
     return (await cache.keys()).map((r) => r.url).filter((u) => u.includes(f));
-  }, filter);
+  }, { f: filter, name: CACHE_NAME });
 }
 async function hasExact(pg, suffix) {
   const keys = await cacheKeys(pg, 'music/');
@@ -96,12 +96,12 @@ let playMs = -1;
     (garbage ? bad : ok)('R1-c-i 劫持防御：204 空响应未污染缓存', 'music/attention 键=' + keys.length);
     try {
       const b64 = fs.readFileSync('D:/HTML/music/attention.mp3').toString('base64');
-      await pg.evaluate(async (b64) => {
+      await pg.evaluate(async ({ b64, name }) => {
         const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-        const cache = await caches.open('sevenjohn-v157');
+        const cache = await caches.open(name);
         await cache.put(location.origin + '/music/attention.mp3', new Response(bytes, { headers: { 'Content-Type': 'audio/mpeg' } }));
         return (await cache.match(location.origin + '/music/attention.mp3')) !== null;
-      }, b64);
+      }, { b64, name: CACHE_NAME });
       ok('R1-c-ii 全曲入库（磁盘直灌，模拟未被劫持环境）', '后续用它验证离线可播');
     } catch (e) {
       bad('R1-c-ii 全曲入库（磁盘直灌）', String(e).slice(0, 100));
@@ -285,11 +285,11 @@ await ctx.close();
   // 磁盘直灌全曲（绕过本机 IDM 劫持；干净网络下这一步由 prefetch-media 自然完成）
   try {
     const b64 = fs.readFileSync('D:/HTML/music/attention.mp3').toString('base64');
-    await p3.evaluate(async (b64) => {
+    await p3.evaluate(async ({ b64, name }) => {
       const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-      const cache = await caches.open('sevenjohn-v157');
+      const cache = await caches.open(name);
       await cache.put(location.origin + '/music/attention.mp3', new Response(bytes, { headers: { 'Content-Type': 'audio/mpeg' } }));
-    }, b64);
+    }, { b64, name: CACHE_NAME });
   } catch (e) { console.log('      [seed err]', String(e).slice(0, 80)); }
   const cdp3 = await p3.context().newCDPSession(p3);
   await cdp3.send('Network.enable');
