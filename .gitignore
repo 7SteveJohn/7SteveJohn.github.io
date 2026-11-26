@@ -30,3 +30,13 @@ assets/vendor/live2d/
 js/companion.js
 js/companion-avatar.js
 css/companion.css
+
+# 本地归档文档（交付记录/截图，不参与部署；本地仍可翻阅）
+docs/
+
+# 已被 WebP 替代的原图（保留本地，不再上传）
+assets/images/*-tour-poster.jpg
+assets/images/covers/cover-dlssg.svg
+assets/images/covers/cover-fluxion.svg
+assets/images/covers/cover-netops.svg
+assets/images/covers/cover-paian.svg

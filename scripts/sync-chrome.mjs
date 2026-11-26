@@ -15,6 +15,7 @@
  *     是可视化编辑器依赖的属性），本脚本对它们只校验、不重写。
  */
 import fs from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
@@ -93,7 +94,10 @@ const BLOCK = (name) =>
 // ---------------- 校验 ----------------
 console.log('== 站点外壳一致性（js/site-config.js 为准）==');
 
-const onDisk = fs.readdirSync(ROOT).filter((f) => f.endsWith('.html'));
+const ignoredPage = (f) => {
+  try { execFileSync('git', ['check-ignore', '-q', f], { cwd: ROOT }); return true; } catch (e) { return false; }
+};
+const onDisk = fs.readdirSync(ROOT).filter((f) => f.endsWith('.html') && !ignoredPage(f));
 const registered = new Set(CFG.pages.map((p) => p.href));
 const unregistered = onDisk.filter((f) => !registered.has(f));
 assert(unregistered.length === 0, `根目录 HTML 全部已登记（${onDisk.length} 个）`, unregistered.join(','));
