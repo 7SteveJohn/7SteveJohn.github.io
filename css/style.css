@@ -4183,23 +4183,12 @@ html.dark #philosophy .phil-card:hover {
 
 /* ============================================================
    Modern Web Platform Enhancements
-   1. 跨文档原生平滑转场 (@view-transition) + 无障碍减少动效保护
-   2. 首屏以下长列表延迟布局绘制 (content-visibility: auto)
-   3. 零 DOM 侵入搜索高亮巡航 (CSS Custom Highlight API ::highlight)
+   1. 长列表延迟布局绘制 (content-visibility: auto)
+   2. 零 DOM 侵入搜索高亮巡航 (CSS Custom Highlight API ::highlight)
+   注：跨文档 @view-transition 已撤（2026-11-26）——
+       首屏 3D 画布做旧页快照要 ~600ms，站内跳转反而更慢。
+       页内主题切换/卡片展开的 View Transition 不受影响。
    ============================================================ */
-@media (prefers-reduced-motion: no-preference) {
-  @view-transition {
-    navigation: auto;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-group(*),
-  ::view-transition-old(*),
-  ::view-transition-new(*) {
-    animation: none !important;
-  }
-}
 
 #articles-list > article {
   content-visibility: auto;

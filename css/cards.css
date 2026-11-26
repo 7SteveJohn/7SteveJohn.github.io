@@ -1575,16 +1575,11 @@ html.dark .cards-scope .reader{background:#0d1220}
   }
 }
 
-/* 独立札签页跨文档转场、color-scheme 同步与总目录渲染减负 */
+/* 独立札签页 color-scheme 同步与总目录渲染减负
+   （跨文档 @view-transition 已撤：旧页快照代价 > 省下的切换感） */
 :root { color-scheme: light dark; }
 :root:has(> head > meta[name="color-scheme"][content="dark"]), html.dark { color-scheme: dark; }
 :root:has(> head > meta[name="color-scheme"][content="light"]):not(.dark) { color-scheme: light; }
-@media (prefers-reduced-motion: no-preference) {
-  @view-transition { navigation: auto; }
-}
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
-}
 .cards-scope .cat-group {
   content-visibility: auto;
   contain-intrinsic-size: auto none auto 220px;
