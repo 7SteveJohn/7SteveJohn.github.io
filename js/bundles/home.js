@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"a2d02a7afce5","sources":[{"path":"js/search.js","sha256":"09d12f167d1105d1616278784f2305cf193616627aaa1ceeebe8fcdfac3633b7"},{"path":"js/video-gate.js","sha256":"77b852ecf52b71222129ce6a045ec18170e902964dc7871562df632d77c33137"},{"path":"js/app.js","sha256":"295d8e91410ffbde3e94cd4bfaa815066874d6e6ebd7137233e487fb75069eb4"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"abac1dd86a726f4ab33392d80aabbdfe1cd429937429330de8924998f16dec6c"}]}
+// build-bundles: {"name":"home","version":"67672f8ecc19","sources":[{"path":"js/search.js","sha256":"09d12f167d1105d1616278784f2305cf193616627aaa1ceeebe8fcdfac3633b7"},{"path":"js/video-gate.js","sha256":"1728219cd2540a794d3eb0b3d0535141e1080b213e31b7bf14c8d0fa7fa4c7f9"},{"path":"js/app.js","sha256":"295d8e91410ffbde3e94cd4bfaa815066874d6e6ebd7137233e487fb75069eb4"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"abac1dd86a726f4ab33392d80aabbdfe1cd429937429330de8924998f16dec6c"}]}
 /* 仅首页：搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -314,7 +314,7 @@
 
 ;
 
-// ---- js/video-gate.js (77b852ecf52b) ----
+// ---- js/video-gate.js (1728219cd254) ----
 /**
  * 介绍视频「海报 + 播放键」体验（2026-09-30，C1；同日修不显示 bug）
  * ----------------------------------------------------
@@ -327,6 +327,41 @@
  */
 (function () {
   'use strict';
+
+  // 近屏预热：只把起播需要的一小段缓冲好（canplay 即停），换取点击零等待。
+  // 2G / 省流量模式不预热——这类链路上多拉 100KB 比多等半秒更明显。
+  const canWarm = (() => {
+    const c = navigator.connection;
+    return !(c && (c.saveData || /(^|-)2g$/.test(c.effectiveType || '')));
+  })();
+  let warmScheduled = false;
+
+  function warm(v) {
+    if (!canWarm || !v || v.dataset.warmed) return;
+    v.dataset.warmed = '1';
+    v.preload = 'auto';
+    const stop = () => {
+      v.removeEventListener('canplay', stop);
+      if (v.paused) v.preload = 'none';      // 够起播就收手，不把整支片拉完
+    };
+    v.addEventListener('canplay', stop);
+    setTimeout(stop, 10000);
+  }
+
+  function scheduleWarm() {
+    if (warmScheduled || !('IntersectionObserver' in window)) return;
+    warmScheduled = true;
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (!en.isIntersecting) return;
+        const v = en.target.querySelector('video.cover-video');
+        io.unobserve(en.target);
+        warm(v);
+      });
+    }, { rootMargin: '100% 0px' });
+    document.querySelectorAll('#products .cover-box').forEach((box) => io.observe(box));
+  }
+
   function init() {
     document.querySelectorAll('#products video.cover-video').forEach((v) => {
       if (v.dataset.playGate) return;
@@ -342,29 +377,51 @@
         '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>' +
         '</button>';
 
+      let opening = false;
       function open() {
-        layer.remove();
+        if (opening) return;
+        opening = true;
+        // 海报先留着：等真正出画（playing）再撤覆盖层，避免点完先闪一块黑。
+        layer.classList.add('is-loading');
         v.preload = 'auto';
         v.setAttribute('controls', '');
-        v.play().catch(() => {});               // 用户手势内，直接起播
-        v.focus({ preventScroll: true });       // 键盘用户焦点落回视频
+        const reveal = () => {
+          v.removeEventListener('playing', reveal);
+          opening = false;
+          layer.remove();
+          v.focus({ preventScroll: true });     // 键盘用户焦点落回视频
+        };
+        v.addEventListener('playing', reveal);
+        v.play().catch(() => {                  // 用户手势内，直接起播
+          opening = false;
+          layer.classList.remove('is-loading');
+          v.removeAttribute('controls');
+        });
       }
       function close() {
         if (!layer.isConnected && !v.paused) return;
         if (!layer.isConnected) box.appendChild(layer);
+        layer.classList.remove('is-loading');
         v.removeAttribute('controls');
       }
       layer.addEventListener('click', open);
       v.addEventListener('ended', close);
       v.addEventListener('pause', close);       // 暂停也收回控制条，回到海报态
-      v.addEventListener('play', () => { layer.remove(); });
       box.appendChild(layer);
 
       // 点击播放前保持 preload=none，避免浏览页面时后台抢跑下载 20MB+ 视频
       if (v.preload !== 'none') {
         v.preload = 'none';
       }
+
+      // 桌面端悬停即视为播放意图，比 IntersectionObserver 再早一步
+      box.addEventListener('pointerenter', () => warm(v), { once: true });
     });
+
+    // 等首屏稳定后再预热，别和 FCP 抢带宽
+    const kick = () => setTimeout(scheduleWarm, 800);
+    if (document.readyState === 'complete') kick();
+    else window.addEventListener('load', kick, { once: true });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

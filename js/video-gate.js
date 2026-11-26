@@ -10,6 +10,41 @@
  */
 (function () {
   'use strict';
+
+  // 近屏预热：只把起播需要的一小段缓冲好（canplay 即停），换取点击零等待。
+  // 2G / 省流量模式不预热——这类链路上多拉 100KB 比多等半秒更明显。
+  const canWarm = (() => {
+    const c = navigator.connection;
+    return !(c && (c.saveData || /(^|-)2g$/.test(c.effectiveType || '')));
+  })();
+  let warmScheduled = false;
+
+  function warm(v) {
+    if (!canWarm || !v || v.dataset.warmed) return;
+    v.dataset.warmed = '1';
+    v.preload = 'auto';
+    const stop = () => {
+      v.removeEventListener('canplay', stop);
+      if (v.paused) v.preload = 'none';      // 够起播就收手，不把整支片拉完
+    };
+    v.addEventListener('canplay', stop);
+    setTimeout(stop, 10000);
+  }
+
+  function scheduleWarm() {
+    if (warmScheduled || !('IntersectionObserver' in window)) return;
+    warmScheduled = true;
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (!en.isIntersecting) return;
+        const v = en.target.querySelector('video.cover-video');
+        io.unobserve(en.target);
+        warm(v);
+      });
+    }, { rootMargin: '100% 0px' });
+    document.querySelectorAll('#products .cover-box').forEach((box) => io.observe(box));
+  }
+
   function init() {
     document.querySelectorAll('#products video.cover-video').forEach((v) => {
       if (v.dataset.playGate) return;
@@ -25,29 +60,51 @@
         '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>' +
         '</button>';
 
+      let opening = false;
       function open() {
-        layer.remove();
+        if (opening) return;
+        opening = true;
+        // 海报先留着：等真正出画（playing）再撤覆盖层，避免点完先闪一块黑。
+        layer.classList.add('is-loading');
         v.preload = 'auto';
         v.setAttribute('controls', '');
-        v.play().catch(() => {});               // 用户手势内，直接起播
-        v.focus({ preventScroll: true });       // 键盘用户焦点落回视频
+        const reveal = () => {
+          v.removeEventListener('playing', reveal);
+          opening = false;
+          layer.remove();
+          v.focus({ preventScroll: true });     // 键盘用户焦点落回视频
+        };
+        v.addEventListener('playing', reveal);
+        v.play().catch(() => {                  // 用户手势内，直接起播
+          opening = false;
+          layer.classList.remove('is-loading');
+          v.removeAttribute('controls');
+        });
       }
       function close() {
         if (!layer.isConnected && !v.paused) return;
         if (!layer.isConnected) box.appendChild(layer);
+        layer.classList.remove('is-loading');
         v.removeAttribute('controls');
       }
       layer.addEventListener('click', open);
       v.addEventListener('ended', close);
       v.addEventListener('pause', close);       // 暂停也收回控制条，回到海报态
-      v.addEventListener('play', () => { layer.remove(); });
       box.appendChild(layer);
 
       // 点击播放前保持 preload=none，避免浏览页面时后台抢跑下载 20MB+ 视频
       if (v.preload !== 'none') {
         v.preload = 'none';
       }
+
+      // 桌面端悬停即视为播放意图，比 IntersectionObserver 再早一步
+      box.addEventListener('pointerenter', () => warm(v), { once: true });
     });
+
+    // 等首屏稳定后再预热，别和 FCP 抢带宽
+    const kick = () => setTimeout(scheduleWarm, 800);
+    if (document.readyState === 'complete') kick();
+    else window.addEventListener('load', kick, { once: true });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

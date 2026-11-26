@@ -741,6 +741,22 @@ html:not(.dark) .bento-card [data-card-desc] {
 }
 .video-play-btn:hover { transform: scale(1.06); background: rgba(8, 10, 16, 0.72); }
 .video-play-btn svg { width: 1.6rem; height: 1.6rem; }
+
+/* 起播中：海报不撤、按钮收一下，避免点完先闪一块黑 */
+.video-play-gate.is-loading { cursor: progress; }
+.video-play-gate.is-loading .video-play-btn {
+  opacity: 0.55;
+  transform: scale(0.92);
+  pointer-events: none;
+}
+.video-play-gate.is-loading .video-play-btn svg { animation: gate-wait 1.1s ease-in-out infinite; }
+@keyframes gate-wait {
+  0%, 100% { opacity: 0.45; }
+  50%      { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .video-play-gate.is-loading .video-play-btn svg { animation: none; opacity: 1; }
+}
 /* ===== 旗舰产品大卡：单屏完整呈现、左右双栏、透出 3D 神经网络背景 ===== */
 #products {
   /* 卡片内部使用自身透视引擎，父级保持独立流式定位，避免双重透视导致的 Z 轴穿透裁剪 */
