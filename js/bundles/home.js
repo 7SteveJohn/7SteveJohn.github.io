@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"67672f8ecc19","sources":[{"path":"js/search.js","sha256":"09d12f167d1105d1616278784f2305cf193616627aaa1ceeebe8fcdfac3633b7"},{"path":"js/video-gate.js","sha256":"1728219cd2540a794d3eb0b3d0535141e1080b213e31b7bf14c8d0fa7fa4c7f9"},{"path":"js/app.js","sha256":"295d8e91410ffbde3e94cd4bfaa815066874d6e6ebd7137233e487fb75069eb4"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"abac1dd86a726f4ab33392d80aabbdfe1cd429937429330de8924998f16dec6c"}]}
+// build-bundles: {"name":"home","version":"74fc5af8991b","sources":[{"path":"js/search.js","sha256":"09d12f167d1105d1616278784f2305cf193616627aaa1ceeebe8fcdfac3633b7"},{"path":"js/video-gate.js","sha256":"558d88878cacf814d93cdf70f2dd0d0e21245e2e5b1fc50e6b24a38fa1b91d4c"},{"path":"js/app.js","sha256":"295d8e91410ffbde3e94cd4bfaa815066874d6e6ebd7137233e487fb75069eb4"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"abac1dd86a726f4ab33392d80aabbdfe1cd429937429330de8924998f16dec6c"}]}
 /* 仅首页：搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -314,7 +314,7 @@
 
 ;
 
-// ---- js/video-gate.js (1728219cd254) ----
+// ---- js/video-gate.js (558d88878cac) ----
 /**
  * 介绍视频「海报 + 播放键」体验（2026-09-30，C1；同日修不显示 bug）
  * ----------------------------------------------------
@@ -418,10 +418,11 @@
       box.addEventListener('pointerenter', () => warm(v), { once: true });
     });
 
-    // 等首屏稳定后再预热，别和 FCP 抢带宽
-    const kick = () => setTimeout(scheduleWarm, 800);
-    if (document.readyState === 'complete') kick();
-    else window.addEventListener('load', kick, { once: true });
+    // 只在用户真的开始逛产品区（滚动）后才预热：
+    // 首屏不占带宽，站内跳转也不会被视频预取抢道。
+    const arm = () => scheduleWarm();
+    window.addEventListener('scroll', arm, { once: true, passive: true });
+    if (window.scrollY > 0) arm();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

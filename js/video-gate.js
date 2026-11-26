@@ -101,10 +101,11 @@
       box.addEventListener('pointerenter', () => warm(v), { once: true });
     });
 
-    // 等首屏稳定后再预热，别和 FCP 抢带宽
-    const kick = () => setTimeout(scheduleWarm, 800);
-    if (document.readyState === 'complete') kick();
-    else window.addEventListener('load', kick, { once: true });
+    // 只在用户真的开始逛产品区（滚动）后才预热：
+    // 首屏不占带宽，站内跳转也不会被视频预取抢道。
+    const arm = () => scheduleWarm();
+    window.addEventListener('scroll', arm, { once: true, passive: true });
+    if (window.scrollY > 0) arm();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
