@@ -3336,7 +3336,6 @@ html:not(.dark) .announce-line {
   color: #64748b;
   transition: all 0.2s ease;
   cursor: pointer;
-  outline: none !important;
 }
 .modal-close-btn:hover {
   background: rgba(0, 0, 0, 0.06);
@@ -3349,10 +3348,16 @@ html:not(.dark) .announce-line {
   background: rgba(255, 255, 255, 0.12);
   color: #ffffff;
 }
-.modal-close-btn:focus,
+.modal-close-btn:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+}
 .modal-close-btn:focus-visible {
-  outline: none !important;
-  box-shadow: none !important;
+  outline: 2px solid #0071e3;
+  outline-offset: 2px;
+}
+.dark .modal-close-btn:focus-visible {
+  outline-color: #38bdf8;
 }
 
 /* 长文阅读弹窗：极细微流动阅读进度条 */

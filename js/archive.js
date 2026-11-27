@@ -33,7 +33,8 @@
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   const articles = (window.ARTICLES_DATA || [])
-    .toSorted((a, b) => (b.date || '').localeCompare(a.date || ''));
+    .slice()
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   const sectionName = (a) => {
     const s = SECTIONS.find((x) => x.key !== 'all' && x.match(a));

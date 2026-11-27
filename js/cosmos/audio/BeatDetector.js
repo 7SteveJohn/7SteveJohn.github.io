@@ -50,7 +50,7 @@ export class BeatDetector {
     return this.pulse;
   }
   _median(arr) {
-    const s = arr.toSorted((a, b) => a - b);
+    const s = arr.slice().sort((a, b) => a - b);
     const mid = s.length >> 1;
     return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
   }

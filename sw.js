@@ -11,32 +11,32 @@
  * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
  * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
  */
-const CACHE = 'sevenjohn-v300';   // 2026-11-18 预置阅读器与抽卡核心脚本，消除等待
+const CACHE = 'sevenjohn-v301';   // 2026-11-27 首屏拆正文、版本对齐与去重预缓存
 const CORE = [
-  './',
   'index.html',
   '404.html',
-  'css/style.css',
-  'css/cosmos.css',
-  'css/cards.css',
+  'archive.html',
+  'gallery.html',
+  'cards.html',
+  'css/style.css?v=20261127a',
+  'css/cosmos.css?v=20261118c2',
+  'css/cards.css?v=20261127a',
+  'css/archive.css?v=20261107_v245',
+  'css/gallery.css?v=20261107_v245',
   'assets/vendor/tailwind.css',
+  'assets/vendor/lucide.min.js',
   'assets/vendor/marked.min.js',
   'assets/vendor/purify.min.js',
-  'js/bundles/core.js',
-  'js/bundles/home.js',
-  'js/cards.js',
-  // 归档首跳：这几个文件不在首页加载，装 SW 时一起备好，避免第一次点「归档」现拉
-  'archive.html',
-  'css/archive.css?v=20261107_v245',
-  'js/archive.js?v=20261118c',
-  'js/articles-meta.js?v=20261126a',
-  'js/bundles/sub.js?v=20261118mwg2',
-  // 照片墙同样在「更多」里，一并备好
-  'gallery.html',
-  'css/gallery.css?v=20261107_v245',
-  'js/gallery.js?v=20261107_v245',
-  'js/bundles/core.js?v=20261118e',
-  'js/bundles/sub.js?v=20261107_v245',
+  'js/projects.js?v=20261118j',
+  'js/articles-meta.js?v=20261127a',
+  'js/articles.js?v=20261127a',
+  'js/markdown-loader.js?v=20261127a',
+  'js/bundles/core.js?v=20261127a',
+  'js/bundles/home.js?v=20261127a',
+  'js/bundles/sub.js?v=20261127a',
+  'js/cards.js?v=20261127a',
+  'js/archive.js?v=20261127a',
+  'js/gallery.js?v=20261126w',
   'assets/fonts/inter.css',
   'assets/fonts/inter-var-latin.woff2',
   'assets/images/avatar.webp',
@@ -122,7 +122,10 @@ async function handleRange(req) {
   if (!net) {
     await prefetch(req.url);
     const again = await caches.match(req, { ignoreVary: true });
-    if (again) return slice206(req, await again.arrayBuffer(), (await again.arrayBuffer()).byteLength, again.headers.get('Content-Type'));
+    if (again) {
+      const buf = await again.arrayBuffer();
+      if (buf.byteLength) return slice206(req, buf, buf.byteLength, again.headers.get('Content-Type'));
+    }
     return offlineFallback('离线：音频未缓存，请联网播放一次');
   }
 

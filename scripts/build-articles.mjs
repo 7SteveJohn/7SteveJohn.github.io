@@ -57,6 +57,13 @@ function parseTitleOrder(title) {
   return Infinity;
 }
 
+function estimateReadTime(text) {
+  const plain = String(text || '').replace(/```[\s\S]*?```/g, ' ').replace(/[#>*`\-\[\]()!]/g, '');
+  const cjk = (plain.match(/[\u4e00-\u9fff]/g) || []).length;
+  const latin = (plain.match(/[A-Za-z0-9]+/g) || []).length;
+  return `${Math.max(1, Math.round(cjk / 400 + latin / 200))} 分钟`;
+}
+
 function listMd(dir) {
   if (!fs.existsSync(dir)) return [];
   return fs.readdirSync(dir).filter((f) => f.endsWith('.md')).map((f) => path.join(dir, f));
@@ -88,7 +95,7 @@ function loadArticles() {
       id: String(data.id),
       title: String(data.title || ''),
       date: String(data.date || ''),
-      readTime: String(data.readTime || ''),
+      readTime: String(data.readTime || estimateReadTime(body)),
       category: String(data.category || (data.section === 'creation' ? '小说' : '技术手记'))
     };
     if (data.section) art.section = String(data.section);

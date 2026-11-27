@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>札签 · 楠屿札记</title>
 <meta name="description" content="楠屿札记的札签卷宗：把文章装进分类卷宗，拆签即读。">
-<meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#060911" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f8fafc">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d1d1f'/%3E%3Ctext x='32' y='43' font-family='Inter,-apple-system,sans-serif' font-size='34' font-weight='700' fill='white' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E">
 <link rel="preload" href="assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/fonts/inter.css">
@@ -25,6 +24,8 @@
     document.documentElement.classList.toggle('dark', isDark);
     var m = document.querySelector('meta[name="color-scheme"]');
     if (m) m.content = isDark ? 'dark' : 'light';
+    var tc = document.querySelector('meta[name="theme-color"]');
+    if (tc) tc.content = isDark ? '#060911' : '#f8fafc';
   })();
 </script>
 <script type="speculationrules">
@@ -52,7 +53,7 @@
   }]
 }
 </script>
-<link rel="stylesheet" href="css/cards.css?v=20261126c">
+<link rel="stylesheet" href="css/cards.css?v=20261127a">
 <style>
   /* 独立页壳样式：body 级规则、VT 时长、顶栏/页脚。
      体验本体（卷宗/牌堆/阅读/总目/托盘）在 css/cards.css，按 .cards-scope 作用域。 */
@@ -73,8 +74,11 @@
 .site-links a{font-size:12px;color:var(--ink-soft);text-decoration:none;transition:color .2s}
 .site-links a:hover{color:var(--ink)}
 #themeToggle{padding:5px 10px;font-size:12px;line-height:1}
+.site-home-link{display:none}
 @media (max-width:560px){
-  .site-links a{display:none}          /* 窄屏只留品牌 + 主题钮，链接回首页根路径可达 */
+  .site-links{gap:10px}
+  .site-links a:not(.site-home-link){display:none}
+  .site-links a.site-home-link{display:inline-flex;align-items:center}
 }
 .site-foot{
   background:var(--foot-bg);
@@ -87,9 +91,10 @@
 
 <header class="site-top">
   <div class="site-top-in">
-    <a class="site-brand" href="./">楠屿札记</a>
+    <a class="site-brand" href="index.html">楠屿札记</a>
     <nav class="site-links">
-      <a href="./#blog">文章</a>
+      <a class="site-home-link" href="index.html">首页</a>
+      <a href="index.html#blog">文章</a>
       <a href="archive.html">归档</a>
       <button id="themeToggle" class="btn" type="button" aria-label="切换明暗">☾</button>
     </nav>
@@ -101,14 +106,21 @@
 
 <footer class="site-foot">© 2026 楠屿札记 · 慢慢写，慢慢看</footer>
 
-<script src="js/articles.js?v=20261118c"></script>
-<script src="js/markdown-loader.js"></script>
-<script src="js/cards.js?v=20261118q"></script>
+<script src="js/articles.js?v=20261127a" defer></script>
+<script src="js/markdown-loader.js?v=20261127a" defer></script>
+<script src="js/cards.js?v=20261127a" defer></script>
 <script>
-  CardsCore.mount(document.getElementById('cards-main'), {
-    mode: 'full',
-    standalone: true,
-    themeBtn: document.getElementById('themeToggle')
+  document.addEventListener('DOMContentLoaded', function () {
+    if (window.CardsCore) {
+      window.CardsCore.mount(document.getElementById('cards-main'), {
+        mode: 'full',
+        standalone: true,
+        themeBtn: document.getElementById('themeToggle')
+      });
+    }
+    if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    }
   });
 </script>
 </body>

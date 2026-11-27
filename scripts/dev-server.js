@@ -1,6 +1,6 @@
 /* Range 支持的静态服务器（模拟 GitHub Pages/Fastly 行为），端口 8328 */
 const http = require('http'), fs = require('fs'), path = require('path');
-const ROOT = 'D:/HTML';
+const ROOT = path.resolve(__dirname, '..');
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript',
   '.css': 'text/css', '.json': 'application/json', '.webp': 'image/webp', '.jpg': 'image/jpeg',
@@ -8,9 +8,22 @@ const MIME = {
   '.woff2': 'font/woff2', '.xml': 'application/xml', '.txt': 'text/plain'
 };
 http.createServer((req, res) => {
-  let p = decodeURIComponent(req.url.split('?')[0]);
+  let p;
+  try {
+    p = decodeURIComponent(req.url.split('?')[0]);
+  } catch (e) {
+    res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('Bad Request');
+    return;
+  }
   if (p.endsWith('/')) p += 'index.html';
-  const abs = path.join(ROOT, p);
+  const rel = p.replace(/^\/+/, '');
+  const abs = path.resolve(ROOT, rel);
+  if (abs !== ROOT && !abs.startsWith(ROOT + path.sep)) {
+    res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('Forbidden');
+    return;
+  }
   fs.stat(abs, (err, st) => {
     if (err || !st.isFile()) { res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' }); res.end('<h1>File not found</h1>'); return; }
     const type = MIME[path.extname(abs).toLowerCase()] || 'application/octet-stream';
@@ -27,8 +40,8 @@ http.createServer((req, res) => {
       fs.createReadStream(abs).pipe(res);
     }
   });
-}).listen(8328, () => {
-  console.log('node static server (Range OK) on http://localhost:8328');
+}).listen(8328, '127.0.0.1', () => {
+  console.log('node static server (Range OK) on http://127.0.0.1:8328');
   // 首屏脚本已合并成 bundle（2026-10-17）：启动时提醒一次是否过期，只提示不自动写（避免静默改工作区）
   const { spawnSync } = require('child_process');
   const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts/build-bundles.mjs'), '--check'], { encoding: 'utf8' });

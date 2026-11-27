@@ -110,17 +110,17 @@ let playMs = -1;
   await pg.evaluate(() => document.getElementById('music-audio').pause());
 }
 
-/* R2：四个视频开屏 preload=none（元数据懒加载）+ 滚动接近后 metadata + 点击即播 */
+/* R2：五个视频开屏 preload=none（元数据懒加载）+ 滚动接近后 metadata + 点击即播 */
 {
   const pre = await pg.evaluate(() =>
     [...document.querySelectorAll('#products video.cover-video')].map((v) => v.getAttribute('preload')));
-  assert(pre.length === 4 && pre.every((p) => p === 'none'), 'R2-a 四个介绍视频开屏 preload=none（懒加载）', pre.join(','));
+  assert(pre.length === 5 && pre.every((p) => p === 'none'), 'R2-a 五个介绍视频开屏 preload=none（懒加载）', pre.join(','));
   const afterScroll = await pg.evaluate(async () => {
     document.querySelector('#products video.cover-video').scrollIntoView({ block: 'center' });
     await new Promise((r) => setTimeout(r, 1200));   // IntersectionObserver rootMargin 600px 内 → 放行 metadata
     return [...document.querySelectorAll('#products video.cover-video')].map((v) => v.preload);
   });
-  assert(afterScroll.length === 4 && afterScroll[0] === 'metadata', 'R2-a-ii 滚动接近后恢复 preload=metadata', afterScroll.join(','));
+  assert(afterScroll.length === 5 && afterScroll[0] === 'metadata', 'R2-a-ii 滚动接近后恢复 preload=metadata', afterScroll.join(','));
   await pg.evaluate(() => window.scrollTo(0, 0));
   const ms = await pg.evaluate(() => {
     const v = document.querySelector('[data-project-id="filebutler"] video');
@@ -139,10 +139,13 @@ let playMs = -1;
   assert(ms >= 0 && ms < 2000, 'R2-b 视频点击 → 起播（本机口径 <2s）', ms + 'ms');
 }
 
-/* R3：放歌 → 开视频自动暂停音乐；暂停视频 → 音乐自动续播 */
+/* R3：严格双向互斥：放歌⇄开视频永不同播 */
 {
-  // 放歌
-  await pg.evaluate(() => window.__MUSIC.togglePlay());
+  // 放歌（确保 music 在播，避免 toggle 把已在播的停掉）
+  await pg.evaluate(() => {
+    const a = document.getElementById('music-audio');
+    if (a.paused) window.__MUSIC.togglePlay();
+  });
   await pg.waitForFunction(() => !document.getElementById('music-audio').paused, null, { timeout: 5000 }).catch(() => {});
   const musicOn = await pg.evaluate(() => !document.getElementById('music-audio').paused);
   // 开视频（另一个视频：拍案）
@@ -170,16 +173,35 @@ let playMs = -1;
   }));
   assert(!after.video && after.music, 'R3-b 暂停视频 → 音乐自动续播',
     `video=${after.video} music=${after.music}`);
+
+  // R3-c 双向互斥：视频播放期间触发放歌 → 立即暂停视频且音乐播放（绝不并播）
+  await pg.evaluate(() => {
+    const v = document.querySelector('[data-project-id="paian"] video');
+    v.closest('.cover-box').querySelector('.video-play-btn')?.click() ?? v.play();
+  });
+  await pg.waitForFunction(() => !document.querySelector('[data-project-id="paian"] video').paused, null, { timeout: 5000 }).catch(() => {});
+  await pg.evaluate(() => window.__MUSIC.togglePlay());
+  await pg.waitForFunction(() => !document.getElementById('music-audio').paused, null, { timeout: 5000 }).catch(() => {});
+  await pg.waitForTimeout(1300);   // 跨过 1s 轮询周期验证仍不回弹
+  const r3c = await pg.evaluate(() => {
+    const v = document.querySelector('[data-project-id="paian"] video');
+    return {
+      music: !document.getElementById('music-audio').paused,
+      video: !v.paused,
+      gateRestored: !!v.closest('.cover-box').querySelector('.video-play-gate'),
+    };
+  });
+  assert(r3c.video === false && r3c.music === true && r3c.gateRestored,
+    'R3-c 视频播放中切回音乐 → 立即暂停视频且绝不同播',
+    `video=${r3c.video} music=${r3c.music} gate=${r3c.gateRestored}`);
 }
 
-/* R4：看视频时往下滑 → 视频自动退出 → 音乐恢复（R3+R4 联动）
-   ⚠️ IO 是边沿触发：必须走真实路径——先把视频滚进视口（可见）起播，再向下滚过它；
-   若视频在视口外起播后瞬移滚动，元素"不可见→不可见"无状态变化，IO 不回调（非站点缺陷） */
+/* R4：看视频时往下滑 → 视频自动退出 → 音乐恢复（含 opening 中止 + 全屏豁免） */
 {
   // 先滚到视频可见处（真实点击前提）
   await pg.evaluate(() => document.querySelector('[data-project-id="filebutler"]').scrollIntoView({ block: 'center' }));
   await pg.waitForTimeout(500);
-  // 放歌（R3-b 后音乐已在续播，只确保在播、不能用 toggle——toggle 会把在播的音乐暂停）
+  // 放歌（确保在播、不能用 toggle——toggle 会把在播的音乐暂停）
   await pg.evaluate(() => {
     const a = document.getElementById('music-audio');
     if (a.paused) window.__MUSIC.togglePlay();
@@ -207,8 +229,55 @@ let playMs = -1;
     y: window.scrollY,
   }));
   assert(before.video && !before.music && after.video === false && after.music,
-    'R4 看视频下滑离开 → 视频自动退出 + 音乐恢复',
+    'R4-a 看视频下滑离开 → 视频自动退出 + 音乐恢复',
     `y=${before.y}→${after.y} before(m=${before.music},v=${before.video}) after(m=${after.music},v=${after.video})`);
+
+  // R4-b：opening 态滑出视口中止 + 全屏豁免保护
+  await pg.evaluate(() => document.querySelector('[data-project-id="paian"]').scrollIntoView({ block: 'center' }));
+  await pg.waitForTimeout(400);
+  const openAbort = await pg.evaluate(async () => {
+    const a = document.getElementById('music-audio');
+    if (a.paused) window.__MUSIC.togglePlay();
+    await new Promise((r) => setTimeout(r, 400));
+    const v = document.querySelector('[data-project-id="paian"] video');
+    v.dataset.opening = '1';
+    window.dispatchEvent(new CustomEvent('sj-video-intent', { detail: { video: v } }));
+    const pausedDuringIntent = a.paused;
+    window.scrollBy(0, window.innerHeight * 2);
+    await new Promise((r) => setTimeout(r, 800));
+    return {
+      pausedDuringIntent,
+      openingCleared: v.dataset.opening !== '1',
+      musicResumed: !a.paused,
+    };
+  });
+  assert(openAbort.pausedDuringIntent && openAbort.openingCleared && openAbort.musicResumed,
+    'R4-b-i opening 缓冲态滑走 → 立即中止并恢复音乐',
+    `intentPaused=${openAbort.pausedDuringIntent} cleared=${openAbort.openingCleared} resumed=${openAbort.musicResumed}`);
+
+  await pg.evaluate(() => document.querySelector('[data-project-id="filebutler"]').scrollIntoView({ block: 'center' }));
+  await pg.waitForTimeout(400);
+  await pg.evaluate(() => {
+    const v = document.querySelector('[data-project-id="filebutler"] video');
+    if (v.paused) v.play();
+  });
+  await pg.waitForFunction(() => !document.querySelector('[data-project-id="filebutler"] video').paused, null, { timeout: 5000 }).catch(() => {});
+  const fsCheck = await pg.evaluate(async () => {
+    const v = document.querySelector('[data-project-id="filebutler"] video');
+    Object.defineProperty(v, 'webkitDisplayingFullscreen', { configurable: true, value: true });
+    window.scrollBy(0, window.innerHeight * 2);
+    await new Promise((r) => setTimeout(r, 700));
+    const keptInFullscreen = !v.paused;
+    delete v.webkitDisplayingFullscreen;
+    window.scrollBy(0, 60);
+    await new Promise((r) => setTimeout(r, 900));
+    const pausedAfterExit = v.paused;
+    const musicResumed = !document.getElementById('music-audio').paused;
+    return { keptInFullscreen, pausedAfterExit, musicResumed };
+  });
+  assert(fsCheck.keptInFullscreen && fsCheck.pausedAfterExit && fsCheck.musicResumed,
+    'R4-b-ii 全屏态免误停；退出全屏后滑出视口正常暂停并恢复音乐',
+    `keptFS=${fsCheck.keptInFullscreen} pausedAfter=${fsCheck.pausedAfterExit} resumed=${fsCheck.musicResumed}`);
 }
 
 /* 附加：搜索死条目已修（按关键词行为断言） */
@@ -315,6 +384,57 @@ await ctx.close();
     `page=${pageOk} paused=${offAudio.paused} t=${offAudio.t}/${offAudio.dur}s seekTo=${seek}`);
   try { await cdp3.send('Network.emulateNetworkConditions', { offline: false, latency: 0, downloadThroughput: 0, uploadThroughput: 0 }); } catch (e) {}
   await ctx3.close();
+}
+
+/* ===== R5：首屏拆正文 articles-meta.js + ensureArticles() 阅读弹窗与 ⌘K 正文检索 ===== */
+{
+  const ctx5 = await b.newContext({ viewport: { width: 1280, height: 900 } });
+  const p5 = await ctx5.newPage();
+  const p5Errs = [];
+  p5.on('pageerror', (e) => p5Errs.push(String(e).slice(0, 120)));
+  await p5.goto(BASE, { waitUntil: 'domcontentloaded' });
+  const metaOnly = await p5.evaluate(() => ({
+    count: (window.ARTICLES_DATA || []).length,
+    noBodyInitially: (window.ARTICLES_DATA || []).every((a) => !a.content),
+    hasReadTime: (window.ARTICLES_DATA || []).every((a) => Boolean(a.readTime)),
+  }));
+  await p5.evaluate(() => window.openArticleModal('two-years-of-flashing'));
+  await p5.waitForFunction(() => {
+    const html = document.querySelector('#article-modal-content .markdown-body')?.innerHTML || '';
+    return html.includes('Fake Lock') && !html.includes('md-pending');
+  }, null, { timeout: 8000 }).catch(() => {});
+  const modalRes = await p5.evaluate(() => {
+    const html = document.querySelector('#article-modal-content .markdown-body')?.innerHTML || '';
+    return {
+      fullLoaded: window.__ARTICLES_FULL_LOADED === true,
+      hasStrongFakeLock: html.includes('<strong>“假回锁（Fake Lock）”</strong>'),
+      hasToc: !!document.querySelector('#article-modal-content .toc-box'),
+    };
+  });
+  assert(metaOnly.count >= 21 && metaOnly.noBodyInitially && metaOnly.hasReadTime && modalRes.fullLoaded && modalRes.hasStrongFakeLock && modalRes.hasToc && p5Errs.length === 0,
+    'R5-a 首屏仅加载 articles-meta.js，点开文章自动拉正文并渲染 Markdown/目录',
+    `count=${metaOnly.count} metaOnly=${metaOnly.noBodyInitially} strong=${modalRes.hasStrongFakeLock} toc=${modalRes.hasToc}`);
+  await ctx5.close();
+
+  const ctx6 = await b.newContext({ viewport: { width: 1280, height: 900 } });
+  const p6 = await ctx6.newPage();
+  await p6.goto(BASE, { waitUntil: 'domcontentloaded' });
+  const beforeSearchMeta = await p6.evaluate(() => (window.ARTICLES_DATA || []).every((a) => !a.content));
+  await p6.evaluate(() => {
+    document.getElementById('search-open').click();
+    const i = document.getElementById('search-input');
+    i.value = 'Fake Lock';
+    i.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await p6.waitForFunction(() => (document.getElementById('search-results')?.textContent || '').includes('两年刷机记'), null, { timeout: 8000 }).catch(() => {});
+  const searchRes = await p6.evaluate(() => ({
+    hit: (document.getElementById('search-results')?.textContent || '').includes('两年刷机记'),
+    fullLoaded: window.__ARTICLES_FULL_LOADED === true,
+  }));
+  assert(beforeSearchMeta && searchRes.hit && searchRes.fullLoaded,
+    'R5-b ⌘K 打开搜索自动补全正文并实时命中正文专有词',
+    `metaOnly=${beforeSearchMeta} hit=${searchRes.hit} fullLoaded=${searchRes.fullLoaded}`);
+  await ctx6.close();
 }
 
 /* ===== 404 页文案 ===== */

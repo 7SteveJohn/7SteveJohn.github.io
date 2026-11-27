@@ -74,10 +74,30 @@ document.addEventListener('DOMContentLoaded', () => {
     window.lucide.createIcons();
   }
 
-  // 9. Service Worker 离线缓存（仅 HTTPS / localhost 环境生效，file:// 下静默跳过）
-  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  // 9. Service Worker 离线缓存（仅安全上下文且非 file:// 环境生效）
+  if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
+
+  // 10. 首屏后空闲静默预取文章正文（省流量 / 2G 跳过），确保随后点文章或 ⌘K 全文检索零等待
+  const scheduleIdleArticles = () => {
+    const c = navigator.connection;
+    if (c && (c.saveData || /(^|-)2g$/.test(c.effectiveType || ''))) return;
+    const warmArticles = () => {
+      const conn = navigator.connection;
+      if (conn && (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || ''))) return;
+      if (typeof window.ensureArticles === 'function') window.ensureArticles();
+    };
+    setTimeout(() => {
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(warmArticles, { timeout: 2200 });
+      } else {
+        setTimeout(warmArticles, 1700);
+      }
+    }, 1800);
+  };
+  if (document.readyState === 'complete') scheduleIdleArticles();
+  else window.addEventListener('load', scheduleIdleArticles, { once: true });
 
 });
 
@@ -99,6 +119,8 @@ function initTheme() {
   const syncColorScheme = (isDark) => {
     const meta = document.querySelector('meta[name="color-scheme"]');
     if (meta) meta.content = isDark ? 'dark' : 'light';
+    const tc = document.querySelector('meta[name="theme-color"]');
+    if (tc) tc.content = isDark ? '#060911' : '#f8fafc';
   };
 
   let savedTheme = null;
@@ -115,6 +137,7 @@ function initTheme() {
     }
   });
 
+  let vtBusy = false;
   function toggle(e) {
     const applyNow = () => {
       const isDark = document.documentElement.classList.toggle('dark');
@@ -122,9 +145,10 @@ function initTheme() {
       try { localStorage.setItem('sj.theme', isDark ? 'dark' : 'light'); } catch (_) {}   // 全站访客本地键统一 sj. 前缀
     };
 
-    // 明暗切换：从点击位置圆形扩散开新主题（View Transitions，减少动效时直接切换）
+    // 明暗切换：从点击位置圆形扩散开新主题（View Transitions，减少动效或过渡进行中时直接切换）
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (document.startViewTransition && !reduce) {
+    if (document.startViewTransition && !reduce && !vtBusy) {
+      vtBusy = true;
       const rect = (e && e.currentTarget ? e.currentTarget : themeToggleBtn).getBoundingClientRect();
       const x = rect.left + rect.width / 2;
       const y = rect.top + rect.height / 2;
@@ -136,6 +160,7 @@ function initTheme() {
           { duration: 480, easing: 'cubic-bezier(0.32, 0.72, 0, 1)', pseudoElement: '::view-transition-new(root)' }
         );
       }).catch(() => {});
+      vt.finished.finally(() => { vtBusy = false; });
     } else {
       applyNow();
     }
@@ -181,7 +206,8 @@ function buildAnnouncement(project) {
   const a = project.announcement;
   if (!a || !Array.isArray(a.items) || !a.items.length) return '';
   const ver = a.version ? `<span class="announce-ver font-mono">${escapeHtml(a.version)}</span>` : '';
-  const line = [ver, a.summary || a.items.join(' / ')].filter(Boolean).join(' · ');
+  const summaryText = escapeHtml(a.summary || a.items.join(' / '));
+  const line = [ver, summaryText].filter(Boolean).join(' · ');
   const more = Array.isArray(project.changelog) && project.changelog.length
     ? `<button class="announce-more cursor-pointer" data-open-project="${escapeHtml(project.id)}" data-open-changelog>全部 ${project.changelog.length} 个版本 →</button>`
     : '';
@@ -271,6 +297,22 @@ function hydrateProductLinks() {
   });
 }
 
+// 弹窗遮挡保护：打开文章或项目详情弹窗时暂停一切在播/起播中的介绍视频，避免后台继续发声
+function pauseActiveProductVideos() {
+  document.querySelectorAll('#products video').forEach((v) => {
+    const wasOpening = v.dataset.opening === '1';
+    if (!v.paused || wasOpening) {
+      delete v.dataset.opening;
+      if (!v.paused) {
+        try { v.pause(); } catch (_) {}
+      }
+      try {
+        window.dispatchEvent(new CustomEvent(wasOpening ? 'sj-video-abort' : 'sj-video-force-stop', { detail: { video: v } }));
+      } catch (_) {}
+    }
+  });
+}
+
 // 打开项目详情弹窗
 window.openProjectModal = function(id, opts = {}) {
   const project = (window.PROJECTS_DATA || []).find(p => p.id === id);
@@ -287,6 +329,8 @@ window.openProjectModal = function(id, opts = {}) {
     }
     return;
   }
+
+  pauseActiveProductVideos();
 
   const modal = document.getElementById('project-modal');
   const modalContent = document.getElementById('project-modal-content');
@@ -363,22 +407,22 @@ window.openProjectModal = function(id, opts = {}) {
       <!-- 操作链接栏 -->
       <div class="pt-6 border-t border-black/10 dark:border-white/10 flex flex-wrap gap-3 items-center justify-end">
         ${project.downloadUrl ? `
-          <a href="${project.downloadUrl}" target="_blank" rel="noopener noreferrer"
+          <a href="${escapeHtml(project.downloadUrl)}" target="_blank" rel="noopener noreferrer"
              ${project.downloadPwd ? `data-copy-pwd="${escapeHtml(project.downloadPwd)}"` : ''}
              class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5">
             <i data-lucide="download" class="w-3.5 h-3.5"></i>
-            <span>网盘下载${project.downloadPwd ? ' (提取码: ' + project.downloadPwd + ')' : ''}</span>
+            <span>网盘下载${project.downloadPwd ? ' (提取码: ' + escapeHtml(project.downloadPwd) + ')' : ''}</span>
           </a>
         ` : ''}
         ${project.githubUrl && project.githubUrl !== '#' ? `
-          <a href="${project.githubUrl}" target="_blank" rel="noopener noreferrer"
+          <a href="${escapeHtml(project.githubUrl)}" target="_blank" rel="noopener noreferrer"
              class="btn-secondary px-4 py-2 text-xs bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white flex items-center gap-1.5 border border-black/10 dark:border-white/10">
             <svg viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
             <span>GitHub 源码</span>
           </a>
         ` : ''}
         ${project.demoUrl && project.demoUrl !== '#' ? `
-          <a href="${project.demoUrl}" target="_blank" rel="noopener noreferrer"
+          <a href="${escapeHtml(project.demoUrl)}" target="_blank" rel="noopener noreferrer"
              class="btn-secondary px-4 py-2 text-xs bg-slate-100 dark:bg-white/10 text-[#1d1d1f] dark:text-white flex items-center gap-1.5 border border-black/10 dark:border-white/10">
             <span>GitHub Releases</span>
             <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
@@ -412,11 +456,11 @@ window.openProjectModal = function(id, opts = {}) {
     }
   };
 
-  // 渲染器就绪后补写正文（期间又点了别的项目就放弃，避免覆盖错内容）
+  // 渲染器就绪后补写正文（期间又点了别的项目或已关闭弹窗就放弃，避免覆盖错内容/泄漏高亮）
   if (needMd && project.details) {
     const token = project.id;
     window.ensureMarkdown().then((ok) => {
-      if (modalContent._projectToken !== token) return;
+      if (modalContent._projectToken !== token || modal.classList.contains('hidden') || modal.classList.contains('is-closing')) return;
       const body = modalContent.querySelector('.markdown-body');
       if (!body) return;
       body.innerHTML = ok
@@ -458,7 +502,10 @@ window.closeProjectModal = function() {
   const modal = document.getElementById('project-modal');
   const modalContent = document.getElementById('project-modal-content');
   if (modal) modal.scrollTop = 0;
-  if (modalContent) modalContent.scrollTop = 0;
+  if (modalContent) {
+    modalContent._projectToken = null;
+    modalContent.scrollTop = 0;
+  }
   animateModalClose(modal);
 };
 
@@ -469,7 +516,7 @@ window.closeProjectModal = function() {
 
 // 全部内容统一按日期倒序——新增条目无论插在数组哪个位置，最新的永远排最前
 function getSortedArticles() {
-  return (window.ARTICLES_DATA || []).toSorted((a, b) => (b.date || '').localeCompare(a.date || ''));
+  return (window.ARTICLES_DATA || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 }
 
 // 阅读时长兜底估算：中文按 400 字/分钟，英文按 200 词/分钟
@@ -539,6 +586,10 @@ function buildArticleToc(modalContent) {
 // #article-modal-content（不是文档），观察器在嵌套滚动容器里要反复换算 root，反而更绕，
 // 而这里是「同一时刻只有一个当前章节」的场景，一行比较就够了。
 function initTocSpy(modalContent) {
+  if (modalContent._tocSpyAbort) {
+    modalContent._tocSpyAbort.abort();
+    modalContent._tocSpyAbort = null;
+  }
   const box = modalContent.querySelector('.toc-box');
   if (!box) return;
   const links = [...box.querySelectorAll('.toc-link[data-toc-id]')];
@@ -566,17 +617,25 @@ function initTocSpy(modalContent) {
   };
 
   const modal = document.getElementById('article-modal');
-  modalContent.addEventListener('scroll', () => {
+  const ac = typeof AbortController === 'function' ? new AbortController() : null;
+  if (ac) modalContent._tocSpyAbort = ac;
+  const onScroll = () => {
     if (!raf) raf = requestAnimationFrame(paint);
-  }, { passive: true });
+  };
+  const listenerOpts = ac ? { passive: true, signal: ac.signal } : { passive: true };
+  modalContent.addEventListener('scroll', onScroll, listenerOpts);
   if (modal) {
-    modal.addEventListener('scroll', () => {
-      if (!raf) raf = requestAnimationFrame(paint);
-    }, { passive: true });
+    modal.addEventListener('scroll', onScroll, listenerOpts);
   }
   paint();
   // 弹窗还在入场动画（transform 未归位）时首算会误判成最后一节，动画落定后再对一次
-  setTimeout(paint, 400);
+  const settleTimer = setTimeout(paint, 400);
+  if (ac) {
+    ac.signal.addEventListener('abort', () => {
+      clearTimeout(settleTimer);
+      if (raf) { cancelAnimationFrame(raf); raf = 0; }
+    }, { once: true });
+  }
 }
 
 // 文章结构化数据（Google 会执行 JS，可吃到每篇的富摘要）
@@ -842,7 +901,7 @@ function renderArticleSection({ match, sectionId, navHref, listId, useArrayOrder
 
   if (useArrayOrder) {
     // 系列文章：若包含标题序号（如 一、二、三...），按标题序号严格升序，确保展示与章节标题对齐
-    items = items.toSorted((a, b) => {
+    items = items.slice().sort((a, b) => {
       const oa = getTitleOrder(a.title);
       const ob = getTitleOrder(b.title);
       if (oa !== ob) return oa - ob;
@@ -892,7 +951,8 @@ function getSiblingList(article) {
     // AI 学习系列：按标题序号顺序（一→七）翻页即阅读顺序，与列表渲染同序，日期只作展示
     return (window.ARTICLES_DATA || [])
       .filter(a => a.section === 'ai')
-      .toSorted((a, b) => {
+      .slice()
+      .sort((a, b) => {
         const oa = getTitleOrder(a.title);
         const ob = getTitleOrder(b.title);
         if (oa !== ob) return oa - ob;
@@ -1080,6 +1140,8 @@ window.openArticleModal = function(id, skipUrlSync, opts) {
   const article = (window.ARTICLES_DATA || []).find(a => a.id === id);
   if (!article) return;
 
+  pauseActiveProductVideos();
+
   const modal = document.getElementById('article-modal');
   const modalContent = document.getElementById('article-modal-content');
   if (!modal || !modalContent) return;
@@ -1091,6 +1153,8 @@ window.openArticleModal = function(id, skipUrlSync, opts) {
   const wasOpen = !modal.classList.contains('hidden') && !modal.classList.contains('is-closing');
   const prevActiveArticle = activeArticle;
   activeArticle = article;
+  const reqId = (modalContent._articleReqId || 0) + 1;
+  modalContent._articleReqId = reqId;
 
   const barTitle = document.getElementById('article-bar-title');
   if (barTitle) barTitle.textContent = article.title || '';
@@ -1100,9 +1164,11 @@ window.openArticleModal = function(id, skipUrlSync, opts) {
     || new URLSearchParams(location.search).get('hl')
     || '';
 
-  // Markdown 渲染器按需加载（2026-10-17）：先出骨架，正文等渲染器就绪后补写
+  // 文章正文与 Markdown 渲染器均按需加载：先出骨架，二者并齐后补写正文与目录
+  const needBody = !(typeof article.content === 'string' && article.content.length > 0);
   const needMd = !(window.marked && window.DOMPurify);
-  const parsedMarkdown = needMd
+  const needAsync = needBody || needMd;
+  const parsedMarkdown = needAsync
     ? '<p class="md-pending">正在准备阅读器…</p>'
     : sanitizeMarkdownHtml(window.marked.parse(article.content || ''));
 
@@ -1168,15 +1234,35 @@ window.openArticleModal = function(id, skipUrlSync, opts) {
   initTocSpy(modalContent);
   injectArticleJsonLd(article);
 
-  // 渲染器就绪后补写正文，并重建依赖正文的目录/复制按钮/高亮
-  if (needMd) {
-    ensureMarkdown().then((ok) => {
-      if (activeArticle !== article) return;           // 期间切篇了就放弃，避免覆盖
+  // 正文与渲染器就绪后补写正文，并重建依赖正文的目录/复制按钮/高亮
+  if (needAsync) {
+    const bodyTask = needBody
+      ? (typeof window.ensureArticles === 'function' ? window.ensureArticles() : Promise.resolve(false))
+      : Promise.resolve(true);
+    const mdTask = needMd
+      ? (typeof window.ensureMarkdown === 'function' ? window.ensureMarkdown() : Promise.resolve(false))
+      : Promise.resolve(true);
+    Promise.all([bodyTask, mdTask]).then(([bodyOk, mdOk]) => {
+      if (
+        modalContent._articleReqId !== reqId
+        || !activeArticle
+        || activeArticle.id !== id
+        || modal.classList.contains('hidden')
+        || modal.classList.contains('is-closing')
+      ) return;
+      const latest = (window.ARTICLES_DATA || []).find((a) => a.id === id) || article;
+      activeArticle = latest;
       const body = modalContent.querySelector('.markdown-body');
       if (!body) return;
-      body.innerHTML = ok
-        ? sanitizeMarkdownHtml(window.marked.parse(article.content || ''))
-        : `<p>${escapeHtml(article.content || '')}</p>`;
+      const raw = latest.content || '';
+      if (!raw && !bodyOk) {
+        body.innerHTML = '<p class="text-[#86868b]">正文加载失败，请检查网络后重试。</p>';
+        return;
+      }
+      body.innerHTML = (mdOk && window.marked && window.DOMPurify)
+        ? sanitizeMarkdownHtml(window.marked.parse(raw))
+        : `<p>${escapeHtml(raw)}</p>`;
+      modalContent.querySelectorAll('.toc-box').forEach((el) => el.remove());
       ensureHighlight(modalContent);
       addCopyButtons(modalContent);
       buildArticleToc(modalContent);
@@ -1188,7 +1274,7 @@ window.openArticleModal = function(id, skipUrlSync, opts) {
 
   // 切换篇目后回到正文顶部、复位进度条；若从 ⌘K 搜索进入则无损高亮命中词并定位首处
   resetArticleModalScroll();
-  if (!needMd && hlQuery) {
+  if (!needAsync && hlQuery) {
     applyModalSearchHighlight(modal, modalContent, hlQuery);
   } else if (!hlQuery) {
     clearModalSearchHighlight(modal);
@@ -1227,6 +1313,15 @@ window.openArticleModal = function(id, skipUrlSync, opts) {
 
 window.closeArticleModal = function(skipUrlSync) {
   const modal = document.getElementById('article-modal');
+  const modalContent = document.getElementById('article-modal-content');
+  if (modalContent) {
+    modalContent._articleReqId = (modalContent._articleReqId || 0) + 1;
+    if (modalContent._tocSpyAbort) {
+      modalContent._tocSpyAbort.abort();
+      modalContent._tocSpyAbort = null;
+    }
+  }
+  activeArticle = null;
   clearModalSearchHighlight(modal);
   const wasOpen = modal && !modal.classList.contains('hidden') && !modal.classList.contains('is-closing');
   resetArticleModalScroll();
@@ -1329,14 +1424,33 @@ function initBlogCards() {
     if (window.CardsCore) return Promise.resolve(true);
     if (loading) return loading;
     loading = new Promise((resolve) => {
-      const css = document.createElement('link');
-      css.rel = 'stylesheet';
-      css.href = 'css/cards.css?v=20261118q';
-      document.head.appendChild(css);
+      const cssHref = 'css/cards.css?v=20261127a';
+      let css = document.querySelector(`link[href="${cssHref}"]`);
+      let addedCss = false;
+      if (!css) {
+        css = document.createElement('link');
+        css.rel = 'stylesheet';
+        css.href = cssHref;
+        document.head.appendChild(css);
+        addedCss = true;
+      }
       const s = document.createElement('script');
-      s.src = 'js/cards.js?v=20261118q';
-      s.onload = () => resolve(!!window.CardsCore);
-      s.onerror = () => resolve(false);
+      s.src = 'js/cards.js?v=20261127a';
+      s.onload = () => {
+        const ok = !!window.CardsCore;
+        if (!ok) {
+          if (s.parentNode) s.parentNode.removeChild(s);
+          if (addedCss && css.parentNode) css.parentNode.removeChild(css);
+          loading = null;
+        }
+        resolve(ok);
+      };
+      s.onerror = () => {
+        if (s.parentNode) s.parentNode.removeChild(s);
+        if (addedCss && css.parentNode) css.parentNode.removeChild(css);
+        loading = null;
+        resolve(false);
+      };
       document.head.appendChild(s);
     });
     return loading;
@@ -1402,7 +1516,7 @@ function initBlogCards() {
       const head = document.createElement('button');
       head.type = 'button';
       head.className = 'text-xs font-bold text-[#1d1d1f] dark:text-white transition cursor-pointer';
-      head.innerHTML = cat + '&thinsp;<span class="font-mono" style="font-weight:400;color:var(--accent)">' + arts.length + '</span>';
+      head.innerHTML = escapeHtml(cat) + '&thinsp;<span class="font-mono" style="font-weight:400;color:var(--accent)">' + arts.length + '</span>';
       head.setAttribute('aria-label', `打开卷宗：${cat}（${arts.length} 篇）`);
       head.addEventListener('click', () => openPackInline(cat));
       group.appendChild(head);
@@ -1421,8 +1535,11 @@ function initBlogCards() {
     toc.appendChild(details);
   }
 
-  // 懒加载 + 首屏后静默预热：#blog 接近视口立即挂载；若用户未滑到，load 后空闲时也提前挂载好抽卡架
+  // 真懒加载 + 轻度空闲预热：#blog 接近视口（1200px）立即挂载；首屏 load 后空闲期轻度预热（省流/2G 跳过），不与首屏/3D/音视频抢道
+  let shelfStarted = false;
   const startShelfOnce = () => {
+    if (shelfStarted) return;
+    shelfStarted = true;
     io.disconnect();
     if (view === 'deck') mountShelf();
   };
@@ -1431,10 +1548,23 @@ function initBlogCards() {
       startShelfOnce();
     }
   }, { rootMargin: '1200px 0px' });
+  const scheduleIdleShelf = () => {
+    const c = navigator.connection;
+    if (c && (c.saveData || /(^|-)2g$/.test(c.effectiveType || ''))) return;
+    setTimeout(() => {
+      const conn = navigator.connection;
+      if (conn && (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || ''))) return;
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(() => startShelfOnce(), { timeout: 2000 });
+      } else {
+        setTimeout(startShelfOnce, 1500);
+      }
+    }, 1500);
+  };
   if (document.readyState === 'complete') {
-    setTimeout(startShelfOnce, 120);
+    scheduleIdleShelf();
   } else {
-    window.addEventListener('load', () => setTimeout(startShelfOnce, 120), { once: true });
+    window.addEventListener('load', scheduleIdleShelf, { once: true });
   }
   io.observe(sec);
 
@@ -1674,7 +1804,11 @@ function initScrollSpy() {
   // ❗一个区块对应多个链接（桌面导航 + 移动抽屉是两套 nav，href 相同）：
   // 以前按 href 去重只留最后一个，于是 .nav-active 永远落在抽屉里那条上，
   // 桌面导航其实从不高亮（2026-10-17 做导航胶囊时发现）。这里改成「同一 href 全部标记」。
-  const byId = Object.groupBy(navLinks, (a) => a.getAttribute('href').slice(1));
+  const byId = {};
+  for (const a of navLinks) {
+    const k = a.getAttribute('href').slice(1);
+    (byId[k] || (byId[k] = [])).push(a);
+  }
 
   const hudSecEl = document.getElementById('hud-sec-code');
   const hudSecLabels = {
@@ -2032,8 +2166,14 @@ try { localStorage.removeItem('sj.cosmos-mode'); } catch (e) {}
     if (v.preload !== 'none') v.preload = 'none';
     v.addEventListener('play', () => {
       videos.forEach((other) => {
-        if (other !== v && !other.paused) {
-          try { other.pause(); } catch (_) {}
+        if (other !== v && (!other.paused || other.dataset.opening === '1')) {
+          delete other.dataset.opening;
+          if (!other.paused) {
+            try { other.pause(); } catch (_) {}
+          }
+          try {
+            window.dispatchEvent(new CustomEvent('sj-video-force-stop', { detail: { video: other } }));
+          } catch (_) {}
         }
       });
     });

@@ -104,13 +104,13 @@ function orderedArticlesOf(cat){
   const arts = articlesOf(cat);
   const isSeries = arts.some(a => a.section === 'ai' || Number.isFinite(parseSeriesIndex(a.title)));
   if (isSeries){
-    return arts.toSorted((a, b) => {
+    return arts.slice().sort((a, b) => {
       const oa = parseSeriesIndex(a.title), ob = parseSeriesIndex(b.title);
       if (oa !== ob) return oa - ob;
       return (a.date || '').localeCompare(b.date || '');
     });
   }
-  return arts.toSorted((a, b) => (b.date || '').localeCompare(a.date || '') || (DATA.indexOf(b) - DATA.indexOf(a)));
+  return arts.slice().sort((a, b) => (b.date || '').localeCompare(a.date || '') || (DATA.indexOf(b) - DATA.indexOf(a)));
 }
 
 /* ---------- 品质分级（真实长文深度稿或首页代表作 = foil 深研闪签） ---------- */
@@ -1312,6 +1312,8 @@ function applyTheme(dark){
   document.documentElement.classList.toggle('dark', dark);
   const meta = document.querySelector('meta[name="color-scheme"]');
   if (meta) meta.content = dark ? 'dark' : 'light';
+  const tc = document.querySelector('meta[name="theme-color"]');
+  if (tc) tc.content = dark ? '#060911' : '#f8fafc';
   if (themeBtn) themeBtn.textContent = dark ? '☀' : '☾';
 }
 if (themeBtn) try {

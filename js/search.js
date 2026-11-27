@@ -187,7 +187,19 @@
   /* ---------- 开关 ---------- */
   function open() {
     if (!palette.classList.contains('hidden') && !palette.classList.contains('is-closing')) return;
+    const hadFull = window.__ARTICLES_FULL_LOADED === true
+      || (Array.isArray(window.ARTICLES_DATA) && window.ARTICLES_DATA.some((a) => typeof a.content === 'string' && a.content.length > 0));
     buildIndex();
+    if (!hadFull && typeof window.ensureArticles === 'function') {
+      window.ensureArticles().then((ok) => {
+        if (!ok) return;
+        buildIndex();
+        const q = input.value.trim();
+        if (q && !palette.classList.contains('hidden') && !palette.classList.contains('is-closing')) {
+          render(q);
+        }
+      });
+    }
     lastFocus = document.activeElement;
     if (palette._closeTimer) { clearTimeout(palette._closeTimer); palette._closeTimer = null; }
     palette.classList.remove('hidden', 'is-closing');
@@ -202,7 +214,12 @@
 
   function close() {
     if (palette.classList.contains('hidden') || palette.classList.contains('is-closing')) return;
-    document.body.style.overflow = '';
+    const articleModal = document.getElementById('article-modal');
+    const projectModal = document.getElementById('project-modal');
+    const hasOpenModal =
+      (articleModal && !articleModal.classList.contains('hidden') && !articleModal.classList.contains('is-closing')) ||
+      (projectModal && !projectModal.classList.contains('hidden') && !projectModal.classList.contains('is-closing'));
+    if (!hasOpenModal) document.body.style.overflow = '';
     if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
     // 收起淡出（与弹窗同款退场节奏），动画结束后再隐藏
     palette.classList.add('is-closing');

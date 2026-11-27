@@ -6,7 +6,8 @@
   <title>楠屿札记 · 本地 AI 应用与桌面工具</title>
 
   <meta name="color-scheme" content="light dark" />
-  <!-- 默认晨曦明亮科技风（支持自由切换与持久化，同步原生 color-scheme） -->
+  <meta name="theme-color" content="#f8fafc" />
+  <!-- 默认晨曦明亮科技风（支持自由切换与持久化，同步原生 color-scheme 与 theme-color） -->
   <script>
     (function () {
       var root = document.documentElement;
@@ -22,6 +23,8 @@
       root.classList.toggle('dark', isDark);
       var m = document.querySelector('meta[name="color-scheme"]');
       if (m) m.content = isDark ? 'dark' : 'light';
+      var tc = document.querySelector('meta[name="theme-color"]');
+      if (tc) tc.content = isDark ? '#060911' : '#f8fafc';
     })();
   </script>
 
@@ -73,10 +76,6 @@
   <!-- RSS 订阅 -->
   <link rel="alternate" type="application/rss+xml" title="楠屿札记 · 手记与创作" href="rss.xml" />
 
-  <!-- 系统明暗地址栏适配 -->
-  <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#060911" media="(prefers-color-scheme: dark)" />
-
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d1d1f'/%3E%3Ctext x='32' y='43' font-family='Inter,-apple-system,sans-serif' font-size='34' font-weight='700' fill='white' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="shortcut icon" href="favicon.ico" />
@@ -110,7 +109,7 @@
   </script>
 
   <!-- 定制样式 -->
-  <link rel="stylesheet" href="css/style.css?v=20261126c" />
+  <link rel="stylesheet" href="css/style.css?v=20261127a" />
   <link rel="stylesheet" href="css/cosmos.css?v=20261118c2" />
 </head>
 <body class="bg-[#f8fafc] dark:bg-[#060911] text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200 antialiased">
@@ -442,7 +441,6 @@
               <video
                 id="video-filebutler"
                 controls
-                loading="lazy"
                 width="1920"
                 height="1080"
                 playsinline
@@ -534,7 +532,6 @@
               <video
                 id="video-paian"
                 controls
-                loading="lazy"
                 width="1920"
                 height="1080"
                 playsinline
@@ -626,7 +623,6 @@
               <video
                 id="video-netops-handbook"
                 controls
-                loading="lazy"
                 width="1920"
                 height="1080"
                 playsinline
@@ -718,7 +714,6 @@
               <video
                 id="video-fluxion"
                 controls
-                loading="lazy"
                 width="1920"
                 height="1080"
                 playsinline
@@ -810,7 +805,6 @@
               <video
                 id="video-stacky"
                 controls
-                loading="lazy"
                 width="1920"
                 height="1080"
                 playsinline
@@ -1137,9 +1131,9 @@
   <audio id="cosmos-audio" preload="none"></audio>
 
   <script src="js/projects.js?v=20261118j" defer></script>
-  <script src="js/articles.js?v=20261118c" defer></script>
-  <script src="js/bundles/core.js?v=20261126t6" defer></script>
-  <script src="js/bundles/home.js?v=20261126b" defer></script>
+  <script src="js/articles-meta.js?v=20261127a" defer></script>
+  <script src="js/bundles/core.js?v=20261127a" defer></script>
+  <script src="js/bundles/home.js?v=20261127a" defer></script>
   <script type="importmap">
   {
     "imports": {

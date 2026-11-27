@@ -1,9 +1,9 @@
-// build-bundles: {"name":"sub","version":"76934767cc47","sources":[{"path":"js/subpage.js","sha256":"c6a9e08995cc9a3bf0325eeb20aa684c0a4b6f01e34e94fe1010d6f53095e16f"}]}
+// build-bundles: {"name":"sub","version":"57179d207fad","sources":[{"path":"js/subpage.js","sha256":"36580e520a97abc0c60159950e168bf773f707d309e282d0a86f0125adecf34a"}]}
 /* 次级页共用：外壳（SW 注册 / 滚动态 / 浮现）
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/subpage.js */
 
-// ---- js/subpage.js (c6a9e08995cc) ----
+// ---- js/subpage.js (36580e520a97) ----
 /**
  * 次级页面（archive.html / gallery.html）共用的小脚本
  * ----------------------------------------------------
@@ -19,7 +19,7 @@
   'use strict';
 
   // 1. SW
-  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 
@@ -76,10 +76,12 @@
 
   window.pageReveal();
 
-  // 5. 主题切换（与首页保持完全一致：持久化、color-scheme 同步、跨标签页同步、View Transitions 平滑圆形扩散）
+  // 5. 主题切换（与首页保持完全一致：持久化、color-scheme / theme-color 同步、跨标签页同步、View Transitions 平滑圆形扩散）
   function syncColorScheme(isDark) {
     const meta = document.querySelector('meta[name="color-scheme"]');
     if (meta) meta.content = isDark ? 'dark' : 'light';
+    const tc = document.querySelector('meta[name="theme-color"]');
+    if (tc) tc.content = isDark ? '#060911' : '#f8fafc';
   }
 
   function initTheme() {
@@ -95,6 +97,7 @@
     const btn = document.getElementById('theme-toggle');
     if (!btn) return;
 
+    let vtBusy = false;
     btn.addEventListener('click', (e) => {
       const applyNow = () => {
         const isDark = document.documentElement.classList.toggle('dark');
@@ -105,7 +108,8 @@
       };
 
       const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (document.startViewTransition && !reduce) {
+      if (document.startViewTransition && !reduce && !vtBusy) {
+        vtBusy = true;
         const rect = (e && e.currentTarget ? e.currentTarget : btn).getBoundingClientRect();
         const x = rect.left + rect.width / 2;
         const y = rect.top + rect.height / 2;
@@ -117,6 +121,7 @@
             { duration: 480, easing: 'cubic-bezier(0.32, 0.72, 0, 1)', pseudoElement: '::view-transition-new(root)' }
           );
         }).catch(() => {});
+        vt.finished.finally(() => { vtBusy = false; });
       } else {
         applyNow();
       }

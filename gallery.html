@@ -6,6 +6,7 @@
   <title>照片墙 | 楠屿札记</title>
 
   <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#f8fafc" />
   <!-- 默认晨曦明亮科技风（与首页统一规范，支持自由切换与持久化） -->
   <script>
     (function () {
@@ -22,6 +23,8 @@
       root.classList.toggle('dark', isDark);
       var m = document.querySelector('meta[name="color-scheme"]');
       if (m) m.content = isDark ? 'dark' : 'light';
+      var tc = document.querySelector('meta[name="theme-color"]');
+      if (tc) tc.content = isDark ? '#060911' : '#f8fafc';
     })();
   </script>
 
@@ -62,9 +65,6 @@
   <meta property="og:image" content="https://7stevejohn.github.io/og-image.png" />
   <meta name="twitter:card" content="summary_large_image" />
 
-  <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#060911" media="(prefers-color-scheme: dark)" />
-
   <link rel="shortcut icon" href="favicon.ico" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="manifest" href="manifest.json" />
@@ -72,8 +72,8 @@
   <link rel="preload" href="assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="assets/fonts/inter.css" />
   <link rel="stylesheet" href="assets/vendor/tailwind.css" />
-  <link rel="stylesheet" href="css/style.css?v=20261126c" />
-  <link rel="stylesheet" href="css/cosmos.css" />
+  <link rel="stylesheet" href="css/style.css?v=20261127a" />
+  <link rel="stylesheet" href="css/cosmos.css?v=20261118c2" />
   <link rel="stylesheet" href="css/gallery.css?v=20261107_v245" />
 </head>
 <body class="bg-[#f8fafc] text-slate-800 dark:bg-[#060911] dark:text-slate-100 min-h-screen transition-colors duration-200 antialiased">
@@ -182,8 +182,8 @@
   </div>
 
   <!-- 全部 defer：subpage.js 管 SW/导航态/主题切换/浮现，gallery.js 负责照片墙渲染与灯箱 -->
-  <script src="js/bundles/core.js?v=20261126t6" defer></script>
-  <script src="js/bundles/sub.js?v=20261126t6" defer></script>
+  <script src="js/bundles/core.js?v=20261127a" defer></script>
+  <script src="js/bundles/sub.js?v=20261127a" defer></script>
   <script src="js/gallery.js?v=20261126w" defer></script>
 </body>
 </html>

@@ -40,3 +40,7 @@ assets/images/covers/cover-dlssg.svg
 assets/images/covers/cover-fluxion.svg
 assets/images/covers/cover-netops.svg
 assets/images/covers/cover-paian.svg
+
+# 代码索引与临时构建输出
+.codegraph/
+out/

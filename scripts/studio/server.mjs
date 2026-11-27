@@ -36,7 +36,6 @@ const TRASH = path.join(ROOT, '.local');
 const PORT = Number((process.argv.includes('--port') ? process.argv[process.argv.indexOf('--port') + 1] : 0) || 8329);
 
 const ARTICLE_ORDER = ['id', 'title', 'date', 'readTime', 'category', 'section', 'summary', 'cover', 'tags'];
-const NOVEL_ORDER = ['book', 'bookTitle', 'author', 'intro', 'bookCover', 'bookSample', 'volume', 'chapter', 'chapterTitle', 'order'];
 
 // ---------------- 工具 ----------------
 const hasFfmpeg = () => spawnSync('ffmpeg', ['-version'], { stdio: 'ignore' }).status === 0;
@@ -83,7 +82,6 @@ function git(args) {
 // ---------------- 数据：清单 / 单篇 ----------------
 function articleList() {
   return listMd(POSTS)
-    .filter((p) => !p.startsWith(NOVEL))
     .map((p) => {
       const { data, body } = parseFrontMatter(read(p));
       return {
@@ -149,18 +147,15 @@ const server = http.createServer(async (req, res) => {
       const file = safeJoin(ROOT, url.searchParams.get('file') || '');
       if (!fs.existsSync(file)) return json(res, 404, { ok: false, error: '文件不存在：' + rel(file) });
       const { data, body: md } = parseFrontMatter(read(file));
-      const isChapter = file.startsWith(NOVEL + path.sep);
-      return json(res, 200, { ok: true, file: rel(file), type: isChapter ? 'chapter' : 'article', data, body: md.replace(/^\n+/, '') });
+      return json(res, 200, { ok: true, file: rel(file), type: 'article', data, body: md.replace(/^\n+/, '') });
     }
 
     if (req.method === 'POST' && p === '/api/save') {
       const { file, data, body: md } = await body(req);
       const target = safeJoin(ROOT, file || '');
       if (!target.includes(path.sep + 'posts' + path.sep)) return json(res, 400, { ok: false, error: '只能写入 posts/ 目录' });
-      const isChapter = target.startsWith(NOVEL + path.sep);
-      const order = isChapter ? NOVEL_ORDER : ARTICLE_ORDER;
       fs.mkdirSync(path.dirname(target), { recursive: true });
-      fs.writeFileSync(target, stringifyFrontMatter(data || {}, order, md || ''));
+      fs.writeFileSync(target, stringifyFrontMatter(data || {}, ARTICLE_ORDER, md || ''));
       const check = runNode('build-articles.mjs', ['--check']);
       if (!check.ok) return json(res, 200, { ok: false, error: '校验未通过，md 已写入但未生成', log: check.out });
       const build = runNode('build-articles.mjs');

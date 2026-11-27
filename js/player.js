@@ -160,7 +160,7 @@
     BEAT_HIST.push(e);
     if (BEAT_HIST.length > 48) BEAT_HIST.shift();
     if (BEAT_HIST.length > 20) {
-      const sorted = BEAT_HIST.toSorted((a, b) => a - b);
+      const sorted = BEAT_HIST.slice().sort((a, b) => a - b);
       const med = sorted[sorted.length >> 1];
       let peak = 0;
       for (const v of BEAT_HIST) if (v > peak) peak = v;
@@ -315,8 +315,30 @@
   }
 
   // —— 播放控制 ——
+  let hasUserPlayed = false;
+  let stopAllVideosForMusic = () => {};
+  const isSaveNet = () => {
+    const c = navigator.connection;
+    return !!(c && (c.saveData || /(^|-)2g$/.test(c.effectiveType || '')));
+  };
+
+  function prefetchCurrentAndNext() {
+    if (!hasUserPlayed && audio.paused) return;
+    const curUrl = audio.currentSrc || audio.src;
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+      if (curUrl) navigator.serviceWorker.controller.postMessage({ type: 'prefetch-media', url: curUrl });
+      const nextSong = SONGS[(current + 1) % SONGS.length];
+      if (nextSong) navigator.serviceWorker.controller.postMessage({ type: 'prefetch-media', url: nextSong.src });
+    }
+  }
+
   function load(i, autoplay) {
     current = (i + SONGS.length) % SONGS.length;
+    if (autoplay) {
+      hasUserPlayed = true;
+      stopAllVideosForMusic();
+      try { audio.preload = 'auto'; } catch (e) {}
+    }
     audio.src = SONGS[current].src;
     titleEl.textContent = SONGS[current].title;
     renderList();
@@ -331,29 +353,47 @@
     }
   }
 
-  // 当前曲目已缓冲就绪后再静默入库（避免首播抢带宽导致转圈）：
-  audio.addEventListener('canplaythrough', function () {
-    var curUrl = audio.currentSrc || audio.src;
-    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-      if (curUrl) navigator.serviceWorker.controller.postMessage({ type: 'prefetch-media', url: curUrl });
-      var nextSong = SONGS[(current + 1) % SONGS.length];
-      if (nextSong) navigator.serviceWorker.controller.postMessage({ type: 'prefetch-media', url: nextSong.src });
-    }
+  // 当前曲目真实起播且已缓冲就绪后再静默入库（未点播放绝不触发全曲缓存）：
+  audio.addEventListener('canplaythrough', prefetchCurrentAndNext);
+  audio.addEventListener('playing', function () {
+    hasUserPlayed = true;
+    if (audio.readyState >= 4) prefetchCurrentAndNext();
   });
 
-  // 首曲预热（全量入库）：
+  // 首曲瞬启预热：仅缓冲首段可播帧（canplay 或 8s 后若仍暂停则回落 metadata，绝不下全曲）：
   let primed = false;
   function prime() {
     if (primed) return;
     primed = true;
-    try { audio.preload = 'metadata'; } catch (e) {}
+    const saveNet = isSaveNet();
+    try { audio.preload = saveNet ? 'metadata' : 'auto'; } catch (e) {}
     if (!audio.src) audio.src = SONGS[current].src;
+    if (!saveNet) {
+      let settled = false;
+      const dialBack = () => {
+        if (settled) return;
+        settled = true;
+        audio.removeEventListener('canplay', dialBack);
+        if (audio.paused) {
+          try { audio.preload = 'metadata'; } catch (e) {}
+        }
+      };
+      audio.addEventListener('canplay', dialBack, { once: true });
+      if (audio.readyState >= 3) dialBack();
+      else setTimeout(dialBack, 8000);
+    }
   }
 
   function togglePlay() {
     if (!audio.src) { load(current, true); return; }
-    if (audio.paused) audio.play().catch(() => {});
-    else { audio.pause(); }
+    if (audio.paused) {
+      hasUserPlayed = true;
+      stopAllVideosForMusic();
+      try { audio.preload = 'auto'; } catch (e) {}
+      audio.play().catch(() => {});
+    } else {
+      audio.pause();
+    }
   }
 
   function restore() {
@@ -423,10 +463,32 @@
     if (open) prime();          // 打开面板 = 有听歌意图，这时才开始加载音轨
   });
 
-  // 首次交互也预热：通常早于"点播放"，给 SW 留出把首曲前 256KB 拿到手的窗口
-  ['pointerdown', 'keydown', 'wheel'].forEach((ev) => {
-    window.addEventListener(ev, prime, { once: true, passive: true });
+  // 悬停/触控/聚焦播放入口即刻预热首帧；首次交互与首屏空闲后也轻度预热（省流/2G 跳过非主动预热）
+  [enterBtn, fab].forEach((el) => {
+    if (!el) return;
+    ['pointerenter', 'touchstart', 'focus'].forEach((ev) => {
+      el.addEventListener(ev, prime, { once: true, passive: true });
+    });
   });
+  const primeOnInteract = () => {
+    if (!isSaveNet()) prime();
+  };
+  ['pointerdown', 'keydown', 'wheel'].forEach((ev) => {
+    window.addEventListener(ev, primeOnInteract, { once: true, passive: true });
+  });
+  const scheduleIdlePrime = () => {
+    if (isSaveNet()) return;
+    setTimeout(() => {
+      if (isSaveNet()) return;
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(prime, { timeout: 1000 });
+      } else {
+        setTimeout(prime, 600);
+      }
+    }, 1200);
+  };
+  if (document.readyState === 'complete') scheduleIdlePrime();
+  else window.addEventListener('load', scheduleIdlePrime, { once: true });
   closeBtn.addEventListener('click', () => {
     panel.classList.remove('music-open');
     fab.setAttribute('aria-expanded', 'false');
@@ -478,127 +540,226 @@
   });
 
   if ('mediaSession' in navigator) {
-    navigator.mediaSession.setActionHandler('previoustrack', () => { startBeat(); load(current - 1, !audio.paused); });
-    navigator.mediaSession.setActionHandler('nexttrack', () => { startBeat(); load(current + 1, !audio.paused); });
+    try {
+      navigator.mediaSession.setActionHandler('play', () => {
+        startBeat();
+        if (!audio.src) load(current, true);
+        else if (audio.paused) {
+          hasUserPlayed = true;
+          stopAllVideosForMusic();
+          try { audio.preload = 'auto'; } catch (e) {}
+          audio.play().catch(() => {});
+        }
+      });
+    } catch (e) {}
+    try {
+      navigator.mediaSession.setActionHandler('pause', () => {
+        if (!audio.paused) audio.pause();
+      });
+    } catch (e) {}
+    try {
+      navigator.mediaSession.setActionHandler('previoustrack', () => { startBeat(); load(current - 1, !audio.paused); });
+    } catch (e) {}
+    try {
+      navigator.mediaSession.setActionHandler('nexttrack', () => { startBeat(); load(current + 1, !audio.paused); });
+    } catch (e) {}
   }
 
-  // —— 介绍视频 × 音乐互斥 + 视口自动暂停（2026-09-30 用户需求）——
-  // 看介绍视频时自动暂停音乐（站点歌单或本地音乐，谁在响停谁），视频暂停/播完自动恢复；
-  // 视频滚出视口自动暂停（走 pause 事件 → 同样恢复音乐）。多视频互斥：任一在播即"观看中"。
-  // 恢复的唯一凭据是 musicPausedByVideo：用户本来就没开音乐时，视频结束不会强行播放。
-      (function initVideoMusicMutex() {
+  // —— 介绍视频 × 音乐严格双向互斥 + 视口自动暂停（永不同播）——
+  // · 视频起播/起播意图（sj-video-intent）→ 立即暂停音乐并记录凭据 musicPausedByVideo
+  // · 音乐起播（站点歌单或本地音频，且非视频触发的自动恢复）→ 立即暂停一切在播/起播中视频并清空凭据
+  // · 视频暂停/播完/中止/滑出视口 → 若无其他活跃视频且持有凭据，自动恢复音乐（原未放歌绝不强开）
+  // · 全屏播放保护：视频处于全屏态时禁止被视口检测误停
+  (function initVideoMusicMutex() {
     const videos = Array.from(document.querySelectorAll('#products video'));
     if (!videos.length) return;
     const siteAudio = audio;                        // 站点歌单
     const localAudio = document.getElementById('cosmos-audio');
-    let musicPausedByVideo = '';                    // '' | 'site' | 'local'：音乐因视频被暂停的凭据（只服务恢复方向）
-    let userOverride = false;                       // 用户在视频播放期间手动放歌 → 尊重到视频会话结束
-    let resumingByVideo = false;                    // 互斥自己的恢复进行中（不算用户 override）
+    let musicPausedByVideo = '';                    // '' | 'site' | 'local'：音乐因视频被暂停的凭据
+    let resumingByVideo = false;                    // 互斥自动恢复进行中
 
-    const playingVideo = () => videos.find((v) => !v.paused && !v.ended);
-    // 无凭据守卫、幂等：轮询每秒都会调，事件丢失后照样能把状态拉回来
+    const isVideoActive = (v) => (!v.paused && !v.ended) || v.dataset.opening === '1';
+    const activeVideo = () => videos.find(isVideoActive);
+    const isFullscreen = (v) =>
+      (document.fullscreenElement && (document.fullscreenElement === v || document.fullscreenElement.contains(v))) ||
+      (document.webkitFullscreenElement && (document.webkitFullscreenElement === v || document.webkitFullscreenElement.contains(v))) ||
+      !!v.webkitDisplayingFullscreen;
+
+    function clearVideoBeatUI(v) {
+      const box = v && v.closest('.cover-box');
+      if (box) {
+        box.classList.remove('is-playing-beat');
+        box.style.removeProperty('--beat-pulse');
+      }
+    }
+
+    function stopVideoElement(v, emitAbortIfOpening) {
+      if (!v) return;
+      const wasOpening = v.dataset.opening === '1';
+      delete v.dataset.opening;
+      if (!v.paused) {
+        try { v.pause(); } catch (_) {}
+      }
+      clearVideoBeatUI(v);
+      const evName = (emitAbortIfOpening && wasOpening) ? 'sj-video-abort' : 'sj-video-force-stop';
+      try {
+        window.dispatchEvent(new CustomEvent(evName, { detail: { video: v } }));
+      } catch (_) {}
+    }
+
+    stopAllVideosForMusic = function () {
+      if (resumingByVideo) return;
+      musicPausedByVideo = '';                      // 用户主动切回音乐，清空自动恢复凭据
+      videos.forEach((v) => {
+        if (isVideoActive(v)) stopVideoElement(v, false);
+      });
+    };
+
+    let resumingTimer = 0;
+
     function pauseMusicForVideo() {
       if (!siteAudio.paused) {
         siteAudio.pause();
         musicPausedByVideo = 'site';
-      } else if (localAudio && localAudio.src && !localAudio.paused) {
+      }
+      if (localAudio && !localAudio.paused) {
         localAudio.pause();
-        musicPausedByVideo = 'local';
+        if (!musicPausedByVideo) musicPausedByVideo = 'local';
       }
     }
+
     function resumeMusicIfIdle() {
-      if (!musicPausedByVideo || playingVideo()) return;   // 还有别的视频在播就不恢复
+      if (!musicPausedByVideo || activeVideo()) return;   // 还有别的视频在播/起播中就不恢复
       const which = musicPausedByVideo;
       musicPausedByVideo = '';
-      resumingByVideo = true;                       // 自己的恢复不算用户 override
-      setTimeout(function () { resumingByVideo = false; }, 400);   // 事件丢失时的兜底复位
+      resumingByVideo = true;
+      if (resumingTimer) clearTimeout(resumingTimer);
+      resumingTimer = setTimeout(function () {
+        resumingTimer = 0;
+        resumingByVideo = false;
+      }, 400);
       const el = which === 'site' ? siteAudio : localAudio;
-      if (el) el.play().catch(function () { resumingByVideo = false; });   // FAB 图标经 audio 的 play/pause 监听自动同步
+      if (el) {
+        try { el.preload = 'auto'; } catch (_) {}
+        el.play().catch(function () {
+          if (resumingTimer) { clearTimeout(resumingTimer); resumingTimer = 0; }
+          resumingByVideo = false;
+        });
+      }
     }
-    // 用户在视频播放期间手动恢复了音乐 → 本会话尊重用户（音乐与视频同播到视频结束）
+
+    // 音乐起播 → 严格双向互斥：立即停掉一切在播/起播中的介绍视频，永不同播
     [siteAudio, localAudio].forEach((el) => {
       if (el) el.addEventListener('play', function () {
-        if (playingVideo() && !resumingByVideo) userOverride = true;
+        if (!resumingByVideo) {
+          stopAllVideosForMusic();
+        }
+        if (resumingTimer) { clearTimeout(resumingTimer); resumingTimer = 0; }
         resumingByVideo = false;
       });
     });
 
+    // 视频起播意图（早于 v.play() 缓冲完成）→ 零延迟先停音乐与其他视频
+    window.addEventListener('sj-video-intent', function (ev) {
+      const target = ev.detail && ev.detail.video;
+      videos.forEach(function (o) {
+        if (o !== target && isVideoActive(o)) stopVideoElement(o, false);
+      });
+      pauseMusicForVideo();
+    });
+
+    // 视频被强制停止 → 同步清理 opening 与律动外框
+    window.addEventListener('sj-video-force-stop', function (ev) {
+      const v = ev.detail && ev.detail.video;
+      if (v) {
+        delete v.dataset.opening;
+        clearVideoBeatUI(v);
+      }
+    });
+
+    // 视频起播被中止（play reject 或起播途中滑走）→ 清理并按凭据恢复音乐
+    window.addEventListener('sj-video-abort', function (ev) {
+      const v = ev.detail && ev.detail.video;
+      if (v) {
+        delete v.dataset.opening;
+        clearVideoBeatUI(v);
+      }
+      resumeMusicIfIdle();
+      if (siteAudio.paused && !activeVideo()) stopBeat();
+    });
+
     videos.forEach((v) => {
       v.addEventListener('play', function () {
-        userOverride = false;                       // 用户点开视频：视频最高优先级，重置 manual override
-        videos.forEach(function (o) { if (o !== v && !o.paused) o.pause(); });   // 视频互斥
+        videos.forEach(function (o) {
+          if (o !== v && isVideoActive(o)) stopVideoElement(o, false);
+        });
         pauseMusicForVideo();
-        // 视频外框律动光晕：起播立刻挂载高亮标识
-        var box = v.closest('.cover-box');
+        const box = v.closest('.cover-box');
         if (box) box.classList.add('is-playing-beat');
-        // 视频原声音频律动：接入 Web Audio 分析器，驱动背景 3D 神经网络与视窗微光
         startBeat(v);
       });
       v.addEventListener('pause', function () {
-        var box = v.closest('.cover-box');
-        if (box) {
-          box.classList.remove('is-playing-beat');
-          box.style.removeProperty('--beat-pulse');
-        }
+        delete v.dataset.opening;
+        clearVideoBeatUI(v);
         resumeMusicIfIdle();
-        if (siteAudio.paused) stopBeat();
+        if (siteAudio.paused && !activeVideo()) stopBeat();
       });
       v.addEventListener('ended', function () {
-        var box = v.closest('.cover-box');
-        if (box) {
-          box.classList.remove('is-playing-beat');
-          box.style.removeProperty('--beat-pulse');
-        }
+        delete v.dataset.opening;
+        clearVideoBeatUI(v);
         resumeMusicIfIdle();
-        if (siteAudio.paused) stopBeat();
+        if (siteAudio.paused && !activeVideo()) stopBeat();
       });
     });
 
-    // 状态轮询兜底（2026-09-30 用户实测部分环境仍能同时播放）：
-    // 有视频在播 → 音乐必须停（除非用户明确 override）；无视频在播且有凭据 → 恢复。
+    // 1000ms 状态兜底：严格互斥（无 userOverride，绝不允许音视频同时发声）
     setInterval(function () {
-      const vPlaying = playingVideo();
-      if (!vPlaying) {
-        userOverride = false;                       // 视频会话结束，override 失效
+      const vActive = activeVideo();
+      if (!vActive) {
         if (musicPausedByVideo) resumeMusicIfIdle();
         return;
       }
-      if (!userOverride) pauseMusicForVideo();
+      pauseMusicForVideo();
     }, 1000);
 
-    // 视窗可见度检查（支持自然向下滑动零延迟自动暂停）
+    // 视窗可见度检查（含 opening 缓冲态 + 全屏保护 + 顶栏 64px 避让）
     function checkVideoVisibility() {
-      const v = playingVideo();
-      if (!v) return;
-      const rect = v.getBoundingClientRect();
       const vh = window.innerHeight || 900;
-      // 视频顶端滑入吸顶导航之下（底边小于 200px 说明视频大半已出屏，用户已往下看后续卡片）
-      // 或底端滑出视口底部（顶边大于 vh - 80px）时立即暂停
-      if (rect.bottom < 200 || rect.top > vh - 80) {
-        v.pause();
+      const headerBottom = 64;
+      for (let i = 0; i < videos.length; i++) {
+        const v = videos[i];
+        if (!isVideoActive(v) || isFullscreen(v)) continue;
+        const rect = v.getBoundingClientRect();
+        if (rect.height <= 0) continue;
+        const visibleTop = Math.max(rect.top, headerBottom);
+        const visibleBottom = Math.min(rect.bottom, vh);
+        const visibleHeight = Math.max(0, visibleBottom - visibleTop);
+        const visibleRatio = visibleHeight / rect.height;
+        if (rect.bottom < 160 || rect.top > vh - 120 || visibleRatio < 0.45) {
+          stopVideoElement(v, true);
+        }
       }
     }
 
-    // 滚出视口自动暂停：多级阈值 + 顶栏避让（用户往下滑动或滚出主视区立即暂停，自动唤醒背景音乐）
+    // 滚出视口自动暂停：IO 阈值 0.45 + 顶栏避让（自动唤醒曾被暂停的背景音乐）
     if ('IntersectionObserver' in window) {
       const io = new IntersectionObserver((entries) => {
         entries.forEach((en) => {
           const v = en.target;
-          if (v.paused || v.ended) return;
-          // 当视频滚出视口或可见比例低于 60%（用户已向下滚动阅读卡片其他信息或后续板块）
-          if (!en.isIntersecting || en.intersectionRatio < 0.6) {
-            v.pause();
+          if (!isVideoActive(v) || isFullscreen(v)) return;
+          if (!en.isIntersecting || en.intersectionRatio < 0.45) {
+            stopVideoElement(v, true);
           }
         });
       }, {
-        threshold: [0, 0.2, 0.4, 0.6, 0.8, 1.0],
-        rootMargin: '-64px 0px -40px 0px'           // 避开 64px 吸顶导航条与底边容差
+        threshold: [0, 0.2, 0.45, 0.6, 0.8, 1.0],
+        rootMargin: '-64px 0px -40px 0px'
       });
       videos.forEach((v) => io.observe(v));
     }
 
-    // 原生滚动高灵敏度检测兜底：零延迟响应用户快速向下滑动手势
     window.addEventListener('scroll', checkVideoVisibility, { passive: true });
+    window.addEventListener('resize', checkVideoVisibility, { passive: true });
   })();
 
   restore();

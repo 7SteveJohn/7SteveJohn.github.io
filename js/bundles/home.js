@@ -1,9 +1,9 @@
-// build-bundles: {"name":"home","version":"74fc5af8991b","sources":[{"path":"js/search.js","sha256":"09d12f167d1105d1616278784f2305cf193616627aaa1ceeebe8fcdfac3633b7"},{"path":"js/video-gate.js","sha256":"558d88878cacf814d93cdf70f2dd0d0e21245e2e5b1fc50e6b24a38fa1b91d4c"},{"path":"js/app.js","sha256":"295d8e91410ffbde3e94cd4bfaa815066874d6e6ebd7137233e487fb75069eb4"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"abac1dd86a726f4ab33392d80aabbdfe1cd429937429330de8924998f16dec6c"}]}
+// build-bundles: {"name":"home","version":"bb038a0090f7","sources":[{"path":"js/search.js","sha256":"0a6ebd1c951e7e46426ca2fa5497bd25e143f2c0fed8755a7d30f9d565319fc9"},{"path":"js/video-gate.js","sha256":"31c5a72caf1e34746746063d51e8c686a5924467e08c09cfc569cee5208e61b7"},{"path":"js/app.js","sha256":"01f08a48bc2968705dc057b0284c2ffdff81ed473f67e3e8ffff737d6809f495"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"8ca8a374c56f02e0f669c18f081e2b0fc3067786ab770c3ac9e5aeecec04eb33"}]}
 /* 仅首页：搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
 
-// ---- js/search.js (09d12f167d11) ----
+// ---- js/search.js (0a6ebd1c951e) ----
 /**
  * ⌘K 站内搜索命令面板 (search.js)
  * ----------------------------------------------------
@@ -193,7 +193,19 @@
   /* ---------- 开关 ---------- */
   function open() {
     if (!palette.classList.contains('hidden') && !palette.classList.contains('is-closing')) return;
+    const hadFull = window.__ARTICLES_FULL_LOADED === true
+      || (Array.isArray(window.ARTICLES_DATA) && window.ARTICLES_DATA.some((a) => typeof a.content === 'string' && a.content.length > 0));
     buildIndex();
+    if (!hadFull && typeof window.ensureArticles === 'function') {
+      window.ensureArticles().then((ok) => {
+        if (!ok) return;
+        buildIndex();
+        const q = input.value.trim();
+        if (q && !palette.classList.contains('hidden') && !palette.classList.contains('is-closing')) {
+          render(q);
+        }
+      });
+    }
     lastFocus = document.activeElement;
     if (palette._closeTimer) { clearTimeout(palette._closeTimer); palette._closeTimer = null; }
     palette.classList.remove('hidden', 'is-closing');
@@ -208,7 +220,12 @@
 
   function close() {
     if (palette.classList.contains('hidden') || palette.classList.contains('is-closing')) return;
-    document.body.style.overflow = '';
+    const articleModal = document.getElementById('article-modal');
+    const projectModal = document.getElementById('project-modal');
+    const hasOpenModal =
+      (articleModal && !articleModal.classList.contains('hidden') && !articleModal.classList.contains('is-closing')) ||
+      (projectModal && !projectModal.classList.contains('hidden') && !projectModal.classList.contains('is-closing'));
+    if (!hasOpenModal) document.body.style.overflow = '';
     if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
     // 收起淡出（与弹窗同款退场节奏），动画结束后再隐藏
     palette.classList.add('is-closing');
@@ -314,7 +331,7 @@
 
 ;
 
-// ---- js/video-gate.js (558d88878cac) ----
+// ---- js/video-gate.js (31c5a72caf1e) ----
 /**
  * 介绍视频「海报 + 播放键」体验（2026-09-30，C1；同日修不显示 bug）
  * ----------------------------------------------------
@@ -328,37 +345,59 @@
 (function () {
   'use strict';
 
-  // 近屏预热：只把起播需要的一小段缓冲好（canplay 即停），换取点击零等待。
-  // 2G / 省流量模式不预热——这类链路上多拉 100KB 比多等半秒更明显。
-  const canWarm = (() => {
+  // 近屏元信息 + 悬停/触控/聚焦关键帧预热：
+  // 1. 首屏所有视频保持 preload=none（零首屏带宽消耗）
+  // 2. 用户滚动进入卡片附近（rootMargin 600px）升级为 preload=metadata
+  // 3. 指针悬停 / 触控 / 聚焦卡片或 .cover-box 时立即升级 preload=auto 缓冲起播关键帧，
+  //    canplay 后（或 8s 兜底）在仍暂停态回落到 metadata（保留已缓冲帧与解码器就绪，不再退回 none）
+  // 2G / 省流量模式不执行 auto 预热。
+  const canWarm = () => {
     const c = navigator.connection;
     return !(c && (c.saveData || /(^|-)2g$/.test(c.effectiveType || '')));
-  })();
-  let warmScheduled = false;
+  };
+  let metaScheduled = false;
 
-  function warm(v) {
-    if (!canWarm || !v || v.dataset.warmed) return;
-    v.dataset.warmed = '1';
-    v.preload = 'auto';
-    const stop = () => {
-      v.removeEventListener('canplay', stop);
-      if (v.paused) v.preload = 'none';      // 够起播就收手，不把整支片拉完
-    };
-    v.addEventListener('canplay', stop);
-    setTimeout(stop, 10000);
+  function promoteMetadata(v) {
+    if (!v) return;
+    if (v.preload === 'none') {
+      v.preload = 'metadata';
+    }
   }
 
-  function scheduleWarm() {
-    if (warmScheduled || !('IntersectionObserver' in window)) return;
-    warmScheduled = true;
+  function warm(v) {
+    if (!canWarm() || !v || v.dataset.warmed === '1' || !v.paused || v.dataset.opening === '1') return;
+    v.dataset.warmed = '1';
+    // 若已达到 HAVE_FUTURE_DATA（readyState >= 3），说明起播关键帧已就绪，直接保持 metadata 即可
+    if (v.readyState >= 3) {
+      if (v.preload !== 'metadata') v.preload = 'metadata';
+      return;
+    }
+    v.preload = 'auto';
+    let settled = false;
+    const dialBack = () => {
+      if (settled) return;
+      settled = true;
+      v.removeEventListener('canplay', dialBack);
+      if (v.paused && v.dataset.opening !== '1') {
+        v.preload = 'metadata';   // 保留已缓冲起播帧与元数据，绝不回落到 none
+      }
+    };
+    v.addEventListener('canplay', dialBack, { once: true });
+    if (v.readyState >= 3) dialBack();
+    else setTimeout(dialBack, 8000);
+  }
+
+  function scheduleMetadata() {
+    if (metaScheduled || !('IntersectionObserver' in window)) return;
+    metaScheduled = true;
     const io = new IntersectionObserver((entries) => {
       entries.forEach((en) => {
         if (!en.isIntersecting) return;
         const v = en.target.querySelector('video.cover-video');
         io.unobserve(en.target);
-        warm(v);
+        promoteMetadata(v);
       });
-    }, { rootMargin: '100% 0px' });
+    }, { rootMargin: '600px 0px' });
     document.querySelectorAll('#products .cover-box').forEach((box) => io.observe(box));
   }
 
@@ -369,6 +408,7 @@
       v.removeAttribute('controls');            // 播放前不显示原生控制条
 
       const box = v.closest('.cover-box') || v.parentElement;
+      const card = v.closest('article[data-project-id]') || box;
       const layer = document.createElement('div');
       layer.className = 'video-play-gate';
       layer.setAttribute('aria-hidden', 'false');
@@ -377,50 +417,130 @@
         '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>' +
         '</button>';
 
-      let opening = false;
-      function open() {
-        if (opening) return;
-        opening = true;
-        // 海报先留着：等真正出画（playing）再撤覆盖层，避免点完先闪一块黑。
-        layer.classList.add('is-loading');
-        v.preload = 'auto';
-        v.setAttribute('controls', '');
-        const reveal = () => {
-          v.removeEventListener('playing', reveal);
-          opening = false;
-          layer.remove();
-          v.focus({ preventScroll: true });     // 键盘用户焦点落回视频
-        };
-        v.addEventListener('playing', reveal);
-        v.play().catch(() => {                  // 用户手势内，直接起播
-          opening = false;
-          layer.classList.remove('is-loading');
-          v.removeAttribute('controls');
-        });
-      }
-      function close() {
-        if (!layer.isConnected && !v.paused) return;
+      let openToken = 0;
+      let fromGateClick = false;
+
+      function close(force) {
+        if (force) {
+          openToken++;
+          fromGateClick = false;
+          delete v.dataset.opening;
+        }
+        if (!force && !layer.isConnected && !v.paused) return;
         if (!layer.isConnected) box.appendChild(layer);
         layer.classList.remove('is-loading');
         v.removeAttribute('controls');
       }
+
+      function open() {
+        if (v.dataset.opening === '1' || !v.paused) return;
+        const myToken = ++openToken;
+        fromGateClick = true;
+        // 先标 opening + 通知互斥层暂停音乐，再停其他视频并起播，彻底消除音视频重叠空窗
+        v.dataset.opening = '1';
+        try {
+          window.dispatchEvent(new CustomEvent('sj-video-intent', { detail: { video: v } }));
+        } catch (_) {}
+
+        document.querySelectorAll('#products video').forEach((other) => {
+          if (other === v) return;
+          if (!other.paused || other.dataset.opening === '1') {
+            delete other.dataset.opening;
+            if (!other.paused) {
+              try { other.pause(); } catch (_) {}
+            }
+            try {
+              window.dispatchEvent(new CustomEvent('sj-video-force-stop', { detail: { video: other } }));
+            } catch (_) {}
+          }
+        });
+
+        // 海报先留着：等真正出画（playing）再撤覆盖层，避免点完先闪一块黑。
+        layer.classList.add('is-loading');
+        v.preload = 'auto';
+        v.setAttribute('controls', '');
+
+        const p = v.play();
+        if (p && typeof p.then === 'function') {
+          p.then(() => {
+            if (openToken !== myToken) {
+              delete v.dataset.opening;
+              try { v.pause(); } catch (_) {}
+              close(true);
+            }
+          }).catch(() => {
+            const stillMine = (openToken === myToken);
+            delete v.dataset.opening;
+            close(true);
+            if (stillMine) {
+              try {
+                window.dispatchEvent(new CustomEvent('sj-video-abort', { detail: { video: v } }));
+              } catch (_) {}
+            }
+          });
+        }
+      }
+
       layer.addEventListener('click', open);
-      v.addEventListener('ended', close);
-      v.addEventListener('pause', close);       // 暂停也收回控制条，回到海报态
+      v.addEventListener('playing', () => {
+        if (v.paused) return;
+        delete v.dataset.opening;
+        layer.classList.remove('is-loading');
+        if (layer.isConnected) layer.remove();
+        if (!v.hasAttribute('controls')) v.setAttribute('controls', '');
+        if (fromGateClick) {
+          fromGateClick = false;
+          try { v.focus({ preventScroll: true }); } catch (_) {}
+        }
+      });
+      v.addEventListener('ended', () => {
+        delete v.dataset.opening;
+        close(true);
+      });
+      v.addEventListener('pause', () => {
+        delete v.dataset.opening;
+        close(true);
+      });
+
+      window.addEventListener('sj-video-force-stop', (ev) => {
+        if (ev.detail && ev.detail.video === v) {
+          openToken++;
+          fromGateClick = false;
+          delete v.dataset.opening;
+          if (!v.paused) {
+            try { v.pause(); } catch (_) {}
+          }
+          close(true);
+        }
+      });
+      window.addEventListener('sj-video-abort', (ev) => {
+        if (ev.detail && ev.detail.video === v) {
+          openToken++;
+          fromGateClick = false;
+          delete v.dataset.opening;
+          if (!v.paused) {
+            try { v.pause(); } catch (_) {}
+          }
+          close(true);
+        }
+      });
+
       box.appendChild(layer);
 
-      // 点击播放前保持 preload=none，避免浏览页面时后台抢跑下载 20MB+ 视频
+      // 首屏保持 preload=none，避免初始载入抢跑下载视频
       if (v.preload !== 'none') {
         v.preload = 'none';
       }
 
-      // 桌面端悬停即视为播放意图，比 IntersectionObserver 再早一步
-      box.addEventListener('pointerenter', () => warm(v), { once: true });
+      // 悬停 / 触控 / 聚焦产品卡片或视频视窗即刻预热关键帧
+      const triggerWarm = () => warm(v);
+      card.addEventListener('pointerenter', triggerWarm, { once: true, passive: true });
+      card.addEventListener('touchstart', triggerWarm, { once: true, passive: true });
+      card.addEventListener('focusin', triggerWarm, { once: true, passive: true });
     });
 
-    // 只在用户真的开始逛产品区（滚动）后才预热：
-    // 首屏不占带宽，站内跳转也不会被视频预取抢道。
-    const arm = () => scheduleWarm();
+    // 只在用户开始浏览（滚动）后再挂近屏 metadata 预加载：首屏零带宽消耗
+    const arm = () => scheduleMetadata();
     window.addEventListener('scroll', arm, { once: true, passive: true });
     if (window.scrollY > 0) arm();
   }
@@ -430,7 +550,7 @@
 
 ;
 
-// ---- js/app.js (295d8e91410f) ----
+// ---- js/app.js (01f08a48bc29) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -507,10 +627,30 @@ document.addEventListener('DOMContentLoaded', () => {
     window.lucide.createIcons();
   }
 
-  // 9. Service Worker 离线缓存（仅 HTTPS / localhost 环境生效，file:// 下静默跳过）
-  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  // 9. Service Worker 离线缓存（仅安全上下文且非 file:// 环境生效）
+  if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
+
+  // 10. 首屏后空闲静默预取文章正文（省流量 / 2G 跳过），确保随后点文章或 ⌘K 全文检索零等待
+  const scheduleIdleArticles = () => {
+    const c = navigator.connection;
+    if (c && (c.saveData || /(^|-)2g$/.test(c.effectiveType || ''))) return;
+    const warmArticles = () => {
+      const conn = navigator.connection;
+      if (conn && (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || ''))) return;
+      if (typeof window.ensureArticles === 'function') window.ensureArticles();
+    };
+    setTimeout(() => {
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(warmArticles, { timeout: 2200 });
+      } else {
+        setTimeout(warmArticles, 1700);
+      }
+    }, 1800);
+  };
+  if (document.readyState === 'complete') scheduleIdleArticles();
+  else window.addEventListener('load', scheduleIdleArticles, { once: true });
 
 });
 
@@ -532,6 +672,8 @@ function initTheme() {
   const syncColorScheme = (isDark) => {
     const meta = document.querySelector('meta[name="color-scheme"]');
     if (meta) meta.content = isDark ? 'dark' : 'light';
+    const tc = document.querySelector('meta[name="theme-color"]');
+    if (tc) tc.content = isDark ? '#060911' : '#f8fafc';
   };
 
   let savedTheme = null;
@@ -548,6 +690,7 @@ function initTheme() {
     }
   });
 
+  let vtBusy = false;
   function toggle(e) {
     const applyNow = () => {
       const isDark = document.documentElement.classList.toggle('dark');
@@ -555,9 +698,10 @@ function initTheme() {
       try { localStorage.setItem('sj.theme', isDark ? 'dark' : 'light'); } catch (_) {}   // 全站访客本地键统一 sj. 前缀
     };
 
-    // 明暗切换：从点击位置圆形扩散开新主题（View Transitions，减少动效时直接切换）
+    // 明暗切换：从点击位置圆形扩散开新主题（View Transitions，减少动效或过渡进行中时直接切换）
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (document.startViewTransition && !reduce) {
+    if (document.startViewTransition && !reduce && !vtBusy) {
+      vtBusy = true;
       const rect = (e && e.currentTarget ? e.currentTarget : themeToggleBtn).getBoundingClientRect();
       const x = rect.left + rect.width / 2;
       const y = rect.top + rect.height / 2;
@@ -569,6 +713,7 @@ function initTheme() {
           { duration: 480, easing: 'cubic-bezier(0.32, 0.72, 0, 1)', pseudoElement: '::view-transition-new(root)' }
         );
       }).catch(() => {});
+      vt.finished.finally(() => { vtBusy = false; });
     } else {
       applyNow();
     }
@@ -614,7 +759,8 @@ function buildAnnouncement(project) {
   const a = project.announcement;
   if (!a || !Array.isArray(a.items) || !a.items.length) return '';
   const ver = a.version ? `<span class="announce-ver font-mono">${escapeHtml(a.version)}</span>` : '';
-  const line = [ver, a.summary || a.items.join(' / ')].filter(Boolean).join(' · ');
+  const summaryText = escapeHtml(a.summary || a.items.join(' / '));
+  const line = [ver, summaryText].filter(Boolean).join(' · ');
   const more = Array.isArray(project.changelog) && project.changelog.length
     ? `<button class="announce-more cursor-pointer" data-open-project="${escapeHtml(project.id)}" data-open-changelog>全部 ${project.changelog.length} 个版本 →</button>`
     : '';
@@ -704,6 +850,22 @@ function hydrateProductLinks() {
   });
 }
 
+// 弹窗遮挡保护：打开文章或项目详情弹窗时暂停一切在播/起播中的介绍视频，避免后台继续发声
+function pauseActiveProductVideos() {
+  document.querySelectorAll('#products video').forEach((v) => {
+    const wasOpening = v.dataset.opening === '1';
+    if (!v.paused || wasOpening) {
+      delete v.dataset.opening;
+      if (!v.paused) {
+        try { v.pause(); } catch (_) {}
+      }
+      try {
+        window.dispatchEvent(new CustomEvent(wasOpening ? 'sj-video-abort' : 'sj-video-force-stop', { detail: { video: v } }));
+      } catch (_) {}
+    }
+  });
+}
+
 // 打开项目详情弹窗
 window.openProjectModal = function(id, opts = {}) {
   const project = (window.PROJECTS_DATA || []).find(p => p.id === id);
@@ -720,6 +882,8 @@ window.openProjectModal = function(id, opts = {}) {
     }
     return;
   }
+
+  pauseActiveProductVideos();
 
   const modal = document.getElementById('project-modal');
   const modalContent = document.getElementById('project-modal-content');
@@ -796,22 +960,22 @@ window.openProjectModal = function(id, opts = {}) {
       <!-- 操作链接栏 -->
       <div class="pt-6 border-t border-black/10 dark:border-white/10 flex flex-wrap gap-3 items-center justify-end">
         ${project.downloadUrl ? `
-          <a href="${project.downloadUrl}" target="_blank" rel="noopener noreferrer"
+          <a href="${escapeHtml(project.downloadUrl)}" target="_blank" rel="noopener noreferrer"
              ${project.downloadPwd ? `data-copy-pwd="${escapeHtml(project.downloadPwd)}"` : ''}
              class="btn-primary px-5 py-2 text-xs flex items-center gap-1.5">
             <i data-lucide="download" class="w-3.5 h-3.5"></i>
-            <span>网盘下载${project.downloadPwd ? ' (提取码: ' + project.downloadPwd + ')' : ''}</span>
+            <span>网盘下载${project.downloadPwd ? ' (提取码: ' + escapeHtml(project.downloadPwd) + ')' : ''}</span>
           </a>
         ` : ''}
         ${project.githubUrl && project.githubUrl !== '#' ? `
-          <a href="${project.githubUrl}" target="_blank" rel="noopener noreferrer"
+          <a href="${escapeHtml(project.githubUrl)}" target="_blank" rel="noopener noreferrer"
              class="btn-secondary px-4 py-2 text-xs bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-[#1d1d1f] dark:text-white flex items-center gap-1.5 border border-black/10 dark:border-white/10">
             <svg viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
             <span>GitHub 源码</span>
           </a>
         ` : ''}
         ${project.demoUrl && project.demoUrl !== '#' ? `
-          <a href="${project.demoUrl}" target="_blank" rel="noopener noreferrer"
+          <a href="${escapeHtml(project.demoUrl)}" target="_blank" rel="noopener noreferrer"
              class="btn-secondary px-4 py-2 text-xs bg-slate-100 dark:bg-white/10 text-[#1d1d1f] dark:text-white flex items-center gap-1.5 border border-black/10 dark:border-white/10">
             <span>GitHub Releases</span>
             <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
@@ -845,11 +1009,11 @@ window.openProjectModal = function(id, opts = {}) {
     }
   };
 
-  // 渲染器就绪后补写正文（期间又点了别的项目就放弃，避免覆盖错内容）
+  // 渲染器就绪后补写正文（期间又点了别的项目或已关闭弹窗就放弃，避免覆盖错内容/泄漏高亮）
   if (needMd && project.details) {
     const token = project.id;
     window.ensureMarkdown().then((ok) => {
-      if (modalContent._projectToken !== token) return;
+      if (modalContent._projectToken !== token || modal.classList.contains('hidden') || modal.classList.contains('is-closing')) return;
       const body = modalContent.querySelector('.markdown-body');
       if (!body) return;
       body.innerHTML = ok
@@ -891,7 +1055,10 @@ window.closeProjectModal = function() {
   const modal = document.getElementById('project-modal');
   const modalContent = document.getElementById('project-modal-content');
   if (modal) modal.scrollTop = 0;
-  if (modalContent) modalContent.scrollTop = 0;
+  if (modalContent) {
+    modalContent._projectToken = null;
+    modalContent.scrollTop = 0;
+  }
   animateModalClose(modal);
 };
 
@@ -902,7 +1069,7 @@ window.closeProjectModal = function() {
 
 // 全部内容统一按日期倒序——新增条目无论插在数组哪个位置，最新的永远排最前
 function getSortedArticles() {
-  return (window.ARTICLES_DATA || []).toSorted((a, b) => (b.date || '').localeCompare(a.date || ''));
+  return (window.ARTICLES_DATA || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 }
 
 // 阅读时长兜底估算：中文按 400 字/分钟，英文按 200 词/分钟
@@ -972,6 +1139,10 @@ function buildArticleToc(modalContent) {
 // #article-modal-content（不是文档），观察器在嵌套滚动容器里要反复换算 root，反而更绕，
 // 而这里是「同一时刻只有一个当前章节」的场景，一行比较就够了。
 function initTocSpy(modalContent) {
+  if (modalContent._tocSpyAbort) {
+    modalContent._tocSpyAbort.abort();
+    modalContent._tocSpyAbort = null;
+  }
   const box = modalContent.querySelector('.toc-box');
   if (!box) return;
   const links = [...box.querySelectorAll('.toc-link[data-toc-id]')];
@@ -999,17 +1170,25 @@ function initTocSpy(modalContent) {
   };
 
   const modal = document.getElementById('article-modal');
-  modalContent.addEventListener('scroll', () => {
+  const ac = typeof AbortController === 'function' ? new AbortController() : null;
+  if (ac) modalContent._tocSpyAbort = ac;
+  const onScroll = () => {
     if (!raf) raf = requestAnimationFrame(paint);
-  }, { passive: true });
+  };
+  const listenerOpts = ac ? { passive: true, signal: ac.signal } : { passive: true };
+  modalContent.addEventListener('scroll', onScroll, listenerOpts);
   if (modal) {
-    modal.addEventListener('scroll', () => {
-      if (!raf) raf = requestAnimationFrame(paint);
-    }, { passive: true });
+    modal.addEventListener('scroll', onScroll, listenerOpts);
   }
   paint();
   // 弹窗还在入场动画（transform 未归位）时首算会误判成最后一节，动画落定后再对一次
-  setTimeout(paint, 400);
+  const settleTimer = setTimeout(paint, 400);
+  if (ac) {
+    ac.signal.addEventListener('abort', () => {
+      clearTimeout(settleTimer);
+      if (raf) { cancelAnimationFrame(raf); raf = 0; }
+    }, { once: true });
+  }
 }
 
 // 文章结构化数据（Google 会执行 JS，可吃到每篇的富摘要）
@@ -1275,7 +1454,7 @@ function renderArticleSection({ match, sectionId, navHref, listId, useArrayOrder
 
   if (useArrayOrder) {
     // 系列文章：若包含标题序号（如 一、二、三...），按标题序号严格升序，确保展示与章节标题对齐
-    items = items.toSorted((a, b) => {
+    items = items.slice().sort((a, b) => {
       const oa = getTitleOrder(a.title);
       const ob = getTitleOrder(b.title);
       if (oa !== ob) return oa - ob;
@@ -1325,7 +1504,8 @@ function getSiblingList(article) {
     // AI 学习系列：按标题序号顺序（一→七）翻页即阅读顺序，与列表渲染同序，日期只作展示
     return (window.ARTICLES_DATA || [])
       .filter(a => a.section === 'ai')
-      .toSorted((a, b) => {
+      .slice()
+      .sort((a, b) => {
         const oa = getTitleOrder(a.title);
         const ob = getTitleOrder(b.title);
         if (oa !== ob) return oa - ob;
@@ -1513,6 +1693,8 @@ window.openArticleModal = function(id, skipUrlSync, opts) {
   const article = (window.ARTICLES_DATA || []).find(a => a.id === id);
   if (!article) return;
 
+  pauseActiveProductVideos();
+
   const modal = document.getElementById('article-modal');
   const modalContent = document.getElementById('article-modal-content');
   if (!modal || !modalContent) return;
@@ -1524,6 +1706,8 @@ window.openArticleModal = function(id, skipUrlSync, opts) {
   const wasOpen = !modal.classList.contains('hidden') && !modal.classList.contains('is-closing');
   const prevActiveArticle = activeArticle;
   activeArticle = article;
+  const reqId = (modalContent._articleReqId || 0) + 1;
+  modalContent._articleReqId = reqId;
 
   const barTitle = document.getElementById('article-bar-title');
   if (barTitle) barTitle.textContent = article.title || '';
@@ -1533,9 +1717,11 @@ window.openArticleModal = function(id, skipUrlSync, opts) {
     || new URLSearchParams(location.search).get('hl')
     || '';
 
-  // Markdown 渲染器按需加载（2026-10-17）：先出骨架，正文等渲染器就绪后补写
+  // 文章正文与 Markdown 渲染器均按需加载：先出骨架，二者并齐后补写正文与目录
+  const needBody = !(typeof article.content === 'string' && article.content.length > 0);
   const needMd = !(window.marked && window.DOMPurify);
-  const parsedMarkdown = needMd
+  const needAsync = needBody || needMd;
+  const parsedMarkdown = needAsync
     ? '<p class="md-pending">正在准备阅读器…</p>'
     : sanitizeMarkdownHtml(window.marked.parse(article.content || ''));
 
@@ -1601,15 +1787,35 @@ window.openArticleModal = function(id, skipUrlSync, opts) {
   initTocSpy(modalContent);
   injectArticleJsonLd(article);
 
-  // 渲染器就绪后补写正文，并重建依赖正文的目录/复制按钮/高亮
-  if (needMd) {
-    ensureMarkdown().then((ok) => {
-      if (activeArticle !== article) return;           // 期间切篇了就放弃，避免覆盖
+  // 正文与渲染器就绪后补写正文，并重建依赖正文的目录/复制按钮/高亮
+  if (needAsync) {
+    const bodyTask = needBody
+      ? (typeof window.ensureArticles === 'function' ? window.ensureArticles() : Promise.resolve(false))
+      : Promise.resolve(true);
+    const mdTask = needMd
+      ? (typeof window.ensureMarkdown === 'function' ? window.ensureMarkdown() : Promise.resolve(false))
+      : Promise.resolve(true);
+    Promise.all([bodyTask, mdTask]).then(([bodyOk, mdOk]) => {
+      if (
+        modalContent._articleReqId !== reqId
+        || !activeArticle
+        || activeArticle.id !== id
+        || modal.classList.contains('hidden')
+        || modal.classList.contains('is-closing')
+      ) return;
+      const latest = (window.ARTICLES_DATA || []).find((a) => a.id === id) || article;
+      activeArticle = latest;
       const body = modalContent.querySelector('.markdown-body');
       if (!body) return;
-      body.innerHTML = ok
-        ? sanitizeMarkdownHtml(window.marked.parse(article.content || ''))
-        : `<p>${escapeHtml(article.content || '')}</p>`;
+      const raw = latest.content || '';
+      if (!raw && !bodyOk) {
+        body.innerHTML = '<p class="text-[#86868b]">正文加载失败，请检查网络后重试。</p>';
+        return;
+      }
+      body.innerHTML = (mdOk && window.marked && window.DOMPurify)
+        ? sanitizeMarkdownHtml(window.marked.parse(raw))
+        : `<p>${escapeHtml(raw)}</p>`;
+      modalContent.querySelectorAll('.toc-box').forEach((el) => el.remove());
       ensureHighlight(modalContent);
       addCopyButtons(modalContent);
       buildArticleToc(modalContent);
@@ -1621,7 +1827,7 @@ window.openArticleModal = function(id, skipUrlSync, opts) {
 
   // 切换篇目后回到正文顶部、复位进度条；若从 ⌘K 搜索进入则无损高亮命中词并定位首处
   resetArticleModalScroll();
-  if (!needMd && hlQuery) {
+  if (!needAsync && hlQuery) {
     applyModalSearchHighlight(modal, modalContent, hlQuery);
   } else if (!hlQuery) {
     clearModalSearchHighlight(modal);
@@ -1660,6 +1866,15 @@ window.openArticleModal = function(id, skipUrlSync, opts) {
 
 window.closeArticleModal = function(skipUrlSync) {
   const modal = document.getElementById('article-modal');
+  const modalContent = document.getElementById('article-modal-content');
+  if (modalContent) {
+    modalContent._articleReqId = (modalContent._articleReqId || 0) + 1;
+    if (modalContent._tocSpyAbort) {
+      modalContent._tocSpyAbort.abort();
+      modalContent._tocSpyAbort = null;
+    }
+  }
+  activeArticle = null;
   clearModalSearchHighlight(modal);
   const wasOpen = modal && !modal.classList.contains('hidden') && !modal.classList.contains('is-closing');
   resetArticleModalScroll();
@@ -1762,14 +1977,33 @@ function initBlogCards() {
     if (window.CardsCore) return Promise.resolve(true);
     if (loading) return loading;
     loading = new Promise((resolve) => {
-      const css = document.createElement('link');
-      css.rel = 'stylesheet';
-      css.href = 'css/cards.css?v=20261118q';
-      document.head.appendChild(css);
+      const cssHref = 'css/cards.css?v=20261127a';
+      let css = document.querySelector(`link[href="${cssHref}"]`);
+      let addedCss = false;
+      if (!css) {
+        css = document.createElement('link');
+        css.rel = 'stylesheet';
+        css.href = cssHref;
+        document.head.appendChild(css);
+        addedCss = true;
+      }
       const s = document.createElement('script');
-      s.src = 'js/cards.js?v=20261118q';
-      s.onload = () => resolve(!!window.CardsCore);
-      s.onerror = () => resolve(false);
+      s.src = 'js/cards.js?v=20261127a';
+      s.onload = () => {
+        const ok = !!window.CardsCore;
+        if (!ok) {
+          if (s.parentNode) s.parentNode.removeChild(s);
+          if (addedCss && css.parentNode) css.parentNode.removeChild(css);
+          loading = null;
+        }
+        resolve(ok);
+      };
+      s.onerror = () => {
+        if (s.parentNode) s.parentNode.removeChild(s);
+        if (addedCss && css.parentNode) css.parentNode.removeChild(css);
+        loading = null;
+        resolve(false);
+      };
       document.head.appendChild(s);
     });
     return loading;
@@ -1835,7 +2069,7 @@ function initBlogCards() {
       const head = document.createElement('button');
       head.type = 'button';
       head.className = 'text-xs font-bold text-[#1d1d1f] dark:text-white transition cursor-pointer';
-      head.innerHTML = cat + '&thinsp;<span class="font-mono" style="font-weight:400;color:var(--accent)">' + arts.length + '</span>';
+      head.innerHTML = escapeHtml(cat) + '&thinsp;<span class="font-mono" style="font-weight:400;color:var(--accent)">' + arts.length + '</span>';
       head.setAttribute('aria-label', `打开卷宗：${cat}（${arts.length} 篇）`);
       head.addEventListener('click', () => openPackInline(cat));
       group.appendChild(head);
@@ -1854,8 +2088,11 @@ function initBlogCards() {
     toc.appendChild(details);
   }
 
-  // 懒加载 + 首屏后静默预热：#blog 接近视口立即挂载；若用户未滑到，load 后空闲时也提前挂载好抽卡架
+  // 真懒加载 + 轻度空闲预热：#blog 接近视口（1200px）立即挂载；首屏 load 后空闲期轻度预热（省流/2G 跳过），不与首屏/3D/音视频抢道
+  let shelfStarted = false;
   const startShelfOnce = () => {
+    if (shelfStarted) return;
+    shelfStarted = true;
     io.disconnect();
     if (view === 'deck') mountShelf();
   };
@@ -1864,10 +2101,23 @@ function initBlogCards() {
       startShelfOnce();
     }
   }, { rootMargin: '1200px 0px' });
+  const scheduleIdleShelf = () => {
+    const c = navigator.connection;
+    if (c && (c.saveData || /(^|-)2g$/.test(c.effectiveType || ''))) return;
+    setTimeout(() => {
+      const conn = navigator.connection;
+      if (conn && (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || ''))) return;
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(() => startShelfOnce(), { timeout: 2000 });
+      } else {
+        setTimeout(startShelfOnce, 1500);
+      }
+    }, 1500);
+  };
   if (document.readyState === 'complete') {
-    setTimeout(startShelfOnce, 120);
+    scheduleIdleShelf();
   } else {
-    window.addEventListener('load', () => setTimeout(startShelfOnce, 120), { once: true });
+    window.addEventListener('load', scheduleIdleShelf, { once: true });
   }
   io.observe(sec);
 
@@ -2107,7 +2357,11 @@ function initScrollSpy() {
   // ❗一个区块对应多个链接（桌面导航 + 移动抽屉是两套 nav，href 相同）：
   // 以前按 href 去重只留最后一个，于是 .nav-active 永远落在抽屉里那条上，
   // 桌面导航其实从不高亮（2026-10-17 做导航胶囊时发现）。这里改成「同一 href 全部标记」。
-  const byId = Object.groupBy(navLinks, (a) => a.getAttribute('href').slice(1));
+  const byId = {};
+  for (const a of navLinks) {
+    const k = a.getAttribute('href').slice(1);
+    (byId[k] || (byId[k] = [])).push(a);
+  }
 
   const hudSecEl = document.getElementById('hud-sec-code');
   const hudSecLabels = {
@@ -2465,8 +2719,14 @@ try { localStorage.removeItem('sj.cosmos-mode'); } catch (e) {}
     if (v.preload !== 'none') v.preload = 'none';
     v.addEventListener('play', () => {
       videos.forEach((other) => {
-        if (other !== v && !other.paused) {
-          try { other.pause(); } catch (_) {}
+        if (other !== v && (!other.paused || other.dataset.opening === '1')) {
+          delete other.dataset.opening;
+          if (!other.paused) {
+            try { other.pause(); } catch (_) {}
+          }
+          try {
+            window.dispatchEvent(new CustomEvent('sj-video-force-stop', { detail: { video: other } }));
+          } catch (_) {}
         }
       });
     });
@@ -2556,7 +2816,7 @@ try { localStorage.removeItem('sj.cosmos-mode'); } catch (e) {}
 
 ;
 
-// ---- js/player.js (abac1dd86a72) ----
+// ---- js/player.js (8ca8a374c56f) ----
 /**
  * 右下角悬浮背景音乐播放器
  * ----------------------------------------------------
@@ -2719,7 +2979,7 @@ try { localStorage.removeItem('sj.cosmos-mode'); } catch (e) {}
     BEAT_HIST.push(e);
     if (BEAT_HIST.length > 48) BEAT_HIST.shift();
     if (BEAT_HIST.length > 20) {
-      const sorted = BEAT_HIST.toSorted((a, b) => a - b);
+      const sorted = BEAT_HIST.slice().sort((a, b) => a - b);
       const med = sorted[sorted.length >> 1];
       let peak = 0;
       for (const v of BEAT_HIST) if (v > peak) peak = v;
@@ -2874,8 +3134,30 @@ try { localStorage.removeItem('sj.cosmos-mode'); } catch (e) {}
   }
 
   // —— 播放控制 ——
+  let hasUserPlayed = false;
+  let stopAllVideosForMusic = () => {};
+  const isSaveNet = () => {
+    const c = navigator.connection;
+    return !!(c && (c.saveData || /(^|-)2g$/.test(c.effectiveType || '')));
+  };
+
+  function prefetchCurrentAndNext() {
+    if (!hasUserPlayed && audio.paused) return;
+    const curUrl = audio.currentSrc || audio.src;
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+      if (curUrl) navigator.serviceWorker.controller.postMessage({ type: 'prefetch-media', url: curUrl });
+      const nextSong = SONGS[(current + 1) % SONGS.length];
+      if (nextSong) navigator.serviceWorker.controller.postMessage({ type: 'prefetch-media', url: nextSong.src });
+    }
+  }
+
   function load(i, autoplay) {
     current = (i + SONGS.length) % SONGS.length;
+    if (autoplay) {
+      hasUserPlayed = true;
+      stopAllVideosForMusic();
+      try { audio.preload = 'auto'; } catch (e) {}
+    }
     audio.src = SONGS[current].src;
     titleEl.textContent = SONGS[current].title;
     renderList();
@@ -2890,29 +3172,47 @@ try { localStorage.removeItem('sj.cosmos-mode'); } catch (e) {}
     }
   }
 
-  // 当前曲目已缓冲就绪后再静默入库（避免首播抢带宽导致转圈）：
-  audio.addEventListener('canplaythrough', function () {
-    var curUrl = audio.currentSrc || audio.src;
-    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-      if (curUrl) navigator.serviceWorker.controller.postMessage({ type: 'prefetch-media', url: curUrl });
-      var nextSong = SONGS[(current + 1) % SONGS.length];
-      if (nextSong) navigator.serviceWorker.controller.postMessage({ type: 'prefetch-media', url: nextSong.src });
-    }
+  // 当前曲目真实起播且已缓冲就绪后再静默入库（未点播放绝不触发全曲缓存）：
+  audio.addEventListener('canplaythrough', prefetchCurrentAndNext);
+  audio.addEventListener('playing', function () {
+    hasUserPlayed = true;
+    if (audio.readyState >= 4) prefetchCurrentAndNext();
   });
 
-  // 首曲预热（全量入库）：
+  // 首曲瞬启预热：仅缓冲首段可播帧（canplay 或 8s 后若仍暂停则回落 metadata，绝不下全曲）：
   let primed = false;
   function prime() {
     if (primed) return;
     primed = true;
-    try { audio.preload = 'metadata'; } catch (e) {}
+    const saveNet = isSaveNet();
+    try { audio.preload = saveNet ? 'metadata' : 'auto'; } catch (e) {}
     if (!audio.src) audio.src = SONGS[current].src;
+    if (!saveNet) {
+      let settled = false;
+      const dialBack = () => {
+        if (settled) return;
+        settled = true;
+        audio.removeEventListener('canplay', dialBack);
+        if (audio.paused) {
+          try { audio.preload = 'metadata'; } catch (e) {}
+        }
+      };
+      audio.addEventListener('canplay', dialBack, { once: true });
+      if (audio.readyState >= 3) dialBack();
+      else setTimeout(dialBack, 8000);
+    }
   }
 
   function togglePlay() {
     if (!audio.src) { load(current, true); return; }
-    if (audio.paused) audio.play().catch(() => {});
-    else { audio.pause(); }
+    if (audio.paused) {
+      hasUserPlayed = true;
+      stopAllVideosForMusic();
+      try { audio.preload = 'auto'; } catch (e) {}
+      audio.play().catch(() => {});
+    } else {
+      audio.pause();
+    }
   }
 
   function restore() {
@@ -2982,10 +3282,32 @@ try { localStorage.removeItem('sj.cosmos-mode'); } catch (e) {}
     if (open) prime();          // 打开面板 = 有听歌意图，这时才开始加载音轨
   });
 
-  // 首次交互也预热：通常早于"点播放"，给 SW 留出把首曲前 256KB 拿到手的窗口
-  ['pointerdown', 'keydown', 'wheel'].forEach((ev) => {
-    window.addEventListener(ev, prime, { once: true, passive: true });
+  // 悬停/触控/聚焦播放入口即刻预热首帧；首次交互与首屏空闲后也轻度预热（省流/2G 跳过非主动预热）
+  [enterBtn, fab].forEach((el) => {
+    if (!el) return;
+    ['pointerenter', 'touchstart', 'focus'].forEach((ev) => {
+      el.addEventListener(ev, prime, { once: true, passive: true });
+    });
   });
+  const primeOnInteract = () => {
+    if (!isSaveNet()) prime();
+  };
+  ['pointerdown', 'keydown', 'wheel'].forEach((ev) => {
+    window.addEventListener(ev, primeOnInteract, { once: true, passive: true });
+  });
+  const scheduleIdlePrime = () => {
+    if (isSaveNet()) return;
+    setTimeout(() => {
+      if (isSaveNet()) return;
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(prime, { timeout: 1000 });
+      } else {
+        setTimeout(prime, 600);
+      }
+    }, 1200);
+  };
+  if (document.readyState === 'complete') scheduleIdlePrime();
+  else window.addEventListener('load', scheduleIdlePrime, { once: true });
   closeBtn.addEventListener('click', () => {
     panel.classList.remove('music-open');
     fab.setAttribute('aria-expanded', 'false');
@@ -3037,127 +3359,226 @@ try { localStorage.removeItem('sj.cosmos-mode'); } catch (e) {}
   });
 
   if ('mediaSession' in navigator) {
-    navigator.mediaSession.setActionHandler('previoustrack', () => { startBeat(); load(current - 1, !audio.paused); });
-    navigator.mediaSession.setActionHandler('nexttrack', () => { startBeat(); load(current + 1, !audio.paused); });
+    try {
+      navigator.mediaSession.setActionHandler('play', () => {
+        startBeat();
+        if (!audio.src) load(current, true);
+        else if (audio.paused) {
+          hasUserPlayed = true;
+          stopAllVideosForMusic();
+          try { audio.preload = 'auto'; } catch (e) {}
+          audio.play().catch(() => {});
+        }
+      });
+    } catch (e) {}
+    try {
+      navigator.mediaSession.setActionHandler('pause', () => {
+        if (!audio.paused) audio.pause();
+      });
+    } catch (e) {}
+    try {
+      navigator.mediaSession.setActionHandler('previoustrack', () => { startBeat(); load(current - 1, !audio.paused); });
+    } catch (e) {}
+    try {
+      navigator.mediaSession.setActionHandler('nexttrack', () => { startBeat(); load(current + 1, !audio.paused); });
+    } catch (e) {}
   }
 
-  // —— 介绍视频 × 音乐互斥 + 视口自动暂停（2026-09-30 用户需求）——
-  // 看介绍视频时自动暂停音乐（站点歌单或本地音乐，谁在响停谁），视频暂停/播完自动恢复；
-  // 视频滚出视口自动暂停（走 pause 事件 → 同样恢复音乐）。多视频互斥：任一在播即"观看中"。
-  // 恢复的唯一凭据是 musicPausedByVideo：用户本来就没开音乐时，视频结束不会强行播放。
-      (function initVideoMusicMutex() {
+  // —— 介绍视频 × 音乐严格双向互斥 + 视口自动暂停（永不同播）——
+  // · 视频起播/起播意图（sj-video-intent）→ 立即暂停音乐并记录凭据 musicPausedByVideo
+  // · 音乐起播（站点歌单或本地音频，且非视频触发的自动恢复）→ 立即暂停一切在播/起播中视频并清空凭据
+  // · 视频暂停/播完/中止/滑出视口 → 若无其他活跃视频且持有凭据，自动恢复音乐（原未放歌绝不强开）
+  // · 全屏播放保护：视频处于全屏态时禁止被视口检测误停
+  (function initVideoMusicMutex() {
     const videos = Array.from(document.querySelectorAll('#products video'));
     if (!videos.length) return;
     const siteAudio = audio;                        // 站点歌单
     const localAudio = document.getElementById('cosmos-audio');
-    let musicPausedByVideo = '';                    // '' | 'site' | 'local'：音乐因视频被暂停的凭据（只服务恢复方向）
-    let userOverride = false;                       // 用户在视频播放期间手动放歌 → 尊重到视频会话结束
-    let resumingByVideo = false;                    // 互斥自己的恢复进行中（不算用户 override）
+    let musicPausedByVideo = '';                    // '' | 'site' | 'local'：音乐因视频被暂停的凭据
+    let resumingByVideo = false;                    // 互斥自动恢复进行中
 
-    const playingVideo = () => videos.find((v) => !v.paused && !v.ended);
-    // 无凭据守卫、幂等：轮询每秒都会调，事件丢失后照样能把状态拉回来
+    const isVideoActive = (v) => (!v.paused && !v.ended) || v.dataset.opening === '1';
+    const activeVideo = () => videos.find(isVideoActive);
+    const isFullscreen = (v) =>
+      (document.fullscreenElement && (document.fullscreenElement === v || document.fullscreenElement.contains(v))) ||
+      (document.webkitFullscreenElement && (document.webkitFullscreenElement === v || document.webkitFullscreenElement.contains(v))) ||
+      !!v.webkitDisplayingFullscreen;
+
+    function clearVideoBeatUI(v) {
+      const box = v && v.closest('.cover-box');
+      if (box) {
+        box.classList.remove('is-playing-beat');
+        box.style.removeProperty('--beat-pulse');
+      }
+    }
+
+    function stopVideoElement(v, emitAbortIfOpening) {
+      if (!v) return;
+      const wasOpening = v.dataset.opening === '1';
+      delete v.dataset.opening;
+      if (!v.paused) {
+        try { v.pause(); } catch (_) {}
+      }
+      clearVideoBeatUI(v);
+      const evName = (emitAbortIfOpening && wasOpening) ? 'sj-video-abort' : 'sj-video-force-stop';
+      try {
+        window.dispatchEvent(new CustomEvent(evName, { detail: { video: v } }));
+      } catch (_) {}
+    }
+
+    stopAllVideosForMusic = function () {
+      if (resumingByVideo) return;
+      musicPausedByVideo = '';                      // 用户主动切回音乐，清空自动恢复凭据
+      videos.forEach((v) => {
+        if (isVideoActive(v)) stopVideoElement(v, false);
+      });
+    };
+
+    let resumingTimer = 0;
+
     function pauseMusicForVideo() {
       if (!siteAudio.paused) {
         siteAudio.pause();
         musicPausedByVideo = 'site';
-      } else if (localAudio && localAudio.src && !localAudio.paused) {
+      }
+      if (localAudio && !localAudio.paused) {
         localAudio.pause();
-        musicPausedByVideo = 'local';
+        if (!musicPausedByVideo) musicPausedByVideo = 'local';
       }
     }
+
     function resumeMusicIfIdle() {
-      if (!musicPausedByVideo || playingVideo()) return;   // 还有别的视频在播就不恢复
+      if (!musicPausedByVideo || activeVideo()) return;   // 还有别的视频在播/起播中就不恢复
       const which = musicPausedByVideo;
       musicPausedByVideo = '';
-      resumingByVideo = true;                       // 自己的恢复不算用户 override
-      setTimeout(function () { resumingByVideo = false; }, 400);   // 事件丢失时的兜底复位
+      resumingByVideo = true;
+      if (resumingTimer) clearTimeout(resumingTimer);
+      resumingTimer = setTimeout(function () {
+        resumingTimer = 0;
+        resumingByVideo = false;
+      }, 400);
       const el = which === 'site' ? siteAudio : localAudio;
-      if (el) el.play().catch(function () { resumingByVideo = false; });   // FAB 图标经 audio 的 play/pause 监听自动同步
+      if (el) {
+        try { el.preload = 'auto'; } catch (_) {}
+        el.play().catch(function () {
+          if (resumingTimer) { clearTimeout(resumingTimer); resumingTimer = 0; }
+          resumingByVideo = false;
+        });
+      }
     }
-    // 用户在视频播放期间手动恢复了音乐 → 本会话尊重用户（音乐与视频同播到视频结束）
+
+    // 音乐起播 → 严格双向互斥：立即停掉一切在播/起播中的介绍视频，永不同播
     [siteAudio, localAudio].forEach((el) => {
       if (el) el.addEventListener('play', function () {
-        if (playingVideo() && !resumingByVideo) userOverride = true;
+        if (!resumingByVideo) {
+          stopAllVideosForMusic();
+        }
+        if (resumingTimer) { clearTimeout(resumingTimer); resumingTimer = 0; }
         resumingByVideo = false;
       });
     });
 
+    // 视频起播意图（早于 v.play() 缓冲完成）→ 零延迟先停音乐与其他视频
+    window.addEventListener('sj-video-intent', function (ev) {
+      const target = ev.detail && ev.detail.video;
+      videos.forEach(function (o) {
+        if (o !== target && isVideoActive(o)) stopVideoElement(o, false);
+      });
+      pauseMusicForVideo();
+    });
+
+    // 视频被强制停止 → 同步清理 opening 与律动外框
+    window.addEventListener('sj-video-force-stop', function (ev) {
+      const v = ev.detail && ev.detail.video;
+      if (v) {
+        delete v.dataset.opening;
+        clearVideoBeatUI(v);
+      }
+    });
+
+    // 视频起播被中止（play reject 或起播途中滑走）→ 清理并按凭据恢复音乐
+    window.addEventListener('sj-video-abort', function (ev) {
+      const v = ev.detail && ev.detail.video;
+      if (v) {
+        delete v.dataset.opening;
+        clearVideoBeatUI(v);
+      }
+      resumeMusicIfIdle();
+      if (siteAudio.paused && !activeVideo()) stopBeat();
+    });
+
     videos.forEach((v) => {
       v.addEventListener('play', function () {
-        userOverride = false;                       // 用户点开视频：视频最高优先级，重置 manual override
-        videos.forEach(function (o) { if (o !== v && !o.paused) o.pause(); });   // 视频互斥
+        videos.forEach(function (o) {
+          if (o !== v && isVideoActive(o)) stopVideoElement(o, false);
+        });
         pauseMusicForVideo();
-        // 视频外框律动光晕：起播立刻挂载高亮标识
-        var box = v.closest('.cover-box');
+        const box = v.closest('.cover-box');
         if (box) box.classList.add('is-playing-beat');
-        // 视频原声音频律动：接入 Web Audio 分析器，驱动背景 3D 神经网络与视窗微光
         startBeat(v);
       });
       v.addEventListener('pause', function () {
-        var box = v.closest('.cover-box');
-        if (box) {
-          box.classList.remove('is-playing-beat');
-          box.style.removeProperty('--beat-pulse');
-        }
+        delete v.dataset.opening;
+        clearVideoBeatUI(v);
         resumeMusicIfIdle();
-        if (siteAudio.paused) stopBeat();
+        if (siteAudio.paused && !activeVideo()) stopBeat();
       });
       v.addEventListener('ended', function () {
-        var box = v.closest('.cover-box');
-        if (box) {
-          box.classList.remove('is-playing-beat');
-          box.style.removeProperty('--beat-pulse');
-        }
+        delete v.dataset.opening;
+        clearVideoBeatUI(v);
         resumeMusicIfIdle();
-        if (siteAudio.paused) stopBeat();
+        if (siteAudio.paused && !activeVideo()) stopBeat();
       });
     });
 
-    // 状态轮询兜底（2026-09-30 用户实测部分环境仍能同时播放）：
-    // 有视频在播 → 音乐必须停（除非用户明确 override）；无视频在播且有凭据 → 恢复。
+    // 1000ms 状态兜底：严格互斥（无 userOverride，绝不允许音视频同时发声）
     setInterval(function () {
-      const vPlaying = playingVideo();
-      if (!vPlaying) {
-        userOverride = false;                       // 视频会话结束，override 失效
+      const vActive = activeVideo();
+      if (!vActive) {
         if (musicPausedByVideo) resumeMusicIfIdle();
         return;
       }
-      if (!userOverride) pauseMusicForVideo();
+      pauseMusicForVideo();
     }, 1000);
 
-    // 视窗可见度检查（支持自然向下滑动零延迟自动暂停）
+    // 视窗可见度检查（含 opening 缓冲态 + 全屏保护 + 顶栏 64px 避让）
     function checkVideoVisibility() {
-      const v = playingVideo();
-      if (!v) return;
-      const rect = v.getBoundingClientRect();
       const vh = window.innerHeight || 900;
-      // 视频顶端滑入吸顶导航之下（底边小于 200px 说明视频大半已出屏，用户已往下看后续卡片）
-      // 或底端滑出视口底部（顶边大于 vh - 80px）时立即暂停
-      if (rect.bottom < 200 || rect.top > vh - 80) {
-        v.pause();
+      const headerBottom = 64;
+      for (let i = 0; i < videos.length; i++) {
+        const v = videos[i];
+        if (!isVideoActive(v) || isFullscreen(v)) continue;
+        const rect = v.getBoundingClientRect();
+        if (rect.height <= 0) continue;
+        const visibleTop = Math.max(rect.top, headerBottom);
+        const visibleBottom = Math.min(rect.bottom, vh);
+        const visibleHeight = Math.max(0, visibleBottom - visibleTop);
+        const visibleRatio = visibleHeight / rect.height;
+        if (rect.bottom < 160 || rect.top > vh - 120 || visibleRatio < 0.45) {
+          stopVideoElement(v, true);
+        }
       }
     }
 
-    // 滚出视口自动暂停：多级阈值 + 顶栏避让（用户往下滑动或滚出主视区立即暂停，自动唤醒背景音乐）
+    // 滚出视口自动暂停：IO 阈值 0.45 + 顶栏避让（自动唤醒曾被暂停的背景音乐）
     if ('IntersectionObserver' in window) {
       const io = new IntersectionObserver((entries) => {
         entries.forEach((en) => {
           const v = en.target;
-          if (v.paused || v.ended) return;
-          // 当视频滚出视口或可见比例低于 60%（用户已向下滚动阅读卡片其他信息或后续板块）
-          if (!en.isIntersecting || en.intersectionRatio < 0.6) {
-            v.pause();
+          if (!isVideoActive(v) || isFullscreen(v)) return;
+          if (!en.isIntersecting || en.intersectionRatio < 0.45) {
+            stopVideoElement(v, true);
           }
         });
       }, {
-        threshold: [0, 0.2, 0.4, 0.6, 0.8, 1.0],
-        rootMargin: '-64px 0px -40px 0px'           // 避开 64px 吸顶导航条与底边容差
+        threshold: [0, 0.2, 0.45, 0.6, 0.8, 1.0],
+        rootMargin: '-64px 0px -40px 0px'
       });
       videos.forEach((v) => io.observe(v));
     }
 
-    // 原生滚动高灵敏度检测兜底：零延迟响应用户快速向下滑动手势
     window.addEventListener('scroll', checkVideoVisibility, { passive: true });
+    window.addEventListener('resize', checkVideoVisibility, { passive: true });
   })();
 
   restore();
