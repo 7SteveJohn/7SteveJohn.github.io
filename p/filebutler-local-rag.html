@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>本地文件管家：秒搜与可撤销怎么同时成立 | 楠屿札记</title>
+
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#f8fafc" />
+  <script>
+    (function () {
+      var root = document.documentElement;
+      root.classList.add('js');
+      var isDark = false;
+      try {
+        if (localStorage.getItem('sj.theme-v6') !== 'daylight-v1') {
+          localStorage.removeItem('sj.theme');
+          localStorage.setItem('sj.theme-v6', 'daylight-v1');
+        }
+        isDark = localStorage.getItem('sj.theme') === 'dark';
+      } catch (e) {}
+      root.classList.toggle('dark', isDark);
+      var m = document.querySelector('meta[name="color-scheme"]');
+      if (m) m.content = isDark ? 'dark' : 'light';
+      var tc = document.querySelector('meta[name="theme-color"]');
+      if (tc) tc.content = isDark ? '#060911' : '#f8fafc';
+    })();
+  </script>
+
+  <meta name="description" content="本地智能文件管理工具既要保证搜索秒级响应，又要确保批量移动、重命名等操作安全可逆。本文介绍 FileButler 的关键词与向量双轨检索分工、基于事务日志的撤销机制，以及本地模型离线时的降级策略。" />
+  <link rel="canonical" href="https://7stevejohn.github.io/p/filebutler-local-rag.html" />
+
+  <!-- Open Graph / Twitter Card -->
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="楠屿札记" />
+  <meta property="og:title" content="本地文件管家：秒搜与可撤销怎么同时成立" />
+  <meta property="og:description" content="本地智能文件管理工具既要保证搜索秒级响应，又要确保批量移动、重命名等操作安全可逆。本文介绍 FileButler 的关键词与向量双轨检索分工、基于事务日志的撤销机制，以及本地模型离线时的降级策略。" />
+  <meta property="og:url" content="https://7stevejohn.github.io/p/filebutler-local-rag.html" />
+  <meta property="og:image" content="https://7stevejohn.github.io/og-image.png" />
+  <meta property="article:published_time" content="2026-09-02" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="本地文件管家：秒搜与可撤销怎么同时成立" />
+  <meta name="twitter:description" content="本地智能文件管理工具既要保证搜索秒级响应，又要确保批量移动、重命名等操作安全可逆。本文介绍 FileButler 的关键词与向量双轨检索分工、基于事务日志的撤销机制，以及本地模型离线时的降级策略。" />
+  <meta name="twitter:image" content="https://7stevejohn.github.io/og-image.png" />
+
+  <link rel="alternate" type="application/rss+xml" title="楠屿札记 · 手记与创作" href="../rss.xml" />
+  <link rel="shortcut icon" href="../favicon.ico" />
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+  <link rel="manifest" href="../manifest.json" />
+
+  <link rel="preload" href="../assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="../assets/fonts/inter.css" />
+  <link rel="stylesheet" href="../assets/vendor/tailwind.css" />
+  <link rel="stylesheet" href="../css/style.css?v=20261128a" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "本地文件管家：秒搜与可撤销怎么同时成立",
+  "description": "本地智能文件管理工具既要保证搜索秒级响应，又要确保批量移动、重命名等操作安全可逆。本文介绍 FileButler 的关键词与向量双轨检索分工、基于事务日志的撤销机制，以及本地模型离线时的降级策略。",
+  "datePublished": "2026-09-02",
+  "dateModified": "2026-09-02",
+  "articleSection": "架构设计",
+  "keywords": "Python, Ollama, SQLite, RAG, 端侧AI",
+  "inLanguage": "zh-CN",
+  "url": "https://7stevejohn.github.io/p/filebutler-local-rag.html",
+  "image": "https://7stevejohn.github.io/og-image.png",
+  "author": {
+    "@type": "Person",
+    "name": "SevenJohn",
+    "url": "https://7stevejohn.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "楠屿札记",
+    "url": "https://7stevejohn.github.io/"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://7stevejohn.github.io/p/filebutler-local-rag.html"
+  }
+}
+  </script>
+
+  <style>
+    .post-shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #f8fafc;
+      color: #1d1d1f;
+    }
+    .dark .post-shell {
+      background: #060911;
+      color: #f1f5f9;
+    }
+    .post-bar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(255, 255, 255, 0.88);
+      border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .dark .post-bar {
+      background: rgba(6, 9, 17, 0.86);
+      border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+    .post-bar-in {
+      max-width: 52rem;
+      margin: 0 auto;
+      padding: 0 1.25rem;
+      height: 3.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .post-brand {
+      font-size: 0.9375rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #0f172a;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .dark .post-brand { color: #f8fafc; }
+    .post-nav {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      font-size: 0.75rem;
+    }
+    .post-nav-link {
+      color: #475569;
+      text-decoration: none;
+      padding: 0.3rem 0.55rem;
+      border-radius: 9999px;
+      transition: color 0.18s ease, background-color 0.18s ease;
+      white-space: nowrap;
+    }
+    .post-nav-link:hover {
+      color: #0f172a;
+      background: rgba(15, 23, 42, 0.06);
+    }
+    .dark .post-nav-link { color: #94a3b8; }
+    .dark .post-nav-link:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .post-bgm-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.32rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-decoration: none;
+      color: #ffffff;
+      background: #0369a1;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      white-space: nowrap;
+    }
+    .post-bgm-cta:hover { opacity: 0.92; transform: translateY(-1px); }
+    .dark .post-bgm-cta {
+      color: #06121f;
+      background: #38bdf8;
+    }
+    .post-theme-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 9999px;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      background: transparent;
+      color: #334155;
+      cursor: pointer;
+      transition: background-color 0.18s ease, color 0.18s ease;
+    }
+    .post-theme-btn:hover { background: rgba(15, 23, 42, 0.06); color: #0f172a; }
+    .dark .post-theme-btn {
+      border-color: rgba(255, 255, 255, 0.16);
+      color: #cbd5e1;
+    }
+    .dark .post-theme-btn:hover { background: rgba(255, 255, 255, 0.1); color: #ffffff; }
+    .post-main {
+      flex: 1;
+      width: 100%;
+      max-width: 50rem;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+    .post-article {
+      background: #ffffff;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 1.25rem;
+      padding: 2rem 1.5rem 2.25rem;
+      box-shadow: 0 10px 32px -16px rgba(15, 23, 42, 0.08);
+    }
+    @media (min-width: 640px) {
+      .post-article { padding: 2.75rem 3rem 3rem; }
+    }
+    .dark .post-article {
+      background: #0f1522;
+      border-color: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 16px 40px -20px rgba(0, 0, 0, 0.65);
+    }
+    .post-head {
+      padding-bottom: 1.5rem;
+      margin-bottom: 1.75rem;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    }
+    .dark .post-head { border-bottom-color: rgba(255, 255, 255, 0.1); }
+    .post-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: #475569;
+      margin-bottom: 0.85rem;
+    }
+    .dark .post-meta { color: #94a3b8; }
+    .post-cat {
+      padding: 0.15rem 0.6rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      color: #0369a1;
+      background: rgba(3, 105, 161, 0.1);
+    }
+    .dark .post-cat {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.14);
+    }
+    .post-title {
+      font-size: clamp(1.55rem, 3.2vw, 2.15rem);
+      font-weight: 800;
+      line-height: 1.25;
+      letter-spacing: -0.025em;
+      color: #0f172a;
+      margin: 0;
+    }
+    .dark .post-title { color: #f8fafc; }
+    .post-summary {
+      margin-top: 0.9rem;
+      font-size: 0.95rem;
+      line-height: 1.75;
+      color: #475569;
+    }
+    .dark .post-summary { color: #cbd5e1; }
+    .post-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-top: 1rem;
+    }
+    .post-tag {
+      font-size: 0.75rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      padding: 0.15rem 0.55rem;
+      border-radius: 0.375rem;
+      color: #334155;
+      background: rgba(15, 23, 42, 0.05);
+    }
+    .dark .post-tag {
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .post-cover {
+      margin: 0 0 1.75rem;
+      border-radius: 0.875rem;
+      overflow: hidden;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: rgba(15, 23, 42, 0.03);
+      aspect-ratio: 16 / 9;
+      max-height: 20rem;
+    }
+    .dark .post-cover {
+      border-color: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .post-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .post-article .markdown-body {
+      color: #1d1d1f;
+    }
+    .dark .post-article .markdown-body {
+      color: #e2e8f0;
+    }
+    .post-article .markdown-body pre {
+      padding: 1rem 1.1rem;
+    }
+    .post-article .markdown-body pre code {
+      color: #e6edf3;
+    }
+    .post-article .markdown-body blockquote {
+      color: #475569;
+    }
+    .dark .post-article .markdown-body blockquote {
+      color: #cbd5e1;
+    }
+    .post-article .markdown-body a {
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .post-pager {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.85rem;
+      margin-top: 2rem;
+    }
+    @media (max-width: 600px) {
+      .post-pager { grid-template-columns: 1fr; }
+      .post-bgm-cta span.cta-extra { display: none; }
+    }
+    .post-pager-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      padding: 0.95rem 1.1rem;
+      border-radius: 0.875rem;
+      text-decoration: none;
+      background: #ffffff;
+      border: 1px solid rgba(15, 23, 42, 0.09);
+      transition: border-color 0.18s ease, transform 0.18s ease;
+    }
+    .post-pager-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .dark .post-pager-card {
+      background: #0f1522;
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+    .post-pager-next { text-align: right; }
+    .post-pager-k {
+      font-size: 0.72rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: var(--accent);
+    }
+    .post-pager-v {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #0f172a;
+      line-height: 1.45;
+    }
+    .dark .post-pager-v { color: #f1f5f9; }
+    .post-foot {
+      border-top: 1px solid rgba(15, 23, 42, 0.08);
+      padding: 2rem 1.25rem;
+      font-size: 0.75rem;
+      color: #475569;
+    }
+    .dark .post-foot {
+      border-top-color: rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+    }
+    .post-foot-in {
+      max-width: 50rem;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .post-foot-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.1rem;
+    }
+    .post-foot-links a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .post-foot-links a:hover { color: var(--accent); }
+  </style>
+</head>
+<body class="post-shell antialiased">
+  <header class="post-bar">
+    <div class="post-bar-in">
+      <a href="../index.html" class="post-brand">楠屿札记</a>
+      <nav aria-label="文章页导航" class="post-nav">
+        <a href="../index.html?post=filebutler-local-rag" class="post-bgm-cta" title="回到首页弹窗阅读，支持背景音乐与站内翻章">
+          <span>首页沉浸阅读<span class="cta-extra">（含 BGM）</span></span>
+        </a>
+        <a href="../archive.html" class="post-nav-link">归档</a>
+        <button id="theme-toggle" type="button" class="post-theme-btn" aria-label="切换明暗模式" title="切换晨曦/极夜模式">
+          <svg class="w-4 h-4 hidden dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          <svg class="w-4 h-4 block dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="post-main">
+    <article class="post-article">
+      <header class="post-head">
+        <div class="post-meta">
+          <span class="post-cat">架构设计</span>
+          <time datetime="2026-09-02">2026-09-02</time>
+          <span aria-hidden="true">·</span>
+          <span>6 分钟</span>
+        </div>
+        <h1 class="post-title">本地文件管家：秒搜与可撤销怎么同时成立</h1>
+        <p class="post-summary">本地智能文件管理工具既要保证搜索秒级响应，又要确保批量移动、重命名等操作安全可逆。本文介绍 FileButler 的关键词与向量双轨检索分工、基于事务日志的撤销机制，以及本地模型离线时的降级策略。</p>
+        <div class="post-tags"><span class="post-tag">#Python</span><span class="post-tag">#Ollama</span><span class="post-tag">#SQLite</span><span class="post-tag">#RAG</span><span class="post-tag">#端侧AI</span></div>
+      </header>
+      <figure class="post-cover"><img src="../assets/images/covers/cover-filebutler.svg" alt="本地文件管家：秒搜与可撤销怎么同时成立" loading="eager" decoding="async" /></figure>
+      <div class="markdown-body">
+<h3>背景：既要搜得快，又要整理得稳</h3>
+<p>整理日常文档、票据和代码目录时，找文件讲究越快越好，批量归档又最怕误移误删。落到软件设计上就是两个硬指标：搜索响应要在毫秒级，批量移动前必须先展示改动清单，并支持按批次一键回滚。</p>
+<h3>架构：双轨索引与快慢解耦</h3>
+<ul>
+<li><strong>文件名 / 长文本 / 语法匹配</strong>：走 SQLite 内置 FTS5 倒排索引，毫秒级出结果，支持 <code>ext:pdf</code>、<code>size:&gt;100mb</code>、<code>dm:本周</code> 这类语法。</li>
+<li><strong>语义问答</strong>：采用 bge-m3 构建稠密向量索引，<strong>由后台线程在系统空闲时增量构建</strong>，避免阻塞用户主线程操作。</li>
+<li><strong>文件重组安全流程</strong>：规则或端侧模型生成整理预案 → 生成明确的移动计划清单 → 用户人工勾选确认 → 写入事务日志并原子执行。支持按批次整体撤销回滚。</li>
+<li><strong>防御性降级机制</strong>：本地 Ollama 服务不可用时自动降级为规则整理与 FTS5 关键词检索，保证基础功能不受影响。</li>
+</ul>
+<pre><code class="language-python"># 双轨查询：精确检索第一轨，语义重排在下游
+def search_files(cursor: sqlite3.Cursor, query: str, limit: int = 20) -&gt; list[dict]:
+    cursor.row_factory = sqlite3.Row
+    sql = &quot;&quot;&quot;
+        SELECT path, size, modified_at, bm25(files_fts) AS rank
+        FROM files_fts
+        WHERE files_fts MATCH ?
+        ORDER BY rank
+        LIMIT ?
+    &quot;&quot;&quot;
+    return [dict(row) for row in cursor.execute(sql, (query, limit)).fetchall()]
+</code></pre>
+<h3>核心难点与工程排障</h3>
+<ol>
+<li><strong>避免启动时瞬时构建全盘向量索引。</strong> 启动即触发大批量向量化会导致系统 I/O 与 CPU 瞬时过载，拖慢交互；改为由后台线程在系统闲置时增量扫描入库。</li>
+<li><strong>语义检索不适合精确匹配。</strong> 搜文件名、扩展名、大小这类精确条件，向量检索反而找不准——先让 FTS5 命中，再用语义排序。</li>
+<li><strong>「撤销」不是把操作反过来做一遍。</strong> 移动可能覆盖同名文件、目标盘可能写满、期间文件可能又被改过。所以回滚必须基于事务日志，不能靠重算。</li>
+<li><strong>文件监听事件的抖动合并。</strong> watchdog 监听大型目录树时，单次目录拷贝会触发高频重复事件，须引入防抖机制与批量合并处理。</li>
+<li><strong>本地预览服务只监听本机回环地址。</strong> 缩略图等内部 HTTP 服务只绑定 127.0.0.1（仅本机可访问），不监听 0.0.0.0（对局域网开放），避免同一网络下的其他设备读取个人文件。</li>
+</ol>
+<h3>结论</h3>
+<p>做本地文件工具，检索必须要快，整理必须要稳。大模型在本地是很好的辅助，但绝不能让它成为单点故障——模型离线时，常规的关键词搜索和按规则归档依然要正常可用，并且每一次文件移动都要能安全撤销。</p>
+      </div>
+    </article>
+    <nav class="post-pager" aria-label="相邻文章">
+        <a class="post-pager-card" href="./ollama-vram-fit.html"><span class="post-pager-k">← 上一篇</span><span class="post-pager-v">Ollama 显存适配：默认参数是给显存够用的机器配的</span></a>
+        <a class="post-pager-card post-pager-next" href="./gameboost-frame-pacing.html"><span class="post-pager-k">下一篇 →</span><span class="post-pager-v">帧率防抖：平均 300 帧为什么不跟手</span></a>
+      </nav>
+  </main>
+
+  <footer class="post-foot">
+    <div class="post-foot-in">
+      <span>© <span id="footer-year">2026</span> 楠屿札记 · 慢慢写，慢慢看。</span>
+      <div class="post-foot-links">
+        <a href="../index.html">首页</a>
+        <a href="../archive.html">归档</a>
+        <a href="../gallery.html">照片墙</a>
+        <a href="../rss.xml">RSS</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var syncMeta = function (dark) {
+        var m = document.querySelector('meta[name="color-scheme"]');
+        if (m) m.content = dark ? 'dark' : 'light';
+        var tc = document.querySelector('meta[name="theme-color"]');
+        if (tc) tc.content = dark ? '#060911' : '#f8fafc';
+      };
+      var btn = document.getElementById('theme-toggle');
+      if (btn) {
+        btn.addEventListener('click', function () {
+          var dark = root.classList.toggle('dark');
+          syncMeta(dark);
+          try { localStorage.setItem('sj.theme', dark ? 'dark' : 'light'); } catch (e) {}
+        });
+      }
+      window.addEventListener('storage', function (ev) {
+        if (ev.key === 'sj.theme') {
+          var dark = ev.newValue === 'dark';
+          root.classList.toggle('dark', dark);
+          syncMeta(dark);
+        }
+      });
+      var y = document.getElementById('footer-year');
+      if (y) y.textContent = String(new Date().getFullYear());
+
+      // 按需补齐代码高亮（仅当正文存在代码块时加载，离线或失败静默降级）
+      if (document.querySelector('.markdown-body pre code')) {
+        var css = document.createElement('link');
+        css.rel = 'stylesheet';
+        css.href = '../assets/vendor/github-dark.min.css';
+        document.head.appendChild(css);
+        var js = document.createElement('script');
+        js.src = '../assets/vendor/highlight.min.js';
+        js.onload = function () {
+          if (window.hljs) {
+            document.querySelectorAll('.markdown-body pre code').forEach(function (el) {
+              window.hljs.highlightElement(el);
+            });
+          }
+        };
+        document.head.appendChild(js);
+      }
+
+      if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
+        navigator.serviceWorker.register('../sw.js', { scope: '../' }).catch(function () {});
+      }
+    })();
+  </script>
+</body>
+</html>

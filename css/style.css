@@ -37,6 +37,22 @@ h1, h2, h3 {
   letter-spacing: -0.02em;
 }
 
+/* 无障碍视觉隐藏标题（assets/vendor/tailwind.css 未编译 .sr-only，在此补齐） */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+#products > h2.sr-only + article {
+  margin-top: 0 !important;
+}
+
 /* 发丝边框令牌 + 原生 color-scheme 与标准滚动条变量 */
 :root {
   color-scheme: light dark;
@@ -1272,111 +1288,7 @@ main > #home + #products {
   user-select: none;
 }
 
-html:not(.dark) #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card) {
-  color: #64748b;
-}
-html:not(.dark) #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card) .hi-no {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.725rem;
-  color: #94a3b8;
-  transition: color 0.2s ease;
-}
-html:not(.dark) #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card) .hi-name {
-  font-size: 0.825rem;
-  font-weight: 500;
-  color: #334155;
-  transition: color 0.2s ease;
-}
-html:not(.dark) #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card) .hi-ver {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.7rem;
-  color: #94a3b8;
-}
-
-/* 浅色悬停微浮 */
-html:not(.dark) #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card):hover {
-  background: rgba(255, 255, 255, 0.75);
-  border-color: rgba(226, 232, 240, 0.85);
-  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.05);
-  transform: translateY(-2px);
-}
-html:not(.dark) #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card):hover .hi-name {
-  color: #0f172a;
-}
-
-/* 浅色激活选中态：极简优雅的悬浮白晶胶囊（无生硬方框，纯粹浮雕质感） */
-html:not(.dark) #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card).active {
-  background: #ffffff;
-  color: #0f172a;
-  border-color: rgba(0, 0, 0, 0.08);
-  box-shadow: 0 2px 10px -1px rgba(15, 23, 42, 0.1), 0 1px 2px rgba(0, 0, 0, 0.04);
-}
-html:not(.dark) #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card).active .hi-no {
-  color: #2563eb;
-  font-weight: 600;
-}
-html:not(.dark) #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card).active .hi-name {
-  color: #0f172a;
-  font-weight: 600;
-}
-html:not(.dark) #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card).active .hi-ver {
-  color: #2563eb;
-}
-
-/* 深色模式默认态 */
-.dark #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card) {
-  color: #94a3b8;
-}
-.dark #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card) .hi-no {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.725rem;
-  color: #64748b;
-  transition: color 0.2s ease;
-}
-.dark #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card) .hi-name {
-  font-size: 0.825rem;
-  font-weight: 500;
-  color: #cbd5e1;
-  transition: color 0.2s ease;
-}
-.dark #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card) .hi-ver {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.7rem;
-  color: #64748b;
-}
-
-/* 深色悬停微浮 */
-.dark #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card):hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.35);
-  transform: translateY(-2px);
-}
-.dark #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card):hover .hi-name {
-  color: #f1f5f9;
-}
-
-/* 深色激活选中态：深空青晶微胶囊 */
-.dark #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card).active {
-  background: rgba(30, 41, 59, 0.75);
-  border-color: rgba(56, 189, 248, 0.35);
-  box-shadow:
-    0 4px 18px -2px rgba(0, 0, 0, 0.5),
-    0 0 14px rgba(56, 189, 248, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  transform: translateY(-2px);
-}
-.dark #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card).active .hi-no {
-  color: #38bdf8;
-  font-weight: 600;
-}
-.dark #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card).active .hi-name {
-  color: #e2e8f0;
-  font-weight: 600;
-}
-.dark #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card).active .hi-ver {
-  color: #38bdf8;
-}
+/* 首屏作品索引的配色与悬停/激活态统一在文件后部 #home nav.hero-index 段维护，此处不再保留高权重旧覆写 */
 
 /* 头像卡挪到左下角：与齿轮设置按钮安全错开，质感毛玻璃胶囊 */
 #home .hero-who {
@@ -1517,14 +1429,14 @@ html:not(.dark) #home .hi-row:not(.hero-bento-card):not(.hero-diorama-card).acti
      视觉不变；hero CTA 行的「更多项目见 GitHub」链接一并补。按钮之间 gap 12px
      足够容纳左右扩 6px，不会互相重叠点错 */
   #products article [data-link],                       /* 网盘下载 / GitHub Releases */
-  #products article button[onclick*="openProjectModal"],  /* 了解更多 > */
+  #products article button[data-open-project],          /* 了解更多 > */
   #products article a[href*="github.com"][class*="rounded-full"],  /* GitHub 圆钮 */
   #home .hero-ghost,
   #home a[href*="github.com"].inline-flex {
     position: relative;
   }
   #products article [data-link]::after,
-  #products article button[onclick*="openProjectModal"]::after,
+  #products article button[data-open-project]::after,
   #products article a[href*="github.com"][class*="rounded-full"]::after,
   #home .hero-ghost::after,
   #home a[href*="github.com"].inline-flex::after {
@@ -2075,6 +1987,42 @@ html.vt-fade::view-transition-new(modal-content) { animation: 0.3s var(--ease-sw
 .dark .markdown-body code:not(pre code) {
   background-color: rgba(255, 255, 255, 0.08);
 }
+.md-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin: 1.25rem 0;
+  -webkit-overflow-scrolling: touch;
+}
+.markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 1.25rem 0;
+}
+.md-table-wrap table {
+  margin: 0;
+}
+.markdown-body th,
+.markdown-body td {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  text-align: left;
+  vertical-align: top;
+}
+.markdown-body th {
+  font-weight: 600;
+  background: rgba(15, 23, 42, 0.04);
+  color: #0f172a;
+}
+.dark .markdown-body th,
+.dark .markdown-body td {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.dark .markdown-body th {
+  background: rgba(255, 255, 255, 0.06);
+  color: #f8fafc;
+}
 
 /* ===== 底部居中悬浮音乐播放器（js/player.js 驱动；左右下角分别被头像卡/星河控制台占了，
         且角落按钮不好按——居中是拇指/视线热区） ===== */
@@ -2348,8 +2296,31 @@ html.vt-fade::view-transition-new(modal-content) { animation: 0.3s var(--ease-sw
    全部为装饰性颜色 / 伪元素 / filter，不动布局与交互逻辑。
    ============================================================ */
 :root {
+  --accent: #0369a1;
+  --accent-dim: rgba(3, 105, 161, 0.22);
+}
+.dark {
   --accent: #38bdf8;
   --accent-dim: rgba(56, 189, 248, 0.28);
+}
+
+/* 项目弹窗「历史项目」徽标（浅色高对比琥珀底深棕字，深色保留橄榄绿框） */
+.archived-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  border: 1px solid rgba(180, 83, 9, 0.28);
+  background: rgba(254, 243, 199, 0.85);
+  color: #854d0e;
+}
+.dark .archived-badge {
+  border-color: rgba(194, 217, 107, 0.4);
+  background: transparent;
+  color: #c2d96b;
 }
 
 /* 选区：星光蓝淡染 */
@@ -3096,7 +3067,7 @@ html:not(.dark) .announce-line {
   background: transparent !important;
   font-size: 11.5px !important;
   line-height: 1.2 !important;
-  color: #0284c7 !important;
+  color: var(--accent) !important;
   cursor: pointer;
   display: inline-flex !important;
   align-items: center !important;
@@ -3294,14 +3265,31 @@ html:not(.dark) .announce-line {
   font-size: 0.6875rem;
   color: #6b7488;
 }
-.pa-open {
+.pa-open,
+#products button[data-open-project].pa-open {
   flex: none;
   font-size: 0.75rem;
   color: var(--accent);
+  background: rgba(3, 105, 161, 0.07);
+  border-color: rgba(3, 105, 161, 0.2);
   white-space: nowrap;
   cursor: pointer;
 }
-.pa-open:hover { text-decoration: underline; text-underline-offset: 2px; }
+#products button[data-open-project].pa-open:hover {
+  color: #075985;
+  background: rgba(3, 105, 161, 0.13);
+  border-color: rgba(3, 105, 161, 0.34);
+}
+.dark #products button[data-open-project].pa-open {
+  color: var(--accent);
+  background: rgba(56, 189, 248, 0.09);
+  border-color: rgba(56, 189, 248, 0.24);
+}
+.dark #products button[data-open-project].pa-open:hover {
+  color: #7dd3fc;
+  background: rgba(56, 189, 248, 0.18);
+  border-color: rgba(56, 189, 248, 0.4);
+}
 @media (max-width: 639px) {
   /* 显式摆位：名称与按钮同一行，描述单独占下一行（靠自动放置会把按钮挤到第三行） */
   .pa-item { grid-template-columns: minmax(0, 1fr) auto; gap: 0.25rem 0.75rem; }
@@ -3692,6 +3680,10 @@ main > #home + #products {
   text-align: left !important;
   border: 1px solid transparent !important;
   background: transparent;
+  cursor: pointer;
+  position: relative;
+  text-decoration: none;
+  user-select: none;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 #home nav.hero-index .hi-top {
@@ -3705,10 +3697,10 @@ main > #home + #products {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.6875rem !important;
   font-weight: 600;
-  color: #64748b;
+  color: #475569;
 }
 .dark #home nav.hero-index .hi-no {
-  color: #64748b;
+  color: #94a3b8;
 }
 #home nav.hero-index .hi-ver {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -3733,14 +3725,14 @@ main > #home + #products {
 }
 #home nav.hero-index .hi-role {
   font-size: 0.7rem;
-  color: #64748b;
+  color: #475569;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
 }
 .dark #home nav.hero-index .hi-role {
-  color: #64748b;
+  color: #94a3b8;
 }
 html:not(.dark) #home nav.hero-index .hi-row:hover {
   background: rgba(255, 255, 255, 0.92) !important;
@@ -3760,7 +3752,7 @@ html:not(.dark) #home nav.hero-index .hi-row.active {
 }
 html:not(.dark) #home nav.hero-index .hi-row.active .hi-no,
 html:not(.dark) #home nav.hero-index .hi-row.active .hi-ver {
-  color: #2563eb !important;
+  color: #1d4ed8 !important;
 }
 html:not(.dark) #home nav.hero-index .hi-row.active .hi-ver {
   background: rgba(37, 99, 235, 0.10);

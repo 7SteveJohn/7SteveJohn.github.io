@@ -363,7 +363,7 @@ window.openProjectModal = function(id, opts = {}) {
       <div class="space-y-2 border-b border-black/10 dark:border-white/10 pb-5">
         ${project.archived ? `
         <div class="flex items-center gap-2">
-          <span class="px-2 py-0.5 text-xs font-medium rounded-md border border-[#c2d96b]/40 text-[#c2d96b]">历史项目</span>
+          <span class="archived-badge">历史项目</span>
         </div>` : ''}
         <h2 class="text-2xl font-semibold text-[#1d1d1f] dark:text-white tracking-tight">${escapeHtml(project.title)}</h2>
         <p class="text-[#86868b] text-sm sm:text-base leading-relaxed">${escapeHtml(project.description)}</p>
@@ -657,7 +657,7 @@ function injectArticleJsonLd(article) {
     keywords: (article.tags || []).join(', '),
     inLanguage: 'zh-CN',
     author: { '@type': 'Person', name: 'SevenJohn', url: 'https://7stevejohn.github.io/' },
-    mainEntityOfPage: { '@type': 'WebPage', '@id': `https://7stevejohn.github.io/?post=${encodeURIComponent(article.id)}` }
+    mainEntityOfPage: { '@type': 'WebPage', '@id': `https://7stevejohn.github.io/p/${encodeURIComponent(article.id)}.html` }
   });
 }
 
@@ -836,7 +836,7 @@ function initGlassSpec() {
 function articleCardHtml(art, opts = {}) {
   const metaLead = opts.hideCategory
     ? `<span>${escapeHtml(art.date)}</span><span>· ${escapeHtml(getReadTime(art))}</span>`
-    : `<span class="px-2 py-0.5 rounded-md border border-black/8 dark:border-white/12 font-medium">
+    : `<span class="px-2 py-0.5 rounded-md border border-black/10 dark:border-white/15 font-medium">
          ${escapeHtml(art.category || '技术手记')}
        </span>
        <span>${escapeHtml(art.date)}</span>
@@ -1088,9 +1088,10 @@ function applyModalSearchHighlight(modal, modalContent, rawQuery) {
 
   const topBar = modal.querySelector('.modal-top-bar');
   const closeBtn = topBar ? topBar.querySelector('[data-close-modal]') : null;
+  const insertAnchor = topBar ? (topBar.querySelector('.modal-top-actions') || closeBtn) : null;
   let bar = null;
   let countEl = null;
-  if (topBar && closeBtn) {
+  if (topBar && insertAnchor && insertAnchor.parentNode === topBar) {
     bar = document.createElement('div');
     bar.className = 'modal-find-bar';
     bar.setAttribute('role', 'region');
@@ -1100,7 +1101,7 @@ function applyModalSearchHighlight(modal, modalContent, rawQuery) {
       '<button type="button" class="mfb-btn" data-mfb="prev" aria-label="上一处匹配" title="上一处 (Shift+F3)">↑</button>' +
       '<button type="button" class="mfb-btn" data-mfb="next" aria-label="下一处匹配" title="下一处 (F3)">↓</button>' +
       '<button type="button" class="mfb-btn" data-mfb="clear" aria-label="清除搜索高亮" title="清除高亮">×</button>';
-    topBar.insertBefore(bar, closeBtn);
+    topBar.insertBefore(bar, insertAnchor);
     countEl = bar.querySelector('.mfb-count');
   }
 
@@ -1424,7 +1425,7 @@ function initBlogCards() {
     if (window.CardsCore) return Promise.resolve(true);
     if (loading) return loading;
     loading = new Promise((resolve) => {
-      const cssHref = 'css/cards.css?v=20261127a';
+      const cssHref = 'css/cards.css?v=20261128a';
       let css = document.querySelector(`link[href="${cssHref}"]`);
       let addedCss = false;
       if (!css) {
@@ -1435,7 +1436,7 @@ function initBlogCards() {
         addedCss = true;
       }
       const s = document.createElement('script');
-      s.src = 'js/cards.js?v=20261127a';
+      s.src = 'js/cards.js?v=20261128a';
       s.onload = () => {
         const ok = !!window.CardsCore;
         if (!ok) {
@@ -1657,6 +1658,36 @@ function initNavigation() {
       if (e.target === articleModal) window.closeArticleModal();
     });
   }
+  const shareBtn = document.getElementById('article-share-btn');
+  if (shareBtn) {
+    shareBtn.addEventListener('click', () => {
+      if (!activeArticle || !activeArticle.id) return;
+      const base = (location.protocol === 'http:' || location.protocol === 'https:')
+        ? location.origin
+        : 'https://7stevejohn.github.io';
+      const shareUrl = `${base}/p/${encodeURIComponent(activeArticle.id)}.html`;
+      const fallbackCopy = () => {
+        try {
+          const prevFocus = document.activeElement;
+          const ta = document.createElement('textarea');
+          ta.value = shareUrl;
+          ta.setAttribute('readonly', '');
+          ta.style.cssText = 'position:fixed;top:-9999px;opacity:0;';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          ta.remove();
+          if (prevFocus && prevFocus.focus) prevFocus.focus({ preventScroll: true });
+        } catch (_) {}
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareUrl).catch(fallbackCopy);
+      } else {
+        fallbackCopy();
+      }
+      showToast('已复制分享链接', { duration: 1800, position: 'top-right' });
+    });
+  }
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
@@ -1814,9 +1845,9 @@ function initScrollSpy() {
   const hudSecLabels = {
     home: '01 · OVERVIEW',
     products: '02 · TOOLS',
-    philosophy: '03 · PRINCIPLES',
-    about: '04 · PROFILE',
-    blog: '05 · NOTES'
+    blog: '03 · NOTES',
+    philosophy: '04 · PRINCIPLES',
+    about: '05 · PROFILE'
   };
   const setActive = (id) => {
     const hit = byId[id] ?? [];

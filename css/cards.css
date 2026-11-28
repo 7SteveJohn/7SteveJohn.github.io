@@ -88,12 +88,16 @@ body.cards-page::before, #cards-root::before{
   position:relative;z-index:5;display:flex;align-items:center;justify-content:space-between;
   width:min(1160px,94vw);margin:0 auto;padding:24px 0 8px;gap:12px;flex-wrap:wrap;
 }
-.cards-scope .hud h1{
+.cards-scope .hud h1,
+.cards-scope .hud .hud-title{
   font-weight:700;font-size:20px;letter-spacing:-.02em;color:var(--ink);line-height:1.3;
 }
-.cards-scope .hud h1 em{font-style:normal;color:var(--ink-soft)}
-.cards-scope .hud h1 .btn{vertical-align:middle}
-.cards-scope .hud h1 .sub{
+.cards-scope .hud h1 em,
+.cards-scope .hud .hud-title em{font-style:normal;color:var(--ink-soft)}
+.cards-scope .hud h1 .btn,
+.cards-scope .hud .hud-title .btn{vertical-align:middle}
+.cards-scope .hud h1 .sub,
+.cards-scope .hud .hud-title .sub{
   font-size:15.5px;color:var(--ink);margin-left:10px;letter-spacing:.06em;font-weight:700;vertical-align:middle;
 }
 .cards-scope .brand{display:flex;flex-direction:column;gap:4px}
@@ -1484,8 +1488,10 @@ html.dark .cards-scope .reader{background:#0d1220}
   /* 移动端 HUD 与顶栏 */
   .cards-scope .hud{padding:14px 12px 6px;gap:8px}
   .cards-scope--inline .hud{padding:2px 0 10px}
-  .cards-scope .hud h1{font-size:16.5px}
-  .cards-scope .hud h1 .sub{font-size:13.5px;margin-left:7px}
+  .cards-scope .hud h1,
+  .cards-scope .hud .hud-title{font-size:16.5px}
+  .cards-scope .hud h1 .sub,
+  .cards-scope .hud .hud-title .sub{font-size:13.5px;margin-left:7px}
   .cards-scope .hud-sub{font-size:10.5px}
   .cards-scope .hud-actions{gap:6px}
   .cards-scope .hud-actions .btn{padding:5px 10px;font-size:12px;border-radius:8px}

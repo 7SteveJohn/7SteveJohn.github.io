@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>刷机为什么会卡开机：验证启动的信任链从哪开始 | 楠屿札记</title>
+
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#f8fafc" />
+  <script>
+    (function () {
+      var root = document.documentElement;
+      root.classList.add('js');
+      var isDark = false;
+      try {
+        if (localStorage.getItem('sj.theme-v6') !== 'daylight-v1') {
+          localStorage.removeItem('sj.theme');
+          localStorage.setItem('sj.theme-v6', 'daylight-v1');
+        }
+        isDark = localStorage.getItem('sj.theme') === 'dark';
+      } catch (e) {}
+      root.classList.toggle('dark', isDark);
+      var m = document.querySelector('meta[name="color-scheme"]');
+      if (m) m.content = isDark ? 'dark' : 'light';
+      var tc = document.querySelector('meta[name="theme-color"]');
+      if (tc) tc.content = isDark ? '#060911' : '#f8fafc';
+    })();
+  </script>
+
+  <meta name="description" content="修改系统分区后卡在开机界面，根源往往不在于镜像刷错位置，而在于触发了启动校验拦截。本文梳理 Android 验证启动（AVB 2.0）的哈希信任链、Android 13 的引导分区拆分逻辑，以及不同锁态机型在双分区架构下的安全更新机制。" />
+  <link rel="canonical" href="https://7stevejohn.github.io/p/flash-vbmeta-trust-chain.html" />
+
+  <!-- Open Graph / Twitter Card -->
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="楠屿札记" />
+  <meta property="og:title" content="刷机为什么会卡开机：验证启动的信任链从哪开始" />
+  <meta property="og:description" content="修改系统分区后卡在开机界面，根源往往不在于镜像刷错位置，而在于触发了启动校验拦截。本文梳理 Android 验证启动（AVB 2.0）的哈希信任链、Android 13 的引导分区拆分逻辑，以及不同锁态机型在双分区架构下的安全更新机制。" />
+  <meta property="og:url" content="https://7stevejohn.github.io/p/flash-vbmeta-trust-chain.html" />
+  <meta property="og:image" content="https://7stevejohn.github.io/og-image.png" />
+  <meta property="article:published_time" content="2026-09-30" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="刷机为什么会卡开机：验证启动的信任链从哪开始" />
+  <meta name="twitter:description" content="修改系统分区后卡在开机界面，根源往往不在于镜像刷错位置，而在于触发了启动校验拦截。本文梳理 Android 验证启动（AVB 2.0）的哈希信任链、Android 13 的引导分区拆分逻辑，以及不同锁态机型在双分区架构下的安全更新机制。" />
+  <meta name="twitter:image" content="https://7stevejohn.github.io/og-image.png" />
+
+  <link rel="alternate" type="application/rss+xml" title="楠屿札记 · 手记与创作" href="../rss.xml" />
+  <link rel="shortcut icon" href="../favicon.ico" />
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+  <link rel="manifest" href="../manifest.json" />
+
+  <link rel="preload" href="../assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="../assets/fonts/inter.css" />
+  <link rel="stylesheet" href="../assets/vendor/tailwind.css" />
+  <link rel="stylesheet" href="../css/style.css?v=20261128a" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "刷机为什么会卡开机：验证启动的信任链从哪开始",
+  "description": "修改系统分区后卡在开机界面，根源往往不在于镜像刷错位置，而在于触发了启动校验拦截。本文梳理 Android 验证启动（AVB 2.0）的哈希信任链、Android 13 的引导分区拆分逻辑，以及不同锁态机型在双分区架构下的安全更新机制。",
+  "datePublished": "2026-09-30",
+  "dateModified": "2026-09-30",
+  "articleSection": "刷机",
+  "keywords": "刷机, AVB, init_boot, 分区, 9008, 假回锁, OTA",
+  "inLanguage": "zh-CN",
+  "url": "https://7stevejohn.github.io/p/flash-vbmeta-trust-chain.html",
+  "image": "https://7stevejohn.github.io/og-image.png",
+  "author": {
+    "@type": "Person",
+    "name": "SevenJohn",
+    "url": "https://7stevejohn.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "楠屿札记",
+    "url": "https://7stevejohn.github.io/"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://7stevejohn.github.io/p/flash-vbmeta-trust-chain.html"
+  }
+}
+  </script>
+
+  <style>
+    .post-shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #f8fafc;
+      color: #1d1d1f;
+    }
+    .dark .post-shell {
+      background: #060911;
+      color: #f1f5f9;
+    }
+    .post-bar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(255, 255, 255, 0.88);
+      border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .dark .post-bar {
+      background: rgba(6, 9, 17, 0.86);
+      border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+    .post-bar-in {
+      max-width: 52rem;
+      margin: 0 auto;
+      padding: 0 1.25rem;
+      height: 3.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .post-brand {
+      font-size: 0.9375rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #0f172a;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .dark .post-brand { color: #f8fafc; }
+    .post-nav {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      font-size: 0.75rem;
+    }
+    .post-nav-link {
+      color: #475569;
+      text-decoration: none;
+      padding: 0.3rem 0.55rem;
+      border-radius: 9999px;
+      transition: color 0.18s ease, background-color 0.18s ease;
+      white-space: nowrap;
+    }
+    .post-nav-link:hover {
+      color: #0f172a;
+      background: rgba(15, 23, 42, 0.06);
+    }
+    .dark .post-nav-link { color: #94a3b8; }
+    .dark .post-nav-link:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .post-bgm-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.32rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-decoration: none;
+      color: #ffffff;
+      background: #0369a1;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      white-space: nowrap;
+    }
+    .post-bgm-cta:hover { opacity: 0.92; transform: translateY(-1px); }
+    .dark .post-bgm-cta {
+      color: #06121f;
+      background: #38bdf8;
+    }
+    .post-theme-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 9999px;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      background: transparent;
+      color: #334155;
+      cursor: pointer;
+      transition: background-color 0.18s ease, color 0.18s ease;
+    }
+    .post-theme-btn:hover { background: rgba(15, 23, 42, 0.06); color: #0f172a; }
+    .dark .post-theme-btn {
+      border-color: rgba(255, 255, 255, 0.16);
+      color: #cbd5e1;
+    }
+    .dark .post-theme-btn:hover { background: rgba(255, 255, 255, 0.1); color: #ffffff; }
+    .post-main {
+      flex: 1;
+      width: 100%;
+      max-width: 50rem;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+    .post-article {
+      background: #ffffff;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 1.25rem;
+      padding: 2rem 1.5rem 2.25rem;
+      box-shadow: 0 10px 32px -16px rgba(15, 23, 42, 0.08);
+    }
+    @media (min-width: 640px) {
+      .post-article { padding: 2.75rem 3rem 3rem; }
+    }
+    .dark .post-article {
+      background: #0f1522;
+      border-color: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 16px 40px -20px rgba(0, 0, 0, 0.65);
+    }
+    .post-head {
+      padding-bottom: 1.5rem;
+      margin-bottom: 1.75rem;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    }
+    .dark .post-head { border-bottom-color: rgba(255, 255, 255, 0.1); }
+    .post-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: #475569;
+      margin-bottom: 0.85rem;
+    }
+    .dark .post-meta { color: #94a3b8; }
+    .post-cat {
+      padding: 0.15rem 0.6rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      color: #0369a1;
+      background: rgba(3, 105, 161, 0.1);
+    }
+    .dark .post-cat {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.14);
+    }
+    .post-title {
+      font-size: clamp(1.55rem, 3.2vw, 2.15rem);
+      font-weight: 800;
+      line-height: 1.25;
+      letter-spacing: -0.025em;
+      color: #0f172a;
+      margin: 0;
+    }
+    .dark .post-title { color: #f8fafc; }
+    .post-summary {
+      margin-top: 0.9rem;
+      font-size: 0.95rem;
+      line-height: 1.75;
+      color: #475569;
+    }
+    .dark .post-summary { color: #cbd5e1; }
+    .post-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-top: 1rem;
+    }
+    .post-tag {
+      font-size: 0.75rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      padding: 0.15rem 0.55rem;
+      border-radius: 0.375rem;
+      color: #334155;
+      background: rgba(15, 23, 42, 0.05);
+    }
+    .dark .post-tag {
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .post-cover {
+      margin: 0 0 1.75rem;
+      border-radius: 0.875rem;
+      overflow: hidden;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: rgba(15, 23, 42, 0.03);
+      aspect-ratio: 16 / 9;
+      max-height: 20rem;
+    }
+    .dark .post-cover {
+      border-color: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .post-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .post-article .markdown-body {
+      color: #1d1d1f;
+    }
+    .dark .post-article .markdown-body {
+      color: #e2e8f0;
+    }
+    .post-article .markdown-body pre {
+      padding: 1rem 1.1rem;
+    }
+    .post-article .markdown-body pre code {
+      color: #e6edf3;
+    }
+    .post-article .markdown-body blockquote {
+      color: #475569;
+    }
+    .dark .post-article .markdown-body blockquote {
+      color: #cbd5e1;
+    }
+    .post-article .markdown-body a {
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .post-pager {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.85rem;
+      margin-top: 2rem;
+    }
+    @media (max-width: 600px) {
+      .post-pager { grid-template-columns: 1fr; }
+      .post-bgm-cta span.cta-extra { display: none; }
+    }
+    .post-pager-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      padding: 0.95rem 1.1rem;
+      border-radius: 0.875rem;
+      text-decoration: none;
+      background: #ffffff;
+      border: 1px solid rgba(15, 23, 42, 0.09);
+      transition: border-color 0.18s ease, transform 0.18s ease;
+    }
+    .post-pager-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .dark .post-pager-card {
+      background: #0f1522;
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+    .post-pager-next { text-align: right; }
+    .post-pager-k {
+      font-size: 0.72rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: var(--accent);
+    }
+    .post-pager-v {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #0f172a;
+      line-height: 1.45;
+    }
+    .dark .post-pager-v { color: #f1f5f9; }
+    .post-foot {
+      border-top: 1px solid rgba(15, 23, 42, 0.08);
+      padding: 2rem 1.25rem;
+      font-size: 0.75rem;
+      color: #475569;
+    }
+    .dark .post-foot {
+      border-top-color: rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+    }
+    .post-foot-in {
+      max-width: 50rem;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .post-foot-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.1rem;
+    }
+    .post-foot-links a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .post-foot-links a:hover { color: var(--accent); }
+  </style>
+</head>
+<body class="post-shell antialiased">
+  <header class="post-bar">
+    <div class="post-bar-in">
+      <a href="../index.html" class="post-brand">楠屿札记</a>
+      <nav aria-label="文章页导航" class="post-nav">
+        <a href="../index.html?post=flash-vbmeta-trust-chain" class="post-bgm-cta" title="回到首页弹窗阅读，支持背景音乐与站内翻章">
+          <span>首页沉浸阅读<span class="cta-extra">（含 BGM）</span></span>
+        </a>
+        <a href="../archive.html" class="post-nav-link">归档</a>
+        <button id="theme-toggle" type="button" class="post-theme-btn" aria-label="切换明暗模式" title="切换晨曦/极夜模式">
+          <svg class="w-4 h-4 hidden dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          <svg class="w-4 h-4 block dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="post-main">
+    <article class="post-article">
+      <header class="post-head">
+        <div class="post-meta">
+          <span class="post-cat">刷机</span>
+          <time datetime="2026-09-30">2026-09-30</time>
+          <span aria-hidden="true">·</span>
+          <span>8 分钟</span>
+        </div>
+        <h1 class="post-title">刷机为什么会卡开机：验证启动的信任链从哪开始</h1>
+        <p class="post-summary">修改系统分区后卡在开机界面，根源往往不在于镜像刷错位置，而在于触发了启动校验拦截。本文梳理 Android 验证启动（AVB 2.0）的哈希信任链、Android 13 的引导分区拆分逻辑，以及不同锁态机型在双分区架构下的安全更新机制。</p>
+        <div class="post-tags"><span class="post-tag">#刷机</span><span class="post-tag">#AVB</span><span class="post-tag">#init_boot</span><span class="post-tag">#分区</span><span class="post-tag">#9008</span><span class="post-tag">#假回锁</span><span class="post-tag">#OTA</span></div>
+      </header>
+      <figure class="post-cover"><img src="../assets/images/covers/cover-flashing.svg" alt="刷机为什么会卡开机：验证启动的信任链从哪开始" loading="eager" decoding="async" /></figure>
+      <div class="markdown-body">
+<h3>问题：改完分区开不了机</h3>
+<p>刷机在操作层面上拆开来看很简单：把镜像文件写进对应的存储分区。真正容易出问题的，是写完之后设备能不能顺利开机。</p>
+<p>当年给 K60 Pro 打第一个 Root 补丁时，我按早期教程把修补后的镜像刷进了 <code>boot</code> 分区，重启之后什么都没有发生——权限没拿到，系统照常运行。换成 <code>init_boot</code> 分区才成功。那次既没报错也没弹窗，只是安静地没有生效。</p>
+<p>另一种情况更棘手：机器能通电，但卡在厂商 Logo 界面反复重启。这通常不是镜像刷错了位置，而是没有通过启动校验。</p>
+<h3>方案：先弄清楚信任链从哪开始</h3>
+<p>这背后其实对应着两个独立环节：镜像通过什么底层通道写入闪存，以及设备启动时依据什么机制校验它的合法性。</p>
+<p><strong>写入通道有层级之分。</strong> 常规刷机使用的是 Fastboot 模式，它运行在系统引导程序（Bootloader）之上，前提是引导分区本身完好无损。若引导分区也已损坏，高通平台还留有一条更底层的应急通道——9008（EDL 紧急下载）模式。该模式由芯片出厂固化在只读存储器（BootROM）中的底层代码驱动：连接电脑识别出 <code>Qualcomm HS-USB QDLoader 9008</code> 端口后，先通过握手机制（Sahara 协议）将烧录引导程序（Firehose 编程器）载入设备内存运行，随后即可绕过整个操作系统，按指令直接读写或擦除闪存分区。正因为它独立于系统分区之外，即便设备无法正常引导，通常也能借此恢复。</p>
+<p><strong>能否正常开机，取决于验证启动的信任链。</strong> Android 8.0 起引入了 AVB 2.0（Android Verified Boot，验证启动机制），将分散的校验信息集中收敛到 <code>vbmeta</code> 分区——其中记录了各关键分区的哈希摘要与厂商数字签名。开机时，Bootloader 只需用硬件固化的公钥验证 <code>vbmeta</code> 自身的签名；验证通过后，便以其中记录的哈希值为基准，逐一比对 <code>boot</code>、<code>init_boot</code>、<code>dtbo</code>（设备树配置）等引导分区。至于 <code>system</code>、<code>vendor</code> 等体积庞大的系统分区，则采用哈希树机制（<code>dm-verity</code>），不仅在启动阶段校验，系统运行期间读取数据块时也会持续核对完整性。</p>
+<p><strong>在此基础上，Android 13 进一步拆分了引导分区。</strong> 为推行通用内核镜像（GKI）架构，Android 13 将原本与内核打包在一起的通用初始内存盘（ramdisk）从 <code>boot</code> 分区剥离，独立为 <code>init_boot</code> 分区。拆分后，<code>boot</code> 分区主要存放通用内核本体，而系统第一阶段的初始化程序（<code>init</code>）与启动脚本则移至 <code>init_boot</code>。由于主流修补方案主要介入初始化阶段，新机型打补丁的目标分区也随之从 <code>boot</code> 转向了 <code>init_boot</code>。</p>
+<p>几条机制串联起来就清楚了：Root 补丁修改了 <code>init_boot</code> 的内容，内容一变哈希摘要就会改变；开机时 Bootloader 拿着 <code>vbmeta</code> 里记录的旧哈希去比对，发现不匹配便会拒绝启动。正确的流程是：改动下游分区后，必须同步重算哈希并重新签名 <code>vbmeta</code>（或按规范关闭对应校验），再一并写回。</p>
+<h4>现代设备生态的四种真实锁态</h4>
+<p>结合实际机型来看，当前 Android 设备围绕启动校验大致分化出四种状态：</p>
+<ol>
+<li><strong>常规解锁（真解锁）设备</strong>：以小米 K60 Pro 等官方开放解锁的机型为代表。解锁后引导程序（ABL）的锁标志位被改写，允许加载未经原厂签名的分区镜像；但设备启动时会触发橙色安全告警（Orange 状态），系统属性（<code>ro.boot.flash.locked=0</code>）与硬件密钥认证服务（KeyMint）也会如实向应用层报告“已解锁”状态。</li>
+<li><strong>可自签设备</strong>：以联想拯救者 Y700 系列平板为代表。这类机型的原厂引导链默认信任 Android 开源项目公开的测试密钥（AOSP testkey）。只要使用该公开密钥对修改后的 <code>init_boot</code> 与 <code>vbmeta</code> 分区重新签名，设备在保持原厂未解锁状态下即可通过启动校验，开机仍维持代表完全受信任的绿色状态（Green）。</li>
+<li><strong>假回锁（Fake Lock）设备</strong>：常见于关闭了官方解锁通道的部分高通机型。其思路是利用底层引导漏洞，在系统与硬件可信执行环境（TEE）读取锁状态之前的极早期引导阶段注入内存补丁，将内存中的引导状态覆写为“已锁定且受信任（Locked &amp; Green）”，从而在保留硬件级锁定信任状态的同时，放行修补后的内核镜像。</li>
+<li><strong>运行时临时提权设备</strong>：不改动任何引导分区，仅依靠系统运行期的内核或用户态漏洞临时获取权限（往往伴随将 SELinux 安全策略降级为宽容模式），一旦重启即恢复原状。</li>
+</ol>
+<h4>A/B 槽位与保留锁态 OTA 的升级链路</h4>
+<p>现代 Android 普遍采用 A/B 无缝更新机制，闪存中并存主、备两套系统分区槽位（<code>_a</code> 与 <code>_b</code>）。系统后台下载全量 OTA 更新时，会将新版本完整写入当前闲置的备用槽位，原厂未修改的引导程序（ABL）与 <code>init_boot</code> 也会一并覆盖该槽位。</p>
+<p>对于依赖引导补丁的假回锁设备而言，若更新写完后直接重启切换槽位，不仅备用槽的原厂引导程序会导致假回锁补丁与 Root 权限双双失效，未修补的严格校验还会拦截分区改动痕迹，导致设备无法正常启动。</p>
+<p>因此，这类设备在线更新时必须在<strong>后台写入完成、尚未重启切槽</strong>的窗口期完成两步衔接：</p>
+<ul>
+<li><strong>先补引导层</strong>：使用专用引导维护工具向备用槽位的引导与 EFI 相关分区重新写入锁态补丁；</li>
+<li><strong>再补内核层</strong>：打开 KernelSU 等内核管理器，通过“安装到未使用的槽位（OTA 后）”功能修补备用槽的 <code>init_boot</code>；</li>
+<li>待引导层与内核层均对齐后，再安全重启切换槽位。</li>
+</ul>
+<h3>核心难点与工程排障</h3>
+<ol>
+<li><strong>补丁必须对应正确的引导分区。</strong> Android 13 及以上采用 GKI 架构的设备通常修补 <code>init_boot</code>，更早的分区布局则修补 <code>boot</code>。刷错分区往往不会直接报错，而是静默失效或卡在开机界面；判断方法很直接——解压官方固件包，查看其中是否包含 <code>init_boot.img</code>。</li>
+<li><strong>修补镜像必须与系统小版本严格对应。</strong> 每次系统升级都可能更新引导脚本或安全补丁级别，混刷旧版本的 <code>init_boot</code> 镜像容易引发无线模块失效或无法开机，每次更新都应基于同版本原厂固件重新提取修补。</li>
+<li><strong>修改分区后须同步处理校验。</strong> 未重新签名 <code>vbmeta</code> 且未显式关闭校验时，Bootloader 会直接阻断启动。</li>
+<li><strong>双分区机型操作前需确认当前活动槽位。</strong> 镜像若误刷入非活动槽位，重启后并不会加载生效；非 OTA 升级期间也不应随意切换活动槽位或向备用槽写入补丁，以免破坏备用分区的可回滚状态。</li>
+<li><strong>基带与校准分区须提前单独备份。</strong> <code>persist</code> 分区保存传感器标定数据，<code>modem</code> 分区关系到蜂窝信号与基带通信，这两类分区一旦损坏或丢失，无法通过常规恢复出厂设置补回。</li>
+<li><strong>9008 端口无法识别多源于连接链路与驱动。</strong> 电脑未能识别出底层端口时，通常并非设备芯片损坏，优先排查三处常见原因：高通底层驱动未正确签名安装、使用了仅支持充电的线材，或机箱前置接口及扩展坞存在通信不稳。</li>
+<li><strong>重新上锁前须确保全部分区恢复原厂签名状态。</strong> 若分区仍残留未受信任的修改便强行锁定 Bootloader，验证启动将直接阻断引导流程，导致设备无法开机。</li>
+</ol>
+<h3>结论</h3>
+<p>刷机在操作层面上只是将镜像写入分区，但设备能否正常启动则取决于验证启动机制：<strong>以硬件公钥为信任根、以 <code>vbmeta</code> 为校验枢纽，任何下游分区的改动都必须同步更新上游的哈希与签名</strong>。理清这条信任链后，大多数“刷完卡开机”的现象都能顺藤摸瓜定位到具体环节。</p>
+<p>从常规解锁、测试密钥自签到引导期假回锁，定制方案虽在不断演进，底层逻辑却始终未变：谁能介入启动链更早期的阶段，谁就能决定系统所采信的设备状态；而固化在芯片底层的 9008 模式则是最后的兜底防线——只要硬件底层通信尚存，绝大多数引导故障都仍有恢复余地。</p>
+      </div>
+    </article>
+    <nav class="post-pager" aria-label="相邻文章">
+        <a class="post-pager-card" href="./prompt-optimizer-engine.html"><span class="post-pager-k">← 上一篇</span><span class="post-pager-v">纯本地提示词优化器：零模型依赖的规则诊断与重组引擎</span></a>
+        <a class="post-pager-card post-pager-next" href="./root-hiding-layers.html"><span class="post-pager-k">下一篇 →</span><span class="post-pager-v">root 藏不住的原因：三层隐藏各管哪一段</span></a>
+      </nav>
+  </main>
+
+  <footer class="post-foot">
+    <div class="post-foot-in">
+      <span>© <span id="footer-year">2026</span> 楠屿札记 · 慢慢写，慢慢看。</span>
+      <div class="post-foot-links">
+        <a href="../index.html">首页</a>
+        <a href="../archive.html">归档</a>
+        <a href="../gallery.html">照片墙</a>
+        <a href="../rss.xml">RSS</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var syncMeta = function (dark) {
+        var m = document.querySelector('meta[name="color-scheme"]');
+        if (m) m.content = dark ? 'dark' : 'light';
+        var tc = document.querySelector('meta[name="theme-color"]');
+        if (tc) tc.content = dark ? '#060911' : '#f8fafc';
+      };
+      var btn = document.getElementById('theme-toggle');
+      if (btn) {
+        btn.addEventListener('click', function () {
+          var dark = root.classList.toggle('dark');
+          syncMeta(dark);
+          try { localStorage.setItem('sj.theme', dark ? 'dark' : 'light'); } catch (e) {}
+        });
+      }
+      window.addEventListener('storage', function (ev) {
+        if (ev.key === 'sj.theme') {
+          var dark = ev.newValue === 'dark';
+          root.classList.toggle('dark', dark);
+          syncMeta(dark);
+        }
+      });
+      var y = document.getElementById('footer-year');
+      if (y) y.textContent = String(new Date().getFullYear());
+
+      // 按需补齐代码高亮（仅当正文存在代码块时加载，离线或失败静默降级）
+      if (document.querySelector('.markdown-body pre code')) {
+        var css = document.createElement('link');
+        css.rel = 'stylesheet';
+        css.href = '../assets/vendor/github-dark.min.css';
+        document.head.appendChild(css);
+        var js = document.createElement('script');
+        js.src = '../assets/vendor/highlight.min.js';
+        js.onload = function () {
+          if (window.hljs) {
+            document.querySelectorAll('.markdown-body pre code').forEach(function (el) {
+              window.hljs.highlightElement(el);
+            });
+          }
+        };
+        document.head.appendChild(js);
+      }
+
+      if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
+        navigator.serviceWorker.register('../sw.js', { scope: '../' }).catch(function () {});
+      }
+    })();
+  </script>
+</body>
+</html>

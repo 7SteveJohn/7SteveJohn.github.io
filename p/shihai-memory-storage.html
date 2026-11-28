@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>本地记忆存储实战：Append-only 事件流、墓碑机制与真正的物理遗忘 | 楠屿札记</title>
+
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#f8fafc" />
+  <script>
+    (function () {
+      var root = document.documentElement;
+      root.classList.add('js');
+      var isDark = false;
+      try {
+        if (localStorage.getItem('sj.theme-v6') !== 'daylight-v1') {
+          localStorage.removeItem('sj.theme');
+          localStorage.setItem('sj.theme-v6', 'daylight-v1');
+        }
+        isDark = localStorage.getItem('sj.theme') === 'dark';
+      } catch (e) {}
+      root.classList.toggle('dark', isDark);
+      var m = document.querySelector('meta[name="color-scheme"]');
+      if (m) m.content = isDark ? 'dark' : 'light';
+      var tc = document.querySelector('meta[name="theme-color"]');
+      if (tc) tc.content = isDark ? '#060911' : '#f8fafc';
+    })();
+  </script>
+
+  <meta name="description" content="围绕桌面助手记忆系统的本地持久化需求，介绍如何仅用 Python 标准库与单文件 SQLite 落地存储层：涵盖不可变事件流、双时间线事实表设计，以及覆盖数据库与各级日志文件的彻底物理清除。" />
+  <link rel="canonical" href="https://7stevejohn.github.io/p/shihai-memory-storage.html" />
+
+  <!-- Open Graph / Twitter Card -->
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="楠屿札记" />
+  <meta property="og:title" content="本地记忆存储实战：Append-only 事件流、墓碑机制与真正的物理遗忘" />
+  <meta property="og:description" content="围绕桌面助手记忆系统的本地持久化需求，介绍如何仅用 Python 标准库与单文件 SQLite 落地存储层：涵盖不可变事件流、双时间线事实表设计，以及覆盖数据库与各级日志文件的彻底物理清除。" />
+  <meta property="og:url" content="https://7stevejohn.github.io/p/shihai-memory-storage.html" />
+  <meta property="og:image" content="https://7stevejohn.github.io/og-image.png" />
+  <meta property="article:published_time" content="2026-11-16" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="本地记忆存储实战：Append-only 事件流、墓碑机制与真正的物理遗忘" />
+  <meta name="twitter:description" content="围绕桌面助手记忆系统的本地持久化需求，介绍如何仅用 Python 标准库与单文件 SQLite 落地存储层：涵盖不可变事件流、双时间线事实表设计，以及覆盖数据库与各级日志文件的彻底物理清除。" />
+  <meta name="twitter:image" content="https://7stevejohn.github.io/og-image.png" />
+
+  <link rel="alternate" type="application/rss+xml" title="楠屿札记 · 手记与创作" href="../rss.xml" />
+  <link rel="shortcut icon" href="../favicon.ico" />
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+  <link rel="manifest" href="../manifest.json" />
+
+  <link rel="preload" href="../assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="../assets/fonts/inter.css" />
+  <link rel="stylesheet" href="../assets/vendor/tailwind.css" />
+  <link rel="stylesheet" href="../css/style.css?v=20261128a" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "本地记忆存储实战：Append-only 事件流、墓碑机制与真正的物理遗忘",
+  "description": "围绕桌面助手记忆系统的本地持久化需求，介绍如何仅用 Python 标准库与单文件 SQLite 落地存储层：涵盖不可变事件流、双时间线事实表设计，以及覆盖数据库与各级日志文件的彻底物理清除。",
+  "datePublished": "2026-11-16",
+  "dateModified": "2026-11-16",
+  "articleSection": "架构设计",
+  "keywords": "识海, SQLite, 事件流, 数据存储, 隐私合规, 架构设计",
+  "inLanguage": "zh-CN",
+  "url": "https://7stevejohn.github.io/p/shihai-memory-storage.html",
+  "image": "https://7stevejohn.github.io/og-image.png",
+  "author": {
+    "@type": "Person",
+    "name": "SevenJohn",
+    "url": "https://7stevejohn.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "楠屿札记",
+    "url": "https://7stevejohn.github.io/"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://7stevejohn.github.io/p/shihai-memory-storage.html"
+  }
+}
+  </script>
+
+  <style>
+    .post-shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #f8fafc;
+      color: #1d1d1f;
+    }
+    .dark .post-shell {
+      background: #060911;
+      color: #f1f5f9;
+    }
+    .post-bar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(255, 255, 255, 0.88);
+      border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .dark .post-bar {
+      background: rgba(6, 9, 17, 0.86);
+      border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+    .post-bar-in {
+      max-width: 52rem;
+      margin: 0 auto;
+      padding: 0 1.25rem;
+      height: 3.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .post-brand {
+      font-size: 0.9375rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #0f172a;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .dark .post-brand { color: #f8fafc; }
+    .post-nav {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      font-size: 0.75rem;
+    }
+    .post-nav-link {
+      color: #475569;
+      text-decoration: none;
+      padding: 0.3rem 0.55rem;
+      border-radius: 9999px;
+      transition: color 0.18s ease, background-color 0.18s ease;
+      white-space: nowrap;
+    }
+    .post-nav-link:hover {
+      color: #0f172a;
+      background: rgba(15, 23, 42, 0.06);
+    }
+    .dark .post-nav-link { color: #94a3b8; }
+    .dark .post-nav-link:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .post-bgm-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.32rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-decoration: none;
+      color: #ffffff;
+      background: #0369a1;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      white-space: nowrap;
+    }
+    .post-bgm-cta:hover { opacity: 0.92; transform: translateY(-1px); }
+    .dark .post-bgm-cta {
+      color: #06121f;
+      background: #38bdf8;
+    }
+    .post-theme-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 9999px;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      background: transparent;
+      color: #334155;
+      cursor: pointer;
+      transition: background-color 0.18s ease, color 0.18s ease;
+    }
+    .post-theme-btn:hover { background: rgba(15, 23, 42, 0.06); color: #0f172a; }
+    .dark .post-theme-btn {
+      border-color: rgba(255, 255, 255, 0.16);
+      color: #cbd5e1;
+    }
+    .dark .post-theme-btn:hover { background: rgba(255, 255, 255, 0.1); color: #ffffff; }
+    .post-main {
+      flex: 1;
+      width: 100%;
+      max-width: 50rem;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+    .post-article {
+      background: #ffffff;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 1.25rem;
+      padding: 2rem 1.5rem 2.25rem;
+      box-shadow: 0 10px 32px -16px rgba(15, 23, 42, 0.08);
+    }
+    @media (min-width: 640px) {
+      .post-article { padding: 2.75rem 3rem 3rem; }
+    }
+    .dark .post-article {
+      background: #0f1522;
+      border-color: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 16px 40px -20px rgba(0, 0, 0, 0.65);
+    }
+    .post-head {
+      padding-bottom: 1.5rem;
+      margin-bottom: 1.75rem;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    }
+    .dark .post-head { border-bottom-color: rgba(255, 255, 255, 0.1); }
+    .post-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: #475569;
+      margin-bottom: 0.85rem;
+    }
+    .dark .post-meta { color: #94a3b8; }
+    .post-cat {
+      padding: 0.15rem 0.6rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      color: #0369a1;
+      background: rgba(3, 105, 161, 0.1);
+    }
+    .dark .post-cat {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.14);
+    }
+    .post-title {
+      font-size: clamp(1.55rem, 3.2vw, 2.15rem);
+      font-weight: 800;
+      line-height: 1.25;
+      letter-spacing: -0.025em;
+      color: #0f172a;
+      margin: 0;
+    }
+    .dark .post-title { color: #f8fafc; }
+    .post-summary {
+      margin-top: 0.9rem;
+      font-size: 0.95rem;
+      line-height: 1.75;
+      color: #475569;
+    }
+    .dark .post-summary { color: #cbd5e1; }
+    .post-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-top: 1rem;
+    }
+    .post-tag {
+      font-size: 0.75rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      padding: 0.15rem 0.55rem;
+      border-radius: 0.375rem;
+      color: #334155;
+      background: rgba(15, 23, 42, 0.05);
+    }
+    .dark .post-tag {
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .post-cover {
+      margin: 0 0 1.75rem;
+      border-radius: 0.875rem;
+      overflow: hidden;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: rgba(15, 23, 42, 0.03);
+      aspect-ratio: 16 / 9;
+      max-height: 20rem;
+    }
+    .dark .post-cover {
+      border-color: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .post-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .post-article .markdown-body {
+      color: #1d1d1f;
+    }
+    .dark .post-article .markdown-body {
+      color: #e2e8f0;
+    }
+    .post-article .markdown-body pre {
+      padding: 1rem 1.1rem;
+    }
+    .post-article .markdown-body pre code {
+      color: #e6edf3;
+    }
+    .post-article .markdown-body blockquote {
+      color: #475569;
+    }
+    .dark .post-article .markdown-body blockquote {
+      color: #cbd5e1;
+    }
+    .post-article .markdown-body a {
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .post-pager {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.85rem;
+      margin-top: 2rem;
+    }
+    @media (max-width: 600px) {
+      .post-pager { grid-template-columns: 1fr; }
+      .post-bgm-cta span.cta-extra { display: none; }
+    }
+    .post-pager-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      padding: 0.95rem 1.1rem;
+      border-radius: 0.875rem;
+      text-decoration: none;
+      background: #ffffff;
+      border: 1px solid rgba(15, 23, 42, 0.09);
+      transition: border-color 0.18s ease, transform 0.18s ease;
+    }
+    .post-pager-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .dark .post-pager-card {
+      background: #0f1522;
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+    .post-pager-next { text-align: right; }
+    .post-pager-k {
+      font-size: 0.72rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: var(--accent);
+    }
+    .post-pager-v {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #0f172a;
+      line-height: 1.45;
+    }
+    .dark .post-pager-v { color: #f1f5f9; }
+    .post-foot {
+      border-top: 1px solid rgba(15, 23, 42, 0.08);
+      padding: 2rem 1.25rem;
+      font-size: 0.75rem;
+      color: #475569;
+    }
+    .dark .post-foot {
+      border-top-color: rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+    }
+    .post-foot-in {
+      max-width: 50rem;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .post-foot-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.1rem;
+    }
+    .post-foot-links a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .post-foot-links a:hover { color: var(--accent); }
+  </style>
+</head>
+<body class="post-shell antialiased">
+  <header class="post-bar">
+    <div class="post-bar-in">
+      <a href="../index.html" class="post-brand">楠屿札记</a>
+      <nav aria-label="文章页导航" class="post-nav">
+        <a href="../index.html?post=shihai-memory-storage" class="post-bgm-cta" title="回到首页弹窗阅读，支持背景音乐与站内翻章">
+          <span>首页沉浸阅读<span class="cta-extra">（含 BGM）</span></span>
+        </a>
+        <a href="../archive.html" class="post-nav-link">归档</a>
+        <button id="theme-toggle" type="button" class="post-theme-btn" aria-label="切换明暗模式" title="切换晨曦/极夜模式">
+          <svg class="w-4 h-4 hidden dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          <svg class="w-4 h-4 block dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="post-main">
+    <article class="post-article">
+      <header class="post-head">
+        <div class="post-meta">
+          <span class="post-cat">架构设计</span>
+          <time datetime="2026-11-16">2026-11-16</time>
+          <span aria-hidden="true">·</span>
+          <span>6 分钟</span>
+        </div>
+        <h1 class="post-title">本地记忆存储实战：Append-only 事件流、墓碑机制与真正的物理遗忘</h1>
+        <p class="post-summary">围绕桌面助手记忆系统的本地持久化需求，介绍如何仅用 Python 标准库与单文件 SQLite 落地存储层：涵盖不可变事件流、双时间线事实表设计，以及覆盖数据库与各级日志文件的彻底物理清除。</p>
+        <div class="post-tags"><span class="post-tag">#识海</span><span class="post-tag">#SQLite</span><span class="post-tag">#事件流</span><span class="post-tag">#数据存储</span><span class="post-tag">#隐私合规</span><span class="post-tag">#架构设计</span></div>
+      </header>
+      <figure class="post-cover"><img src="../assets/images/covers/cover-shihai-storage.svg" alt="本地记忆存储实战：Append-only 事件流、墓碑机制与真正的物理遗忘" loading="eager" decoding="async" /></figure>
+      <div class="markdown-body">
+<h3>选型：为什么坚持“纯标准库 + SQLite”</h3>
+<p>为伴随用户长久运行的端侧记忆系统选型时，技术方案主动避开了当前社区常见的时髦技术栈：</p>
+<ul>
+<li><strong>不引入独立向量数据库</strong>：向量只是辅助检索的数学坐标，不适合作为唯一数据存档。数据库只持久化原始文本与结构化属性，向量匹配放在运行时按需计算，日后更换本地 Embedding 模型也无需迁移底层数据。</li>
+<li><strong>杜绝三方黑盒依赖</strong>：全套存储基于纯 Python 标准库配合单文件 SQLite（开启 WAL 预写日志模式）。需要持久陪伴的数据，应优先选用经过数十年验证、向后兼容性极高、零额外运维成本的成熟基石。</li>
+<li><strong>严格遵循本地文件纪律</strong>：数据统一固化在程序工作目录下的专用存储路径中，绝不向系统 C 盘隐式丢弃缓存或数据文件。</li>
+</ul>
+<h3>目录拓扑与职责分工</h3>
+<pre><code class="language-text">data/
+├── memory.db              # SQLite 核心库（WAL 模式，伴生 -wal / -shm）
+├── memory_raw/            # L0 原文日志：按日分割的 jsonl 审计源
+├── memory_shadow.jsonl    # 影子抽取日志：候选事实转正前的暂存队列
+├── memory_md/             # 人读镜像层：按分类组织的只读 Markdown 副本
+├── memory_snapshot/       # 每晚滚动生成的数据库快照
+├── backup/                # 滚动保留 7 份的 SQLite 在线备份
+└── export/                # 用户导出与迁移数据包
+</code></pre>
+<p>各层级职责边界清晰：<code>memory_raw</code> 记录真实会话原貌，<code>memory_shadow</code> 构成信任门禁缓冲池，<code>memory_md</code> 提供随时可审查的人类可读镜像，而 <code>memory.db</code> 承担结构化索引与运行时计算。</p>
+<h3>核心表结构设计</h3>
+<h4>1. events 表：不可变的权威真相</h4>
+<pre><code class="language-sql">CREATE TABLE events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts REAL NOT NULL,
+    kind TEXT NOT NULL,
+    fid TEXT,          -- 关联事实 ID
+    data TEXT          -- 变更全量载荷 JSON
+);
+</code></pre>
+<p>库内所有的业务行为（添加、提及、失效、顶替、情绪着色、彻底遗忘）皆为单向追加的不可变事件。每条事件都自带完整的数据快照，重放时无需借助外部组件或缓存，即使主表损坏也能独立恢复一致状态。</p>
+<p>其中，<code>forget_all</code> 构成全局重放的<strong>分水岭事件</strong>（清空旧记录后写入一条新的起点事件）。重放引擎始终从最近的一个分水岭节点向后折叠，彻底切断历史痕迹对当前状态的影响。</p>
+<h4>2. facts 表：状态折叠视图与双时间线</h4>
+<p><code>facts</code> 表作为事件流计算后的快速只读视图，承载 23 个维度的状态：</p>
+<ul>
+<li><strong>双时间线机制</strong>：显式区分 <code>first_ts / last_ts</code>（系统记录该事实的时序）与 <code>valid_at / invalid_at</code>（该事实在客观现实中的有效时间区间）。这使得系统能够精确理解“用户从何时起变更了生活习惯”这一类具有现实时效性的事实。</li>
+<li><strong>三态生命周期</strong>：严格标定 <code>active</code>（当前有效）、<code>tombstone</code>（已标记软删除，用户反悔时仍可找回）与 <code>superseded</code>（已被新事实取代），状态流转均可追踪。</li>
+</ul>
+<h4>3. edges 表：轻量拓扑联想</h4>
+<pre><code class="language-sql">CREATE TABLE edges (
+    a_fid TEXT,
+    b_fid TEXT,
+    strength REAL,
+    ts REAL,
+    rel TEXT,
+    PRIMARY KEY(a_fid, b_fid)
+);
+</code></pre>
+<p>通过三类轻量拓扑边连接孤立事实：</p>
+<ul>
+<li><strong>共现边（co）</strong>：同一对话共同命中的记忆，强化联想权重；</li>
+<li><strong>语义边（assoc）</strong>：余弦相似度超出 0.62 的强关联对，每个节点仅保留最强邻居，防范拓扑膨胀；</li>
+<li><strong>共属性边（coattr）</strong>：基于分类前缀的弱关联关系，纯 SQL 原生聚合，零模型推理开销。</li>
+</ul>
+<h3>遗忘的工程含义：从墓碑到真正的物理抹除</h3>
+<p>隐私删除在系统底层并非单一操作，而是被细化为三档严谨的语义阶梯：</p>
+<div class="md-table-wrap"><table>
+<thead>
+<tr>
+<th>用户口令</th>
+<th>数据库内部行为</th>
+<th>外部文件连带动作</th>
+<th>恢复能力</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>“忘掉关于 X 的事”</td>
+<td>状态打上墓碑标记（valid 结束）</td>
+<td>镜像 Markdown 文件同步更新状态</td>
+<td>完全可逆（支持原词找回）</td>
+</tr>
+<tr>
+<td>“忘了吧”</td>
+<td>清空最近会话上下文缓存</td>
+<td>数据库与日志保持原状</td>
+<td>不影响长期记忆</td>
+</tr>
+<tr>
+<td>“忘了我吧”</td>
+<td>facts 与 events 物理全量 DELETE + VACUUM</td>
+<td>原文日志、影子日志、快照导出物全部同步删除</td>
+<td><strong>彻底不可逆</strong></td>
+</tr>
+</tbody></table></div>
+<p>在许多系统设计中，“删除”往往只是修改了主表的一行标志位，但在底层的原始请求日志中仍赫然保留着用户的原话记录——<strong>这不叫遗忘，只是嘴上说忘</strong>。</p>
+<p>识海在执行 <code>forget_all</code> 时，会同步清理磁盘上全部按日切分的 jsonl 原文日志、影子暂存与快照备份，并通过自动化测试断言验证：执行后磁盘上不存在任何可供复原原话的物理文件碎片。</p>
+<h3>核心难点与工程排障</h3>
+<ol>
+<li><strong>影子队列的非固定淘汰策略</strong>：影子日志并非简单的按天滚动。清理程序按行执行审查：只有当该行的候选事实全部完成裁决且超出 7 天后方可安全剔除；若仍有等待转正的条目，该记录将被永久保留，防止待办队列意外丢失。</li>
+<li><strong>人读镜像层的单向隔离</strong>：早期曾尝试人读 Markdown 与 SQLite 双向同步，但文件文本格式的微小差异极易导致解析冲突与脏写。最终确定“库向文件单向投影、修改通过指令或专用视图”的纯单向原则，彻底消除双源竞争。</li>
+<li><strong>多进程并发防阻塞</strong>：在 WAL（预写日志）模式下，前台可视化面板等只读工具与主守护进程实现互不阻塞的一写多读；写事务统一施加 30 秒 busy timeout 与 <code>BEGIN IMMEDIATE</code> 锁排队机制，平稳支撑批处理后台与前台并发。</li>
+</ol>
+<h3>结论</h3>
+<p>存储架构的本质，是决定“什么该长久留存、什么该自然过期、什么必须彻底擦除”。凭借 append-only 事件流作为权威源、双时间线厘清事实跨度，以及严格匹配磁盘状态的物理删除机制，轻量单文件架构同样能构筑起可靠且令人放心的端侧长程记忆底座。</p>
+      </div>
+    </article>
+    <nav class="post-pager" aria-label="相邻文章">
+        <a class="post-pager-card" href="./shihai-memory-mechanism.html"><span class="post-pager-k">← 上一篇</span><span class="post-pager-v">语音助手记忆架构：让本地 Agent 学会“适度遗忘”与动态校准</span></a>
+        <a class="post-pager-card post-pager-next" href="./local-video-reading-pipeline.html"><span class="post-pager-k">下一篇 →</span><span class="post-pager-v">本地视频阅读工作流：从镜头切分到端侧多模态理解</span></a>
+      </nav>
+  </main>
+
+  <footer class="post-foot">
+    <div class="post-foot-in">
+      <span>© <span id="footer-year">2026</span> 楠屿札记 · 慢慢写，慢慢看。</span>
+      <div class="post-foot-links">
+        <a href="../index.html">首页</a>
+        <a href="../archive.html">归档</a>
+        <a href="../gallery.html">照片墙</a>
+        <a href="../rss.xml">RSS</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var syncMeta = function (dark) {
+        var m = document.querySelector('meta[name="color-scheme"]');
+        if (m) m.content = dark ? 'dark' : 'light';
+        var tc = document.querySelector('meta[name="theme-color"]');
+        if (tc) tc.content = dark ? '#060911' : '#f8fafc';
+      };
+      var btn = document.getElementById('theme-toggle');
+      if (btn) {
+        btn.addEventListener('click', function () {
+          var dark = root.classList.toggle('dark');
+          syncMeta(dark);
+          try { localStorage.setItem('sj.theme', dark ? 'dark' : 'light'); } catch (e) {}
+        });
+      }
+      window.addEventListener('storage', function (ev) {
+        if (ev.key === 'sj.theme') {
+          var dark = ev.newValue === 'dark';
+          root.classList.toggle('dark', dark);
+          syncMeta(dark);
+        }
+      });
+      var y = document.getElementById('footer-year');
+      if (y) y.textContent = String(new Date().getFullYear());
+
+      // 按需补齐代码高亮（仅当正文存在代码块时加载，离线或失败静默降级）
+      if (document.querySelector('.markdown-body pre code')) {
+        var css = document.createElement('link');
+        css.rel = 'stylesheet';
+        css.href = '../assets/vendor/github-dark.min.css';
+        document.head.appendChild(css);
+        var js = document.createElement('script');
+        js.src = '../assets/vendor/highlight.min.js';
+        js.onload = function () {
+          if (window.hljs) {
+            document.querySelectorAll('.markdown-body pre code').forEach(function (el) {
+              window.hljs.highlightElement(el);
+            });
+          }
+        };
+        document.head.appendChild(js);
+      }
+
+      if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
+        navigator.serviceWorker.register('../sw.js', { scope: '../' }).catch(function () {});
+      }
+    })();
+  </script>
+</body>
+</html>

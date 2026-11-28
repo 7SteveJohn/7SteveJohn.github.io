@@ -36,7 +36,7 @@ const info = await p.evaluate(() => {
     heroP: [...document.querySelectorAll('#home p')].map((e) => e.textContent.trim()),
     homeAboutLinks: document.querySelectorAll('#home a[href="#about"]').length,
     sections: ['products', 'blog', 'creation', 'essays'].map(
-      (id) => document.getElementById(id)?.querySelector('p.font-display')?.textContent.trim() || null
+      (id) => document.getElementById(id)?.querySelector('h2.font-display, p.font-display')?.textContent.trim() || null
     ),
     about: [...document.querySelectorAll('#about p')].map((e) => e.textContent.trim()).join(' | '),
     ids,

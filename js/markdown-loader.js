@@ -17,7 +17,7 @@
 (function () {
   'use strict';
 
-  const ARTICLES_SRC = 'js/articles.js?v=20261127a';
+  const ARTICLES_SRC = 'js/articles.js?v=20261128a';
   let pending = null;
   let articlesPending = null;
   const ready = () => !!(window.marked && window.DOMPurify);

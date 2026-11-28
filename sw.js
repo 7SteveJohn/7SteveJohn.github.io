@@ -1,53 +1,93 @@
 /**
  * Service Worker：离线缓存（"本地优先"的完全体——断网也能读手记和小说）
  * ----------------------------------------------------
- * 策略（2026-10-05 起全面 stale-while-revalidate，修"每次打开都等跨海往返"的常态卡顿）：
- * - 页面导航：首页（含 ?post= 深链）SWR——缓存秒开、后台拉新版更新固定键 './index.html'；
- *   其他 HTML（cosmos-home 演示页等）保持网络优先、离线回退首页——低频且不许污染离线兜底。
- * - CSS/JS 与其余静态资源：SWR（缓存优先 + 后台更新）。
- * - 音频 Range 请求：切片/预热/全量三级，见下方媒体分支。
- * 一致性说明：SWR 下"缓存里的 HTML/CSS/JS"整体同版本出入，不存在"新 DOM 配旧样式"
- * ——旧版三件套一起出、后台更新完下次打开一起换新。内容更新（文章、图、RSS）靠 SWR
- * 在下一次打开自动对齐，**常规发布不需要再手动 +1 版本号**；只有改 CORE 列表或缓存
- * 结构时才 bump（install 会全量重拉 CORE，约 1MB 后台流量，按需使用）。
+ * 策略（全面 stale-while-revalidate + 分层抗 503 预缓存）：
+ * - 安装阶段（install）：
+ *   · CORE_ESSENTIAL（首页必需壳与脚本）：带单文件退避重试（失败/503 后 250ms 重试 1 次），必须全部入库；
+ *   · CORE_EXTRAS（次级页、全文库、卡片与按需脚本）：小批次并发（每批 5 项）+ 单文件重试 + Promise.allSettled，
+ *     单个次级资源的瞬态 503 绝不连坐阻断 SW 安装与激活。
+ * - 页面导航：
+ *   · 首页/归档/照片墙/札签白名单走 SWR（缓存秒开 + 后台校验写回固定相对键）；
+ *   · 单篇静态分享页 /p/*.html 走网络优先，有效 200 按自身路径独立入库（绝不覆盖 ./index.html，保留 ATK-1），
+ *     断网优先回落本篇缓存、其次回落首页；
+ *   · 404 / cosmos-home 等非白名单页面网络优先、不入库、离线回退首页。
+ * - CSS/JS 与其余静态资源：SWR（缓存优先 + 后台更新，跳过 204 空响应）。
+ * - 音频 Range 请求：全量缓存命中本地切片 206；未命中直连网络流播。
  */
-const CACHE = 'sevenjohn-v301';   // 2026-11-27 首屏拆正文、版本对齐与去重预缓存
-const CORE = [
-  'index.html',
-  '404.html',
-  'archive.html',
-  'gallery.html',
-  'cards.html',
-  'css/style.css?v=20261127a',
-  'css/cosmos.css?v=20261118c2',
-  'css/cards.css?v=20261127a',
-  'css/archive.css?v=20261107_v245',
-  'css/gallery.css?v=20261107_v245',
-  'assets/vendor/tailwind.css',
-  'assets/vendor/lucide.min.js',
-  'assets/vendor/marked.min.js',
-  'assets/vendor/purify.min.js',
-  'js/projects.js?v=20261118j',
-  'js/articles-meta.js?v=20261127a',
-  'js/articles.js?v=20261127a',
-  'js/markdown-loader.js?v=20261127a',
-  'js/bundles/core.js?v=20261127a',
-  'js/bundles/home.js?v=20261127a',
-  'js/bundles/sub.js?v=20261127a',
-  'js/cards.js?v=20261127a',
-  'js/archive.js?v=20261127a',
-  'js/gallery.js?v=20261126w',
-  'assets/fonts/inter.css',
-  'assets/fonts/inter-var-latin.woff2',
-  'assets/images/avatar.webp',
-  'favicon.ico',
-  'manifest.json'
+const CACHE = 'sevenjohn-v302';   // 2026-11-28 分层抗 503 预缓存 + /p/*.html 独立缓存 + 统一资源版本对齐
+
+const CORE_ESSENTIAL = [
+  './index.html',
+  './css/style.css?v=20261128a',
+  './css/cosmos.css?v=20261118c2',
+  './assets/vendor/tailwind.css',
+  './assets/vendor/lucide.min.js',
+  './js/projects.js?v=20261118j',
+  './js/articles-meta.js?v=20261128a',
+  './js/bundles/core.js?v=20261128a',
+  './js/bundles/home.js?v=20261128a',
+  './assets/fonts/inter.css',
+  './assets/fonts/inter-var-latin.woff2',
+  './assets/images/avatar.webp',
+  './favicon.ico',
+  './manifest.json'
 ];
 
+const CORE_EXTRAS = [
+  './404.html',
+  './archive.html',
+  './gallery.html',
+  './cards.html',
+  './css/cards.css?v=20261128a',
+  './css/archive.css?v=20261107_v245',
+  './css/gallery.css?v=20261107_v245',
+  './assets/vendor/marked.min.js',
+  './assets/vendor/purify.min.js',
+  './js/articles.js?v=20261128a',
+  './js/markdown-loader.js?v=20261128a',
+  './js/bundles/sub.js?v=20261128a',
+  './js/cards.js?v=20261128a',
+  './js/archive.js?v=20261127a',
+  './js/gallery.js?v=20261128a'
+];
+
+// 单文件预缓存（瞬态 503、204 空响应或网络抖动时延迟 250ms 重试一次；204 绝不入库也不静默视为成功）
+async function cacheWithRetry(cache, url, retries = 1) {
+  let lastErr = null;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const req = new Request(url, { cache: 'reload' });
+      const res = await fetch(req);
+      if (res && res.ok && res.status !== 204) {
+        await cache.put(url, res);
+        return true;
+      }
+      lastErr = new Error('HTTP ' + (res ? res.status : 'empty') + ' for ' + url);
+    } catch (err) {
+      lastErr = err;
+    }
+    if (attempt < retries) {
+      await new Promise((r) => setTimeout(r, 250));
+    }
+  }
+  throw lastErr || new Error('Failed to cache ' + url);
+}
+
+// 分批并发缓存次级资源，避免单次突发并发触发 CDN/Pages 瞬态 503
+async function cacheInBatches(cache, urls, batchSize = 5) {
+  for (let i = 0; i < urls.length; i += batchSize) {
+    const chunk = urls.slice(i, i + batchSize);
+    await Promise.allSettled(chunk.map((u) => cacheWithRetry(cache, u, 1)));
+  }
+}
+
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(CORE)).then(() => self.skipWaiting())
-  );
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE);
+    await Promise.all(CORE_ESSENTIAL.map((u) => cacheWithRetry(cache, u, 1)));
+    await cacheInBatches(cache, CORE_EXTRAS, 5);
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', (event) => {
@@ -101,7 +141,7 @@ function slice206(req, buf, total, type) {
 function prefetch(url) {
   if (!prefetches.has(url)) {
     const p = fetch(url).then(async (net) => {
-      if (!net || !net.ok) return;
+      if (!net || !net.ok || net.status === 204) return;
       const buf = await net.arrayBuffer();
       if (!buf.byteLength) return; // 空响应不入库
       const cache = await caches.open(CACHE);
@@ -170,13 +210,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 页面导航：白名单页面（含首页任意 ?query 深链）SWR——缓存秒开、后台拉新版写回固定键
-  // （首页的 ?post= 由页面 JS 解析，HTML 本体同一份）。
-  // 白名单以外的 HTML（404 页、cosmos-home 演示页）一律不入缓存
-  // （2026-10-01 体检 ATK-1：否则坏链接会把离线兜底首页污染成那个页面）。
+  // 页面导航：
+  // 1) 白名单入口（首页含 ?post= 深链、归档、照片墙、札签）走 SWR；
+  // 2) 单篇静态分享页 /p/*.html 走网络优先，200 响应按自身路径独立入库（绝不覆盖 ./index.html）；
+  // 3) 其余非白名单 HTML（404 / cosmos-home）不入缓存，离线回退首页（保持 ATK-1 防污染）。
   if (req.mode === 'navigate') {
     const path = new URL(req.url).pathname;
-    // 归档与照片墙是站内正经入口（2026-10-16 新增），值得各存一份：断网也能翻
     const SWR_KEYS = {
       '/': './index.html',
       '/index.html': './index.html',
@@ -186,15 +225,11 @@ self.addEventListener('fetch', (event) => {
     };
     const key = SWR_KEYS[path];
     if (key) {
-      // 页面导航：缓存优先 + 后台校验（2026-11-26）。
-      // 之前是网络优先，每次站内跳转都要等一次跨海 TTFB（实测线上 0.9–1.0s）。
-      // 现在缓存里有就直接出，同时后台拉新版写回同一个键，下一次导航生效。
-      // 首次访问/换设备仍走网络，不会绕开部署。
       // 用普通同源请求而不是导航请求去取：导航请求在 respondWith 返回缓存后
       // 可能被浏览器中止，导致"后台校验"永远写不回来（实测）。
       const refresh = new Request(req.url, { cache: 'no-cache', credentials: 'same-origin' });
       const network = fetch(refresh).then((res) => {
-        if (res && res.ok) {
+        if (res && res.ok && res.status !== 204) {
           const copy = res.clone();
           caches.open(CACHE).then((cache) => cache.put(key, copy)).catch(() => {});
         }
@@ -206,8 +241,30 @@ self.addEventListener('fetch', (event) => {
           .then((cached) => cached || network)
           .catch(() => offlineFallback('离线：页面未缓存'))
       );
+    } else if (/^\/p\/[^/]+\.html$/.test(path)) {
+      const postKey = '.' + path;
+      const fallbackPost = () => caches.match(postKey)
+        .then((hit) => hit || caches.match('./index.html'))
+        .then((hit) => hit || caches.match('index.html'))
+        .then((hit) => hit || offlineFallback('离线：未缓存该文章'));
+      let writePromise = Promise.resolve();
+      const responsePromise = fetch(req)
+        .then((res) => {
+          if (res && res.status === 200) {
+            const copy = res.clone();
+            writePromise = caches.open(CACHE).then((cache) => cache.put(postKey, copy)).catch(() => {});
+            return res;
+          }
+          if (res && res.status >= 500) {
+            return caches.match(postKey).then((hit) => hit || res);
+          }
+          return res;
+        })
+        .catch(fallbackPost);
+      event.respondWith(responsePromise);
+      event.waitUntil(responsePromise.then(() => writePromise).catch(() => {}));
     } else {
-      // 非首页 HTML：网络优先、离线回退缓存首页（低频页面，不值得各存一份）
+      // 非白名单 HTML：网络优先、不入库、离线回退缓存首页
       event.respondWith(
         fetch(req).catch(() => caches.match('./index.html')
           .then((hit) => hit || caches.match('index.html'))
@@ -217,11 +274,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // CSS/JS 与其余静态资源统一走 SWR（缓存优先 + 后台更新）。CSS/JS 不再网络优先
-  // （2026-10-05）：那是"每次打开都等跨海往返"的常态卡顿根因——同版本缓存三件套
-  // 一起出，一致性由上方导航 SWR 的说明保证。
-  // ⚠️ res.ok 的 204（本机 IDM 等下载器劫持大文件时的空响应）绝不能入缓存——
-  //    一旦入库，cached || network 会让这个资源永远命中空缓存
+  // CSS/JS 与其余静态资源统一走 SWR（缓存优先 + 后台更新）。
+  // ⚠️ res.ok 的 204（本机 IDM 等下载器劫持大文件时的空响应）绝不能入缓存
   event.respondWith(
     caches.match(req).then((cached) => {
       const network = fetch(req)

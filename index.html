@@ -109,7 +109,7 @@
   </script>
 
   <!-- 定制样式 -->
-  <link rel="stylesheet" href="css/style.css?v=20261127a" />
+  <link rel="stylesheet" href="css/style.css?v=20261128a" />
   <link rel="stylesheet" href="css/cosmos.css?v=20261118c2" />
 </head>
 <body class="bg-[#f8fafc] dark:bg-[#060911] text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200 antialiased">
@@ -152,7 +152,7 @@
       </a>
 
       <!-- 居中胶囊导航锚点 -->
-      <nav class="hidden md:flex items-center gap-6 text-[#1d1d1f] dark:text-[#86868b] text-xs nav-capsule-track">
+      <nav aria-label="主导航" class="hidden md:flex items-center gap-6 text-[#1d1d1f] dark:text-[#86868b] text-xs nav-capsule-track">
         <a href="#home" class="hover:text-black dark:hover:text-white transition">概览</a>
         <a href="#products" class="hover:text-black dark:hover:text-white transition">工具</a>
         <a href="#blog" class="hover:text-black dark:hover:text-white transition">文章</a>
@@ -226,7 +226,7 @@
 
     <!-- 移动端导航抽屉 -->
     <div id="mobile-menu" class="hidden md:hidden border-t border-[#d2d2d7]/50 dark:border-white/10 bg-white/95 dark:bg-[#060911]/95 site-nav">
-      <nav class="max-w-6xl mx-auto px-4 py-2 flex flex-col text-sm">
+      <nav aria-label="移动端导航" class="max-w-6xl mx-auto px-4 py-2 flex flex-col text-sm">
         <a href="#home" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition">概览</a>
         <a href="#products" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition">工具</a>
         <a href="#blog" class="py-3.5 text-[#1d1d1f] dark:text-[#f5f5f7] hover:text-black dark:hover:text-white transition">文章</a>
@@ -327,7 +327,7 @@
           <span class="hi-role">离线运维知识库</span>
         </a>
         <a href="#products" class="hi-row" data-hi="fluxion">
-          <span class="hi-top"><span class="hi-no">04</span><span class="hi-ver">v1.3.2</span></span>
+          <span class="hi-top"><span class="hi-no">04</span><span class="hi-ver">v1.3.3</span></span>
           <span class="hi-name">Fluxion</span>
           <span class="hi-role">游戏帧率调优套件</span>
         </a>
@@ -365,6 +365,7 @@
 
     <!-- 2. 五大主力工具专栏 (Product Featurettes) -->
     <section id="products" class="max-w-5xl mx-auto px-4 sm:px-6 space-y-16 scroll-mt-20">
+      <h2 class="sr-only">个人工具作品</h2>
 
       <!-- 单品 1: FileButler -->
       <article data-project-id="filebutler" class="bento-card product-featurette reveal">
@@ -525,8 +526,8 @@
           <div class="studio-monitor">
             <div class="studio-bar" aria-hidden="true">
               <span class="studio-dots"><i></i><i></i><i></i></span>
-              <span class="studio-label">PREVIEW · PAIAN STUDIO</span>
-              <span class="studio-res">1080P</span>
+              <span class="studio-label">KEYNOTE FILM · PAIAN 1.0.3</span>
+              <span class="studio-res">01:00</span>
             </div>
             <div class="cover-box">
               <video
@@ -845,11 +846,57 @@
 
     </section>
 
-    <!-- 3. 做工具的原则 -->
+    <!-- 3. 技术手记与博客 -->
+    <section id="blog" class="max-w-5xl mx-auto px-4 sm:px-6 space-y-6 scroll-mt-20">
+      <div class="reveal blog-head-bar border-b border-[#d2d2d7]/50 dark:border-white/10 pb-4 flex items-end justify-between">
+        <div>
+          <span class="section-eyebrow">FIELD NOTES &amp; DECKS</span>
+          <h2 class="font-display text-2xl text-[#1d1d1f] dark:text-white mt-1">文章 · 开发手记、创作随笔与 AI 学习</h2>
+        </div>
+        <div class="flex items-center gap-3 pb-0.5">
+          <p id="blog-count" class="text-xs font-mono text-[#86868b] whitespace-nowrap"></p>
+          <div class="blog-seg-ctrl" role="group" aria-label="文章视图切换">
+            <button id="blog-view-deck" type="button" class="blog-seg-btn is-active cursor-pointer">札签卷宗</button>
+            <button id="blog-view-list" type="button" class="blog-seg-btn cursor-pointer">文章列表</button>
+          </div>
+          <a href="archive.html" class="blog-archive-link text-xs text-[#64748b] dark:text-[#94a3b8] hover:text-black dark:hover:text-white transition whitespace-nowrap">全部文章 → 归档</a>
+        </div>
+      </div>
+
+      <!-- 精选导读双栏条（清晰毛玻璃底衬，消除背景粒子穿字干扰） -->
+      <div class="start-here reveal">
+        <div class="start-here-head">
+          <span class="start-here-label">START HERE · 从这里开始</span>
+        </div>
+        <div class="start-here-grid">
+          <button type="button" data-open-article="filebutler-local-rag" class="start-here-item">
+            <span class="sh-meta font-mono">01 · 架构取舍</span>
+            <span class="sh-title">本地文件管家：秒搜与可撤销怎么同时成立</span>
+            <span class="start-here-arrow" aria-hidden="true">→</span>
+          </button>
+          <button type="button" data-open-article="local-llm-8gb-vram" class="start-here-item">
+            <span class="sh-meta font-mono">02 · 端侧实操</span>
+            <span class="sh-title">8GB 显存跑本地大模型：先算显存账，再挑模型</span>
+            <span class="start-here-arrow" aria-hidden="true">→</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 卷宗视图（默认原地拆封抽卡） -->
+      <div id="blog-cards" class="cards-scope cards-scope--inline" hidden></div>
+
+      <!-- 列表视图 -->
+      <div id="articles-list" class="space-y-3" data-reveal-stagger></div>
+
+      <!-- 分类目录附录 -->
+      <div id="blog-toc"></div>
+    </section>
+
+    <!-- 4. 做工具的原则 -->
     <section id="philosophy" class="max-w-5xl mx-auto px-4 sm:px-6 space-y-8 scroll-mt-20">
       <div class="reveal text-center space-y-2">
         <span class="section-eyebrow">ENGINEERING PRINCIPLES</span>
-        <p class="text-2xl sm:text-3xl font-bold tracking-tight text-[#1d1d1f] dark:text-white">做工具的几条原则</p>
+        <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-[#1d1d1f] dark:text-white">做工具的几条原则</h2>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6" data-reveal-stagger>
@@ -888,7 +935,7 @@
       </div>
     </section>
 
-    <!-- 4. 关于我 -->
+    <!-- 5. 关于我 -->
     <section id="about" class="max-w-5xl mx-auto px-4 sm:px-6 scroll-mt-20">
       <div class="reveal bento-card about-dossier p-6 sm:p-9">
         <div class="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
@@ -930,52 +977,6 @@
           </div>
         </div>
       </div>
-    </section>
-
-    <!-- 5. 技术手记与博客 -->
-    <section id="blog" class="max-w-5xl mx-auto px-4 sm:px-6 space-y-6 scroll-mt-20">
-      <div class="reveal blog-head-bar border-b border-[#d2d2d7]/50 dark:border-white/10 pb-4 flex items-end justify-between">
-        <div>
-          <span class="section-eyebrow">FIELD NOTES &amp; DECKS</span>
-          <p class="font-display text-2xl text-[#1d1d1f] dark:text-white mt-1">文章 · 开发手记、创作随笔与 AI 学习</p>
-        </div>
-        <div class="flex items-center gap-3 pb-0.5">
-          <p id="blog-count" class="text-xs font-mono text-[#86868b] whitespace-nowrap"></p>
-          <div class="blog-seg-ctrl" role="group" aria-label="文章视图切换">
-            <button id="blog-view-deck" type="button" class="blog-seg-btn is-active cursor-pointer">札签卷宗</button>
-            <button id="blog-view-list" type="button" class="blog-seg-btn cursor-pointer">文章列表</button>
-          </div>
-          <a href="archive.html" class="blog-archive-link text-xs text-[#64748b] dark:text-[#94a3b8] hover:text-black dark:hover:text-white transition whitespace-nowrap">全部文章 → 归档</a>
-        </div>
-      </div>
-
-      <!-- 精选导读双栏条（清晰毛玻璃底衬，消除背景粒子穿字干扰） -->
-      <div class="start-here reveal">
-        <div class="start-here-head">
-          <span class="start-here-label">START HERE · 从这里开始</span>
-        </div>
-        <div class="start-here-grid">
-          <button type="button" data-open-article="filebutler-local-rag" class="start-here-item">
-            <span class="sh-meta font-mono">01 · 架构取舍</span>
-            <span class="sh-title">本地文件管家：秒搜与可撤销怎么同时成立</span>
-            <span class="start-here-arrow" aria-hidden="true">→</span>
-          </button>
-          <button type="button" data-open-article="local-llm-8gb-vram" class="start-here-item">
-            <span class="sh-meta font-mono">02 · 端侧实操</span>
-            <span class="sh-title">8GB 显存跑本地大模型：先算显存账，再挑模型</span>
-            <span class="start-here-arrow" aria-hidden="true">→</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- 卷宗视图（默认原地拆封抽卡） -->
-      <div id="blog-cards" class="cards-scope cards-scope--inline" hidden></div>
-
-      <!-- 列表视图 -->
-      <div id="articles-list" class="space-y-3" data-reveal-stagger></div>
-
-      <!-- 分类目录附录 -->
-      <div id="blog-toc"></div>
     </section>
 
   </main>
@@ -1043,7 +1044,7 @@
   <!-- 项目技术规格详情弹窗 -->
   <div id="project-modal" role="dialog" aria-modal="true" aria-label="项目详情" class="modal-overlay hidden fixed inset-0 z-50 flex justify-center p-4 sm:p-6 bg-black/55 lg-dim overflow-y-auto">
     <div class="modal-panel glass-spec relative m-auto w-full max-w-2xl bg-white dark:bg-[#161617] rounded-2xl shadow-2xl overflow-hidden border border-black/10 dark:border-white/10 my-8 flex flex-col max-h-[85vh]">
-      <div class="modal-top-bar flex items-center justify-between px-5 sm:px-6 py-3 border-b border-black/8 dark:border-white/8 bg-white/95 dark:bg-[#161617]/95 backdrop-blur-md z-20 shrink-0 select-none">
+      <div class="modal-top-bar flex items-center justify-between px-5 sm:px-6 py-3 border-b border-black/10 dark:border-white/10 bg-white/95 dark:bg-[#161617]/95 backdrop-blur-md z-20 shrink-0 select-none">
         <div class="flex items-center gap-2 text-xs min-w-0 pr-2">
           <span id="project-bar-category" class="px-2.5 py-0.5 rounded-full bg-black/5 dark:bg-white/10 text-[11px] font-medium text-[#64748b] dark:text-[#94a3b8] shrink-0 whitespace-nowrap">项目详情</span>
           <span id="project-bar-title" class="truncate font-semibold text-sm text-[#1d1d1f] dark:text-white"></span>
@@ -1064,18 +1065,29 @@
   <!-- 博客文章阅读弹窗 -->
   <div id="article-modal" role="dialog" aria-modal="true" aria-label="文章阅读" class="modal-overlay hidden fixed inset-0 z-50 flex justify-center p-4 sm:p-6 bg-black/55 lg-dim overflow-y-auto">
     <div class="modal-panel glass-spec relative m-auto w-full max-w-2xl bg-white dark:bg-[#161617] rounded-2xl shadow-2xl overflow-hidden border border-black/10 dark:border-white/10 my-8 flex flex-col max-h-[85vh]">
-      <div class="modal-top-bar relative flex items-center justify-between px-5 sm:px-6 py-3 border-b border-black/8 dark:border-white/8 bg-white/95 dark:bg-[#161617]/95 backdrop-blur-md z-20 shrink-0 select-none">
+      <div class="modal-top-bar relative flex items-center justify-between px-5 sm:px-6 py-3 border-b border-black/10 dark:border-white/10 bg-white/95 dark:bg-[#161617]/95 backdrop-blur-md z-20 shrink-0 select-none">
         <div class="flex items-center gap-2 text-xs min-w-0 pr-2">
           <span id="article-bar-category" class="px-2.5 py-0.5 rounded-full bg-black/5 dark:bg-white/10 text-[11px] font-medium text-[#64748b] dark:text-[#94a3b8] shrink-0 whitespace-nowrap">技术手记</span>
           <span id="article-bar-title" class="truncate font-semibold text-sm text-[#1d1d1f] dark:text-white"></span>
         </div>
-        <button
-          data-close-modal="article"
-          aria-label="关闭"
-          class="modal-close-btn text-[#64748b] hover:text-[#0f172a] dark:text-[#94a3b8] dark:hover:text-white cursor-pointer flex-shrink-0"
-        >
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
+        <div class="modal-top-actions flex items-center gap-1.5 shrink-0">
+          <button
+            id="article-share-btn"
+            type="button"
+            aria-label="复制文章分享链接"
+            title="复制分享链接"
+            class="modal-close-btn cursor-pointer flex-shrink-0"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+          </button>
+          <button
+            data-close-modal="article"
+            aria-label="关闭"
+            class="modal-close-btn text-[#64748b] hover:text-[#0f172a] dark:text-[#94a3b8] dark:hover:text-white cursor-pointer flex-shrink-0"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
         <div class="absolute bottom-0 left-0 right-0 h-[2.5px] pointer-events-none overflow-hidden bg-black/[0.04] dark:bg-white/[0.06]">
           <div id="article-progress" class="h-full w-0 transition-[width] duration-75"></div>
         </div>
@@ -1131,9 +1143,9 @@
   <audio id="cosmos-audio" preload="none"></audio>
 
   <script src="js/projects.js?v=20261118j" defer></script>
-  <script src="js/articles-meta.js?v=20261127a" defer></script>
-  <script src="js/bundles/core.js?v=20261127a" defer></script>
-  <script src="js/bundles/home.js?v=20261127a" defer></script>
+  <script src="js/articles-meta.js?v=20261128a" defer></script>
+  <script src="js/bundles/core.js?v=20261128a" defer></script>
+  <script src="js/bundles/home.js?v=20261128a" defer></script>
   <script type="importmap">
   {
     "imports": {

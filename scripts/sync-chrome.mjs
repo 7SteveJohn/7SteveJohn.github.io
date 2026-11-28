@@ -44,14 +44,14 @@ function renderSubNav(current) {
       : `        <a href="${e.href}" class="hover:text-black dark:hover:text-white transition">${e.label}</a>`
   );
   return [
-    '  <header class="site-header sticky top-0 z-40 w-full site-nav glass-spec bg-white/80 dark:bg-[#0a0a0c]/80 border-b border-[#d2d2d7]/50 dark:border-white/10 transition-colors">',
+    '  <header class="site-header sticky top-0 z-40 w-full site-nav glass-spec bg-white/80 dark:bg-[#060911]/80 border-b border-[#d2d2d7]/50 dark:border-white/10 transition-colors">',
     '    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-12 flex items-center justify-between text-xs">',
     '      <a href="index.html" class="flex items-center gap-2 font-semibold text-sm tracking-tight text-[#1d1d1f] dark:text-white hover:opacity-80 transition">',
     `        <span>${CFG.name}</span>`,
     '      </a>',
     // flex-wrap：入口变多后（归档/照片墙/花园/友链/连载）小屏能换行，不挤成一条
     '      <nav class="flex flex-wrap items-center justify-end gap-x-4 gap-y-1 sm:gap-x-6 text-[#1d1d1f] dark:text-[#86868b] text-xs">',
-    '        <a href="index.html#blog" class="hidden sm:inline hover:text-black dark:hover:text-white transition">技术手记</a>',
+    '        <a href="index.html#blog" class="hidden sm:inline hover:text-black dark:hover:text-white transition">文章</a>',
     ...items,
     '        <a href="index.html" class="hover:text-black dark:hover:text-white transition">返回首页</a>',
     '      </nav>',
@@ -67,7 +67,7 @@ function renderFooter() {
       : `          <a href="${e.href}" class="hover:text-black dark:hover:text-white transition">${e.label}</a>`
   );
   return [
-    '  <footer class="border-t border-[#d2d2d7]/50 dark:border-white/10 py-12 bg-slate-50 dark:bg-[#0a0a0c] text-xs text-[#86868b]">',
+    '  <footer class="border-t border-[#d2d2d7]/50 dark:border-white/10 py-12 bg-slate-50 dark:bg-[#060911] text-xs text-[#86868b]">',
     '    <div class="max-w-5xl mx-auto px-4 sm:px-6 space-y-4">',
     '      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">',
     '        <div>',

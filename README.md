@@ -1,408 +1,165 @@
-# 我的个人博客与作品展示网站
+# 楠屿札记 · 个人工具作品与独立博客
 
-这是一个现代化、轻量、高颜值的**个人独立博客与项目作品集（Portfolio & Blog）**网站。专为开发者打造，兼顾美观与极简维护，无需繁琐的 Node.js 编译构建，开箱即用。
+轻量化、本地优先、零外部 CDN 依赖的个人独立博客与桌面 / 移动工具作品集网站。纯原生 HTML5 + 静态构建 Tailwind CSS + 原生 ES6，既支持 GitHub Pages / Cloudflare Pages 静态部署，也支持直接双击 `index.html`（`file://`）离线浏览。
 
-> `docs/` 已移出仓库（2026-11-26），仅本地保留；文中提到的交付记录、审计与截图都在本地 `docs/` 目录，GitHub 上不可见。
+> 本地维护记录、方案与实测报告存放在 `docs/`（已通过 `.gitignore` 移出公开仓库，仅本地留档）。
 
 ---
 
-## 核心特色
+## 核心特性
 
-1. **零构建依赖，双击即用**：采用现代标准 HTML5 + Tailwind CSS + 原生 ES6，直接用浏览器双击 `index.html` 即可运行。
-2. **数据与界面解耦**：
-   - 全部产品（统称**个人工具**）的介绍、下载/仓库链接与提取码统一维护于 [`js/projects.js`](js/projects.js)——**改链接只改这一个文件**，产品卡片与详情弹窗会在页面加载时自动水合同步；
-   - 全部文字内容（技术手记 / 创作 / 随笔）维护于 [`js/articles.js`](js/articles.js)，用可选字段 `section` 路由模块，追加数据后界面自动渲染，每篇拥有可分享的独立深链（`?post=文章id`）；某类内容为空时，对应模块与导航入口自动隐藏。
-3. **全功能支持**：
-   - 沉浸式 Markdown 阅读弹窗与代码语法高亮（手记、小说、游戏创作、随笔通用），带阅读进度条、← → 方向键翻章、代码块一键复制；
-   - RSS 订阅（`rss.xml`）与 SEO 配套（`sitemap.xml` / `robots.txt` / Open Graph 分享卡片）；
-   - PWA 离线缓存（Service Worker）：断网也能读，可"添加到主屏幕"当 App 用；
-   - 背景光粒子、滚动浮现编排、导航整页换页等编辑风动效（全量尊重 `prefers-reduced-motion`）；
-   - **参考视频移植的四项效果**（沿用站点原有深色语言，不改成浅色动漫风）：深空壁纸层 + 桌面磨砂玻璃、右下角 Live2D 看板娘（鼠标跟随即时摆动、可一键关闭）、波浪曲线「归档」页、照片墙灯箱，外加**按住 Tab** 唤出的快速导航。每一项都可单独关闭，加载失败一律静默退回原观感；维护方式见下文「[视频里的效果怎么维护](#视频里的效果怎么维护)」一节。
-   - 站名/社交/壁纸清单/页面清单收口在 `js/site-config.js`，`scripts/sync-chrome.mjs` 负责校验各页导航与页脚不漂移；文章卡支持封面图（没封面自动用品牌渐变 + 栏目首字）。见下文「[配置、观感与发布流程](#配置观感与发布流程)」。
-   - **已删除（2026-11-26）**：花园、链接页（友链 + 收藏）、连载。它们已于 2026-10-17 从导航/页脚/sitemap 摘除；2026-11-26 连同页面、样式、脚本与示例章节一起从仓库删除。
-   - **Markdown 写作管线 + 本地写作台**：文章与章节写在 `posts/*.md`，一条命令（或写作台的「保存/发布」）生成数据、RSS 与 sitemap；写作台只监听本机、界面里直接预览与上传图片，见下文「[写作与发布](#写作与发布第-4-轮markdown-源文件--本地写作台)」。
-   - **滚动保持原生**：不劫持滚轮、不做逐帧 `scrollTo` 的阻尼滚动（2026-10-17 撤掉 Lenis 式实现：实测滚轮停下后页面还会继续滑约 **989ms**、最长单帧 55ms，桌面指针手感发黏）。现在滚轮/触控板完全交给浏览器；只有锚点、回到顶部、Tab 快速导航这类**程序化跳转**才用原生 `scrollTo({ behavior: 'smooth' })`。想找回阻尼手感：控制台执行 `window.enableDampedScroll()`（仅当次会话）。
-   - **唯一例外：产品区整屏翻页**（2026-10-17）：桌面且视口 ≥760px 高时，6 张产品卡各占一屏，用**标准 CSS Scroll Snap** 吸附 —— `html { scroll-snap-type: y proximity }` + 卡片 `scroll-snap-align: start / scroll-snap-stop: always / scroll-margin-top: 64px`（见 `css/style.css` 那条媒体查询）。`js/app.js` 的 `initProjectSnap()` 只补两个 CSS 自己做不到的点：① **滚轮一格 = 翻一屏**（proximity 在整屏卡片上会留死区：单次滚 500px 会停在半张卡上）；② **到头逃生口**（滚到最后一张还想往下 / 第一张往上时，先给 `html` 挂 `.no-snap` 摘掉吸附再滚出阈值，否则会被吸回原卡 —— 实测滚 240px 位移为 0）。为什么是 proximity 不是 mandatory：mandatory 会把**程序化滚动**也钉在最近的卡上（在产品区点导航「技术手记」，落到 `#blog` 后被吸回最后一张卡）。手机 / 矮视口 / 减少动效不参与。
-   - **首屏加载**（2026-10-17）：脚本合并成 6 个 bundle（首页 JS 请求 17 → 7、总请求 30 → 20，本地口径；弱网受控 A/B 的 18 → 7 / 33 → 20 见下节表格）、marked/purify 改为打开文章/章节时才加载、字体 preload、音轨延后到首次交互、看板娘推后 3.5s 启动（**仍默认显示**）。改 `js/` 下源文件后必须跑 `node scripts/build-bundles.mjs` 重建，否则页面用旧包（`--check` 与 dev-server 都会提示）。见下文「[首屏加载与脚本合并](#首屏加载与脚本合并)」。
-   - 完美适配 PC 电脑端、平板与手机端（移动端含汉堡导航菜单）。
+1. **零框架、零外链、双击即用**：
+   - 全站字体（自托管 Inter 可变字体）、样式（`assets/vendor/tailwind.css`）、图标（Lucide）、Markdown 引擎（Marked + DOMPurify）、代码高亮（Highlight.js）与 3D 引擎（Three.js）全部仓库自托管；
+   - 默认**晨曦明亮**主题，支持一键切换**极夜深色**（跨页共享 `sj.theme` 并同步 `<meta name="color-scheme">` 与 `<meta name="theme-color">`）。
+2. **作品与文章数据解耦**：
+   - **个人工具（5 款主力 + 2 款历史归档）**：统一维护于 [`js/projects.js`](js/projects.js)（主力：`FileButler`、`拍案`、`脉络`、`Fluxion`、`Stacky`；历史项目：`GameBoost`、`GameBoost-DLSSG`）。页面加载时自动水合下载链接、提取码、公告与更新日志；运行 `node scripts/gen-card-copy.js` 可将卡片文案与首屏版本号同步回 `index.html`。
+   - **文章内容（当前 21 篇）**：全部写作入口在 `posts/*.md`（YAML front matter + Markdown 正文）。运行 `node scripts/build-articles.mjs` 自动产出：
+     - `js/articles.js`（完整正文数据，按需懒加载）与 `js/articles-meta.js`（首屏轻量化列表元数据）；
+     - 21 篇独立静态 SEO / 社交分享页 `p/<id>.html`（含独立 `<title>`、`canonical`、Open Graph / Twitter Card、`BlogPosting` JSON-LD 与预渲染正文）；
+     - `rss.xml`（含 `xmlns:content` 与 `<content:encoded>` 全文 HTML）及 `sitemap.xml`。
+3. **站内不断歌弹窗阅读 + 独立分享页双轨体验**：
+   - 站内（首页列表、札签卷宗、归档页、⌘K 搜索）点击文章统一在首页弹窗打开，背景音乐不中断，支持阅读进度条、`← →` 同板块翻章、自动目录与当前节高亮、代码块一键复制、⌘K 搜索词正文高亮跳转（CSS Custom Highlight API）；
+   - 文章弹窗顶栏内置「复制分享链接」按钮，一键复制规范地址 `https://7stevejohn.github.io/p/<id>.html`；访客打开 `/p/<id>.html` 可直接阅读完整静态排版，也可一键跳回 `index.html?post=<id>` 享受首页弹窗与 BGM 伴读（旧 `?post=<id>` 深链 100% 兼容）。
+4. **音视频秒播与严格双向互斥**：
+   - 内置 `music/` 11 首背景曲目，与 5 款主力工具的 1080p 演示视频实现严格双向互斥（播视频自动停音乐、停视频或滚出视口自动恢复音乐、播音乐立即停视频并复原门控遮罩）。
+5. **札签卷宗、时间河归档与照片墙**：
+   - 首页 `#blog` 与独立页 `cards.html` 提供双面 3D 翻牌「札签卷宗」体验；
+   - `archive.html` 提供正弦波浪曲线时间轴与板块筛选；
+   - `gallery.html` 提供错落画廊网格与无障碍灯箱（支持 `← →` 切换、`Esc` 关闭、`Tab` / `Shift+Tab` 焦点锁定与关闭焦点归位）。
+6. **首屏 3 Bundle 拆分与分层抗 503 Service Worker**：
+   - 站点公共脚本合并为 3 个静态包：`js/bundles/core.js`、`js/bundles/home.js`、`js/bundles/sub.js`（源文件始终保留，由 `scripts/build-bundles.mjs` 幂等生成）；
+   - `sw.js`（当前 `sevenjohn-v302`）采用分层预缓存：`CORE_ESSENTIAL`（首页壳与关键脚本）支持失败退避重试，`CORE_EXTRAS`（次级页、全文库、按需库）采用小批次 `Promise.allSettled` 缓存，单文件瞬态 `503` 不阻断 SW 激活；
+   - 导航采用白名单 SWR，`/p/*.html` 采用网络优先并按自身路径独立入库（绝不污染 `./index.html` 离线兜底）；音频 Range 请求支持首播直连流播与播放后全量缓存本地切片 206。
 
 ---
 
 ## 快速开始与本地预览
 
-### 方法一：直接双击打开（最简单）
-在资源管理器中进入 `d:\HTML\` 文件夹，直接双击 `index.html`，用 Chrome、Edge 等现代浏览器打开即可。
+### 方式一：直接双击打开
+在文件管理器中直接双击 `d:\HTML\index.html`（或任意 `p/<id>.html`、`archive.html`、`gallery.html`），现代浏览器即可正常浏览。
 
-### 方法二：通过本地服务器运行（推荐）
-在终端中执行：
+### 方式二：本地开发服务器（推荐，支持 Range 音频与 Service Worker）
 ```bash
-# 使用 npx 启动轻量静态服务
-npx serve .
+node scripts/dev-server.js
+# 浏览器访问 http://127.0.0.1:8328/
 ```
-或者在 VS Code 中安装 **Live Server** 插件，右键 `index.html` 选择 **"Open with Live Server"** 即可支持热刷新。
 
 ---
 
-## 如何将你自己的项目上传展示？
+## 内容维护工作流
 
-旗舰作品专栏（`index.html` 中的全部 `<article data-project-id>` 卡片）负责展示文案排版；**下载链接、提取码、GitHub 仓库/Releases 地址请只在 [`js/projects.js`](js/projects.js) 中维护**——页面加载时 `app.js` 会按 `data-project-id` 自动把这些链接水合到卡片按钮上（HTML 中的初始 href 仅作 JS 失效时的兜底）。
+### 1. 新增或更新工具项目
+1. 编辑 [`js/projects.js`](js/projects.js) 中对应项目的文案、版本号、下载链接、提取码或 `changelog`；
+2. 同步 `index.html` 的静态卡片文案与首屏版本号：
+   ```bash
+   node scripts/gen-card-copy.js
+   node scripts/gen-card-copy.js --check
+   ```
 
-`projects.js` 同时驱动点击「技术规格详情」后的弹窗内容：
-```javascript
-{
-  id: "my-awesome-project",
-  title: "我的项目名称",
-  category: "desktop",                // 可选: desktop (桌面应用) | android (Android 应用)
-  categoryName: "桌面应用",
-  description: "一句话介绍这个项目的核心亮点与用途",
-  tags: ["Vue3", "TailwindCSS", "Vite"],
-  image: "assets/images/my-project.png", // 可选。不填时自动渲染「渐变+首字母」品牌封面
-  demoUrl: "https://your-demo.com",     // 在线演示链接，若无填 "#"
-  githubUrl: "https://github.com/...",  // 代码仓库链接，若无填 "#"
-  downloadUrl: "https://...",            // 下载地址（如蓝奏云），无则整行删掉
-  downloadPwd: "abcd",                   // 下载提取码，无密码则删掉该行
-  featured: true,                       // 是否设为精选推荐
-  details: `
-### 项目介绍
-这里支持写详细的 Markdown 文档介绍你的项目细节...
-  `
-}
-```
-
-> **小贴士**：`image` 字段可省略——不填时卡片会自动渲染与站点配色统一的「渐变+项目名首字母」品牌封面。如果项目有真实截图，建议保存在 `assets/images/` 目录下并在 `image` 字段填写例如 `"assets/images/your-screenshot.png"`。
-
----
-
-## 如何写新的文字内容（技术手记 / 小说 / 游戏创作 / 随笔）？
-
-> **2026-10-17 起写作入口变了**：文章写在 `posts/*.md`（front matter + Markdown 正文），
-> `js/articles.js` 是**生成物**，手改会在下次生成时被覆盖。用本地写作台最省事，见「[写作与发布](#写作与发布第-4-轮markdown-源文件--本地写作台)」。
-
-每一篇是一个 Markdown 文件，front matter 里的 `section` 决定它出现在哪个模块：
-
-| 想发布到 | 怎么填 |
-| --- | --- |
-| 技术手记 | 不填 `section` |
-| 创作 → 小说 | `section: "creation"`，`category: "小说"` |
-| 创作 → 游戏创作 | `section: "creation"`，`category: "游戏创作"` |
-| 随笔 | `section: "essay"`，`category: "随笔"` |
-| AI 学习 | `section: "ai"` |
-
-`posts/my-new-post.md`：
+### 2. 撰写或修改文章
+在 `posts/` 下新增或编辑 `.md` 文件：
 
 ```markdown
 ---
-id: my-new-post              # 深链：https://7stevejohn.github.io/?post=my-new-post
-title: 作品名 · 第一章：启程
-date: 2026-03-03
-readTime: 5 分钟              # 可留空
-category: 小说                # 创作模块填 小说 / 游戏创作；手记随笔随意
-section: creation            # 可选，见上表；不填 = 技术手记
-summary: 一句话概括本章或本篇内容……   # 必填（列表与 RSS 都用它）
-tags: [连载中]
-cover: assets/images/xxx.webp  # 可选，卡片封面；不填用品牌渐变封面
+id: my-new-post
+title: 文章标题
+date: 2026-11-28
+readTime: 6 分钟
+category: 架构设计
+section:            # 留空=技术手记；可选 creation / essay / ai
+summary: 一句话摘要（用于列表、SEO 描述、分享卡片与 RSS）
+tags: [架构, 端侧AI]
+cover: assets/images/covers/cover-example.svg
 ---
 
-## 这里是 Markdown 正文
+## 正文标题
 
-支持 **粗体**、*斜体*、列表、代码块高亮。
+支持标准 Markdown、表格、代码块与原生 `<details>` 折叠块。
 ```
 
-写完跑 `node scripts/build-articles.mjs` 生成数据（或直接用写作台点保存）。
-
-> `articles.js` 里现存的就是正式文章；想新增时照上表追加数据即可。随笔模块在没有内容时会整体隐藏。
-
-写完后**运行一次下面命令**，同步更新 RSS 订阅源与站点地图：
+保存后执行内容构建，一次性更新全套衍生文件：
 ```bash
-node scripts/gen-rss.js
+node scripts/build-articles.mjs
 ```
 
----
+数据流如下：
+```text
+posts/*.md ──▶ node scripts/build-articles.mjs ──▶ js/articles.js
+                                                ├── js/articles-meta.js
+                                                ├── p/<id>.html（静态 SEO/分享页，自动清理过期页）
+                                                └── scripts/gen-rss.js ──▶ rss.xml（全文）+ sitemap.xml
+```
 
-## 部署配套文件一览
+也可启动本地可视化写作台（仅监听 `127.0.0.1:8329`，请勿暴露公网）：
+```bash
+node scripts/studio/server.mjs
+```
 
-| 文件 | 作用 | 维护方式 |
+### 3. 修改 `js/` 源文件后重建 Bundle
+`js/bundles/{core,home,sub}.js` 是由源文件拼接的生成物，改完 `js/` 下对应源文件后务必重建：
+```bash
+node scripts/build-bundles.mjs
+node scripts/build-bundles.mjs --check
+```
+
+3 个 Bundle 分组：
+| 产物 | 适用页面 | 包含源文件（按执行顺序） |
 | --- | --- | --- |
-| `rss.xml` / `sitemap.xml` | RSS 订阅源 / 搜索引擎站点地图 | 新增文章后运行 `node scripts/gen-rss.js` 重新生成 |
-| `robots.txt` | 搜索引擎抓取规则（指向 sitemap） | 基本无需改动 |
-| `404.html` | GitHub Pages 自定义 404 页 | 基本无需改动 |
-| `og-image.png` | 分享到微信/QQ/X 的预览大图（1200×630） | 想换品牌图时替换 |
-| `favicon.ico` / `apple-touch-icon.png` | 浏览器标签图标 / iOS 添加主屏图标 | 想换 logo 时替换 |
-| `assets/fonts/` | 自托管 Inter 字体（不依赖 Google Fonts，大陆访问不阻塞） | 无需改动 |
-| `assets/vendor/lucide.min.js` | 自托管 Lucide 图标库 v1.41.0（不依赖 unpkg，大陆访问不阻塞） | 想升级时从官方 UMD 构建替换 |
-| `manifest.json` / `icon-512.png` | PWA 应用清单与安装图标 | 想换 App 名字/图标时替换 |
-| `sw.js` | Service Worker 离线缓存（全面 stale-while-revalidate：缓存秒开 + 后台更新） | 常规发布**无需**动版本号——内容更新由 SWR 在访客下次打开时自动对齐；仅当改动 `CORE` 预缓存列表或缓存结构时才把顶部 `CACHE` +1 |
-| `_headers` | Cloudflare Pages 响应头（媒体类资源 7 天缓存） | 仅影响 pages.dev；媒体文件名惯例"名不变内容不变"，新增目录要放宽缓存时在此追加 |
-| `.nojekyll` | 让 GitHub Pages 跳过 Jekyll：不加的话，`posts/*.md`（带 front matter）会被渲染成 `/posts/*.html` 的重复页面 | 不要删；文件内容随意（Pages 只看存在与否） |
-| `js/cosmos/`（main.js + config.js + scene/ + audio/ + interaction/） | 首页 3D 背景「等高线岛图」：fbm 高度场 + domain warp 的等值线渲染，随乐律动（three.js 自托管；手机/无 WebGL 降级 2D 星河，软渲染设备静态暗角） | 改参数看 `config.js`；设备分档逻辑见 `main.js` |
-| `js/cosmos.js` / `css/cosmos.css` | 无 WebGL 时的 2D 回退背景（噪声宇宙），主场景初始化失败自动加载 | 一般无需改动 |
-| `scripts/cosmos-scan.mjs` | 背景引擎验收（20 项断言：full/lite/static 三档、等高线探针、帧推进、容灾标志、reduce-motion、3D 拉取失败回退） | `python -m http.server 8327` + `node scripts/cosmos-scan.mjs` |
-| `scripts/smoke-media.mjs` + `dev-server.js` | 媒体体验验收（音乐/视频秒开、互斥、滚出暂停、离线可播；dev-server 为带 Range 的本地静态服务器） | `node scripts/dev-server.js` + `node scripts/smoke-media.mjs` |
-| `scripts/swr-check.mjs` | SW 策略验收（缓存秒开/后台更新/导航缓存优先/离线兜底，CDP 注入 3s 网络延迟做计时断言） | `node scripts/dev-server.js` + `node scripts/swr-check.mjs` |
-| `scripts/stability-edge.mjs` | 边缘稳定性（恶意 ?post=、损坏 localStorage、reduce-motion、弹窗压力循环） | `python -m http.server 8327` + `node scripts/stability-edge.mjs` |
-| `cosmos-home.html` | 2D 回退背景的单文件演示页（CSS/JS 全内嵌，可独立分享） | 改 `js/cosmos.js` 后如需同步，重跑一次内嵌导出 |
-| `archive.html` + `css/archive.css` + `js/archive.js` | 波浪曲线「归档」页：全部文章按时间排在一条曲线上，点卡片回首页阅读弹窗 | 数据来自 `js/articles.js`，加文章无需改这里 |
-| `gallery.html` + `css/gallery.css` + `js/gallery.js` | 照片墙：混排网格 + 灯箱（←/→/Esc） | 加图只在 `js/gallery.js` 顶部 `GALLERY_DATA` 里加一条 |
-| `js/subpage.js` | 次级页共用外壳（SW 注册、导航滚动态、页脚年份、滚动浮现 `window.pageReveal`） | 一般无需改动 |
-| `js/site-config.js` + `scripts/sync-chrome.mjs` | 站点配置唯一来源（站名/社交/壁纸/页面/导航）+ 各页导航页脚一致性校验与注入 | 加页面改配置后跑 `node scripts/sync-chrome.mjs`；新页面用 chrome 标记块 + `--write` |
-| `js/nav-indicator.js` | 导航当前项胶囊（跟 ScrollSpy 的 `.nav-active`，只动 transform/width） | 桌面细指针才启用；样式在 `css/style.css` 的 `.nav-pill` |
-| `scripts/make-wallpapers.mjs` + `assets/images/wallpaper-2/3.webp` | 程序化生成深空壁纸（ffmpeg 逐像素合成，零版权风险） | `node scripts/make-wallpapers.mjs [--force]`；轮换清单在 `SITE_CONFIG.wallpapers` |
-| `js/wallpaper.js` + `assets/images/wallpaper*.webp` | 深空壁纸层门控、轮换、渐变兜底与档位判定（换壁纸=替换图片并在配置里登记） | 关闭开关：控制台 `localStorage['sj.wallpaper']='off'` |
-| `assets/vendor/live2d/`（运行时 + 模型，约 1.9MB） | 右下角 Live2D 看板娘资源（`waifu-tips.js` / `waifu.css` / `live2d.min.js` / `chunk/index.js` / `model/7steve/**` 自制模型 + `model/shizuku/**` 官方示例备用） | 重建或换模型：`node scripts/vendor-live2d.js`；来源与授权见目录内 `SOURCE.txt` |
-| `scripts/vendor-live2d.js` | 从隔离 node 工作区把看板娘运行时与模型搬进 `assets/vendor/live2d/`（跳过 800KB 交互音效并摘掉 `sound` 引用） | 依赖 `npm i live2d-widgets@1.0.1 live2d-widget-model-shizuku@1.0.5` |
-| `scripts/video-fx-smoke.mjs` | 全站验收：壁纸轮换/看板娘/归档/照片墙/手机档/离线/降级/配置/胶囊/目录/封面/灯箱/原生滚动/内容管线与写作台/首屏 bundle 与按需加载/弱机降档/下线校验 | `node scripts/dev-server.js` + `node scripts/video-fx-smoke.mjs` |
-| `scripts/build-bundles.mjs` + `js/bundles/*.js` | 首屏脚本拼接器与六个生成物（core/home/sub/garden/links/novel） | 改 `js/` 源文件后 `node scripts/build-bundles.mjs` 重建；`--check` 验过期 |
-| `js/markdown-loader.js` | marked + purify 的按需加载器（`window.ensureMarkdown()`，Promise 去重、失败可重试） | 打开文章/项目/章节时自动触发，无需手调 |
-| `posts/`（+ `posts/novel/`） | **写作入口**：文章与章节的 Markdown 源文件（front matter + 正文） | 手写或用本地写作台；改完跑 `node scripts/build-articles.mjs` |
-| `scripts/build-articles.mjs` + `scripts/lib/front-matter.mjs` | 内容生成：md → `js/articles.js` / `js/articles-meta.js` / RSS / sitemap，含校验与等价性比对 | `--check` 只校验；`--compare <旧文件>` 逐字段比对 |
-| `scripts/migrate-to-markdown.mjs` | 一次性迁移（已执行）：`js/articles.js` → `posts/*.md`，备份到 `.local/` | 只在需要重做迁移时用（`--force` 覆盖） |
-| `scripts/studio/` | 本地写作台（界面 + 服务，127.0.0.1:8329）：列表、编辑器、实时预览、图片上传、保存与发布 | `node scripts/studio/server.mjs` |
+| `js/bundles/core.js` | 全站 | `site-config.js` → `markdown-loader.js` → `wallpaper.js` → `particles.js` |
+| `js/bundles/home.js` | 首页 | `search.js` → `video-gate.js` → `app.js` → `nav-indicator.js` → `player.js` |
+| `js/bundles/sub.js` | 次级页 | `subpage.js` |
+
+### 4. 修改站点外壳、照片墙或缓存版本
+- **站点配置与导航一致性**：站名、社交链接、壁纸清单与页面清单收口在 [`js/site-config.js`](js/site-config.js)，改动后跑 `node scripts/sync-chrome.mjs` 校验各页入口无漂移。
+- **照片墙加图**：向 [`js/gallery.js`](js/gallery.js) 顶部 `window.GALLERY_DATA` 追加条目（可选 `span: 'wide' | 'tall'`）。
+- **静态资源与 SW 版本**：常规文章内容更新由 SWR 自动对齐；当修改预缓存清单、缓存结构或静态资源 `?v=` 标记时，同步更新 `sw.js` 顶部的 `CACHE`（当前 `sevenjohn-v302`）及对应资源引用。
+- **保留资产说明**：仓库保留 `music/` 11 首内置曲目以及 `live2d/` 原始素材（看板娘当前在 `js/site-config.js` 中设为 `companion: false` / `live2d: false`，按需留作后续启用）。
 
 ---
 
-## 读者互动与本地功能一览
+## 目录与关键文件一览
 
-以下功能**全部只存访客本机 LocalStorage（`sj.` 前缀），不上传任何数据**；跨访客统计/留言类功能见下节第三方接入。
-
-| 功能 | 用法 | 存储键 |
-| --- | --- | --- |
-| 本地文本批注 | 弹窗内选中正文 → 写批注 → 保存；黄色高亮持久保留，点击高亮可查看/删除 | `sj.ann.<文章id>` |
-| 情绪反馈 | 文章底部点 共鸣 / 启发 / 疑惑 / 唏嘘（单选可取消，仅标记自己的感受） | `sj.emo.<文章id>` |
-| 随便看看 | Ctrl/⌘+K 搜索面板右下角「随便看看」按钮，随机打开一篇旧文 | 无 |
-| 时光回溯 | 文章数据加 `revisions` 字段即可在弹窗切换新旧版本（见下） | 无 |
-| 读完致谢 | 弹窗内读到 100% 出现一次性提示 | 无 |
-| 键盘彩蛋 | 依次按 ↑↑↓↓←→←→BA，粒子变彩色庆典 20 秒 | 无 |
-
-**文章版本切换（时光回溯）数据写法**——在文章对象上加 `revisions` 数组，越靠前越旧：
-```javascript
-{
-  id: "my-post",
-  title: "...",
-  content: "最新版正文",
-  revisions: [{ label: "初稿 2026.01", content: "旧版正文" },
-    { label: "二稿 2026.05", content: "中间版正文" }
-  ]
-}
-```
-
-**折叠注解块写法**——Markdown 里直接写原生 HTML（marked 原生支持）：
-```html
-<details><summary>注：这里展开补充说明</summary>
-正文补充内容……
-</details>
-```
-
-
-## 读者共创类功能接入指引（可选，需注册第三方服务）
-
-按方案约束，留言/投票/表单类跨访客交互全部走第三方、不自建后端，且发布前需人工审核：
-
-1. **评论 / 反向问答**：注册 [giscus.app](https://giscus.app)（基于 GitHub Discussions）→ 仓库开启 Discussions → 按 giscus.app 向导生成配置 → 在 `index.html` 弹窗模板后插入其 `<script>` 挂载代码即可。
-2. **回信表单 / 读者共创投递**：注册 [Formspree](https://formspree.io)（免费档够用）→ 拿到表单 endpoint → 新增一个"回信"区块放 `<form action="https://formspree.io/f/你的ID" method="POST">`；投稿进入你的邮箱，人工筛选后整理成博文发布。
-3. **邮件订阅**：[Buttondown](https://buttondown.email) 或 [follow.it](https://follow.it)，同样一段嵌入代码；也可以只保留 RSS（已内置 `rss.xml`）。
-
----
-
-## 视频里的效果怎么维护
-
-四项效果都做成「可选层 + 静默降级」：资源在就生效，加载失败或被关掉就完全回到原来的观感，不弹提示、不刷报错。整站仍是深色极简体系，运行时零 CDN。
-
-### 1. 深空壁纸 + 桌面磨砂玻璃
-- 图片：`assets/images/wallpaper.webp`（1920×1080，约 42KB）。**换壁纸 = 替换这张图**，不用改代码。
-- 层级：`#site-wallpaper`（z-index -1）压在推理场画布之上、暗角之下；桌面细指针设备用 `mix-blend-mode: screen`，壁纸亮部从推理场深底里透出来，触摸设备改用低透明度静态层（省一次每帧全屏混合）。
-- 桌面端内容卡片会额外补一层 10px 轻磨砂（`@supports` + `pointer: fine`），手机保持纯色卡片。
-- 关闭：控制台执行 `localStorage['sj.wallpaper']='off'` 后刷新；或直接删掉那张 webp（门控脚本探测不到图就不挂 `has-wallpaper`）。
-- 实现：`js/wallpaper.js`（门控 + 档位判定）+ `css/style.css` 末尾「深空壁纸层」段。
-- **效果分两档，自动判定**（2026-10-17 加，起因是用户报"明显变卡"）：
-  | 档位 | 什么时候用 | 表现 |
-  |---|---|---|
-  | `full` 完整档 | 有硬件加速的正常桌面 | 壁纸 `screen` 混合 + 内容卡片 10px 磨砂 + 看板娘 |
-  | `lite` 轻档 | 软件渲染（无硬件加速 / 驱动被回退 / 远程桌面 / 无 WebGL）、或首帧后帧率连测两段都低于 42 帧 | 保留壁纸氛围，但**不做混合、卡片不加磨砂**，也不加载看板娘（省 1.9MB + 一份每帧渲染） |
-  实测依据（软件合成路径下滚动帧率）：两者都上 = 33.8 帧（更差的一次 16.3 帧）；只去掉卡片磨砂 = 60.3 帧。所以最贵的就是卡片那层大面积 `backdrop-filter`，混合与壁纸模糊几乎免费。
-- **手动控制**（优先级最高，写了就沿用）：URL 加 `?fx=full` 强制完整效果、`?fx=lite` 强制轻档、`?fx=off` 彻底关掉壁纸层。控制台等价写法：`localStorage['sj.wallpaper']='on'|'lite'|'off'`。
-- 判定过弱机后会记住（`sj.fx-lite=1`），不再每次测；想重测就删掉这个键或加 `?fx=full`。
-
-### 2. Live2D 看板娘（右下角）
-- 出现条件：桌面细指针 + 视口 ≥1024px + 没开「减少动态效果」+ 没开省流量 + **有 WebGL** + **不是轻档**（见上一条）+ 用户没关过；**首帧之后**才加载，且**不进 SW 预缓存**（和 three、mp3 同策略）。
-- 模型下载完（上游给 `#waifu` 挂 `waifu-active`）之前容器保持 `visibility:hidden`：慢网下不会先冒出一个挡点击的空方块，也不会让人以为"没有看板娘"。
-- 关闭：角色右上角的小叉（写 `sj.live2d=off` 持久化）。想找回来：`localStorage.removeItem('sj.live2d')` 后刷新。
-- `file://` 双击打开时模型要 fetch，会被 CORS 挡 → 看板娘静默不出现；**要看她请用本地服务器预览**（`node scripts/dev-server.js` → http://localhost:8328）。
-- 换模型：把新模型的 `assets/**` 放进 `assets/vendor/live2d/model/<名字>/`，再改 `assets/vendor/live2d/waifu-tips.json` 里 `models[].paths` 指向新的 `*.model.json`；整体重建用 `node scripts/vendor-live2d.js`（依赖装在隔离 node 工作区，见脚本头注释）。
-- 说什么话：文案全在 `assets/vendor/live2d/waifu-tips.json`（`mouseover` / `click` 的 `selector` 写站内元素，`{text}` 会替换成该元素文字；已去掉上游的「一言」与彩蛋外链，保证零外部请求）。
-- 授权：运行时 `live2d-widgets` 是 **GPL-3.0-or-later**，模型是 **Live2D 官方示例模型「Shizuku」**；换第三方模型前请自行确认授权。详见 `assets/vendor/live2d/SOURCE.txt`。
-- 位置协调：看板娘在场时（`html.has-live2d`）右下角「回到顶部」自动左移 304px 让位；音乐播放器在底部居中，互不遮挡。
-
-### 3. 归档页（波浪曲线时间轴）
-- `archive.html` 的数据直接读 `js/articles.js` 的 `ARTICLES_DATA`（与首页同一份），**加文章不用改这个页面**。
-- 桌面 ≥900px：一条正弦曲线串起所有卡片，卡片左右交错挂在曲线两侧，滚动时曲线「走到哪亮到哪」；<900px 退化为单列 + 左侧竖线（不做绝对定位，稳）。
-- 分类筛选写进地址栏 hash（如 `archive.html#creation`），可分享、可后退。
-- 卡片是 `<a href="index.html?post=<id>">`：点了回首页打开阅读弹窗，读全文的逻辑只有一份。
-
-### 4. 照片墙 + 灯箱
-- `gallery.html`：加一张图 = 在 `js/gallery.js` 顶部 `GALLERY_DATA` 里加一条：
-  ```js
-  { src: 'assets/images/xxx.webp', caption: '标题', meta: '副标题', span: 'wide' }  // span 可选 'wide' / 'tall'，用来错落排版
-  ```
-- 灯箱：←/→ 切换、Esc 关闭、点遮罩关闭；打开时锁页面滚动，关闭后焦点回到那张图；大图 `loading="lazy"`，只预加载相邻两张。
-
-### 6. 怎么验收
-```bash
-node scripts/dev-server.js          # 终端 A：8328 静态服务（带 Range）
-node scripts/video-fx-smoke.mjs     # 终端 B：效果移植验收 63 项断言
-```
-含三条易回归的路径（2026-10-17 补）：**H 弱机自动降档**（软件合成下滚动帧率必须回到 60 帧档、不加载看板娘、`?fx=full` 能覆盖）、**I 无 WebGL**（零请求、零报错、不留空白看板娘）、A2b **强机档位**（卡片磨砂在场）。
-既有回归套件（本次改动全部通过）：
-```bash
-node scripts/swr-check.mjs                                      # SW 策略（dev-server 8328）
-node scripts/smoke-media.mjs                                    # 媒体体验（dev-server 8328）
-python -m http.server 8327  →  node scripts/stability-edge.mjs   # 边缘稳定性
-python -m http.server 8327  →  node scripts/cosmos-scan.mjs      # 背景引擎
-```
-> `sw.js` 顶部 `CACHE` 本次由 `v137` 升到 `v138`（改了 `CORE` 预缓存列表）；脚本里硬编码过缓存名的 `swr-check.mjs` / `smoke-media.mjs` 已同步。
-
-## 配置、观感与发布流程
-
-这一节是「参考站可借鉴项」的落地记录（2026-10-17 第 1 轮）。
-
-### 站点配置收口（`js/site-config.js`）
-
-站名、简介、作者、社交链接、壁纸清单、页面清单、导航与「更多」条目、页脚外链全部只在这一个文件里定义：
-
-- 浏览器直接读 `window.SITE_CONFIG`；Node 侧（`gen-rss.js`、`sync-chrome.mjs`、写作台）`require` 后读 `globalThis.SITE_CONFIG`，同一份定义。
-- **加一个页面**：`pages[]` 里登记（`sitemap:true` 才会进 sitemap.xml），入口放 `entries[]`（归档/照片墙这一档）。
-- **校验不漂移**：`node scripts/sync-chrome.mjs` —— 检查根目录每个 HTML 都已登记、每个页面都含 `entries[]` 与 `externals[]` 的链接、首页还含 `nav[]`/`more[]`；缺了就报出来（当前 6 项全过）。
-- **新页面免手写导航**：页面里放两个标记块即可，`node scripts/sync-chrome.mjs --write` 会把导航与页脚渲染进去：
-  ```html
-  <!-- chrome:nav:start --><!-- chrome:nav:end -->
-  <!-- chrome:footer:start --><!-- chrome:footer:end -->
-  ```
-  （既有三页是手写块且带 `data-page-node-id`，脚本只校验不覆盖。）
-- **sitemap 不再被覆盖**：`scripts/gen-rss.js` 已改为从 `SITE_CONFIG.pages` 输出页面清单，顺手给首页写根路径、给各页带上 priority/changefreq。
-
-### 壁纸轮换与生成
-
-- 清单在 `SITE_CONFIG.wallpapers[]`；每次进站随机选一张并用 `sessionStorage` 固定（滚动中不换图），加载失败自动顺延下一张，全部失败退回 `themeColors` 深色渐变（不会留空底）。
-- 新图可以自己丢进 `assets/images/` 并加进清单；想程序化生成同风格的用 `node scripts/make-wallpapers.mjs [--force]`（ffmpeg 逐像素合成，零依赖零版权风险）。
-
-### 三件动效与文章封面
-
-- **导航当前项胶囊**（`js/nav-indicator.js`）：跟 `ScrollSpy` 的 `.nav-active` 走，只动 transform/width；启用后原来的下划线让位（脚本没跑时仍是下划线，观感不倒退）。
-- **目录高亮当前章节**（`app.js` 的 `initTocSpy`）：滚动容器内取距顶部最近的标题，给对应 `.toc-link` 加 `.is-current` + `aria-current`。
-- **灯箱入场**（`css/gallery.css`）：大图 `scale .94→1` + 淡入，换图重放；`prefers-reduced-motion` 下关闭。
-- **文章卡封面**：`js/articles.js` 里给文章加可选字段 `cover: "assets/images/xxx.webp"` 即可（桌面左图右文 200×120，手机上图下文 16:9）；**没写 cover 的文章自动用「品牌渐变 + 栏目首字」**，图片 404 时 `onerror` 摘掉 `img` 露出首字，不留破图框。
-
-### 顺手修掉的两个既有问题
-
-1. **ScrollSpy 高亮一直只落在移动端抽屉里**：`collectNavSections` 把桌面导航与抽屉按 href 去重，只保留后出现的抽屉链接，于是桌面导航从不高亮（做胶囊时暴露）—— 改成同一 href 的所有链接一起标记。
-2. **CSS 变量里的相对 `url()` 按样式表路径解析**：壁纸轮换写进 `--wp-image` 的相对路径被解析成 `/css/assets/...`，图片根本没显示 —— 现在先转绝对地址再写变量。
-
-### 验收
-
-```bash
-node scripts/sync-chrome.mjs        # 站点外壳一致性（页面入口/标记块）
-node scripts/dev-server.js          # 终端 A
-node scripts/video-fx-smoke.mjs     # 终端 B：全量断言（J/K/L/M 段覆盖第 1–4 轮，N 段首屏加载优化，H 段弱机降档，另有下线校验）
-```
-
-## 产品介绍放在哪（2026-10-17 收敛）
-
-产品索引与详情页（`products.html` / `product.html?id=…`）**已下线**：这套内容和首页「工具」区 + 项目弹窗讲的是同一件事，两处维护必然漂移。现在产品只有两个展示位，数据只有一份：
-
-- **首页 `#products`**：六张卡片（封面、分类、标签、下载 / 仓库入口、「技术规格详情」）。
-- **项目弹窗**：分类、版本 / 运行环境 / SHA256、技术难点与解法、`details` 正文、下载 / GitHub / Releases。
-
-维护仍然只改 `js/projects.js`：改文案、链接、截图只改这一个文件；新增产品 = 数组里加一条，首页自动渲染。`changelog` 字段保留在数据结构里（当前没有产品写它），页面不再单独渲染版本时间线；要恢复时间线，直接拿这条数据渲染即可，旧页面的完整实现可从 `git log -- products.html` 取回。`sitemap.xml` 也不再为单个产品生成 URL。
-
-## 写作与发布（第 4 轮）：Markdown 源文件 + 本地写作台
-
-### 数据流（运行时零改动）
-
-```
-posts/*.md            ─┐
-posts/novel/<书>/*.md ─┼→ node scripts/build-articles.mjs ─→ js/articles.js（生成物）
-                       │                                     js/articles-meta.js（生成物）
-                       └───────────────────────────────────→ rss.xml / sitemap.xml（顺带刷新）
-```
-
-- **站点运行时完全没变**：仍然只读 `window.ARTICLES_DATA` / `window.NOVEL_BOOKS`，字段与手写时代逐个一致。
-- 迁移时做过**逐字段等价性验收**：现在跑 `node scripts/build-articles.mjs --compare .local/articles.js.bak-<时间戳>` 仍会报「16 篇文章逐字段一致（含正文）」。
-
-### 命令
-
-| 命令 | 作用 |
+| 路径 | 职责 |
 | --- | --- |
-| `node scripts/build-articles.mjs` | 从 `posts/` 生成 `js/articles.js` + `js/articles-meta.js` + RSS/sitemap |
-| `node scripts/build-articles.mjs --check` | 只校验不写文件（id 唯一、日期格式、section 合法、摘要必填、tags 非空） |
-| `node scripts/migrate-to-markdown.mjs [--force]` | 一次性迁移（已跑过）：把 `js/articles.js` 导出为 `posts/*.md`，并备份到 `.local/` |
-| `node scripts/studio/server.mjs` | 启动本地写作台（见下） |
+| `index.html` | 首页（导航与主体区块顺序统一为：概览 → 工具 → 文章 → 理念 → 关于） |
+| `p/<id>.html` | 构建期生成的 21 篇单篇静态 SEO / 分享页 |
+| `archive.html` / `gallery.html` / `cards.html` / `404.html` | 时间河归档 / 照片墙 / 札签独立页 / 自定义 404 |
+| `posts/*.md` | 全部文章唯一 Markdown 源文件 |
+| `js/projects.js` | 5 款主力工具 + 2 款历史归档项目的唯一数据源 |
+| `js/site-config.js` | 站名、导航、页面清单、壁纸与功能开关配置 |
+| `js/bundles/{core,home,sub}.js` | 首屏合并脚本生成物 |
+| `js/cosmos/` | 首页 3D 声学谐振场（Three.js，桌面 WebGL / 移动与降级回退 2D） |
+| `css/style.css` / `css/cards.css` / `css/archive.css` / `css/gallery.css` / `css/cosmos.css` | 站点与各模块样式（明暗双主题与 WCAG AA 对比度适配） |
+| `assets/fonts/` & `assets/vendor/` | 自托管 Inter 可变字体、静态 Tailwind CSS 及第三方运行时库 |
+| `sw.js` | Service Worker（`sevenjohn-v302`：分层抗 503 预缓存、SWR、`/p/*.html` 独立缓存、音频 Range 切片） |
+| `rss.xml` / `sitemap.xml` / `robots.txt` / `manifest.json` / `.nojekyll` | 全文 RSS、站点地图、抓取规则、PWA 清单与禁用 Jekyll 标记 |
 
-### 本地写作台（`scripts/studio/`）
+---
 
+## 静态校验与端到端回归测试
+
+### 静态一致性检查
 ```bash
-node scripts/studio/server.mjs      # http://127.0.0.1:8329
-node scripts/dev-server.js          # 另一个终端：预览线上效果 http://127.0.0.1:8328
+node scripts/sync-chrome.mjs
+node scripts/build-bundles.mjs --check
+node scripts/build-articles.mjs --check
+node scripts/gen-card-copy.js --check
 ```
 
-- 三栏界面：左侧清单（文章，可搜索）· 中间元信息表单 + Markdown 编辑器 · 右侧实时预览（用站点自托管的 marked + purify，渲染与线上一致）。
-- 按钮：**新建文章** / **新建章节** / **保存（Ctrl+S，写 md → 校验 → 生成）** / **仅生成** / **演练**（走一遍发布流程但不提交）/ **发布**（生成 + `git add` + commit + push）。
-- 图片：编辑封面时点「上传」，图片落 `assets/images/`；本机有 ffmpeg 会自动转 webp 并删掉原图。
-- 删除：不真删，移入 `.local/trash-<时间戳>/`（`.local/` 不入库），随后重新生成。
-- **安全边界**：只监听 `127.0.0.1`、无登录（本机工具）、读写路径限定在 `posts/**` 与 `assets/images/**`（拒绝 `..`）、git 命令用固定参数数组不经 shell。别把它暴露到公网。
-- **校验失败时**：md 已落盘但不重新生成（方便你接着改），界面会把校验错误原样显示；改完再保存即可。
-
-## 首屏加载与脚本合并
-
-> 起因：在国内/代理链路上，**每个请求的固定延迟比体积更要命**（实测 2KB 的 `site-config.js` 也要等 5.6 秒），所以这一轮的目标是"减请求数"而不是"减体积"。
-
-### 做了什么
-
-| 项 | 做法 | 效果（受控 A/B：260ms RTT / 1.6Mbps / 关 SW） |
-| --- | --- | --- |
-| **A 合并首屏脚本** | `scripts/build-bundles.mjs` 把源文件按清单顺序拼成 `js/bundles/{core,home,sub,garden,links,novel}.js` | 脚本标签 21 → 10、**JS 请求 18 → 7**、总请求 33 → 20、传输 684 → 624KB |
-| **B marked/purify 按需** | `js/markdown-loader.js`（在 core 里）在打开文章/项目详情/连载章节时才拉两个库；三个渲染点改成"先骨架后正文"，失败回落纯文本 | 首屏少 2 个请求 / 61KB；弹窗打开时多约一次往返（本地几乎无感） |
-| **C 字体 preload** | 六页 `<head>` 加 `inter-var-latin.woff2` 的 preload（含 `crossorigin`） | 实测曾是最慢请求（7.2s）→ 与 HTML 并行 |
-| **D 音乐延后** | `player.js` 的 `restore()` 不再设 `audio.src`、不再让 SW 预热首曲；改由首次交互 / 打开面板 / 点播放触发 `prime()` | 首屏不再出现卡 10.5s、0 字节的 `/music/*.mp3` 请求 |
-| **E 看板娘推后** | `live2d.js` 改为「首次交互 / load 后 3.5s / 页面可见」启动 | 1.9MB 模型不与首屏脚本抢连接；**仍默认显示**，关闭开关语义不变 |
-
-### 改完源文件一定要重建 bundle
-
+### Playwright 端到端回归（先启动本地静态服务）
 ```bash
-node scripts/build-bundles.mjs          # 重建全部（幂等：内容没变则产物逐字节相同）
-node scripts/build-bundles.mjs --check  # 校验是否过期（退出码 1 = 过期）
-node scripts/build-bundles.mjs --one core   # 只重建一组
-node scripts/build-bundles.mjs --list       # 看分组与源文件
+# 终端 1
+node scripts/dev-server.js
+
+# 终端 2
+node scripts/smoke-home.mjs
+node scripts/smoke-media.mjs
+node scripts/swr-check.mjs
+SITE_BASE=http://localhost:8328/ node scripts/stability-check.mjs
 ```
 
-- `js/` 下的源文件**永远保留**，bundle 只是生成物；工具链（gen-rss / sync-chrome / 写作台）仍读源文件。
-- bundle 头部写的是**内容哈希**（不是时间戳），所以重复构建不会让 git 变脏。
-- 清单顺序就是执行顺序：`site-config` 必须最前、garden 三个玩具在框架前、`app` 在 `nav-indicator` 前。
-- 重建后记得升 `sw.js` 的 `CACHE` 版本（当前 `v147`），否则老客户端继续用旧包。
-- `scripts/dev-server.js` 启动时会自动跑一次 `--check`，过期只提示不自动写。
+---
 
-### 已知遗留（不在本轮范围）
+## 部署上线
 
-受控测量里 **DCL 仍有约 12–13 秒**（260ms RTT / 1.6Mbps 下），跟请求数无关：屏蔽 `home.js` 或 `articles.js` 就消失 —— 是**首屏一次性渲染 16 张文章卡**的执行开销（优化前 12.8s、优化后 13.2s，几乎相同，属既有问题）；真实链路（走代理）上 DCL 从 9.4s 降到 4.6s。若要继续压，方向是"文章卡增量渲染 / 首屏只渲染前 6 张 + 滚动补齐"，留作下一轮。
-
-## 如何免费部署上线到公网？
-
-你可以将当前整个 `d:\HTML` 目录上传到以下免费平台，获取专属二级域名分享给他人：
-
-### 部署上线到专属主页：https://7stevejohn.github.io/
-本仓库 `7SteveJohn.github.io` 是 GitHub 特别的**用户个人根主页仓库**。
-只要推送到 `main` 分支，GitHub Pages 会**自动秒级部署**，直接生成根域名：
- **https://7stevejohn.github.io/**
-
-只需在 `d:\HTML` 目录下执行以下命令即可：
-```bash
-git add .
-git commit -m "feat: 升级为现代化作品集与独立博客系统"
-git branch -M main
-git push -u origin main --force
-```
-> 提示：首次替换旧 Hexo 静态文件时推荐加上 `--force` 覆盖；后续每次更新项目或添加文章，只需正常 `git add .`、`git commit -m "更新内容"`、`git push` 即可！
-
-### 推荐方案二：Vercel
-1. 访问 [vercel.com](https://vercel.com/) 并使用 GitHub 账号登录；
-2. 点击 **Add New Project**，选择刚才的 GitHub 仓库；
-3. Framework Preset 选择 **Other**，直接点击 **Deploy**；
-4. 几秒钟内即可自动生成全球 CDN 加速的访问网址，后续每次 `git push` 自动同步更新。
+本仓库直接对应 GitHub Pages 根站点 `https://7stevejohn.github.io/`：推送至 `main` 分支即自动发布，根目录 `.nojekyll` 确保静态文件与 `posts/*.md` 原样托管不被 Jekyll 二次处理。如需同时部署至 Cloudflare Pages，根目录 `_headers` 已附带媒体类资源的缓存策略。

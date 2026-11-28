@@ -1,4 +1,4 @@
-// build-bundles: {"name":"home","version":"bb038a0090f7","sources":[{"path":"js/search.js","sha256":"0a6ebd1c951e7e46426ca2fa5497bd25e143f2c0fed8755a7d30f9d565319fc9"},{"path":"js/video-gate.js","sha256":"31c5a72caf1e34746746063d51e8c686a5924467e08c09cfc569cee5208e61b7"},{"path":"js/app.js","sha256":"01f08a48bc2968705dc057b0284c2ffdff81ed473f67e3e8ffff737d6809f495"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"8ca8a374c56f02e0f669c18f081e2b0fc3067786ab770c3ac9e5aeecec04eb33"}]}
+// build-bundles: {"name":"home","version":"9d03bd7b969c","sources":[{"path":"js/search.js","sha256":"0a6ebd1c951e7e46426ca2fa5497bd25e143f2c0fed8755a7d30f9d565319fc9"},{"path":"js/video-gate.js","sha256":"31c5a72caf1e34746746063d51e8c686a5924467e08c09cfc569cee5208e61b7"},{"path":"js/app.js","sha256":"1b02486bc6a7eec10061eab38bb05c3311b7dfcbda5e2f61abca026611a04c5f"},{"path":"js/nav-indicator.js","sha256":"6af08d84d883f9627327d7bd421a2d2d2c513df369552cdc36fecb424dbdfbd5"},{"path":"js/player.js","sha256":"8ca8a374c56f02e0f669c18f081e2b0fc3067786ab770c3ac9e5aeecec04eb33"}]}
 /* 仅首页：搜索 → 视频门控 → 主应用 → 导航胶囊 → 播放器
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/search.js → js/video-gate.js → js/app.js → js/nav-indicator.js → js/player.js */
@@ -550,7 +550,7 @@
 
 ;
 
-// ---- js/app.js (01f08a48bc29) ----
+// ---- js/app.js (1b02486bc6a7) ----
 /**
  * 个人网站核心交互脚本 (app.js)
  * 极简、干脆、快速，无多余性能开销
@@ -916,7 +916,7 @@ window.openProjectModal = function(id, opts = {}) {
       <div class="space-y-2 border-b border-black/10 dark:border-white/10 pb-5">
         ${project.archived ? `
         <div class="flex items-center gap-2">
-          <span class="px-2 py-0.5 text-xs font-medium rounded-md border border-[#c2d96b]/40 text-[#c2d96b]">历史项目</span>
+          <span class="archived-badge">历史项目</span>
         </div>` : ''}
         <h2 class="text-2xl font-semibold text-[#1d1d1f] dark:text-white tracking-tight">${escapeHtml(project.title)}</h2>
         <p class="text-[#86868b] text-sm sm:text-base leading-relaxed">${escapeHtml(project.description)}</p>
@@ -1210,7 +1210,7 @@ function injectArticleJsonLd(article) {
     keywords: (article.tags || []).join(', '),
     inLanguage: 'zh-CN',
     author: { '@type': 'Person', name: 'SevenJohn', url: 'https://7stevejohn.github.io/' },
-    mainEntityOfPage: { '@type': 'WebPage', '@id': `https://7stevejohn.github.io/?post=${encodeURIComponent(article.id)}` }
+    mainEntityOfPage: { '@type': 'WebPage', '@id': `https://7stevejohn.github.io/p/${encodeURIComponent(article.id)}.html` }
   });
 }
 
@@ -1389,7 +1389,7 @@ function initGlassSpec() {
 function articleCardHtml(art, opts = {}) {
   const metaLead = opts.hideCategory
     ? `<span>${escapeHtml(art.date)}</span><span>· ${escapeHtml(getReadTime(art))}</span>`
-    : `<span class="px-2 py-0.5 rounded-md border border-black/8 dark:border-white/12 font-medium">
+    : `<span class="px-2 py-0.5 rounded-md border border-black/10 dark:border-white/15 font-medium">
          ${escapeHtml(art.category || '技术手记')}
        </span>
        <span>${escapeHtml(art.date)}</span>
@@ -1641,9 +1641,10 @@ function applyModalSearchHighlight(modal, modalContent, rawQuery) {
 
   const topBar = modal.querySelector('.modal-top-bar');
   const closeBtn = topBar ? topBar.querySelector('[data-close-modal]') : null;
+  const insertAnchor = topBar ? (topBar.querySelector('.modal-top-actions') || closeBtn) : null;
   let bar = null;
   let countEl = null;
-  if (topBar && closeBtn) {
+  if (topBar && insertAnchor && insertAnchor.parentNode === topBar) {
     bar = document.createElement('div');
     bar.className = 'modal-find-bar';
     bar.setAttribute('role', 'region');
@@ -1653,7 +1654,7 @@ function applyModalSearchHighlight(modal, modalContent, rawQuery) {
       '<button type="button" class="mfb-btn" data-mfb="prev" aria-label="上一处匹配" title="上一处 (Shift+F3)">↑</button>' +
       '<button type="button" class="mfb-btn" data-mfb="next" aria-label="下一处匹配" title="下一处 (F3)">↓</button>' +
       '<button type="button" class="mfb-btn" data-mfb="clear" aria-label="清除搜索高亮" title="清除高亮">×</button>';
-    topBar.insertBefore(bar, closeBtn);
+    topBar.insertBefore(bar, insertAnchor);
     countEl = bar.querySelector('.mfb-count');
   }
 
@@ -1977,7 +1978,7 @@ function initBlogCards() {
     if (window.CardsCore) return Promise.resolve(true);
     if (loading) return loading;
     loading = new Promise((resolve) => {
-      const cssHref = 'css/cards.css?v=20261127a';
+      const cssHref = 'css/cards.css?v=20261128a';
       let css = document.querySelector(`link[href="${cssHref}"]`);
       let addedCss = false;
       if (!css) {
@@ -1988,7 +1989,7 @@ function initBlogCards() {
         addedCss = true;
       }
       const s = document.createElement('script');
-      s.src = 'js/cards.js?v=20261127a';
+      s.src = 'js/cards.js?v=20261128a';
       s.onload = () => {
         const ok = !!window.CardsCore;
         if (!ok) {
@@ -2210,6 +2211,36 @@ function initNavigation() {
       if (e.target === articleModal) window.closeArticleModal();
     });
   }
+  const shareBtn = document.getElementById('article-share-btn');
+  if (shareBtn) {
+    shareBtn.addEventListener('click', () => {
+      if (!activeArticle || !activeArticle.id) return;
+      const base = (location.protocol === 'http:' || location.protocol === 'https:')
+        ? location.origin
+        : 'https://7stevejohn.github.io';
+      const shareUrl = `${base}/p/${encodeURIComponent(activeArticle.id)}.html`;
+      const fallbackCopy = () => {
+        try {
+          const prevFocus = document.activeElement;
+          const ta = document.createElement('textarea');
+          ta.value = shareUrl;
+          ta.setAttribute('readonly', '');
+          ta.style.cssText = 'position:fixed;top:-9999px;opacity:0;';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          ta.remove();
+          if (prevFocus && prevFocus.focus) prevFocus.focus({ preventScroll: true });
+        } catch (_) {}
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareUrl).catch(fallbackCopy);
+      } else {
+        fallbackCopy();
+      }
+      showToast('已复制分享链接', { duration: 1800, position: 'top-right' });
+    });
+  }
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
@@ -2367,9 +2398,9 @@ function initScrollSpy() {
   const hudSecLabels = {
     home: '01 · OVERVIEW',
     products: '02 · TOOLS',
-    philosophy: '03 · PRINCIPLES',
-    about: '04 · PROFILE',
-    blog: '05 · NOTES'
+    blog: '03 · NOTES',
+    philosophy: '04 · PRINCIPLES',
+    about: '05 · PROFILE'
   };
   const setActive = (id) => {
     const hit = byId[id] ?? [];

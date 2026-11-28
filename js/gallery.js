@@ -140,9 +140,25 @@
   if (closeBtn) closeBtn.addEventListener('click', close);
 
   document.addEventListener('keydown', (e) => {
-    if (BOX.classList.contains('hidden')) return;
+    if (BOX.classList.contains('hidden') || BOX.classList.contains('is-closing')) return;
     if (e.key === 'Escape') { e.preventDefault(); close(); }
     else if (e.key === 'ArrowRight') { e.preventDefault(); render(cur + 1); }
     else if (e.key === 'ArrowLeft') { e.preventDefault(); render(cur - 1); }
+    else if (e.key === 'Tab') {
+      const focusables = [...BOX.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')]
+        .filter((el) => !el.disabled && el.offsetParent !== null);
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first || !BOX.contains(document.activeElement)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (document.activeElement === last || !BOX.contains(document.activeElement)) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
   });
 })();

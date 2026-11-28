@@ -1,4 +1,4 @@
-// build-bundles: {"name":"core","version":"f7ba69b79c9a","sources":[{"path":"js/site-config.js","sha256":"272412d921f84d39f842d80d7bbf1f457988735dbb251aaac85bfcd32be3c138"},{"path":"js/markdown-loader.js","sha256":"1a5c46052ec83688cd8e46c3ce06c3d12a357cbb7363f1b9faaf1ea06d367c24"},{"path":"js/wallpaper.js","sha256":"994e9d8228801ad2c5c5ce7c63bfaead43b3286bc35bb14b6d251200e1fe8f80"},{"path":"js/particles.js","sha256":"b59b788650a6c595efc98033d3285ca9194e2937a3d24cacf7e9ce394178fa7c"}]}
+// build-bundles: {"name":"core","version":"865cb9e867f4","sources":[{"path":"js/site-config.js","sha256":"272412d921f84d39f842d80d7bbf1f457988735dbb251aaac85bfcd32be3c138"},{"path":"js/markdown-loader.js","sha256":"5a9262f192e374e105a79736cba29162390052d52c54bf624cdaf9c59f0224e8"},{"path":"js/wallpaper.js","sha256":"994e9d8228801ad2c5c5ce7c63bfaead43b3286bc35bb14b6d251200e1fe8f80"},{"path":"js/particles.js","sha256":"b59b788650a6c595efc98033d3285ca9194e2937a3d24cacf7e9ce394178fa7c"}]}
 /* 6 页共用：配置 → Markdown 按需加载器 → 壁纸 → 粒子
    ❗生成物：由 node scripts/build-bundles.mjs 从下列源文件拼接，请改源文件后重建。
    源文件顺序：js/site-config.js → js/markdown-loader.js → js/wallpaper.js → js/particles.js */
@@ -107,7 +107,7 @@
 
 ;
 
-// ---- js/markdown-loader.js (1a5c46052ec8) ----
+// ---- js/markdown-loader.js (5a9262f192e3) ----
 /**
  * Markdown 渲染器按需加载（marked 39KB + purify 22KB）
  * ----------------------------------------------------
@@ -127,7 +127,7 @@
 (function () {
   'use strict';
 
-  const ARTICLES_SRC = 'js/articles.js?v=20261127a';
+  const ARTICLES_SRC = 'js/articles.js?v=20261128a';
   let pending = null;
   let articlesPending = null;
   const ready = () => !!(window.marked && window.DOMPurify);

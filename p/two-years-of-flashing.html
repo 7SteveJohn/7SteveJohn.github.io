@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>两年刷机记：从 K60 Pro 到拯救者 Y700 与假回锁 | 楠屿札记</title>
+
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#f8fafc" />
+  <script>
+    (function () {
+      var root = document.documentElement;
+      root.classList.add('js');
+      var isDark = false;
+      try {
+        if (localStorage.getItem('sj.theme-v6') !== 'daylight-v1') {
+          localStorage.removeItem('sj.theme');
+          localStorage.setItem('sj.theme-v6', 'daylight-v1');
+        }
+        isDark = localStorage.getItem('sj.theme') === 'dark';
+      } catch (e) {}
+      root.classList.toggle('dark', isDark);
+      var m = document.querySelector('meta[name="color-scheme"]');
+      if (m) m.content = isDark ? 'dark' : 'light';
+      var tc = document.querySelector('meta[name="theme-color"]');
+      if (tc) tc.content = isDark ? '#060911' : '#f8fafc';
+    })();
+  </script>
+
+  <meta name="description" content="从最初使用现成的 Magisk 模块，到理解 Android 验证启动机制、设备自签名与双分区 OTA 维护，回顾两年间围绕多台高通设备展开的系统定制与排障历程。" />
+  <link rel="canonical" href="https://7stevejohn.github.io/p/two-years-of-flashing.html" />
+
+  <!-- Open Graph / Twitter Card -->
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="楠屿札记" />
+  <meta property="og:title" content="两年刷机记：从 K60 Pro 到拯救者 Y700 与假回锁" />
+  <meta property="og:description" content="从最初使用现成的 Magisk 模块，到理解 Android 验证启动机制、设备自签名与双分区 OTA 维护，回顾两年间围绕多台高通设备展开的系统定制与排障历程。" />
+  <meta property="og:url" content="https://7stevejohn.github.io/p/two-years-of-flashing.html" />
+  <meta property="og:image" content="https://7stevejohn.github.io/og-image.png" />
+  <meta property="article:published_time" content="2026-09-30" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="两年刷机记：从 K60 Pro 到拯救者 Y700 与假回锁" />
+  <meta name="twitter:description" content="从最初使用现成的 Magisk 模块，到理解 Android 验证启动机制、设备自签名与双分区 OTA 维护，回顾两年间围绕多台高通设备展开的系统定制与排障历程。" />
+  <meta name="twitter:image" content="https://7stevejohn.github.io/og-image.png" />
+
+  <link rel="alternate" type="application/rss+xml" title="楠屿札记 · 手记与创作" href="../rss.xml" />
+  <link rel="shortcut icon" href="../favicon.ico" />
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+  <link rel="manifest" href="../manifest.json" />
+
+  <link rel="preload" href="../assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="../assets/fonts/inter.css" />
+  <link rel="stylesheet" href="../assets/vendor/tailwind.css" />
+  <link rel="stylesheet" href="../css/style.css?v=20261128a" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "两年刷机记：从 K60 Pro 到拯救者 Y700 与假回锁",
+  "description": "从最初使用现成的 Magisk 模块，到理解 Android 验证启动机制、设备自签名与双分区 OTA 维护，回顾两年间围绕多台高通设备展开的系统定制与排障历程。",
+  "datePublished": "2026-09-30",
+  "dateModified": "2026-09-30",
+  "articleSection": "刷机",
+  "keywords": "刷机, Y700, KernelSU, 假回锁",
+  "inLanguage": "zh-CN",
+  "url": "https://7stevejohn.github.io/p/two-years-of-flashing.html",
+  "image": "https://7stevejohn.github.io/og-image.png",
+  "author": {
+    "@type": "Person",
+    "name": "SevenJohn",
+    "url": "https://7stevejohn.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "楠屿札记",
+    "url": "https://7stevejohn.github.io/"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://7stevejohn.github.io/p/two-years-of-flashing.html"
+  }
+}
+  </script>
+
+  <style>
+    .post-shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #f8fafc;
+      color: #1d1d1f;
+    }
+    .dark .post-shell {
+      background: #060911;
+      color: #f1f5f9;
+    }
+    .post-bar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(255, 255, 255, 0.88);
+      border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .dark .post-bar {
+      background: rgba(6, 9, 17, 0.86);
+      border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+    .post-bar-in {
+      max-width: 52rem;
+      margin: 0 auto;
+      padding: 0 1.25rem;
+      height: 3.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .post-brand {
+      font-size: 0.9375rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #0f172a;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .dark .post-brand { color: #f8fafc; }
+    .post-nav {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      font-size: 0.75rem;
+    }
+    .post-nav-link {
+      color: #475569;
+      text-decoration: none;
+      padding: 0.3rem 0.55rem;
+      border-radius: 9999px;
+      transition: color 0.18s ease, background-color 0.18s ease;
+      white-space: nowrap;
+    }
+    .post-nav-link:hover {
+      color: #0f172a;
+      background: rgba(15, 23, 42, 0.06);
+    }
+    .dark .post-nav-link { color: #94a3b8; }
+    .dark .post-nav-link:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .post-bgm-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.32rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-decoration: none;
+      color: #ffffff;
+      background: #0369a1;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      white-space: nowrap;
+    }
+    .post-bgm-cta:hover { opacity: 0.92; transform: translateY(-1px); }
+    .dark .post-bgm-cta {
+      color: #06121f;
+      background: #38bdf8;
+    }
+    .post-theme-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 9999px;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      background: transparent;
+      color: #334155;
+      cursor: pointer;
+      transition: background-color 0.18s ease, color 0.18s ease;
+    }
+    .post-theme-btn:hover { background: rgba(15, 23, 42, 0.06); color: #0f172a; }
+    .dark .post-theme-btn {
+      border-color: rgba(255, 255, 255, 0.16);
+      color: #cbd5e1;
+    }
+    .dark .post-theme-btn:hover { background: rgba(255, 255, 255, 0.1); color: #ffffff; }
+    .post-main {
+      flex: 1;
+      width: 100%;
+      max-width: 50rem;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+    .post-article {
+      background: #ffffff;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 1.25rem;
+      padding: 2rem 1.5rem 2.25rem;
+      box-shadow: 0 10px 32px -16px rgba(15, 23, 42, 0.08);
+    }
+    @media (min-width: 640px) {
+      .post-article { padding: 2.75rem 3rem 3rem; }
+    }
+    .dark .post-article {
+      background: #0f1522;
+      border-color: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 16px 40px -20px rgba(0, 0, 0, 0.65);
+    }
+    .post-head {
+      padding-bottom: 1.5rem;
+      margin-bottom: 1.75rem;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    }
+    .dark .post-head { border-bottom-color: rgba(255, 255, 255, 0.1); }
+    .post-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: #475569;
+      margin-bottom: 0.85rem;
+    }
+    .dark .post-meta { color: #94a3b8; }
+    .post-cat {
+      padding: 0.15rem 0.6rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      color: #0369a1;
+      background: rgba(3, 105, 161, 0.1);
+    }
+    .dark .post-cat {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.14);
+    }
+    .post-title {
+      font-size: clamp(1.55rem, 3.2vw, 2.15rem);
+      font-weight: 800;
+      line-height: 1.25;
+      letter-spacing: -0.025em;
+      color: #0f172a;
+      margin: 0;
+    }
+    .dark .post-title { color: #f8fafc; }
+    .post-summary {
+      margin-top: 0.9rem;
+      font-size: 0.95rem;
+      line-height: 1.75;
+      color: #475569;
+    }
+    .dark .post-summary { color: #cbd5e1; }
+    .post-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-top: 1rem;
+    }
+    .post-tag {
+      font-size: 0.75rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      padding: 0.15rem 0.55rem;
+      border-radius: 0.375rem;
+      color: #334155;
+      background: rgba(15, 23, 42, 0.05);
+    }
+    .dark .post-tag {
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .post-cover {
+      margin: 0 0 1.75rem;
+      border-radius: 0.875rem;
+      overflow: hidden;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: rgba(15, 23, 42, 0.03);
+      aspect-ratio: 16 / 9;
+      max-height: 20rem;
+    }
+    .dark .post-cover {
+      border-color: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .post-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .post-article .markdown-body {
+      color: #1d1d1f;
+    }
+    .dark .post-article .markdown-body {
+      color: #e2e8f0;
+    }
+    .post-article .markdown-body pre {
+      padding: 1rem 1.1rem;
+    }
+    .post-article .markdown-body pre code {
+      color: #e6edf3;
+    }
+    .post-article .markdown-body blockquote {
+      color: #475569;
+    }
+    .dark .post-article .markdown-body blockquote {
+      color: #cbd5e1;
+    }
+    .post-article .markdown-body a {
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .post-pager {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.85rem;
+      margin-top: 2rem;
+    }
+    @media (max-width: 600px) {
+      .post-pager { grid-template-columns: 1fr; }
+      .post-bgm-cta span.cta-extra { display: none; }
+    }
+    .post-pager-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      padding: 0.95rem 1.1rem;
+      border-radius: 0.875rem;
+      text-decoration: none;
+      background: #ffffff;
+      border: 1px solid rgba(15, 23, 42, 0.09);
+      transition: border-color 0.18s ease, transform 0.18s ease;
+    }
+    .post-pager-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .dark .post-pager-card {
+      background: #0f1522;
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+    .post-pager-next { text-align: right; }
+    .post-pager-k {
+      font-size: 0.72rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: var(--accent);
+    }
+    .post-pager-v {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #0f172a;
+      line-height: 1.45;
+    }
+    .dark .post-pager-v { color: #f1f5f9; }
+    .post-foot {
+      border-top: 1px solid rgba(15, 23, 42, 0.08);
+      padding: 2rem 1.25rem;
+      font-size: 0.75rem;
+      color: #475569;
+    }
+    .dark .post-foot {
+      border-top-color: rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+    }
+    .post-foot-in {
+      max-width: 50rem;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .post-foot-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.1rem;
+    }
+    .post-foot-links a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .post-foot-links a:hover { color: var(--accent); }
+  </style>
+</head>
+<body class="post-shell antialiased">
+  <header class="post-bar">
+    <div class="post-bar-in">
+      <a href="../index.html" class="post-brand">楠屿札记</a>
+      <nav aria-label="文章页导航" class="post-nav">
+        <a href="../index.html?post=two-years-of-flashing" class="post-bgm-cta" title="回到首页弹窗阅读，支持背景音乐与站内翻章">
+          <span>首页沉浸阅读<span class="cta-extra">（含 BGM）</span></span>
+        </a>
+        <a href="../archive.html" class="post-nav-link">归档</a>
+        <button id="theme-toggle" type="button" class="post-theme-btn" aria-label="切换明暗模式" title="切换晨曦/极夜模式">
+          <svg class="w-4 h-4 hidden dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          <svg class="w-4 h-4 block dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="post-main">
+    <article class="post-article">
+      <header class="post-head">
+        <div class="post-meta">
+          <span class="post-cat">刷机</span>
+          <time datetime="2026-09-30">2026-09-30</time>
+          <span aria-hidden="true">·</span>
+          <span>6 分钟</span>
+        </div>
+        <h1 class="post-title">两年刷机记：从 K60 Pro 到拯救者 Y700 与假回锁</h1>
+        <p class="post-summary">从最初使用现成的 Magisk 模块，到理解 Android 验证启动机制、设备自签名与双分区 OTA 维护，回顾两年间围绕多台高通设备展开的系统定制与排障历程。</p>
+        <div class="post-tags"><span class="post-tag">#刷机</span><span class="post-tag">#Y700</span><span class="post-tag">#KernelSU</span><span class="post-tag">#假回锁</span></div>
+      </header>
+      <figure class="post-cover"><img src="../assets/images/covers/cover-two-years-flashing.svg" alt="两年刷机记：从 K60 Pro 到拯救者 Y700 与假回锁" loading="eager" decoding="async" /></figure>
+      <div class="markdown-body">
+<p>最初入手 K60 Pro 时，我对刷机的理解还停留在“获取最高权限（Root）”。真正促使我动手的诉求很具体：希望绕过原厂系统的默认限制，对后台调度、全局刷新率等系统级行为做更细致的定制。</p>
+<p>第一道门槛是解锁 Bootloader（系统引导加载程序）。2025 年起小米大幅收紧了解锁策略：账号需先将官方社区等级升至 5 级，再通过不定期开放的资格答题；答题成绩每周一晚清零，获批后须在 14 天内完成设备绑定与解锁，且每个账号每年仅限解锁一台设备。光是摸清这套准入规则，就花了不少时间。</p>
+<p>成功解锁后，最初只是照搬现成的 Magisk（主流无侵入式 Root 框架）模块。直到经历了几次卡开机与功能失效，才倒逼自己去查清背后的机制：为什么 Magisk 不直接改动只读的 <code>system</code> 分区也能挂载生效，为什么新机型的补丁必须写入 <code>init_boot</code> 引导分区，以及修改镜像后为何必须重新处理校验签名。</p>
+<p>那段时间硬盘里留下了十份修补镜像，时间从 2025 年 10 月排到 2026 年 3 月，基本跟着系统版本迭代。</p>
+<h3>Y700：从「免解玄学」到「自签设备」</h3>
+<p>购入联想拯救者 Y700 四代平板时，初衷只是看中 8.8 英寸屏幕适合阅读，原本打算直接维持原厂系统使用。</p>
+<p>转折源于社区流传出的一份无需解锁 Bootloader 即可刷入的工程固件包。它利用高通平台的 9008 紧急下载模式（EDL）直接读写闪存芯片——这是固化在芯片底层的烧录与救砖通道，不依赖上层系统。第一次操作时，面对设备管理器里的底层端口列表，我反复核对了许久才敢执行写入。</p>
+<p>后来梳理 Android 启动校验机制才弄清原理：这并非底层漏洞，而是因为该机型属于“可自签设备”——厂商在出厂引导链中保留了对 Android 开源项目默认测试密钥（AOSP testkey）的信任。只要使用这套公开私钥对修改后的分区重新签名，未解锁的原厂引导程序也会将其视为合法固件放行。</p>
+<p>从按部就班照搬教程，到能够独立判断目标分区结构、区分“常规解锁”与“密钥自签名”的边界，背后花了不少时间补齐启动链知识。</p>
+<h3>假回锁与 A/B 槽位的生存战</h3>
+<p>后来接触到部分完全关闭官方解锁通道的高通机型，定制思路又发生了变化。</p>
+<p>这类设备既无法常规解锁，也不信任公开测试密钥，社区由此衍生出 <strong>“假回锁（Fake Lock）”</strong> 方案：利用底层引导漏洞，在次级引导程序（ABL）运行的极早期注入内存补丁，将引导锁状态改写为正常的“已锁定（Locked &amp; Green）”，使后续启动的系统与硬件可信执行环境（TEE）均认定设备处于原厂未改动状态，同时正常加载修补后的内核。</p>
+<p>这种方案最脆弱的环节在于系统在线更新（OTA）。采用 A/B 主备双分区的机型在后台下载更新后，会将原厂未修改的引导程序与内核写入备用分区；一旦直接重启切换分区，原有的引导补丁会被覆盖，极易因校验冲突导致无法开机。因此每次系统更新写入完成后都不能立即重启，必须先用专用引导维护工具与内核管理器（如 KernelSU）分别为备用分区补齐引导补丁和内核权限，确认无误后才能切换分区。</p>
+<h3>从用工具到做工具</h3>
+<p>熟悉底层机制后，我开始尝试自己编写模块和辅助脚本来解决实际痛点。</p>
+<p>第一个目标是解决动态刷新率频繁降档的问题：阅读静态文字时，屏幕常自动降至 60Hz 甚至更低，滑动初段会有明显顿挫。我编写了一个锁定全局 120Hz 的模块，从三层同时介入：修改系统显示设置参数、改写内核暴露的 <code>sysfs</code> 显示控制节点，并屏蔽系统框架层的温控降帧策略。调试中最耗精力的并非参数本身，而是启动时序——系统服务初始化往往会覆盖早期写入的配置，最终需要在脚本中轮询等待系统启动就绪后，再二次写入锁定。</p>
+<p>后来又整理出一份 AVB 签名脚本，把提取分区、重算哈希、重签 <code>vbmeta</code>、刷回和上锁串成一条自动化流程。</p>
+<p>再往后是对系统环境一致性的体会：系统属性看似可以随意覆写，但直接改动全局属性，往往会导致上层应用框架与底层原生（Native）驱动读取到的硬件信息不一致，进而引发跨层调用异常。摸清这层边界后才意识到，与其堆砌各类全局修改模块，不如尽量维持系统的原生状态，仅在目标作用范围内做最小化调整。</p>
+<h3>现在</h3>
+<p>两年下来，从最初照搬教程刷入现成工具，到能够独立分析分区结构、编写定制模块、理清文件系统挂载与硬件安全校验的边界，中间并没有哪一步是凭空顿悟的，全靠一次次卡开机与异常报错倒逼着把链路摸清。</p>
+<p>如今硬盘里还存着 350 GB 的固件包与排查记录，绝大多数大概不会再派上用场，但它们完整记下了把这套底层机制逐层理顺的过程。</p>
+      </div>
+    </article>
+    <nav class="post-pager" aria-label="相邻文章">
+        <a class="post-pager-card" href="./root-hiding-layers.html"><span class="post-pager-k">← 上一篇</span><span class="post-pager-v">root 藏不住的原因：三层隐藏各管哪一段</span></a>
+        <a class="post-pager-card post-pager-next" href="./local-llm-8gb-vram.html"><span class="post-pager-k">下一篇 →</span><span class="post-pager-v">8GB 显存跑本地大模型：先算显存账，再挑模型</span></a>
+      </nav>
+  </main>
+
+  <footer class="post-foot">
+    <div class="post-foot-in">
+      <span>© <span id="footer-year">2026</span> 楠屿札记 · 慢慢写，慢慢看。</span>
+      <div class="post-foot-links">
+        <a href="../index.html">首页</a>
+        <a href="../archive.html">归档</a>
+        <a href="../gallery.html">照片墙</a>
+        <a href="../rss.xml">RSS</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var syncMeta = function (dark) {
+        var m = document.querySelector('meta[name="color-scheme"]');
+        if (m) m.content = dark ? 'dark' : 'light';
+        var tc = document.querySelector('meta[name="theme-color"]');
+        if (tc) tc.content = dark ? '#060911' : '#f8fafc';
+      };
+      var btn = document.getElementById('theme-toggle');
+      if (btn) {
+        btn.addEventListener('click', function () {
+          var dark = root.classList.toggle('dark');
+          syncMeta(dark);
+          try { localStorage.setItem('sj.theme', dark ? 'dark' : 'light'); } catch (e) {}
+        });
+      }
+      window.addEventListener('storage', function (ev) {
+        if (ev.key === 'sj.theme') {
+          var dark = ev.newValue === 'dark';
+          root.classList.toggle('dark', dark);
+          syncMeta(dark);
+        }
+      });
+      var y = document.getElementById('footer-year');
+      if (y) y.textContent = String(new Date().getFullYear());
+
+      // 按需补齐代码高亮（仅当正文存在代码块时加载，离线或失败静默降级）
+      if (document.querySelector('.markdown-body pre code')) {
+        var css = document.createElement('link');
+        css.rel = 'stylesheet';
+        css.href = '../assets/vendor/github-dark.min.css';
+        document.head.appendChild(css);
+        var js = document.createElement('script');
+        js.src = '../assets/vendor/highlight.min.js';
+        js.onload = function () {
+          if (window.hljs) {
+            document.querySelectorAll('.markdown-body pre code').forEach(function (el) {
+              window.hljs.highlightElement(el);
+            });
+          }
+        };
+        document.head.appendChild(js);
+      }
+
+      if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
+        navigator.serviceWorker.register('../sw.js', { scope: '../' }).catch(function () {});
+      }
+    })();
+  </script>
+</body>
+</html>
